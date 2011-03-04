@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   QLabel* helloLabel = new QLabel("Hello", this);
   QTableWidget* table = new QTableWidget(3, 2);
 
-  QSplitter* splitter = new QSplitter(Qt::Orientations::enum_type::Horizontal);
+  QSplitter* splitter = new QSplitter(Qt::Horizontal);
   splitter->addWidget(helloLabel);
   splitter->addWidget(table);
   setCentralWidget(splitter);
