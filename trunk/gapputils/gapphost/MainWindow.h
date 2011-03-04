@@ -19,7 +19,7 @@ private:
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
-  ~MainWindow();
+  virtual ~MainWindow();
 
 private slots:
   void quit();
