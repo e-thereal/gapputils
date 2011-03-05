@@ -13,7 +13,7 @@ namespace host {
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
     : QMainWindow(parent, flags)
 {
-  setWindowTitle("gapputils Application Host");
+  setWindowTitle("Application Host");
   fileMenu = menuBar()->addMenu("File");
   QAction* quitAction = fileMenu->addAction("Quit");
 
