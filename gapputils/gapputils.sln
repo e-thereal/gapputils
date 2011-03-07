@@ -4,6 +4,17 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gapputils", "gapputils\gapputils.vcxproj", "{42730DF7-A9EF-41DD-A213-B5D07049603E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gapphost", "gapphost\gapphost.vcxproj", "{A07F921E-E098-4A95-BEF9-9CA1ED0F4725}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A571956C-9097-4B72-B3CA-9627786AAECD} = {A571956C-9097-4B72-B3CA-9627786AAECD}
+		{B47B19A5-8F5D-467D-B0D5-B5D7115D013C} = {B47B19A5-8F5D-467D-B0D5-B5D7115D013C}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "capputils", "capputils\capputils.vcxproj", "{B47B19A5-8F5D-467D-B0D5-B5D7115D013C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A571956C-9097-4B72-B3CA-9627786AAECD} = {A571956C-9097-4B72-B3CA-9627786AAECD}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinyxml", "tinyxml\tinyxml.vcxproj", "{A571956C-9097-4B72-B3CA-9627786AAECD}"
 EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
@@ -12,17 +23,37 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
 		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{42730DF7-A9EF-41DD-A213-B5D07049603E}.Debug|Win32.ActiveCfg = Debug|Win32
 		{42730DF7-A9EF-41DD-A213-B5D07049603E}.Debug|Win32.Build.0 = Debug|Win32
+		{42730DF7-A9EF-41DD-A213-B5D07049603E}.Debug|x64.ActiveCfg = Debug|Win32
 		{42730DF7-A9EF-41DD-A213-B5D07049603E}.Release|Win32.ActiveCfg = Release|Win32
 		{42730DF7-A9EF-41DD-A213-B5D07049603E}.Release|Win32.Build.0 = Release|Win32
+		{42730DF7-A9EF-41DD-A213-B5D07049603E}.Release|x64.ActiveCfg = Release|Win32
 		{A07F921E-E098-4A95-BEF9-9CA1ED0F4725}.Debug|Win32.ActiveCfg = Debug|Win32
 		{A07F921E-E098-4A95-BEF9-9CA1ED0F4725}.Debug|Win32.Build.0 = Debug|Win32
+		{A07F921E-E098-4A95-BEF9-9CA1ED0F4725}.Debug|x64.ActiveCfg = Debug|Win32
 		{A07F921E-E098-4A95-BEF9-9CA1ED0F4725}.Release|Win32.ActiveCfg = Release|Win32
 		{A07F921E-E098-4A95-BEF9-9CA1ED0F4725}.Release|Win32.Build.0 = Release|Win32
+		{A07F921E-E098-4A95-BEF9-9CA1ED0F4725}.Release|x64.ActiveCfg = Release|Win32
+		{B47B19A5-8F5D-467D-B0D5-B5D7115D013C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B47B19A5-8F5D-467D-B0D5-B5D7115D013C}.Debug|Win32.Build.0 = Debug|Win32
+		{B47B19A5-8F5D-467D-B0D5-B5D7115D013C}.Debug|x64.ActiveCfg = Debug|Win32
+		{B47B19A5-8F5D-467D-B0D5-B5D7115D013C}.Release|Win32.ActiveCfg = Release|Win32
+		{B47B19A5-8F5D-467D-B0D5-B5D7115D013C}.Release|Win32.Build.0 = Release|Win32
+		{B47B19A5-8F5D-467D-B0D5-B5D7115D013C}.Release|x64.ActiveCfg = Release|Win32
+		{A571956C-9097-4B72-B3CA-9627786AAECD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A571956C-9097-4B72-B3CA-9627786AAECD}.Debug|Win32.Build.0 = Debug|Win32
+		{A571956C-9097-4B72-B3CA-9627786AAECD}.Debug|x64.ActiveCfg = Debug|x64
+		{A571956C-9097-4B72-B3CA-9627786AAECD}.Debug|x64.Build.0 = Debug|x64
+		{A571956C-9097-4B72-B3CA-9627786AAECD}.Release|Win32.ActiveCfg = Release|Win32
+		{A571956C-9097-4B72-B3CA-9627786AAECD}.Release|Win32.Build.0 = Release|Win32
+		{A571956C-9097-4B72-B3CA-9627786AAECD}.Release|x64.ActiveCfg = Release|x64
+		{A571956C-9097-4B72-B3CA-9627786AAECD}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
