@@ -7,6 +7,7 @@
 #include <string>
 #include <istream>
 #include <ostream>
+#include <Enumerators.h>
 
 class Address : public capputils::reflection::ReflectableClass {
 
@@ -26,6 +27,8 @@ public:
   }
 };
 
+DeclareEnum(Gender, Male, Female)
+
 class Person : public capputils::reflection::ReflectableClass {
 InitReflectableClass(Person)
 
@@ -33,6 +36,7 @@ Property(FirstName, std::string)
 Property(Name, std::string)
 Property(Age, int)
 Property(Address, Address*)
+Property(Gender, Gender)
 
 public:
   Person(void);
