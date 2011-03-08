@@ -45,7 +45,7 @@ void buildModel(QStandardItem* parentItem, const ReflectableClass& object) {
 
     IReflectableAttribute* reflectable = properties[i]->getAttribute<IReflectableAttribute>();
     if (reflectable) {
-      ReflectableClass* subObject = (ReflectableClass*)properties[i]->getValuePtr(object);
+      ReflectableClass* subObject = reflectable->getValuePtr(object, properties[i]);
       if (subObject->getAttribute<ScalarAttribute>())
         value->setText(properties[i]->getStringValue(object).c_str());
       else
