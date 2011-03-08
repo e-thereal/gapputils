@@ -32,7 +32,7 @@ namespace host {
 void buildModel(QStandardItem* parentItem, const ReflectableClass& object) {
   vector<IClassProperty*> properties = object.getProperties();
 
-  for (int i = 0; i < properties.size(); ++i) {
+  for (unsigned i = 0; i < properties.size(); ++i) {
     QStandardItem *key = new QStandardItem(properties[i]->getName().c_str());
     key->setEditable(false);
 

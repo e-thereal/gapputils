@@ -3,6 +3,8 @@
 	<name>gapphost</name>
 	<comment></comment>
 	<projects>
+		<project>capputils</project>
+		<project>tinyxml</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
