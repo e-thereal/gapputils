@@ -50,9 +50,15 @@
     <ClCompile Include="Person.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PropertyReference.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PropertyReference.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

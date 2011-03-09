@@ -12,6 +12,7 @@
 #include <qtreewidget.h>
 #include <qdatawidgetmapper.h>
 #include <qitemdelegate.h>
+#include <qvariant.h>
 
 #include <DescriptionAttribute.h>
 #include <ReflectableAttribute.h>
@@ -19,6 +20,7 @@
 #include <ScalarAttribute.h>
 
 #include "Person.h"
+#include "PropertyReference.h"
 
 using namespace std;
 using namespace capputils;
@@ -29,14 +31,15 @@ namespace gapputils {
 
 namespace host {
 
-void buildModel(QStandardItem* parentItem, const ReflectableClass& object) {
+void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
   vector<IClassProperty*> properties = object.getProperties();
 
   for (unsigned i = 0; i < properties.size(); ++i) {
     QStandardItem *key = new QStandardItem(properties[i]->getName().c_str());
-    key->setEditable(false);
-
     QStandardItem* value = new QStandardItem(properties[i]->getStringValue(object).c_str());
+    key->setEditable(false);
+    value->setData(QVariant::fromValue(PropertyReference(&object, properties[i])), Qt::UserRole);
+    
     DescriptionAttribute* description = properties[i]->getAttribute<DescriptionAttribute>();
     if (description) {
       key->setToolTip(description->getDescription().c_str());
@@ -46,16 +49,42 @@ void buildModel(QStandardItem* parentItem, const ReflectableClass& object) {
     IReflectableAttribute* reflectable = properties[i]->getAttribute<IReflectableAttribute>();
     if (reflectable) {
       ReflectableClass* subObject = reflectable->getValuePtr(object, properties[i]);
-      if (subObject->getAttribute<ScalarAttribute>())
-        value->setText(properties[i]->getStringValue(object).c_str());
-      else
-        value->setText(subObject->getClassName().c_str());
-      value->setEnabled(false);
-      buildModel(key, *subObject);
-    }
 
+      Enumerator* enumerator = dynamic_cast<Enumerator*>(subObject);
+      if (enumerator) {
+        value->setText(properties[i]->getStringValue(object).c_str());
+      } else {
+        if (subObject->getAttribute<ScalarAttribute>()) {
+          value->setText(properties[i]->getStringValue(object).c_str());
+        } else {
+          value->setText(subObject->getClassName().c_str());
+          value->setEnabled(false);
+        }
+        buildModel(key, *subObject);
+      }
+    }
     parentItem->setChild(i, 0, key);
     parentItem->setChild(i, 1, value);
+  }
+}
+
+void addWidgets(QAbstractItemView* view, QStandardItem* item) {
+  for (int i = 0; i < item->rowCount(); ++i) {
+    QStandardItem* subItem = item->child(i, 1);
+    if (subItem->data(Qt::UserRole).canConvert<PropertyReference>()) {
+      PropertyReference& reference = subItem->data(Qt::UserRole).value<PropertyReference>();
+      IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
+      if (reflectable) {
+        Enumerator* enumerator = dynamic_cast<Enumerator*>(reflectable->getValuePtr(*reference.getObject(), reference.getProperty()));
+        if (enumerator) {
+          QComboBox* box = new QComboBox();
+          vector<string>& values = enumerator->getValues();
+          for (int i = 0; i < values.size(); ++i)
+            box->addItem(values[i].c_str());
+          view->setIndexWidget(subItem->index(), box);
+        }
+      }
+    }
   }
 }
 
@@ -68,31 +97,27 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   connect(quitAction, SIGNAL(triggered()), this, SLOT(quit()));
 
-  QLabel* helloLabel = new QLabel("Hello", this);
+  testLabel = new QLabel("Hello", this);
   
   QTreeView* tree = new QTreeView();
   tree->setAllColumnsShowFocus(false);
   tree->setAlternatingRowColors(true);
   tree->setSelectionBehavior(QAbstractItemView::SelectItems);
-  tree->setEditTriggers(QAbstractItemView::DoubleClicked
-                                 | QAbstractItemView::CurrentChanged);
+  tree->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::CurrentChanged);
   
   Person person;
   QStandardItemModel* model = new QStandardItemModel(0, 2);
   model->setHorizontalHeaderItem(0, new QStandardItem("Property"));
   model->setHorizontalHeaderItem(1, new QStandardItem("Value"));
+  connect(model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(itemChanged(QStandardItem*)));
 
   QStandardItem *parentItem = model->invisibleRootItem();
   buildModel(parentItem, person);
   tree->setModel(model);
-  
-  QComboBox* box1 = new QComboBox();
-  box1->addItem("Red");
-  box1->addItem("Green");
-  //tree->setIndexWidget(model->index(3, 1), box1);
+  addWidgets(tree, parentItem);
 
   QSplitter* splitter = new QSplitter(Qt::Horizontal);
-  splitter->addWidget(helloLabel);
+  splitter->addWidget(testLabel);
   splitter->addWidget(tree);
   setCentralWidget(splitter);
 
@@ -107,6 +132,17 @@ MainWindow::~MainWindow()
 
 void MainWindow::quit() {
   this->close();
+}
+
+void MainWindow::itemChanged(QStandardItem* item) {
+  QString str;
+  testLabel->setText(item->text() + str.sprintf(" @ (%d, %d)", item->index().column(), item->index().row()));
+
+  // Update model if necessary
+  if (item->data(Qt::UserRole).canConvert<PropertyReference>()) {
+    PropertyReference& reference = item->data(Qt::UserRole).value<PropertyReference>();
+    testLabel->setText(reference.getProperty()->getName().c_str());
+  }
 }
 
 }

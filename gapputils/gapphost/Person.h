@@ -27,7 +27,7 @@ public:
   }
 };
 
-DeclareEnum(Gender, Male, Female)
+ReflectableEnum(Gender, Male, Female)
 
 class Person : public capputils::reflection::ReflectableClass {
 InitReflectableClass(Person)
