@@ -4,6 +4,8 @@
 #include <QtGui/QMainWindow>
 
 #include <qmenu.h>
+#include <qstandarditemmodel.h>
+#include <qlabel.h>
 
 namespace gapputils {
 
@@ -16,6 +18,7 @@ class MainWindow : public QMainWindow
 private:
   QMenu* fileMenu;
   QWidget* centralWidget;
+  QLabel* testLabel;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
@@ -23,6 +26,7 @@ public:
 
 private slots:
   void quit();
+  void itemChanged(QStandardItem* item);
 };
 
 }
