@@ -4,7 +4,10 @@
 #include <ScalarAttribute.h>
 #include <ObserveAttribute.h>
 
+#include "LabelAttribute.h"
+
 using namespace capputils::attributes;
+using namespace gapputils::attributes;
 
 BeginPropertyDefinitions(Address, Scalar())
 
@@ -20,7 +23,7 @@ Address::Address() : _Street("W 11th Ave"), _City("Vancouver"), _StreetNumber(10
 BeginPropertyDefinitions(Person)
 
 DefineProperty(FirstName,
-  Description("Persons given name."), Observe(PROPERTY_ID))
+  Description("Persons given name."), Observe(PROPERTY_ID), Label())
 
 DefineProperty(Name,
   Description("Name of our parents."), Observe(PROPERTY_ID))
@@ -35,8 +38,9 @@ ReflectableProperty(Gender, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-Person::Person(void) : _FirstName("Tom"), _Name("Brosch"), _Age(27), _Address(new Address()), _Gender(Gender::Male)
+Person::Person(void) : _FirstName("Tom"), _Name("Brosch"), _Age(27), _Address(0), _Gender(Gender::Male)
 {
+  setAddress(new Address());
 }
 
 Person::~Person(void)

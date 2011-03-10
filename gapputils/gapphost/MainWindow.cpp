@@ -22,6 +22,8 @@
 #include "Person.h"
 #include "PropertyReference.h"
 #include "PropertyGridDelegate.h"
+#include "Workbench.h"
+#include "ToolItem.h"
 
 using namespace std;
 using namespace capputils;
@@ -37,54 +39,51 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 {
   setWindowTitle("Application Host");
   fileMenu = menuBar()->addMenu("File");
+  QAction* newItemAction = fileMenu->addAction("New Item");
   QAction* quitAction = fileMenu->addAction("Quit");
 
-  connect(quitAction, SIGNAL(triggered()), this, SLOT(quit()));
 
-  testLabel = new QLabel("Hello", this);
-  testLabel->setGeometry(0, 0, 640, 600);
-  //testLabel->setSizePolicy(Qt::Size);
+
+  bench = new Workbench();
+  bench->setGeometry(0, 0, 600, 600);
+
   this->setGeometry(150, 150, 800, 600);
 
-  harmonizer1 = new ModelHarmonizer(&person);
-  harmonizer2 = new ModelHarmonizer(&person);
-  
-  QTreeView* tree = new QTreeView();
-  tree->setAllColumnsShowFocus(false);
-  tree->setAlternatingRowColors(true);
-  tree->setSelectionBehavior(QAbstractItemView::SelectItems);
-  tree->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::CurrentChanged);
-  tree->setItemDelegate(new PropertyGridDelegate());
-  tree->setModel(harmonizer1->getModel());
-  tree->setItemDelegate(new PropertyGridDelegate());
-
-  QTreeView* tree2 = new QTreeView();
-  tree2->setAllColumnsShowFocus(false);
-  tree2->setAlternatingRowColors(true);
-  tree2->setSelectionBehavior(QAbstractItemView::SelectItems);
-  tree2->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::CurrentChanged);
-  tree2->setModel(harmonizer2->getModel());
-  tree->setItemDelegate(new PropertyGridDelegate());
+  propertyGrid = new QTreeView();
+  propertyGrid->setAllColumnsShowFocus(false);
+  propertyGrid->setAlternatingRowColors(true);
+  propertyGrid->setSelectionBehavior(QAbstractItemView::SelectItems);
+  propertyGrid->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::CurrentChanged);
+  propertyGrid->setItemDelegate(new PropertyGridDelegate());
+  propertyGrid->setItemDelegate(new PropertyGridDelegate());
 
   QSplitter* splitter = new QSplitter(Qt::Horizontal);
-  splitter->addWidget(testLabel);
-  splitter->addWidget(tree);
-  splitter->addWidget(tree2);
+  splitter->addWidget(bench);
+  splitter->addWidget(propertyGrid);
   setCentralWidget(splitter);
-
   centralWidget = splitter;
+
+  connect(newItemAction, SIGNAL(triggered()), this, SLOT(newItem()));
+  connect(quitAction, SIGNAL(triggered()), this, SLOT(quit()));
+  connect(bench, SIGNAL(itemSelected(ToolItem*)), this, SLOT(itemSelected(ToolItem*)));
 }
 
 MainWindow::~MainWindow()
 {
-  delete centralWidget;
   delete fileMenu;
-  delete harmonizer1;
-  delete harmonizer2;
+  delete centralWidget;
 }
 
 void MainWindow::quit() {
   this->close();
+}
+
+void MainWindow::newItem() {
+  bench->addToolItem(new ToolItem(new Person()));
+}
+
+void MainWindow::itemSelected(ToolItem* item) {
+  propertyGrid->setModel(item->getModel());
 }
 
 }
