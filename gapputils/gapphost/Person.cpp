@@ -2,15 +2,16 @@
 
 #include <DescriptionAttribute.h>
 #include <ScalarAttribute.h>
+#include <ObserveAttribute.h>
 
 using namespace capputils::attributes;
 
 BeginPropertyDefinitions(Address, Scalar())
 
-DefineProperty(Street)
-DefineProperty(City)
-DefineProperty(StreetNumber)
-DefineProperty(AppartmentNumber)
+DefineProperty(Street, Observe(PROPERTY_ID))
+DefineProperty(City, Observe(PROPERTY_ID))
+DefineProperty(StreetNumber, Observe(PROPERTY_ID))
+DefineProperty(AppartmentNumber, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
@@ -19,18 +20,18 @@ Address::Address() : _Street("W 11th Ave"), _City("Vancouver"), _StreetNumber(10
 BeginPropertyDefinitions(Person)
 
 DefineProperty(FirstName,
-  Description("Persons given name."))
+  Description("Persons given name."), Observe(PROPERTY_ID))
 
 DefineProperty(Name,
-  Description("Name of our parents."))
+  Description("Name of our parents."), Observe(PROPERTY_ID))
 
 DefineProperty(Age,
-  Description("Age in years."))
+  Description("Age in years."), Observe(PROPERTY_ID))
 
 ReflectableProperty(Address,
-  Description("Address with everything."))
+  Description("Address with everything."), Observe(PROPERTY_ID))
 
-ReflectableProperty(Gender)
+ReflectableProperty(Gender, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 

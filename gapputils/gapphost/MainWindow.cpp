@@ -72,14 +72,14 @@ void addWidgets(QAbstractItemView* view, QStandardItem* item) {
   for (int i = 0; i < item->rowCount(); ++i) {
     QStandardItem* subItem = item->child(i, 1);
     if (subItem->data(Qt::UserRole).canConvert<PropertyReference>()) {
-      PropertyReference& reference = subItem->data(Qt::UserRole).value<PropertyReference>();
+      const PropertyReference& reference = subItem->data(Qt::UserRole).value<PropertyReference>();
       IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
       if (reflectable) {
         Enumerator* enumerator = dynamic_cast<Enumerator*>(reflectable->getValuePtr(*reference.getObject(), reference.getProperty()));
         if (enumerator) {
           QComboBox* box = new QComboBox();
           vector<string>& values = enumerator->getValues();
-          for (int i = 0; i < values.size(); ++i)
+          for (unsigned i = 0; i < values.size(); ++i)
             box->addItem(values[i].c_str());
           view->setIndexWidget(subItem->index(), box);
         }
@@ -98,6 +98,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   connect(quitAction, SIGNAL(triggered()), this, SLOT(quit()));
 
   testLabel = new QLabel("Hello", this);
+  testLabel->setGeometry(0, 0, 540, 480);
+  this->setGeometry(0, 0, 640, 480);
   
   QTreeView* tree = new QTreeView();
   tree->setAllColumnsShowFocus(false);
@@ -105,8 +107,19 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   tree->setSelectionBehavior(QAbstractItemView::SelectItems);
   tree->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::CurrentChanged);
   
-  Person person;
-  QStandardItemModel* model = new QStandardItemModel(0, 2);
+  harmonizer1 = new ModelHarmonizer(&person);
+  harmonizer2 = new ModelHarmonizer(&person);
+  tree->setModel(harmonizer1->getModel());
+
+  QTreeView* tree2 = new QTreeView();
+  tree2->setAllColumnsShowFocus(false);
+  tree2->setAlternatingRowColors(true);
+  tree2->setSelectionBehavior(QAbstractItemView::SelectItems);
+  tree2->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::CurrentChanged);
+  tree2->setModel(harmonizer2->getModel());
+
+//  Person person;
+  /*QStandardItemModel* model = new QStandardItemModel(0, 2);
   model->setHorizontalHeaderItem(0, new QStandardItem("Property"));
   model->setHorizontalHeaderItem(1, new QStandardItem("Value"));
   connect(model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(itemChanged(QStandardItem*)));
@@ -115,10 +128,12 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   buildModel(parentItem, person);
   tree->setModel(model);
   addWidgets(tree, parentItem);
+  tree->setGeometry(0, 0, 50, 50);*/
 
   QSplitter* splitter = new QSplitter(Qt::Horizontal);
   splitter->addWidget(testLabel);
   splitter->addWidget(tree);
+  splitter->addWidget(tree2);
   setCentralWidget(splitter);
 
   centralWidget = splitter;
@@ -128,21 +143,12 @@ MainWindow::~MainWindow()
 {
   delete centralWidget;
   delete fileMenu;
+  delete harmonizer1;
+  delete harmonizer2;
 }
 
 void MainWindow::quit() {
   this->close();
-}
-
-void MainWindow::itemChanged(QStandardItem* item) {
-  QString str;
-  testLabel->setText(item->text() + str.sprintf(" @ (%d, %d)", item->index().column(), item->index().row()));
-
-  // Update model if necessary
-  if (item->data(Qt::UserRole).canConvert<PropertyReference>()) {
-    PropertyReference& reference = item->data(Qt::UserRole).value<PropertyReference>();
-    testLabel->setText(reference.getProperty()->getName().c_str());
-  }
 }
 
 }
