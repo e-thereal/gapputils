@@ -14,6 +14,7 @@
 
 #include "LabelAttribute.h"
 
+using namespace capputils;
 using namespace capputils::reflection;
 using namespace gapputils::attributes;
 using namespace std;
@@ -21,12 +22,15 @@ using namespace std;
 namespace gapputils {
 
 ToolItem::ToolItem(ReflectableClass* object, Workbench *bench)
- : object(object), bench(bench), harmonizer(object)
+ : changeHandler(this), object(object), bench(bench), harmonizer(object)
 {
   setFlag(ItemIsMovable);
-//  setFlag(ItemSendsGeometryChanges);
   setCacheMode(DeviceCoordinateCache);
   setZValue(-1);
+
+  ObservableClass* observable = dynamic_cast<ObservableClass*>(object);
+  if (observable)
+    observable->Changed.connect(changeHandler);
 }
 
 ToolItem::~ToolItem() {
@@ -45,7 +49,7 @@ QAbstractItemModel* ToolItem::getModel() const {
 }
 
 void ToolItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
-  if (bench)
+  if (bench && bench->getSelectedItem() != this)
     bench->setSelectedItem(this);
   QGraphicsItem::mousePressEvent(event);
 }

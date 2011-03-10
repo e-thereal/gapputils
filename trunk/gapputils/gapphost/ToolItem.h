@@ -11,6 +11,7 @@
 #include <qgraphicsitem.h>
 #include <ReflectableClass.h>
 #include <qabstractitemmodel.h>
+#include <ObservableClass.h>
 
 #include "ModelHarmonizer.h"
 
@@ -19,6 +20,17 @@ namespace gapputils {
 class Workbench;
 
 class ToolItem : public QGraphicsItem {
+public:
+  class ChangeHandler {
+    ToolItem* item;
+  public:
+    ChangeHandler(ToolItem* item) : item(item) { }
+
+    void operator()(capputils::ObservableClass*, int) {
+      item->update();
+    }
+  } changeHandler;
+
 private:
   capputils::reflection::ReflectableClass* object;
   Workbench* bench;

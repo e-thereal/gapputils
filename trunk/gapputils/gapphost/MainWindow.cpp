@@ -38,16 +38,14 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
     : QMainWindow(parent, flags)
 {
   setWindowTitle("Application Host");
+  this->setGeometry(150, 150, 800, 600);
+
   fileMenu = menuBar()->addMenu("File");
   QAction* newItemAction = fileMenu->addAction("New Item");
   QAction* quitAction = fileMenu->addAction("Quit");
 
-
-
   bench = new Workbench();
   bench->setGeometry(0, 0, 600, 600);
-
-  this->setGeometry(150, 150, 800, 600);
 
   propertyGrid = new QTreeView();
   propertyGrid->setAllColumnsShowFocus(false);
@@ -79,7 +77,9 @@ void MainWindow::quit() {
 }
 
 void MainWindow::newItem() {
-  bench->addToolItem(new ToolItem(new Person()));
+  ToolItem* item = new ToolItem(new Person());
+  bench->addToolItem(item);
+  bench->setSelectedItem(item);
 }
 
 void MainWindow::itemSelected(ToolItem* item) {
