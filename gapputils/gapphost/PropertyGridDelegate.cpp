@@ -19,9 +19,9 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
      const QStyleOptionViewItem & option ,
      const QModelIndex & index ) const
 {
-  QVariant& varient = index.model()->data(index, Qt::UserRole);
+  const QVariant& varient = index.model()->data(index, Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
-    PropertyReference& reference = varient.value<PropertyReference>();
+    const PropertyReference& reference = varient.value<PropertyReference>();
     IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
     if (reflectable) {
       ReflectableClass* object = reference.getObject();
@@ -31,7 +31,7 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
       if (enumerator) {
         QComboBox* box = new QComboBox(parent);
         vector<string>& values = enumerator->getValues();
-        for (int i = 0; i < values.size(); ++i)
+        for (unsigned i = 0; i < values.size(); ++i)
           box->addItem(values[i].c_str());
         return box;
       }
@@ -43,9 +43,9 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
 void PropertyGridDelegate::setEditorData(QWidget *editor,
                                      const QModelIndex &index) const
 {
-  QVariant& varient = index.model()->data(index, Qt::UserRole);
+  const QVariant& varient = index.model()->data(index, Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
-    PropertyReference& reference = varient.value<PropertyReference>();
+    const PropertyReference& reference = varient.value<PropertyReference>();
     IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
     if (reflectable) {
       ReflectableClass* object = reference.getObject();
@@ -70,9 +70,9 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
      int value = spinBox->value();
 
      model->setData(index, value, Qt::EditRole);*/
-  QVariant& varient = index.model()->data(index, Qt::UserRole);
+  const QVariant& varient = index.model()->data(index, Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
-    PropertyReference& reference = varient.value<PropertyReference>();
+    const PropertyReference& reference = varient.value<PropertyReference>();
     IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
     if (reflectable) {
       ReflectableClass* object = reference.getObject();
