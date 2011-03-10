@@ -46,7 +46,7 @@ public:
   }
 };
 
-ReflectableEnum(Gender, Male, Female);
+ReflectableEnum(Gender, Male, Female, Neutrum);
 
 class Person : public capputils::reflection::ReflectableClass,
                public capputils::ObservableClass {
