@@ -110,8 +110,9 @@ void ModelHarmonizer::itemChanged(QStandardItem* item) {
     const PropertyReference& reference = item->data(Qt::UserRole).value<PropertyReference>();
     ReflectableClass* object = reference.getObject();
     IClassProperty* prop = reference.getProperty();
-    if (prop->getStringValue(*object).compare(item->text().toStdString())) {
-      const std::string& str = item->text().toStdString();
+    QString qstr = item->text();
+    std::string str(qstr.toUtf8().data());
+    if (prop->getStringValue(*object).compare(str)) {
       IReflectableAttribute* reflectable = prop->getAttribute<IReflectableAttribute>();
       if (reflectable) {
         ReflectableClass* subObject = reflectable->getValuePtr(*object, prop);
