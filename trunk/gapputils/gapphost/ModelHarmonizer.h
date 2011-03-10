@@ -34,7 +34,7 @@ public:
   ModelHarmonizer(capputils::reflection::ReflectableClass* object);
   virtual ~ModelHarmonizer();
 
-  QStandardItemModel* getModel();
+  QStandardItemModel* getModel() const;
 
 private Q_SLOTS:
   void itemChanged(QStandardItem* item);

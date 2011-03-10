@@ -5,11 +5,14 @@
 
 #include <qmenu.h>
 #include <qstandarditemmodel.h>
-#include <qlabel.h>
 #include "Person.h"
 #include "ModelHarmonizer.h"
+#include <qtreeview.h>
 
 namespace gapputils {
+
+class Workbench;
+class ToolItem;
 
 namespace host {
 
@@ -19,11 +22,9 @@ class MainWindow : public QMainWindow
 
 private:
   QMenu* fileMenu;
+  Workbench* bench;
+  QTreeView* propertyGrid;
   QWidget* centralWidget;
-  QLabel* testLabel;
-  Person person;
-  ModelHarmonizer* harmonizer1;
-  ModelHarmonizer* harmonizer2;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
@@ -31,6 +32,8 @@ public:
 
 private Q_SLOTS:
   void quit();
+  void newItem();
+  void itemSelected(ToolItem* item);
 };
 
 }

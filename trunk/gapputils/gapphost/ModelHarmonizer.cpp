@@ -100,7 +100,7 @@ ModelHarmonizer::~ModelHarmonizer() {
   delete model;
 }
 
-QStandardItemModel* ModelHarmonizer::getModel() {
+QStandardItemModel* ModelHarmonizer::getModel() const {
   return model;
 }
 
