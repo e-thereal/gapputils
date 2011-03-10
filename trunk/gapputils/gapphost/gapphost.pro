@@ -1,5 +1,5 @@
-SOURCES = main.cpp MainWindow.cpp Person.cpp PropertyReference.cpp ModelHarmonizer.cpp
-HEADERS = MainWindow.h Person.h PropertyReference.h ModelHarmonizer.h
+SOURCES = main.cpp MainWindow.cpp Person.cpp PropertyReference.cpp ModelHarmonizer.cpp PropertyGridDelegate.cpp
+HEADERS = MainWindow.h Person.h PropertyReference.h ModelHarmonizer.h PropertyGridDelegate.h
 
 CONFIG += no_keywords debug
 QMAKE_CXXFLAGS += -std=c++0x

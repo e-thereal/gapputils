@@ -69,7 +69,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   QSplitter* splitter = new QSplitter(Qt::Horizontal);
   splitter->addWidget(testLabel);
   splitter->addWidget(tree);
-  //splitter->addWidget(tree2);
+  splitter->addWidget(tree2);
   setCentralWidget(splitter);
 
   centralWidget = splitter;
