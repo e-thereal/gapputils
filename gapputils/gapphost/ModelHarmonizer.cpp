@@ -13,6 +13,7 @@
 #include <ScalarAttribute.h>
 #include <iostream>
 #include <sstream>
+#include "LabelAttribute.h"
 
 #include "PropertyReference.h"
 
@@ -22,6 +23,8 @@ using namespace capputils::reflection;
 using namespace std;
 
 namespace gapputils {
+
+using namespace attributes;
 
 void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
   vector<IClassProperty*> properties = object.getProperties();
@@ -37,6 +40,12 @@ void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
     if (description) {
       key->setToolTip(description->getDescription().c_str());
       value->setToolTip(description->getDescription().c_str());
+    }
+
+    if (properties[i]->getAttribute<LabelAttribute>()) {
+      QFont font = key->font();
+      font.setBold(true);
+      key->setFont(font);
     }
 
     IReflectableAttribute* reflectable = properties[i]->getAttribute<IReflectableAttribute>();

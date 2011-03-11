@@ -12,14 +12,42 @@
 #include <ReflectableClass.h>
 #include <qabstractitemmodel.h>
 #include <ObservableClass.h>
+#include <vector>
 
 #include "ModelHarmonizer.h"
 
 namespace gapputils {
 
 class Workbench;
+class ToolItem;
+class CableItem;
+
+class ToolConnection {
+public:
+  enum Direction {Input, Output};
+
+public:
+  int x, y, width, height;
+  QString label;
+  Direction direction;
+  ToolItem* parent;
+  CableItem* cable;
+
+public:
+  ToolConnection(const QString& label, Direction direction, ToolItem* parent);
+  virtual ~ToolConnection();
+
+  void draw(QPainter* painter) const;
+  bool hit(int x, int y) const;
+  void setPos(int x, int y);
+  QPointF attachmentPos() const;
+  void connect(CableItem* cable);
+  void disconnect();
+};
 
 class ToolItem : public QGraphicsItem {
+  friend class ToolConnection;
+
 public:
   class ChangeHandler {
     ToolItem* item;
@@ -35,6 +63,9 @@ private:
   capputils::reflection::ReflectableClass* object;
   Workbench* bench;
   ModelHarmonizer harmonizer;
+  int width, height, adjust, connectionDistance;
+  std::vector<ToolConnection*> inputs;
+  std::vector<ToolConnection*> outputs;
 
 public:
   ToolItem(capputils::reflection::ReflectableClass* object, Workbench *bench = 0);
@@ -43,10 +74,13 @@ public:
   void setWorkbench(Workbench* bench);
   capputils::reflection::ReflectableClass* getObject() const;
   QAbstractItemModel* getModel() const;
+  ToolConnection* hitConnection(int x, int y, ToolConnection::Direction direction) const;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event);
-
+  QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+  void updateConnectionPositions();
   QRectF boundingRect() const;
+  QPainterPath shape() const;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 

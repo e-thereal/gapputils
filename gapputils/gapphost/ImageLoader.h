@@ -1,0 +1,36 @@
+#pragma once
+#ifndef _IMAGELOADER_H_
+#define _IMAGELOADER_H_
+
+#include <ReflectableClass.h>
+#include <ObservableClass.h>
+#include <string>
+
+#include <qimage.h>
+
+namespace capputils {
+  namespace reflection {
+    template<>
+    const std::string convertToString(const QImage& image);
+  }
+}
+
+namespace gapputils {
+
+class ImageLoader : public capputils::reflection::ReflectableClass, public capputils::ObservableClass
+{
+
+  InitReflectableClass(ImageLoader)
+
+  Property(Label, std::string)
+  Property(ImageName, std::string)
+  Property(ImagePtr, QImage*)
+
+public:
+  ImageLoader(void);
+  virtual ~ImageLoader(void);
+};
+
+}
+
+#endif

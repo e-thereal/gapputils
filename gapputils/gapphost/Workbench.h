@@ -13,12 +13,14 @@
 namespace gapputils {
 
 class ToolItem;
+class CableItem;
 
 class Workbench : public QGraphicsView {
   Q_OBJECT
 
 private:
   ToolItem* selectedItem;
+  CableItem* currentCable;
 
 public:
   Workbench(QWidget *parent = 0);
@@ -33,7 +35,12 @@ Q_SIGNALS:
   void itemSelected(ToolItem* item);
 
 protected:
+  void mousePressEvent(QMouseEvent* event);
+  void mouseReleaseEvent(QMouseEvent* event);
+  void mouseMoveEvent(QMouseEvent* event);
   void drawBackground(QPainter *painter, const QRectF &rect);
+  void keyPressEvent(QKeyEvent *event);
+  
   void wheelEvent(QWheelEvent *event);
 
   void scaleView(qreal scaleFactor);
