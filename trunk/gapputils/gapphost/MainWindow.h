@@ -9,6 +9,8 @@
 #include "ModelHarmonizer.h"
 #include <qtreeview.h>
 
+#include "NewObjectDialog.h"
+
 namespace gapputils {
 
 class Workbench;
@@ -25,6 +27,7 @@ private:
   Workbench* bench;
   QTreeView* propertyGrid;
   QWidget* centralWidget;
+  NewObjectDialog* newObjectDialog;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);

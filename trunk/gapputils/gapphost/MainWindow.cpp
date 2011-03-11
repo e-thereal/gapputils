@@ -18,6 +18,7 @@
 #include <ReflectableAttribute.h>
 #include <ClassProperty.h>
 #include <ScalarAttribute.h>
+#include <ReflectableClassFactory.h>
 
 #include "Person.h"
 #include "PropertyReference.h"
@@ -39,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 {
   setWindowTitle("Application Host");
   this->setGeometry(150, 150, 800, 600);
+
+  newObjectDialog = new NewObjectDialog();
 
   fileMenu = menuBar()->addMenu("File");
   QAction* newItemAction = fileMenu->addAction("New Item");
@@ -77,9 +80,11 @@ void MainWindow::quit() {
 }
 
 void MainWindow::newItem() {
-  ToolItem* item = new ToolItem(new Person());
-  bench->addToolItem(item);
-  bench->setSelectedItem(item);
+  if (newObjectDialog->exec() == QDialog::Accepted && newObjectDialog->getSelectedClass().size()) {
+    ToolItem* item = new ToolItem(ReflectableClassFactory::getInstance().newInstance(newObjectDialog->getSelectedClass().toUtf8().data()));
+    bench->addToolItem(item);
+    bench->setSelectedItem(item);
+  }
 }
 
 void MainWindow::itemSelected(ToolItem* item) {

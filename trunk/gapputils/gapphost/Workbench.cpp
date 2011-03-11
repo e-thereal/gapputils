@@ -11,20 +11,26 @@
 #include <cmath>
 #include "ToolItem.h"
 #include <QList>
+#include <qmessagebox.h>
+#include "CablePlug.h"
+#include <iostream>
+#include "CableItem.h"
 
 using namespace std;
 
 namespace gapputils {
 
-Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0) {
+Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0), currentCable(0) {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
   scene->setSceneRect(-250, -250, 500, 500);
+  //scene->addItem(new CablePlug());
   setScene(scene);
   setCacheMode(CacheBackground);
   setRenderHint(QPainter::Antialiasing);
   setTransformationAnchor(AnchorUnderMouse);
   scale(qreal(1), qreal(1));
+  
 }
 
 Workbench::~Workbench() {
@@ -46,6 +52,104 @@ void Workbench::setSelectedItem(ToolItem* item) {
 
 ToolItem* Workbench::getSelectedItem() {
   return selectedItem;
+}
+
+void Workbench::mousePressEvent(QMouseEvent* event) {
+  Q_FOREACH(QGraphicsItem* item, scene()->items()) {
+    ToolItem* tool = dynamic_cast<ToolItem*>(item);
+    if (tool) {
+      QPointF mousePos = mapToScene(event->pos());
+      int ex = mousePos.x();
+      int ey = mousePos.y();
+      int tx = item->x();
+      int ty = item->y();
+      ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Output);
+      if (connection) {
+        if (connection->cable) {
+          currentCable = connection->cable;
+          currentCable->disconnectInput();
+          currentCable->setDragPoint(mapToScene(event->pos()));
+        } else {
+          currentCable = new CableItem(connection);
+          currentCable->setDragPoint(mapToScene(event->pos()));
+          scene()->addItem(currentCable);
+        }
+      }
+      connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
+      if (connection) {
+        if (connection->cable) {
+          currentCable = connection->cable;
+          currentCable->disconnectOutput();
+          currentCable->setDragPoint(mapToScene(event->pos()));
+        } else {
+          currentCable = new CableItem(0, connection);
+          currentCable->setDragPoint(mapToScene(event->pos()));
+          scene()->addItem(currentCable);
+        }
+      }
+    }
+  }
+  QGraphicsView::mousePressEvent(event);
+}
+
+void Workbench::mouseReleaseEvent(QMouseEvent* event) {
+  if (currentCable) {
+    bool foundConnection = false;
+    Q_FOREACH(QGraphicsItem* item, scene()->items()) {
+      ToolItem* tool = dynamic_cast<ToolItem*>(item);
+      if (tool) {
+        QPointF mousePos = mapToScene(event->pos());
+        int ex = mousePos.x();
+        int ey = mousePos.y();
+        int tx = item->x();
+        int ty = item->y();
+        if (currentCable->needOutput()) {
+          ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
+          if (connection) {
+            foundConnection = true;
+            currentCable->setOutput(connection);
+            currentCable->endDrag();
+            break;
+          }
+        } else if (currentCable->needInput()) {
+          ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Output);
+          if (connection) {
+            foundConnection = true;
+            currentCable->setInput(connection);
+            currentCable->endDrag();
+            break;
+          }
+        }
+      }
+    }
+    if (!foundConnection) {
+      scene()->removeItem(currentCable);
+      delete currentCable;
+    }
+  }
+  currentCable = 0;
+  QGraphicsView::mouseReleaseEvent(event);
+}
+
+void Workbench::keyPressEvent(QKeyEvent *event)
+{
+  switch (event->key()) {
+  case Qt::Key_Delete:
+    if (selectedItem) {
+      scene()->removeItem(selectedItem);
+      delete selectedItem;
+    }
+    break;
+  default:
+    QGraphicsView::keyPressEvent(event);
+  }
+}
+
+void Workbench::mouseMoveEvent(QMouseEvent* event) {
+  if (currentCable) {
+    currentCable->setDragPoint(mapToScene(event->pos()));
+  }
+  QGraphicsView::mouseMoveEvent(event);
 }
 
 void Workbench::drawBackground(QPainter *painter, const QRectF &rect)
