@@ -69,12 +69,12 @@ void ToolConnection::draw(QPainter* painter) const {
 }
 
 bool ToolConnection::hit(int x, int y) const {
-  int ytol = 3;
-  int xtol = 5;
+  int ytol = 4;
+  int xtol = 10;
   if (direction == Input)
-    return this->x - width - xtol <= x && x < this->x + xtol && this->y-height/2 <= y - ytol && y < this->y + height/2 + ytol;
+    return this->x - width - xtol <= x && x < this->x + xtol && this->y-height/2 - ytol < y && y < this->y + height/2 + ytol;
   else
-    return this->x - xtol <= x && x < this->x + width + xtol && this->y-height/2 - ytol <= y && y < this->y + height/2 + ytol;
+    return this->x - xtol <= x && x < this->x + width + xtol && this->y-height/2 - ytol < y && y < this->y + height/2 + ytol;
 }
 
 void ToolConnection::setPos(int x, int y) {
@@ -84,19 +84,19 @@ void ToolConnection::setPos(int x, int y) {
 
 QPointF ToolConnection::attachmentPos() const {
   if (direction == Input)
-    return QPointF(x-width, y);
+    return QPointF(x-width-2, y);
   else
-    return QPointF(x+width, y);
+    return QPointF(x+width+2, y);
 }
 
 ToolItem::ToolItem(ReflectableClass* object, Workbench *bench)
  : changeHandler(this), object(object), bench(bench), harmonizer(object),
-   width(130), height(60), adjust(3 + 10), connectionDistance(15)
+   width(130), height(60), adjust(3 + 10), connectionDistance(16)
 {
   setFlag(ItemIsMovable);
   setFlag(ItemSendsGeometryChanges);
   setCacheMode(DeviceCoordinateCache);
-  setZValue(2);
+  setZValue(3);
 
   ObservableClass* observable = dynamic_cast<ObservableClass*>(object);
   if (observable)
@@ -181,6 +181,10 @@ void ToolItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
   QGraphicsItem::mousePressEvent(event);
 }
 
+bool ToolItem::isSelected() const {
+  return this == bench->getSelectedItem();
+}
+
 QRectF ToolItem::boundingRect() const
 {
   return QRectF(-adjust, -adjust, width+2*adjust, height+2*adjust);
@@ -200,9 +204,11 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
   if (bench && bench->getSelectedItem() == this) {
     gradient.setColorAt(0, Qt::white);
     gradient.setColorAt(1, Qt::lightGray);
+    setZValue(4);
   } else {
     gradient.setColorAt(0, Qt::lightGray);
     gradient.setColorAt(1, Qt::gray);
+    setZValue(2);
   }
 
   painter->setBrush(gradient);

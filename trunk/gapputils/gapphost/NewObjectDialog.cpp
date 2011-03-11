@@ -18,6 +18,7 @@ NewObjectDialog::NewObjectDialog(QWidget *parent)
 
   connect(ui.cancelButton, SIGNAL(clicked(bool)), this, SLOT(cancelButtonClicked(bool)));
   connect(ui.addButton, SIGNAL(clicked(bool)), this, SLOT(addButtonClicked(bool)));
+  connect(ui.listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(doubleClickedHandler(QListWidgetItem*)));
 }
 
 NewObjectDialog::~NewObjectDialog()
@@ -35,5 +36,9 @@ void NewObjectDialog::cancelButtonClicked(bool) {
 }
 
 void NewObjectDialog::addButtonClicked(bool) {
+  accept();
+}
+
+void NewObjectDialog::doubleClickedHandler(QListWidgetItem* /*item*/) {
   accept();
 }
