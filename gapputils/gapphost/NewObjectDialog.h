@@ -20,6 +20,7 @@ private:
 private Q_SLOTS:
   void cancelButtonClicked(bool);
   void addButtonClicked(bool);
+  void doubleClickedHandler(QListWidgetItem* item);
 };
 
 #endif // NEWOBJECTDIALOG_H

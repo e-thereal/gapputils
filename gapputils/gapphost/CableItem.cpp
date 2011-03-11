@@ -96,8 +96,17 @@ void CableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
   QPainterPath path;
   path.moveTo(sourcePoint);
   path.cubicTo(sourcePoint + QPointF(50, 0), destPoint + QPointF(-50, 0), destPoint);
-  painter->setPen(QPen(Qt::black, 2.5));
-  painter->drawPath(path);
+  if ((input && input->parent->isSelected()) || (output && output->parent->isSelected())) {
+    setZValue(3);
+    painter->setPen(QPen(Qt::darkGray, 4.5));
+    painter->drawPath(path);
+    painter->setPen(QPen(Qt::white, 2.5));
+    painter->drawPath(path);
+  } else {
+    setZValue(1);
+    painter->setPen(QPen(Qt::black, 2.5));
+    painter->drawPath(path);
+  }
 }
 
 }
