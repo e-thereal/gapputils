@@ -6,6 +6,7 @@
 
 #include "LabelAttribute.h"
 #include "InputAttribute.h"
+#include "OutputAttribute.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -24,10 +25,10 @@ Address::Address() : _Street("W 11th Ave"), _City("Vancouver"), _StreetNumber(10
 BeginPropertyDefinitions(Person)
 
 DefineProperty(FirstName,
-  Description("Persons given name."), Observe(PROPERTY_ID), Label())
+  Description("Persons given name."), Observe(PROPERTY_ID), Label(), Input(), Output())
 
 DefineProperty(Name,
-  Description("Name of our parents."), Observe(PROPERTY_ID))
+  Description("Name of our parents."), Observe(PROPERTY_ID), Input(), Output())
 
 DefineProperty(Age,
   Description("Age in years."), Observe(PROPERTY_ID), Input())
