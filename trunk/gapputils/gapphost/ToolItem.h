@@ -32,9 +32,10 @@ public:
   Direction direction;
   ToolItem* parent;
   CableItem* cable;
+  capputils::reflection::IClassProperty* property;
 
 public:
-  ToolConnection(const QString& label, Direction direction, ToolItem* parent);
+  ToolConnection(const QString& label, Direction direction, ToolItem* parent, capputils::reflection::IClassProperty* property);
   virtual ~ToolConnection();
 
   void draw(QPainter* painter) const;

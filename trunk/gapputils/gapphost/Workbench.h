@@ -29,7 +29,9 @@ public:
   void addToolItem(ToolItem* item);
 
   void setSelectedItem(ToolItem* item);
-  ToolItem* getSelectedItem();
+  ToolItem* getSelectedItem() const;
+  CableItem* getCurrentCable() const;
+
 
 Q_SIGNALS:
   void itemSelected(ToolItem* item);
