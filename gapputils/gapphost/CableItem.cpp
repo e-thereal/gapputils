@@ -3,16 +3,31 @@
 #include "ToolItem.h"
 #include <qpainter.h>
 #include "Workbench.h"
+#include <ObservableClass.h>
+
+using namespace capputils;
 
 namespace gapputils {
 
-CableItem::CableItem(Workbench* bench, ToolConnection* input, ToolConnection* output) : input(input), output(output), dragPoint(0), bench(bench)
+void CableItem::ChangeEventHandler::operator()(ObservableClass*, int eventId) {
+  if (!cableItem->input || !cableItem->output)
+    return;
+
+  if (eventId == cableItem->input->propertyId)
+    cableItem->output->property->setValue(*cableItem->output->parent->getObject(), *cableItem->input->parent->getObject(), cableItem->input->property);
+}
+
+bool CableItem::ChangeEventHandler::operator==(const ChangeEventHandler& handler) const {
+  return handler.cableItem == cableItem;
+}
+
+CableItem::CableItem(Workbench* bench, ToolConnection* input, ToolConnection* output) : changeEventHandler(this), input(0), output(0), dragPoint(0), bench(bench)
 {
   setAcceptedMouseButtons(0);
   if (input)
-    input->connect(this);
+    setInput(input);
   if (output)
-    output->connect(this);
+    setOutput(output);
   adjust();
   setZValue(1);
 }
@@ -49,12 +64,21 @@ void CableItem::setDragPoint(QPointF point) {
 void CableItem::setInput(ToolConnection* input) {
   this->input = input;
   input->connect(this);
+  ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getObject());
+  if (observable) {
+    observable->Changed.connect(changeEventHandler);
+    observable->fireChangeEvent(input->propertyId);
+  }
   adjust();
 }
 
 void CableItem::setOutput(ToolConnection* output) {
   this->output = output;
   output->connect(this);
+  ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getObject());
+  if (observable && input) {
+    observable->fireChangeEvent(input->propertyId);
+  }
   adjust();
 }
 
@@ -76,6 +100,9 @@ bool CableItem::needOutput() const {
 
 void CableItem::disconnectInput() {
   if (input) {
+    ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getObject());
+    if (observable)
+      observable->Changed.disconnect(changeEventHandler);
     ToolConnection* temp = input;
     input = 0;
     temp->disconnect();

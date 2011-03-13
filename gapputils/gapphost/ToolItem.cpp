@@ -10,6 +10,7 @@
 #include <QStyleOptionGraphicsItem>
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
+#include <ObserveAttribute.h>
 #include "Workbench.h"
 
 #include "LabelAttribute.h"
@@ -20,6 +21,7 @@
 
 using namespace capputils;
 using namespace capputils::reflection;
+using namespace capputils::attributes;
 using namespace gapputils::attributes;
 using namespace std;
 
@@ -27,7 +29,14 @@ namespace gapputils {
 
 ToolConnection::ToolConnection(const QString& label, Direction direction, ToolItem* parent, IClassProperty* property)
   : x(0), y(0), width(6), height(7), label(label), direction(direction), parent(parent), cable(0), property(property)
-{ }
+{
+  ObserveAttribute* observe = property->getAttribute<ObserveAttribute>();
+  if (observe) {
+    propertyId = observe->getEventId();
+  } else {
+    propertyId = -1;
+  }
+}
 
 ToolConnection::~ToolConnection() {
   if (cable) {

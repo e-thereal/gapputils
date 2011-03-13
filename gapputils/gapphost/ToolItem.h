@@ -33,6 +33,7 @@ public:
   ToolItem* parent;
   CableItem* cable;
   capputils::reflection::IClassProperty* property;
+  int propertyId;
 
 public:
   ToolConnection(const QString& label, Direction direction, ToolItem* parent, capputils::reflection::IClassProperty* property);
