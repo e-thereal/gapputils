@@ -2,10 +2,11 @@
 
 #include "ToolItem.h"
 #include <qpainter.h>
+#include "Workbench.h"
 
 namespace gapputils {
 
-CableItem::CableItem(ToolConnection* input, ToolConnection* output) : input(input), output(output), dragPoint(0)
+CableItem::CableItem(Workbench* bench, ToolConnection* input, ToolConnection* output) : input(input), output(output), dragPoint(0), bench(bench)
 {
   setAcceptedMouseButtons(0);
   if (input)
@@ -57,6 +58,14 @@ void CableItem::setOutput(ToolConnection* output) {
   adjust();
 }
 
+ToolConnection* CableItem::getInput() const {
+  return input;
+}
+
+ToolConnection* CableItem::getOutput() const {
+  return output;
+}
+
 bool CableItem::needInput() const {
   return !input;
 }
@@ -96,7 +105,7 @@ void CableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
   QPainterPath path;
   path.moveTo(sourcePoint);
   path.cubicTo(sourcePoint + QPointF(50, 0), destPoint + QPointF(-50, 0), destPoint);
-  if ((input && input->parent->isSelected()) || (output && output->parent->isSelected())) {
+  if ((bench->getCurrentCable() == this) || (input && input->parent->isSelected()) || (output && output->parent->isSelected())) {
     setZValue(3);
     painter->setPen(QPen(Qt::darkGray, 4.5));
     painter->drawPath(path);

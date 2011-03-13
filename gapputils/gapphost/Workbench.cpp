@@ -50,8 +50,12 @@ void Workbench::setSelectedItem(ToolItem* item) {
   Q_EMIT itemSelected(item);
 }
 
-ToolItem* Workbench::getSelectedItem() {
+ToolItem* Workbench::getSelectedItem() const {
   return selectedItem;
+}
+
+CableItem* Workbench::getCurrentCable() const {
+  return currentCable;
 }
 
 void Workbench::mousePressEvent(QMouseEvent* event) {
@@ -70,9 +74,12 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
           currentCable->disconnectInput();
           currentCable->setDragPoint(mapToScene(event->pos()));
         } else {
-          currentCable = new CableItem(connection);
+          currentCable = new CableItem(this, connection);
           currentCable->setDragPoint(mapToScene(event->pos()));
           scene()->addItem(currentCable);
+        }
+        Q_FOREACH (QGraphicsItem *item, scene()->items()) {
+          item->update();
         }
       }
       connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
@@ -82,9 +89,12 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
           currentCable->disconnectOutput();
           currentCable->setDragPoint(mapToScene(event->pos()));
         } else {
-          currentCable = new CableItem(0, connection);
+          currentCable = new CableItem(this, 0, connection);
           currentCable->setDragPoint(mapToScene(event->pos()));
           scene()->addItem(currentCable);
+        }
+        Q_FOREACH (QGraphicsItem *item, scene()->items()) {
+          item->update();
         }
       }
     }
@@ -105,7 +115,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
         int ty = item->y();
         if (currentCable->needOutput()) {
           ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
-          if (connection) {
+          if (connection && connection->property->getType() == currentCable->getInput()->property->getType()) {
             foundConnection = true;
             currentCable->setOutput(connection);
             currentCable->endDrag();
@@ -113,7 +123,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
           }
         } else if (currentCable->needInput()) {
           ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Output);
-          if (connection) {
+          if (connection && connection->property->getType() == currentCable->getOutput()->property->getType()) {
             foundConnection = true;
             currentCable->setInput(connection);
             currentCable->endDrag();
@@ -126,8 +136,11 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
       scene()->removeItem(currentCable);
       delete currentCable;
     }
+    currentCable = 0;
+    Q_FOREACH (QGraphicsItem *item, scene()->items()) {
+      item->update();
+    }
   }
-  currentCable = 0;
   QGraphicsView::mouseReleaseEvent(event);
 }
 

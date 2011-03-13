@@ -5,6 +5,7 @@
 #include <ObserveAttribute.h>
 
 #include "LabelAttribute.h"
+#include "InputAttribute.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -29,7 +30,7 @@ DefineProperty(Name,
   Description("Name of our parents."), Observe(PROPERTY_ID))
 
 DefineProperty(Age,
-  Description("Age in years."), Observe(PROPERTY_ID))
+  Description("Age in years."), Observe(PROPERTY_ID), Input())
 
 ReflectableProperty(Address,
   Description("Address with everything."), Observe(PROPERTY_ID))

@@ -9,6 +9,7 @@
 namespace gapputils {
 
 class ToolConnection;
+class Workbench;
 
 class CableItem : public QGraphicsItem
 {
@@ -20,8 +21,10 @@ private:
   QPointF sourcePoint;
   QPointF destPoint;
 
+  Workbench* bench;
+
 public:
-  CableItem(ToolConnection* input = 0, ToolConnection* output = 0);
+  CableItem(Workbench* bench, ToolConnection* input = 0, ToolConnection* output = 0);
   virtual ~CableItem(void);
 
   void adjust();
@@ -30,6 +33,8 @@ public:
   void setDragPoint(QPointF point);
   void setInput(ToolConnection* output);
   void setOutput(ToolConnection* output);
+  ToolConnection* getInput() const;
+  ToolConnection* getOutput() const;
   bool needInput() const;
   bool needOutput() const;
   void endDrag();

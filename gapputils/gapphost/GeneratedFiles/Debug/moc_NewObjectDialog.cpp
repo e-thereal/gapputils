@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'NewObjectDialog.h'
 **
-** Created: Thu 10. Mar 17:23:56 2011
+** Created: Fri 11. Mar 13:47:18 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_NewObjectDialog[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-       2,   14, // methods
+       3,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -33,13 +33,15 @@ static const uint qt_meta_data_NewObjectDialog[] = {
  // slots: signature, parameters, type, tag, flags
       17,   16,   16,   16, 0x08,
       43,   16,   16,   16, 0x08,
+      71,   66,   16,   16, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_NewObjectDialog[] = {
     "NewObjectDialog\0\0cancelButtonClicked(bool)\0"
-    "addButtonClicked(bool)\0"
+    "addButtonClicked(bool)\0item\0"
+    "doubleClickedHandler(QListWidgetItem*)\0"
 };
 
 const QMetaObject NewObjectDialog::staticMetaObject = {
@@ -73,9 +75,10 @@ int NewObjectDialog::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         switch (_id) {
         case 0: cancelButtonClicked((*reinterpret_cast< bool(*)>(_a[1]))); break;
         case 1: addButtonClicked((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 2: doubleClickedHandler((*reinterpret_cast< QListWidgetItem*(*)>(_a[1]))); break;
         default: ;
         }
-        _id -= 2;
+        _id -= 3;
     }
     return _id;
 }

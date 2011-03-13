@@ -25,9 +25,9 @@ using namespace std;
 
 namespace gapputils {
 
-ToolConnection::ToolConnection(const QString& label, Direction direction, ToolItem* parent)
-  : x(0), y(0), width(6), height(7), label(label), direction(direction), parent(parent), cable(0) {
-}
+ToolConnection::ToolConnection(const QString& label, Direction direction, ToolItem* parent, IClassProperty* property)
+  : x(0), y(0), width(6), height(7), label(label), direction(direction), parent(parent), cable(0), property(property)
+{ }
 
 ToolConnection::~ToolConnection() {
   if (cable) {
@@ -51,21 +51,43 @@ void ToolConnection::disconnect() {
 }
 
 void ToolConnection::draw(QPainter* painter) const {
+  CableItem* currentCable = parent->bench->getCurrentCable();
+  painter->save();
+  painter->setPen(Qt::black);
   switch (direction) {
   case Input:
-    painter->setPen(Qt::black);
-    painter->setBrush(Qt::darkGray);
+    if (currentCable && currentCable->needOutput() && currentCable->getInput()->property->getType() == property->getType()) {
+      painter->setBrush(Qt::white);
+    } else if(parent->isSelected() && !currentCable) {
+      painter->setBrush(Qt::white);
+    } else if (currentCable && currentCable->getOutput() == this) {
+      painter->setBrush(Qt::white);
+    } else if (cable && cable->getInput()->parent->isSelected()) {
+      painter->setBrush(Qt::white);
+    } else {
+      painter->setBrush(Qt::darkGray);
+    }
     painter->drawRect(x - width, y - (height/2)-1, width, height + 1);
     painter->drawText(x + 6, y - 10, 100, 20, Qt::AlignVCenter, label);
     break;
 
   case Output:
-    painter->setPen(Qt::black);
-    painter->setBrush(Qt::darkGray);
+    if (currentCable && currentCable->needInput() && currentCable->getOutput()->property->getType() == property->getType()) {
+      painter->setBrush(Qt::white);
+    } else if(parent->isSelected() && !currentCable) {
+      painter->setBrush(Qt::white);
+    } else if (currentCable && currentCable->getInput() == this) {
+      painter->setBrush(Qt::white);
+    } else if (cable && cable->getOutput()->parent->isSelected()) {
+      painter->setBrush(Qt::white);
+    } else {
+      painter->setBrush(Qt::darkGray);
+    }
     painter->drawRect(x, y - (height/2)-1, width, height + 1);
     painter->drawText(x - 6 - 100, y - 10, 100, 20, Qt::AlignVCenter | Qt::AlignRight, label);
     break;
   }
+  painter->restore();
 }
 
 bool ToolConnection::hit(int x, int y) const {
@@ -105,10 +127,10 @@ ToolItem::ToolItem(ReflectableClass* object, Workbench *bench)
   vector<IClassProperty*>& properties = object->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<InputAttribute>()) {
-      inputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Input, this));
+      inputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Input, this, properties[i]));
     }
     if (properties[i]->getAttribute<OutputAttribute>()) {
-      outputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Output, this));
+      outputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Output, this, properties[i]));
     }
   }
   updateConnectionPositions();
