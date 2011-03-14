@@ -2,8 +2,10 @@
 
 #include <qcombobox.h>
 #include <IReflectableAttribute.h>
+#include <FilenameAttribute.h>
 #include <Enumerator.h>
 #include "PropertyReference.h"
+#include "FilenameEdit.h"
 
 using namespace capputils::reflection;
 using namespace capputils::attributes;
@@ -36,6 +38,12 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
         return box;
       }
     }
+    if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
+      FilenameEdit* editor = new FilenameEdit(parent);
+      connect(editor, SIGNAL(editingFinished()),
+                 this, SLOT(commitAndCloseEditor()));
+      return editor;
+    }
   }
   return QStyledItemDelegate::createEditor(parent, option, index);
 }
@@ -58,6 +66,10 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
         return;
       }
     }
+    if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
+      FilenameEdit* edit = static_cast<FilenameEdit*>(editor);
+      edit->setText(index.model()->data(index).toString());
+    }
   }
   QStyledItemDelegate::setEditorData(editor, index);
 }
@@ -65,11 +77,6 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
 void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
                                     const QModelIndex &index) const
 {
-     /*QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
-     spinBox->interpretText();
-     int value = spinBox->value();
-
-     model->setData(index, value, Qt::EditRole);*/
   const QVariant& varient = index.model()->data(index, Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
@@ -86,8 +93,20 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
         return;
       }
     }
+    if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
+      FilenameEdit* edit = static_cast<FilenameEdit*>(editor);
+      QString text = edit->getText();
+      model->setData(index, text);
+      return;
+    }
   }
   QStyledItemDelegate::setModelData(editor, model, index);
+}
+
+void PropertyGridDelegate::commitAndCloseEditor() {
+  FilenameEdit *editor = qobject_cast<FilenameEdit *>(sender());
+  Q_EMIT commitData(editor);
+  Q_EMIT closeEditor(editor);
 }
 
 void PropertyGridDelegate::updateEditorGeometry(QWidget *editor,
