@@ -19,6 +19,9 @@ class PropertyGridDelegate : public QStyledItemDelegate
 
      void updateEditorGeometry(QWidget *editor,
          const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+private Q_SLOTS:
+     void commitAndCloseEditor();
  };
 
 #endif // PROPERTYGRIDDELEGATE_H
