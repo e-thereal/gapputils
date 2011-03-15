@@ -39,7 +39,7 @@ public:
   ToolConnection(const QString& label, Direction direction, ToolItem* parent, capputils::reflection::IClassProperty* property);
   virtual ~ToolConnection();
 
-  void draw(QPainter* painter) const;
+  void draw(QPainter* painter, bool showLabel = true) const;
   bool hit(int x, int y) const;
   void setPos(int x, int y);
   QPointF attachmentPos() const;
@@ -61,7 +61,7 @@ public:
     }
   } changeHandler;
 
-private:
+protected:
   capputils::reflection::ReflectableClass* object;
   Workbench* bench;
   ModelHarmonizer harmonizer;
@@ -76,14 +76,19 @@ public:
   void setWorkbench(Workbench* bench);
   capputils::reflection::ReflectableClass* getObject() const;
   QAbstractItemModel* getModel() const;
+
   ToolConnection* hitConnection(int x, int y, ToolConnection::Direction direction) const;
+  void updateConnectionPositions();
+  void drawConnections(QPainter* painter, bool showLabel = true);
+  void drawBox(QPainter* painter);
+  std::string getLabel() const;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event);
   QVariant itemChange(GraphicsItemChange change, const QVariant &value);
-  void updateConnectionPositions();
+  
   QRectF boundingRect() const;
   QPainterPath shape() const;
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+  virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
   bool isSelected() const;
 };
 

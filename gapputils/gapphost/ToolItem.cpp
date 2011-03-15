@@ -59,7 +59,7 @@ void ToolConnection::disconnect() {
   cable = 0;
 }
 
-void ToolConnection::draw(QPainter* painter) const {
+void ToolConnection::draw(QPainter* painter, bool showLabel) const {
   CableItem* currentCable = parent->bench->getCurrentCable();
   painter->save();
   painter->setPen(Qt::black);
@@ -77,7 +77,8 @@ void ToolConnection::draw(QPainter* painter) const {
       painter->setBrush(Qt::darkGray);
     }
     painter->drawRect(x - width, y - (height/2)-1, width, height + 1);
-    painter->drawText(x + 6, y - 10, 100, 20, Qt::AlignVCenter, label);
+    if (showLabel)
+      painter->drawText(x + 6, y - 10, 100, 20, Qt::AlignVCenter, label);
     break;
 
   case Output:
@@ -93,7 +94,8 @@ void ToolConnection::draw(QPainter* painter) const {
       painter->setBrush(Qt::darkGray);
     }
     painter->drawRect(x, y - (height/2)-1, width, height + 1);
-    painter->drawText(x - 6 - 100, y - 10, 100, 20, Qt::AlignVCenter | Qt::AlignRight, label);
+    if (showLabel)
+      painter->drawText(x - 6 - 100, y - 10, 100, 20, Qt::AlignVCenter | Qt::AlignRight, label);
     break;
   }
   painter->restore();
@@ -227,10 +229,14 @@ QPainterPath ToolItem::shape() const {
   return path;
 }
 
-void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
- {
-  Q_UNUSED(option)
+void ToolItem::drawConnections(QPainter* painter, bool showLabel) {
+  for (unsigned i = 0; i < inputs.size(); ++i)
+    inputs[i]->draw(painter, showLabel);
+  for (unsigned i = 0; i < outputs.size(); ++i)
+    outputs[i]->draw(painter, showLabel);
+}
 
+void ToolItem::drawBox(QPainter* painter) {
   QLinearGradient gradient(0, 0, 0, height);
   if (bench && bench->getSelectedItem() == this) {
     gradient.setColorAt(0, Qt::white);
@@ -245,23 +251,32 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
   painter->setBrush(gradient);
   painter->setPen(QPen(Qt::black, 0));
   painter->drawRoundedRect(0, 0, width, height, 4, 4);
-  QString label;
-  label.append("[");
-  label.append(object->getClassName().c_str());
-  label.append("]");
+}
+
+std::string ToolItem::getLabel() const {
   vector<IClassProperty*>& properties = object->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<LabelAttribute>()) {
-      label = properties[i]->getStringValue(*object).c_str();
-      break;
+      return properties[i]->getStringValue(*object);
     }
   }
+  return "";
+}
 
-  for (unsigned i = 0; i < inputs.size(); ++i)
-    inputs[i]->draw(painter);
-  for (unsigned i = 0; i < outputs.size(); ++i)
-    outputs[i]->draw(painter);
+void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
+ {
+  Q_UNUSED(option)
 
+  QString label = getLabel().c_str();
+  if (label.size() == 0) {
+    label.append("[");
+    label.append(object->getClassName().c_str());
+    label.append("]");
+  }
+
+  drawBox(painter);
+  drawConnections(painter);
+ 
   painter->save();
   painter->translate(width/2, height/2);
   painter->rotate(270);

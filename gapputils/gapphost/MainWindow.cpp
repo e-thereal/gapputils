@@ -25,6 +25,7 @@
 #include "PropertyGridDelegate.h"
 #include "Workbench.h"
 #include "ToolItem.h"
+#include "CustomToolItemAttribute.h"
 
 using namespace std;
 using namespace capputils;
@@ -32,6 +33,8 @@ using namespace capputils::reflection;
 using namespace capputils::attributes;
 
 namespace gapputils {
+
+using namespace attributes;
 
 namespace host {
 
@@ -81,7 +84,13 @@ void MainWindow::quit() {
 
 void MainWindow::newItem() {
   if (newObjectDialog->exec() == QDialog::Accepted && newObjectDialog->getSelectedClass().size()) {
-    ToolItem* item = new ToolItem(ReflectableClassFactory::getInstance().newInstance(newObjectDialog->getSelectedClass().toUtf8().data()));
+    ReflectableClass* object = ReflectableClassFactory::getInstance().newInstance(newObjectDialog->getSelectedClass().toUtf8().data());
+    ToolItem* item;
+    ICustomToolItemAttribute* customToolItem = object->getAttribute<ICustomToolItemAttribute>();
+    if (customToolItem)
+      item = customToolItem->createToolItem(object);
+    else
+      item = new ToolItem(object);
     bench->addToolItem(item);
     bench->setSelectedItem(item);
   }
