@@ -2,29 +2,40 @@
 
 #include "LabelAttribute.h"
 #include "InputAttribute.h"
+#include "ImageViewerItem.h"
+#include "CustomToolItemAttribute.h"
 #include <ObserveAttribute.h>
 
 using namespace capputils::attributes;
-
 
 namespace gapputils {
 
 using namespace attributes;
 
-BeginPropertyDefinitions(ImageViewer)
+BeginPropertyDefinitions(ImageViewer, CustomToolItem<ImageViewerItem>())
 
 DefineProperty(Label, Label(), Observe(PROPERTY_ID))
 DefineProperty(ImagePtr, Input(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-ImageViewer::ImageViewer(void) : _Label("Viewer"), _ImagePtr(0)
+ImageViewer::ImageViewer(void) : changeHandler(this), _Label("Viewer"), _ImagePtr(0)
 {
+  dialog = new ShowImageDialog();
+  dialog->setWindowTitle(QString("Image Viewer: ") + getLabel().c_str());
+  Changed.connect(changeHandler);
 }
-
 
 ImageViewer::~ImageViewer(void)
 {
+  delete dialog;
+}
+
+void ImageViewer::showImage() {
+  QImage* image = getImagePtr();
+  if (image)
+    dialog->setImage(image);
+  dialog->show();
 }
 
 }

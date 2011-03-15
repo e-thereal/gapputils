@@ -128,6 +128,18 @@
     <ClCompile Include="GeneratedFiles\Release\moc_FilenameEdit.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="ImageViewerItem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShowImageDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_ShowImageDialog.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_ShowImageDialog.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
@@ -157,6 +169,9 @@
     <CustomBuild Include="FilenameEdit.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="ShowImageDialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Person.h">
@@ -184,6 +199,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageViewer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomToolItemAttribute.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageViewerItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
