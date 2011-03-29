@@ -2,7 +2,7 @@
 #define NEWOBJECTDIALOG_H
 
 #include <QDialog>
-#include "ui_NewObjectDialog.h"
+#include "GeneratedFiles/ui_NewObjectDialog.h"
 
 class NewObjectDialog : public QDialog
 {

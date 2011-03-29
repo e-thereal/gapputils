@@ -16,7 +16,6 @@
 #include "LabelAttribute.h"
 #include "InputAttribute.h"
 #include "OutputAttribute.h"
-#include "CablePlug.h"
 #include "CableItem.h"
 
 using namespace capputils;
@@ -71,7 +70,7 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
       painter->setBrush(Qt::white);
     } else if (currentCable && currentCable->getOutput() == this) {
       painter->setBrush(Qt::white);
-    } else if (cable && cable->getInput()->parent->isSelected()) {
+    } else if (!currentCable && cable && cable->getInput()->parent->isSelected()) {
       painter->setBrush(Qt::white);
     } else {
       painter->setBrush(Qt::darkGray);
@@ -88,7 +87,7 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
       painter->setBrush(Qt::white);
     } else if (currentCable && currentCable->getInput() == this) {
       painter->setBrush(Qt::white);
-    } else if (cable && cable->getOutput()->parent->isSelected()) {
+    } else if (!currentCable && cable && cable->getOutput()->parent->isSelected()) {
       painter->setBrush(Qt::white);
     } else {
       painter->setBrush(Qt::darkGray);
@@ -127,7 +126,8 @@ ToolItem::ToolItem(ReflectableClass* object, Workbench *bench)
    width(130), height(60), adjust(3 + 10), connectionDistance(16)
 {
   setFlag(ItemIsMovable);
-  setFlag(ItemSendsGeometryChanges);
+  // TODO: check if this causes problems
+  //setFlag(ItemSendsGeometryChanges);
   setCacheMode(DeviceCoordinateCache);
   setZValue(3);
 
@@ -200,10 +200,10 @@ QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) 
 }
 
 void ToolItem::updateConnectionPositions() {
-  for (int i = 0, pos = -((int)inputs.size()-1) * connectionDistance / 2 + height/2; i < inputs.size(); ++i, pos += connectionDistance) {
+  for (int i = 0, pos = -((int)inputs.size()-1) * connectionDistance / 2 + height/2; i < (int)inputs.size(); ++i, pos += connectionDistance) {
     inputs[i]->setPos(0, pos);
   }
-  for (int i = 0, pos = -((int)outputs.size()-1) * connectionDistance / 2 + height/2; i < outputs.size(); ++i, pos += connectionDistance) {
+  for (int i = 0, pos = -((int)outputs.size()-1) * connectionDistance / 2 + height/2; i < (int)outputs.size(); ++i, pos += connectionDistance) {
     outputs[i]->setPos(width, pos);
   }
 }

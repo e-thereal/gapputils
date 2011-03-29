@@ -134,11 +134,11 @@ QRectF CableItem::boundingRect() const {
     destPoint.y() - sourcePoint.y())).normalized().adjusted(-50, -50, 50, 50);
 }
   
-void CableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
+void CableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem */*option*/, QWidget */*widget*/) {
   QPainterPath path;
   path.moveTo(sourcePoint);
   path.cubicTo(sourcePoint + QPointF(50, 0), destPoint + QPointF(-50, 0), destPoint);
-  if ((bench->getCurrentCable() == this) || (input && input->parent->isSelected()) || (output && output->parent->isSelected())) {
+  if ((bench->getCurrentCable() == this) || (bench->getCurrentCable() == 0  && input && input->parent->isSelected()) || (bench->getCurrentCable() == 0  && output && output->parent->isSelected())) {
     setZValue(3);
     painter->setPen(QPen(Qt::darkGray, 4.5));
     painter->drawPath(path);
