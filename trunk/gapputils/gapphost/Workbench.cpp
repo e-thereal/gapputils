@@ -12,7 +12,6 @@
 #include "ToolItem.h"
 #include <QList>
 #include <qmessagebox.h>
-#include "CablePlug.h"
 #include <iostream>
 #include "CableItem.h"
 
