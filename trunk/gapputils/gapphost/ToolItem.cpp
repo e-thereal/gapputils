@@ -123,11 +123,11 @@ QPointF ToolConnection::attachmentPos() const {
 
 ToolItem::ToolItem(ReflectableClass* object, Workbench *bench)
  : changeHandler(this), object(object), bench(bench), harmonizer(object),
-   width(130), height(60), adjust(3 + 10), connectionDistance(16)
+   width(190), height(90), adjust(3 + 10), connectionDistance(16)
 {
   setFlag(ItemIsMovable);
   // TODO: check if this causes problems
-  //setFlag(ItemSendsGeometryChanges);
+  setFlag(ItemSendsGeometryChanges);
   setCacheMode(DeviceCoordinateCache);
   setZValue(3);
 

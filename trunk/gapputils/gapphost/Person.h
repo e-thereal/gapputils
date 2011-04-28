@@ -57,6 +57,7 @@ Property(Name, std::string)
 Property(Age, int)
 Property(Address, Address*)
 Property(Gender, Gender)
+Property(Games, std::vector<std::string>)
 
 public:
   Person(void);
