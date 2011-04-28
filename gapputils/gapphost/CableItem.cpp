@@ -32,7 +32,6 @@ CableItem::CableItem(Workbench* bench, ToolConnection* input, ToolConnection* ou
   setZValue(1);
 }
 
-
 CableItem::~CableItem(void)
 {
   if (dragPoint)
@@ -134,7 +133,7 @@ QRectF CableItem::boundingRect() const {
     destPoint.y() - sourcePoint.y())).normalized().adjusted(-50, -50, 50, 50);
 }
   
-void CableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem */*option*/, QWidget */*widget*/) {
+void CableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/) {
   QPainterPath path;
   path.moveTo(sourcePoint);
   path.cubicTo(sourcePoint + QPointF(50, 0), destPoint + QPointF(-50, 0), destPoint);

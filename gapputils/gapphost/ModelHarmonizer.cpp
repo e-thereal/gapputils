@@ -14,6 +14,7 @@
 #include <iostream>
 #include <sstream>
 #include "LabelAttribute.h"
+#include <HideAttribute.h>
 
 #include "PropertyReference.h"
 
@@ -30,7 +31,10 @@ void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
   vector<IClassProperty*> properties = object.getProperties();
   parentItem->removeRows(0, parentItem->rowCount());
 
-  for (unsigned i = 0; i < properties.size(); ++i) {
+  for (unsigned i = 0, gridPos = 0; i < properties.size(); ++i) {
+    if (properties[i]->getAttribute<HideAttribute>())
+      continue;
+
     QStandardItem *key = new QStandardItem(properties[i]->getName().c_str());
     QStandardItem* value = new QStandardItem(properties[i]->getStringValue(object).c_str());
     key->setEditable(false);
@@ -61,16 +65,20 @@ void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
         buildModel(key, *subObject);
       }
     }
-    parentItem->setChild(i, 0, key);
-    parentItem->setChild(i, 1, value);
+    parentItem->setChild(gridPos, 0, key);
+    parentItem->setChild(gridPos, 1, value);
+    ++gridPos;
   }
 }
 
 void updateModel(QStandardItem* parentItem, ReflectableClass& object) {
   vector<IClassProperty*> properties = object.getProperties();
 
-  for (unsigned i = 0; i < properties.size(); ++i) {
-    QStandardItem* value = parentItem->child(i, 1);
+  for (unsigned i = 0, gridPos = 0; i < properties.size(); ++i) {
+    if (properties[i]->getAttribute<HideAttribute>())
+      continue;
+
+    QStandardItem* value = parentItem->child(gridPos, 1);
     value->setText(properties[i]->getStringValue(object).c_str());
 
     IReflectableAttribute* reflectable = properties[i]->getAttribute<IReflectableAttribute>();
@@ -82,9 +90,10 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object) {
         if (!subObject->getAttribute<ScalarAttribute>()) {
           value->setText(subObject->getClassName().c_str());
         }
-        updateModel(parentItem->child(i, 0), *subObject);
+        updateModel(parentItem->child(gridPos, 0), *subObject);
       }
     }
+    ++gridPos;
   }
 }
 

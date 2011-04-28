@@ -9,10 +9,23 @@
 #include <qimage.h>
 
 namespace capputils {
-  namespace reflection {
-    template<>
-    const std::string convertToString(const QImage& image);
+
+namespace reflection {
+
+template<>
+class Converter<QImage> {
+public:
+  static QImage fromString(const std::string& value) {
+    throw "Cannot convert a string to an object of type QImage.";
   }
+
+  static std::string toString(const QImage& value) {
+    return std::string("[QImage]");
+  }
+};
+  
+}
+
 }
 
 namespace gapputils {

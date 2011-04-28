@@ -83,9 +83,6 @@
     <ClCompile Include="Workbench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LabelAttribute.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ImageLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -96,21 +93,6 @@
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_NewObjectDialog.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="OutputAttribute.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="InputAttribute.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CablePlug.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_CablePlug.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_CablePlug.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
     <ClCompile Include="CableItem.cpp">
@@ -140,6 +122,33 @@
     <ClCompile Include="GeneratedFiles\Release\moc_ShowImageDialog.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="PdfLatex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AltovaXml.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GPRegression.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CsvReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CsvWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Compare.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Paper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
@@ -163,9 +172,6 @@
     <CustomBuild Include="NewObjectDialog.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="CablePlug.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="FilenameEdit.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
@@ -177,9 +183,6 @@
     <ClInclude Include="Person.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LabelAttribute.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ToolItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -188,12 +191,6 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_NewObjectDialog.h">
       <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OutputAttribute.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InputAttribute.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CableItem.h">
       <Filter>Header Files</Filter>
@@ -205,6 +202,33 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageViewerItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PdfLatex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AltovaXml.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GPRegression.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CsvReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CsvWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Compare.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Paper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

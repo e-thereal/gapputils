@@ -37,6 +37,7 @@ ReflectableProperty(Address,
   Description("Address with everything."), Observe(PROPERTY_ID))
 
 ReflectableProperty(Gender, Observe(PROPERTY_ID))
+DefineProperty(Games, Observe(PROPERTY_ID), Input(), Output())
 
 EndPropertyDefinitions
 

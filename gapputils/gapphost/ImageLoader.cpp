@@ -1,19 +1,10 @@
 #include "ImageLoader.h"
 
-#include "OutputAttribute.h"
-#include "LabelAttribute.h"
+#include <OutputAttribute.h>
+#include <LabelAttribute.h>
 
 #include <FilenameAttribute.h>
 #include <ObserveAttribute.h>
-
-namespace capputils {
-  namespace reflection {
-    template<>
-    const std::string convertToString(const QImage& image) {
-      return "[QImage]";
-    }
-  }
-}
 
 using namespace capputils::attributes;
 
