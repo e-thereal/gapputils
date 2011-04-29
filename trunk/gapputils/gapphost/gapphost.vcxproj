@@ -84,6 +84,8 @@
     <ClCompile Include="Compare.cpp" />
     <ClCompile Include="CsvReader.cpp" />
     <ClCompile Include="CsvWriter.cpp" />
+    <ClCompile Include="DataModel.cpp" />
+    <ClCompile Include="Edge.cpp" />
     <ClCompile Include="FilenameEdit.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_FilenameEdit.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -123,6 +125,7 @@
     </ClCompile>
     <ClCompile Include="GP.cpp" />
     <ClCompile Include="GPRegression.cpp" />
+    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="ImageViewer.cpp" />
     <ClCompile Include="ImageViewerItem.cpp" />
@@ -136,6 +139,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ModelHarmonizer.cpp" />
     <ClCompile Include="NewObjectDialog.cpp" />
+    <ClCompile Include="Node.cpp" />
     <ClCompile Include="Paper.cpp" />
     <ClCompile Include="PdfLatex.cpp" />
     <ClCompile Include="Person.cpp" />
@@ -175,9 +179,12 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB  "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I." "-I." "-I." "FilenameEdit.h" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"</Command>
     </CustomBuild>
+    <ClInclude Include="DataModel.h" />
+    <ClInclude Include="Edge.h" />
     <ClInclude Include="GeneratedFiles\ui_NewObjectDialog.h" />
     <ClInclude Include="GP.h" />
     <ClInclude Include="GPRegression.h" />
+    <ClInclude Include="Graph.h" />
     <ClInclude Include="ImageLoader.h" />
     <CustomBuild Include="NewObjectDialog.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
@@ -201,6 +208,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB  "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I." "-I." "-I." "ShowImageDialog.h" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"</Command>
     </CustomBuild>
+    <ClInclude Include="Node.h" />
     <ClInclude Include="Paper.h" />
     <ClInclude Include="PdfLatex.h" />
     <ClInclude Include="TextWriter.h" />

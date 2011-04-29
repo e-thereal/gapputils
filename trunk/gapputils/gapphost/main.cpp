@@ -7,12 +7,13 @@
 #include <Verifier.h>
 
 #include "Paper.h"
+#include "DataModel.h"
 
 using namespace gapputils::host;
 using namespace gapputils;
 using namespace capputils;
 
-#define AUTOTEST
+//#define AUTOTEST
 
 int main(int argc, char *argv[])
 {
@@ -23,6 +24,8 @@ int main(int argc, char *argv[])
   MainWindow w;
   w.show();
   ret = a.exec();
+  DataModel& model = DataModel::getInstance();
+  Xmlizer::ToXml("gapphost.conf.xml", model);
 #else
   Paper paper;
   paper.setRun(0);
