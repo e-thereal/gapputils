@@ -27,6 +27,8 @@
 #include "ToolItem.h"
 #include "CustomToolItemAttribute.h"
 
+#include "DataModel.h"
+
 using namespace std;
 using namespace capputils;
 using namespace capputils::reflection;
@@ -83,6 +85,8 @@ void MainWindow::quit() {
 }
 
 void MainWindow::newItem() {
+  using namespace workflow;
+
   if (newObjectDialog->exec() == QDialog::Accepted && newObjectDialog->getSelectedClass().size()) {
     ReflectableClass* object = ReflectableClassFactory::getInstance().newInstance(newObjectDialog->getSelectedClass().toUtf8().data());
     ToolItem* item;
@@ -93,6 +97,10 @@ void MainWindow::newItem() {
       item = new ToolItem(object);
     bench->addToolItem(item);
     bench->setSelectedItem(item);
+
+    Node* node = new Node();
+    node->setModule(object);
+    DataModel::getInstance().getGraph()->getNodes()->push_back(node);
   }
 }
 
