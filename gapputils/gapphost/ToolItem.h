@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "ModelHarmonizer.h"
+#include "Node.h"
 
 namespace gapputils {
 
@@ -62,19 +63,19 @@ public:
   } changeHandler;
 
 protected:
-  capputils::reflection::ReflectableClass* object;
   Workbench* bench;
   ModelHarmonizer harmonizer;
   int width, height, adjust, connectionDistance;
   std::vector<ToolConnection*> inputs;
   std::vector<ToolConnection*> outputs;
+  workflow::Node* node;
 
 public:
-  ToolItem(capputils::reflection::ReflectableClass* object, Workbench *bench = 0);
+  ToolItem(workflow::Node* node, Workbench *bench = 0);
   virtual ~ToolItem();
 
   void setWorkbench(Workbench* bench);
-  capputils::reflection::ReflectableClass* getObject() const;
+  workflow::Node* getNode() const;
   QAbstractItemModel* getModel() const;
 
   ToolConnection* hitConnection(int x, int y, ToolConnection::Direction direction) const;

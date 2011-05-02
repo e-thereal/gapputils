@@ -3,6 +3,7 @@
 #include <DescriptionAttribute.h>
 #include <ScalarAttribute.h>
 #include <ObserveAttribute.h>
+#include <ReuseAttribute.h>
 
 #include "LabelAttribute.h"
 #include "InputAttribute.h"
@@ -11,7 +12,7 @@
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
-BeginPropertyDefinitions(Address, Scalar())
+BeginPropertyDefinitions(Address)
 
 DefineProperty(Street, Observe(PROPERTY_ID))
 DefineProperty(City, Observe(PROPERTY_ID))
@@ -34,18 +35,18 @@ DefineProperty(Age,
   Description("Age in years."), Observe(PROPERTY_ID), Input())
 
 ReflectableProperty(Address,
-  Description("Address with everything."), Observe(PROPERTY_ID))
+  Description("Address with everything."), Observe(PROPERTY_ID), Reuse())
 
 ReflectableProperty(Gender, Observe(PROPERTY_ID))
-DefineProperty(Games, Observe(PROPERTY_ID), Input(), Output())
 
 EndPropertyDefinitions
 
 Person::Person(void) : _FirstName("Tom"), _Name("Brosch"), _Age(27), _Address(0), _Gender(Gender::Male)
 {
-  setAddress(new Address());
+  _Address = new Address();
 }
 
 Person::~Person(void)
 {
+  delete _Address;
 }

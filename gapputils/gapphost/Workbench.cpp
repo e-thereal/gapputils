@@ -57,6 +57,10 @@ CableItem* Workbench::getCurrentCable() const {
   return currentCable;
 }
 
+void Workbench::notifyItemChange(ToolItem* item) {
+  Q_EMIT itemChanged(item);
+}
+
 void Workbench::mousePressEvent(QMouseEvent* event) {
   Q_FOREACH(QGraphicsItem* item, scene()->items()) {
     ToolItem* tool = dynamic_cast<ToolItem*>(item);
@@ -148,8 +152,9 @@ void Workbench::keyPressEvent(QKeyEvent *event)
   switch (event->key()) {
   case Qt::Key_Delete:
     if (selectedItem) {
-      scene()->removeItem(selectedItem);
-      delete selectedItem;
+      //scene()->removeItem(selectedItem);
+      //delete selectedItem;
+      Q_EMIT itemDeleteRequest(selectedItem);
     }
     break;
   default:

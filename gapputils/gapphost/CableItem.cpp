@@ -14,7 +14,7 @@ void CableItem::ChangeEventHandler::operator()(ObservableClass*, int eventId) {
     return;
 
   if (eventId == cableItem->input->propertyId)
-    cableItem->output->property->setValue(*cableItem->output->parent->getObject(), *cableItem->input->parent->getObject(), cableItem->input->property);
+    cableItem->output->property->setValue(*cableItem->output->parent->getNode()->getModule(), *cableItem->input->parent->getNode()->getModule(), cableItem->input->property);
 }
 
 bool CableItem::ChangeEventHandler::operator==(const ChangeEventHandler& handler) const {
@@ -64,13 +64,13 @@ void CableItem::setInput(ToolConnection* input) {
   this->input = input;
   if (input) {
     input->connect(this);
-    ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getObject());
+    ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getNode()->getModule());
     if (observable) {
       observable->Changed.connect(changeEventHandler);
       //observable->fireChangeEvent(input->propertyId);
     }
     if (output) {
-      output->property->setValue(*output->parent->getObject(), *input->parent->getObject(), input->property);
+      output->property->setValue(*output->parent->getNode()->getModule(), *input->parent->getNode()->getModule(), input->property);
     }
   }
   adjust();
@@ -81,7 +81,7 @@ void CableItem::setOutput(ToolConnection* output) {
   if (output) {
     output->connect(this);
     if (input) {
-      output->property->setValue(*output->parent->getObject(), *input->parent->getObject(), input->property);
+      output->property->setValue(*output->parent->getNode()->getModule(), *input->parent->getNode()->getModule(), input->property);
     }
   }
   adjust();
@@ -105,7 +105,7 @@ bool CableItem::needOutput() const {
 
 void CableItem::disconnectInput() {
   if (input) {
-    ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getObject());
+    ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getNode()->getModule());
     if (observable)
       observable->Changed.disconnect(changeEventHandler);
     ToolConnection* temp = input;
