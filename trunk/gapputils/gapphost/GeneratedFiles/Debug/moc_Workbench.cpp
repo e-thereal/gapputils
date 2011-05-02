@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workbench.h'
 **
-** Created: Thu Apr 14 15:22:48 2011
+** Created: Mon May 2 09:16:53 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,22 +23,25 @@ static const uint qt_meta_data_gapputils__Workbench[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-       1,   14, // methods
+       3,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
-       1,       // signalCount
+       3,       // signalCount
 
  // signals: signature, parameters, type, tag, flags
       27,   22,   21,   21, 0x05,
+      51,   22,   21,   21, 0x05,
+      74,   22,   21,   21, 0x05,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_gapputils__Workbench[] = {
     "gapputils::Workbench\0\0item\0"
-    "itemSelected(ToolItem*)\0"
+    "itemSelected(ToolItem*)\0itemChanged(ToolItem*)\0"
+    "itemDeleteRequest(ToolItem*)\0"
 };
 
 const QMetaObject gapputils::Workbench::staticMetaObject = {
@@ -71,9 +74,11 @@ int gapputils::Workbench::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
         case 0: itemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 1: itemChanged((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 2: itemDeleteRequest((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
         default: ;
         }
-        _id -= 1;
+        _id -= 3;
     }
     return _id;
 }
@@ -83,5 +88,19 @@ void gapputils::Workbench::itemSelected(ToolItem * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);
+}
+
+// SIGNAL 1
+void gapputils::Workbench::itemChanged(ToolItem * _t1)
+{
+    void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
+    QMetaObject::activate(this, &staticMetaObject, 1, _a);
+}
+
+// SIGNAL 2
+void gapputils::Workbench::itemDeleteRequest(ToolItem * _t1)
+{
+    void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
+    QMetaObject::activate(this, &staticMetaObject, 2, _a);
 }
 QT_END_MOC_NAMESPACE

@@ -24,10 +24,10 @@ class MainWindow : public QMainWindow
 
 private:
   QMenu* fileMenu;
-  Workbench* bench;
   QTreeView* propertyGrid;
   QWidget* centralWidget;
   NewObjectDialog* newObjectDialog;
+  Workbench* bench;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);

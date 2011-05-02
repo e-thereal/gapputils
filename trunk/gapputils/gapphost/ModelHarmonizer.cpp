@@ -134,9 +134,11 @@ void ModelHarmonizer::itemChanged(QStandardItem* item) {
       IReflectableAttribute* reflectable = prop->getAttribute<IReflectableAttribute>();
       if (reflectable) {
         ReflectableClass* subObject = reflectable->getValuePtr(*object, prop);
-        stringstream stream(str);
-        subObject->fromStream(stream);
-        reflectable->setValuePtr(*object, prop, subObject);
+        if (subObject->getAttribute<ScalarAttribute>()) {
+          stringstream stream(str);
+          subObject->fromStream(stream);
+          reflectable->setValuePtr(*object, prop, subObject);
+        }
       } else {
         prop->setStringValue(*object, str);
       }

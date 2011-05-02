@@ -5,6 +5,7 @@
 #include <Xmlizer.h>
 #include <ArgumentsParser.h>
 #include <Verifier.h>
+#include <iostream>
 
 #include "Paper.h"
 #include "DataModel.h"
@@ -12,6 +13,7 @@
 using namespace gapputils::host;
 using namespace gapputils;
 using namespace capputils;
+using namespace std;
 
 //#define AUTOTEST
 
@@ -20,11 +22,12 @@ int main(int argc, char *argv[])
   cublasInit();
   int ret = 0;
 #ifndef AUTOTEST
+  DataModel& model = DataModel::getInstance();
+  Xmlizer::FromXml(model, "gapphost.conf.xml");
   QApplication a(argc, argv);
   MainWindow w;
   w.show();
   ret = a.exec();
-  DataModel& model = DataModel::getInstance();
   Xmlizer::ToXml("gapphost.conf.xml", model);
 #else
   Paper paper;

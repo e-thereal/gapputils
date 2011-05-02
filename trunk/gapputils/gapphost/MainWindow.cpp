@@ -28,6 +28,7 @@
 #include "CustomToolItemAttribute.h"
 
 #include "DataModel.h"
+#include "WorkflowController.h"
 
 using namespace std;
 using namespace capputils;
@@ -37,6 +38,7 @@ using namespace capputils::attributes;
 namespace gapputils {
 
 using namespace attributes;
+using namespace workflow;
 
 namespace host {
 
@@ -54,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   bench = new Workbench();
   bench->setGeometry(0, 0, 600, 600);
+  Controller::getInstance().setWorkbench(bench);
 
   propertyGrid = new QTreeView();
   propertyGrid->setAllColumnsShowFocus(false);
@@ -72,6 +75,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   connect(newItemAction, SIGNAL(triggered()), this, SLOT(newItem()));
   connect(quitAction, SIGNAL(triggered()), this, SLOT(quit()));
   connect(bench, SIGNAL(itemSelected(ToolItem*)), this, SLOT(itemSelected(ToolItem*)));
+
+  Controller::getInstance().resumeFromModel();
 }
 
 MainWindow::~MainWindow()
@@ -85,22 +90,8 @@ void MainWindow::quit() {
 }
 
 void MainWindow::newItem() {
-  using namespace workflow;
-
   if (newObjectDialog->exec() == QDialog::Accepted && newObjectDialog->getSelectedClass().size()) {
-    ReflectableClass* object = ReflectableClassFactory::getInstance().newInstance(newObjectDialog->getSelectedClass().toUtf8().data());
-    ToolItem* item;
-    ICustomToolItemAttribute* customToolItem = object->getAttribute<ICustomToolItemAttribute>();
-    if (customToolItem)
-      item = customToolItem->createToolItem(object);
-    else
-      item = new ToolItem(object);
-    bench->addToolItem(item);
-    bench->setSelectedItem(item);
-
-    Node* node = new Node();
-    node->setModule(object);
-    DataModel::getInstance().getGraph()->getNodes()->push_back(node);
+    Controller::getInstance().newModule(newObjectDialog->getSelectedClass().toUtf8().data());
   }
 }
 

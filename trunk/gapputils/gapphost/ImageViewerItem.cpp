@@ -7,7 +7,9 @@ using namespace capputils::reflection;
 
 namespace gapputils {
 
-ImageViewerItem::ImageViewerItem(ReflectableClass* object, Workbench *bench) : ToolItem(object, bench)
+using namespace workflow;
+
+ImageViewerItem::ImageViewerItem(Node* node, Workbench *bench) : ToolItem(node, bench)
 {
   width = 100;
   height = 70;
@@ -31,7 +33,7 @@ void ImageViewerItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
 }
 
 void ImageViewerItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
-  ImageViewer* viewer = dynamic_cast<ImageViewer*>(getObject());
+  ImageViewer* viewer = dynamic_cast<ImageViewer*>(getNode()->getModule());
   if (viewer) {
     viewer->showImage();
   }

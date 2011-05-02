@@ -26,6 +26,8 @@ using namespace std;
 
 namespace gapputils {
 
+using namespace workflow;
+
 ToolConnection::ToolConnection(const QString& label, Direction direction, ToolItem* parent, IClassProperty* property)
   : x(0), y(0), width(6), height(7), label(label), direction(direction), parent(parent), cable(0), property(property)
 {
@@ -121,8 +123,8 @@ QPointF ToolConnection::attachmentPos() const {
     return QPointF(x+width+2, y);
 }
 
-ToolItem::ToolItem(ReflectableClass* object, Workbench *bench)
- : changeHandler(this), object(object), bench(bench), harmonizer(object),
+ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
+ : changeHandler(this), node(node), bench(bench), harmonizer(node->getModule()),
    width(190), height(90), adjust(3 + 10), connectionDistance(16)
 {
   setFlag(ItemIsMovable);
@@ -131,6 +133,7 @@ ToolItem::ToolItem(ReflectableClass* object, Workbench *bench)
   setCacheMode(DeviceCoordinateCache);
   setZValue(3);
 
+  ReflectableClass* object = node->getModule();
   ObservableClass* observable = dynamic_cast<ObservableClass*>(object);
   if (observable)
     observable->Changed.connect(changeHandler);
@@ -158,8 +161,8 @@ void ToolItem::setWorkbench(Workbench* bench) {
   this->bench = bench;
 }
 
-ReflectableClass* ToolItem::getObject() const {
-  return object;
+Node* ToolItem::getNode() const {
+  return node;
 }
 
 QAbstractItemModel* ToolItem::getModel() const {
@@ -191,6 +194,8 @@ QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) 
         outputs[i]->cable->adjust();
       }
     }
+    if (bench)
+      bench->notifyItemChange(this);
     break;
   default:
     break;
@@ -254,10 +259,10 @@ void ToolItem::drawBox(QPainter* painter) {
 }
 
 std::string ToolItem::getLabel() const {
-  vector<IClassProperty*>& properties = object->getProperties();
+  vector<IClassProperty*>& properties = getNode()->getModule()->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<LabelAttribute>()) {
-      return properties[i]->getStringValue(*object);
+      return properties[i]->getStringValue(*getNode()->getModule());
     }
   }
   return "";
@@ -270,7 +275,7 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
   QString label = getLabel().c_str();
   if (label.size() == 0) {
     label.append("[");
-    label.append(object->getClassName().c_str());
+    label.append(getNode()->getModule()->getClassName().c_str());
     label.append("]");
   }
 

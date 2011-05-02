@@ -31,10 +31,12 @@ public:
   void setSelectedItem(ToolItem* item);
   ToolItem* getSelectedItem() const;
   CableItem* getCurrentCable() const;
-
+  void notifyItemChange(ToolItem* item);
 
 Q_SIGNALS:
   void itemSelected(ToolItem* item);
+  void itemChanged(ToolItem* item);
+  void itemDeleteRequest(ToolItem* item);
 
 protected:
   void mousePressEvent(QMouseEvent* event);
