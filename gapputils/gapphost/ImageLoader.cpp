@@ -37,7 +37,7 @@ ImageLoader::~ImageLoader(void)
 void ImageLoader::loadImage() {
   if (!image)
     image = new QImage();
-  if (image->load(getImageName().c_str()));
+  if (image->load(getImageName().c_str()))
     setImagePtr(image);
 }
 

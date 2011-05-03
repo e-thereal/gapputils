@@ -16,7 +16,6 @@ ImageViewerItem::ImageViewerItem(Node* node, Workbench *bench) : ToolItem(node, 
   updateConnectionPositions();
 }
 
-
 ImageViewerItem::~ImageViewerItem(void)
 {
 }

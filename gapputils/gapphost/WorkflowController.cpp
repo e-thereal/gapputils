@@ -72,8 +72,7 @@ void Controller::newItem(Node* node) {
   else
     item = new ToolItem(node);
 
-  item->setX(node->getX());
-  item->setY(node->getY());
+  item->setPos(node->getX(), node->getY());
   node->setToolItem(item);
 
   workbench->addToolItem(item);
@@ -91,7 +90,7 @@ void Controller::newCable(Edge* edge) {
   vector<Node*>* nodes = model.getGraph()->getNodes();
   
   Node *outputNode = 0, *inputNode = 0;
-  for (int i = 0; i < nodes->size(); ++i)
+  for (unsigned i = 0; i < nodes->size(); ++i)
     if (nodes->at(i)->getUuid().compare(outputNodeUuid) == 0)
       outputNode = nodes->at(i);
     else if (nodes->at(i)->getUuid().compare(inputNodeUuid) == 0)

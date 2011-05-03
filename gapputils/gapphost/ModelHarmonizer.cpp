@@ -13,7 +13,7 @@
 #include <ScalarAttribute.h>
 #include <iostream>
 #include <sstream>
-#include "LabelAttribute.h"
+#include <LabelAttribute.h>
 #include <HideAttribute.h>
 
 #include "PropertyReference.h"
