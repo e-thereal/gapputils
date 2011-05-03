@@ -30,11 +30,14 @@ public:
 
   void newModule(const std::string& name);
   void newItem(Node* node);
+  void newCable(Edge* edge);
   void resumeFromModel();
 
 private Q_SLOTS:
   void itemChangedHandler(ToolItem* item);
   void deleteItem(ToolItem* item);
+  void createEdge(CableItem* cable);
+  void deleteEdge(CableItem* cable);
 };
 
 }

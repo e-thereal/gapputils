@@ -5,6 +5,8 @@
 #include "ImageViewerItem.h"
 #include "CustomToolItemAttribute.h"
 #include <ObserveAttribute.h>
+#include <HideAttribute.h>
+#include <VolatileAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -16,7 +18,7 @@ using namespace attributes;
 BeginPropertyDefinitions(ImageViewer, CustomToolItem<ImageViewerItem>())
 
 DefineProperty(Label, Label(), Observe(PROPERTY_ID))
-DefineProperty(ImagePtr, Input(), Observe(PROPERTY_ID))
+DefineProperty(ImagePtr, Input(), Observe(PROPERTY_ID), Hide(), Volatile())
 
 EndPropertyDefinitions
 

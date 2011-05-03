@@ -40,6 +40,10 @@ void Workbench::addToolItem(ToolItem* item) {
   scene()->addItem(item);
 }
 
+void Workbench::addCableItem(CableItem* cable) {
+  scene()->addItem(cable);
+}
+
 void Workbench::setSelectedItem(ToolItem* item) {
   selectedItem = item;
 
@@ -76,6 +80,7 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
           currentCable = connection->cable;
           currentCable->disconnectInput();
           currentCable->setDragPoint(mapToScene(event->pos()));
+          Q_EMIT cableDeleted(currentCable);
         } else {
           currentCable = new CableItem(this, connection);
           currentCable->setDragPoint(mapToScene(event->pos()));
@@ -91,6 +96,7 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
           currentCable = connection->cable;
           currentCable->disconnectOutput();
           currentCable->setDragPoint(mapToScene(event->pos()));
+          Q_EMIT cableDeleted(currentCable);
         } else {
           currentCable = new CableItem(this, 0, connection);
           currentCable->setDragPoint(mapToScene(event->pos()));
@@ -122,6 +128,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
             foundConnection = true;
             currentCable->setOutput(connection);
             currentCable->endDrag();
+            Q_EMIT cableCreated(currentCable);
             break;
           }
         } else if (currentCable->needInput()) {
@@ -130,6 +137,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
             foundConnection = true;
             currentCable->setInput(connection);
             currentCable->endDrag();
+            Q_EMIT cableCreated(currentCable);
             break;
           }
         }
@@ -152,9 +160,9 @@ void Workbench::keyPressEvent(QKeyEvent *event)
   switch (event->key()) {
   case Qt::Key_Delete:
     if (selectedItem) {
-      //scene()->removeItem(selectedItem);
-      //delete selectedItem;
-      Q_EMIT itemDeleteRequest(selectedItem);
+      scene()->removeItem(selectedItem);
+      Q_EMIT itemDeleted(selectedItem);
+      delete selectedItem;
     }
     break;
   default:

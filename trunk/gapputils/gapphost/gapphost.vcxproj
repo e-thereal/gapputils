@@ -129,8 +129,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_WorkflowController.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="GP.cpp" />
-    <ClCompile Include="GPRegression.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="ImageViewer.cpp" />
@@ -146,7 +144,6 @@
     <ClCompile Include="ModelHarmonizer.cpp" />
     <ClCompile Include="NewObjectDialog.cpp" />
     <ClCompile Include="Node.cpp" />
-    <ClCompile Include="Paper.cpp" />
     <ClCompile Include="PdfLatex.cpp" />
     <ClCompile Include="Person.cpp" />
     <ClCompile Include="PropertyGridDelegate.cpp" />
@@ -199,8 +196,6 @@
     <ClInclude Include="DataModel.h" />
     <ClInclude Include="Edge.h" />
     <ClInclude Include="GeneratedFiles\ui_NewObjectDialog.h" />
-    <ClInclude Include="GP.h" />
-    <ClInclude Include="GPRegression.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="ImageLoader.h" />
     <CustomBuild Include="NewObjectDialog.h">
@@ -226,7 +221,6 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB  "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I." "-I." "-I." "ShowImageDialog.h" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"</Command>
     </CustomBuild>
     <ClInclude Include="Node.h" />
-    <ClInclude Include="Paper.h" />
     <ClInclude Include="PdfLatex.h" />
     <ClInclude Include="TextWriter.h" />
     <ClInclude Include="ToolItem.h" />
