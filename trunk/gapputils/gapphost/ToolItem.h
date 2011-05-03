@@ -51,24 +51,14 @@ public:
 class ToolItem : public QGraphicsItem {
   friend class ToolConnection;
 
-public:
-  class ChangeHandler {
-    ToolItem* item;
-  public:
-    ChangeHandler(ToolItem* item) : item(item) { }
-
-    void operator()(capputils::ObservableClass*, int) {
-      item->update();
-    }
-  } changeHandler;
-
 protected:
+  workflow::Node* node;
   Workbench* bench;
   ModelHarmonizer harmonizer;
-  int width, height, adjust, connectionDistance;
+  int width, height, adjust, connectionDistance, inputsWidth, labelWidth, outputsWidth;
   std::vector<ToolConnection*> inputs;
   std::vector<ToolConnection*> outputs;
-  workflow::Node* node;
+  QFont labelFont;
 
 public:
   ToolItem(workflow::Node* node, Workbench *bench = 0);
@@ -80,6 +70,7 @@ public:
 
   ToolConnection* hitConnection(int x, int y, ToolConnection::Direction direction) const;
   ToolConnection* getConnection(const std::string& propertyName, ToolConnection::Direction direction) const;
+  void updateSize();
   void updateConnectionPositions();
   void drawConnections(QPainter* painter, bool showLabel = true);
   void drawBox(QPainter* painter);
@@ -92,6 +83,9 @@ public:
   QPainterPath shape() const;
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
   bool isSelected() const;
+
+protected:
+  void changedHandler(capputils::ObservableClass* sender, int eventId);
 };
 
 }

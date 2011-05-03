@@ -11,6 +11,9 @@
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
 #include <ObserveAttribute.h>
+#include <EventHandler.h>
+#include <qapplication.h>
+#include <QFontMetrics>
 #include "Workbench.h"
 
 #include "LabelAttribute.h"
@@ -124,19 +127,23 @@ QPointF ToolConnection::attachmentPos() const {
 }
 
 ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
- : changeHandler(this), node(node), bench(bench), harmonizer(node->getModule()),
-   width(190), height(90), adjust(3 + 10), connectionDistance(16)
+ : node(node), bench(bench), harmonizer(node->getModule()),
+   width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
+   labelWidth(50), outputsWidth(0), labelFont(QApplication::font())
 {
   setFlag(ItemIsMovable);
   // TODO: check if this causes problems
-  setFlag(ItemSendsGeometryChanges);
+  //setFlag(ItemSendsGeometryChanges);
   setCacheMode(DeviceCoordinateCache);
   setZValue(3);
+
+  labelFont.setBold(true);
+  labelFont.setPointSize(10);
 
   ReflectableClass* object = node->getModule();
   ObservableClass* observable = dynamic_cast<ObservableClass*>(object);
   if (observable)
-    observable->Changed.connect(changeHandler);
+    observable->Changed.connect(capputils::EventHandler<ToolItem>(this, &ToolItem::changedHandler));
 
   vector<IClassProperty*>& properties = object->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
@@ -147,7 +154,8 @@ ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
       outputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Output, this, properties[i]));
     }
   }
-  updateConnectionPositions();
+
+  updateSize();
 }
 
 ToolItem::~ToolItem() {
@@ -155,6 +163,11 @@ ToolItem::~ToolItem() {
     delete inputs[i];
   for (unsigned i = 0; i < outputs.size(); ++i)
     delete outputs[i];
+}
+
+void ToolItem::changedHandler(capputils::ObservableClass* sender, int eventId) {
+  updateSize();
+  update();
 }
 
 void ToolItem::setWorkbench(Workbench* bench) {
@@ -215,6 +228,23 @@ QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) 
   };
 
   return QGraphicsItem::itemChange(change, value);
+}
+
+void ToolItem::updateSize() {
+  QFontMetrics fontMetrics(QApplication::font());
+  QFontMetrics labelFontMetrics(labelFont);
+  inputsWidth = outputsWidth = 0;
+  for (unsigned i = 0; i < inputs.size(); ++i)
+    inputsWidth = max(inputsWidth, fontMetrics.boundingRect(inputs[i]->label).width());
+  for (unsigned i = 0; i < outputs.size(); ++i)
+    outputsWidth = max(outputsWidth, fontMetrics.boundingRect(outputs[i]->label).width());
+
+  width = (inputs.size() ? inputsWidth : 0) + labelWidth + (outputs.size() ? outputsWidth : 0);
+  height = 30;
+  height = max(height, labelFontMetrics.boundingRect(getLabel().c_str()).width() + 20);
+  height = max(height, connectionDistance * (int)inputs.size() + 12);
+  height = max(height, connectionDistance * (int)outputs.size() + 12);
+  updateConnectionPositions();
 }
 
 void ToolItem::updateConnectionPositions() {
@@ -296,14 +326,14 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
   drawConnections(painter);
  
   painter->save();
-  painter->translate(width/2, height/2);
+  painter->translate((inputs.size() ? inputsWidth : 0) + labelWidth/2, height/2);
+  //painter->translate(width/2, height/2);
   painter->rotate(270);
-  painter->translate(-width/2, -height/2);
-  QFont font = painter->font();
-  font.setBold(true);
-  font.setPointSize(10);
-  painter->setFont(font);
-  painter->drawText(0, 0, width, height, Qt::AlignCenter, label);
+  painter->translate(-(inputs.size() ? inputsWidth : 0) -labelWidth/2, -height/2);
+  //painter->translate(-width/2, -height/2);
+  painter->setFont(labelFont);
+  painter->drawText((inputs.size() ? inputsWidth : 0) - height, 0, labelWidth + 2 * height, height, Qt::AlignCenter, label);
+  //painter->drawText(0, 0, width, height, Qt::AlignCenter, label);
   painter->restore();
  }
 

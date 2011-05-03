@@ -5,6 +5,7 @@
 	<projects>
 		<project>capputils</project>
 		<project>tinyxml</project>
+		<project>gapputils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

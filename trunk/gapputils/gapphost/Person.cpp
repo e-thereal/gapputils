@@ -5,9 +5,9 @@
 #include <ObserveAttribute.h>
 #include <ReuseAttribute.h>
 
-#include "LabelAttribute.h"
-#include "InputAttribute.h"
-#include "OutputAttribute.h"
+#include <LabelAttribute.h>
+#include <InputAttribute.h>
+#include <OutputAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;

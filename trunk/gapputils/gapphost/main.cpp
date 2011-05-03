@@ -1,13 +1,13 @@
 #include "MainWindow.h"
 #include <QtGui/QApplication>
 
-#include <cublas.h>
+//#include <cublas.h>
 #include <Xmlizer.h>
 #include <ArgumentsParser.h>
 #include <Verifier.h>
 #include <iostream>
 
-#include "../GaussianProcesses/Paper.h"
+//#include "../GaussianProcesses/Paper.h"
 #include "DataModel.h"
 
 using namespace gapputils::host;
@@ -19,7 +19,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-  cublasInit();
+  //cublasInit();
   int ret = 0;
 #ifndef AUTOTEST
   QApplication a(argc, argv);
@@ -37,6 +37,6 @@ int main(int argc, char *argv[])
   paper.setRun(1);
   Xmlizer::ToXml(paper.getConfigurationName(), paper);
 #endif
-  cublasShutdown();
+  //cublasShutdown();
   return ret;
 }
