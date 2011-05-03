@@ -7,6 +7,8 @@
 
 namespace gapputils {
 
+class ToolItem;
+
 namespace workflow {
 
 class Node : public capputils::reflection::ReflectableClass
@@ -14,9 +16,11 @@ class Node : public capputils::reflection::ReflectableClass
 
   InitReflectableClass(Node)
 
+  Property(Uuid, std::string)
   Property(X, int)
   Property(Y, int)
   Property(Module, capputils::reflection::ReflectableClass*)
+  Property(ToolItem, ToolItem*)
 
 public:
   Node();

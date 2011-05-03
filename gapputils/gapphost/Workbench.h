@@ -27,6 +27,7 @@ public:
   virtual ~Workbench();
 
   void addToolItem(ToolItem* item);
+  void addCableItem(CableItem* cable);
 
   void setSelectedItem(ToolItem* item);
   ToolItem* getSelectedItem() const;
@@ -36,7 +37,9 @@ public:
 Q_SIGNALS:
   void itemSelected(ToolItem* item);
   void itemChanged(ToolItem* item);
-  void itemDeleteRequest(ToolItem* item);
+  void itemDeleted(ToolItem* item);
+  void cableCreated(CableItem* cable);
+  void cableDeleted(CableItem* cable);
 
 protected:
   void mousePressEvent(QMouseEvent* event);

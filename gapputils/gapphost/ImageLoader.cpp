@@ -5,6 +5,8 @@
 
 #include <FilenameAttribute.h>
 #include <ObserveAttribute.h>
+#include <VolatileAttribute.h>
+#include <HideAttribute.h>
 
 using namespace capputils::attributes;
 
@@ -16,7 +18,7 @@ BeginPropertyDefinitions(ImageLoader)
 
   DefineProperty(Label, Label(), Observe(PROPERTY_ID))
   DefineProperty(ImageName, Observe(PROPERTY_ID), Filename())
-  DefineProperty(ImagePtr, Output(), Observe(PROPERTY_ID))
+  DefineProperty(ImagePtr, Output(), Observe(PROPERTY_ID), Hide(), Volatile())
 
 EndPropertyDefinitions
 

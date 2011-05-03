@@ -7,7 +7,7 @@
 #include <Verifier.h>
 #include <iostream>
 
-#include "Paper.h"
+#include "../GaussianProcesses/Paper.h"
 #include "DataModel.h"
 
 using namespace gapputils::host;
@@ -22,9 +22,9 @@ int main(int argc, char *argv[])
   cublasInit();
   int ret = 0;
 #ifndef AUTOTEST
+  QApplication a(argc, argv);
   DataModel& model = DataModel::getInstance();
   Xmlizer::FromXml(model, "gapphost.conf.xml");
-  QApplication a(argc, argv);
   MainWindow w;
   w.show();
   ret = a.exec();

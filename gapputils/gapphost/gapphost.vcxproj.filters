@@ -131,12 +131,6 @@
     <ClCompile Include="AltovaXml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GP.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GPRegression.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CsvReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -144,9 +138,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Compare.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Paper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DataModel.cpp">
@@ -237,12 +228,6 @@
     <ClInclude Include="AltovaXml.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GP.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GPRegression.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CsvReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -250,9 +235,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Compare.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Paper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DataModel.h">

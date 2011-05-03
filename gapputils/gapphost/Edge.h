@@ -5,7 +5,11 @@
 
 #include <ReflectableClass.h>
 
+#include "Node.h"
+
 namespace gapputils {
+
+class CableItem;
 
 namespace workflow {
 
@@ -13,6 +17,12 @@ class Edge : public capputils::reflection::ReflectableClass
 {
 
   InitReflectableClass(Edge)
+
+  Property(OutputNode, std::string)
+  Property(InputNode, std::string)
+  Property(OutputProperty, std::string)
+  Property(InputProperty, std::string)
+  Property(CableItem, CableItem*)
 
 public:
   Edge(void);

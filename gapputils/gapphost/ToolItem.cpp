@@ -182,6 +182,19 @@ ToolConnection* ToolItem::hitConnection(int x, int y, ToolConnection::Direction 
   return 0;
 }
 
+ToolConnection* ToolItem::getConnection(const std::string& propertyName, ToolConnection::Direction direction) const {
+  if (direction == ToolConnection::Input) {
+    for (unsigned i = 0; i < inputs.size(); ++i)
+      if (inputs[i]->property->getName().compare(propertyName) == 0)
+        return inputs[i];
+  } else {
+    for (unsigned i = 0; i < outputs.size(); ++i)
+      if (outputs[i]->property->getName().compare(propertyName) == 0)
+        return outputs[i];
+  }
+  return 0;
+}
+
 QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) {
   switch (change) {
   case ItemPositionHasChanged:

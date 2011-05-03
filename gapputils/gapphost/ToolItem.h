@@ -79,6 +79,7 @@ public:
   QAbstractItemModel* getModel() const;
 
   ToolConnection* hitConnection(int x, int y, ToolConnection::Direction direction) const;
+  ToolConnection* getConnection(const std::string& propertyName, ToolConnection::Direction direction) const;
   void updateConnectionPositions();
   void drawConnections(QPainter* painter, bool showLabel = true);
   void drawBox(QPainter* painter);
