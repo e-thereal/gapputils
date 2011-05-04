@@ -44,8 +44,7 @@ ToolConnection::ToolConnection(const QString& label, Direction direction, ToolIt
 
 ToolConnection::~ToolConnection() {
   if (cable) {
-    parent->bench->scene()->removeItem(cable);
-    delete cable;
+    parent->bench->removeCableItem(cable);
   }
 }
 

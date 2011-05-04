@@ -5,8 +5,10 @@
 #include <qfiledialog.h>
 
 #include <Xmlizer.h>
+#include <LibraryLoader.h>
 
 #include "DataModel.h"
+#include "Controller.h"
 
 using namespace std;
 using namespace capputils;
@@ -25,20 +27,17 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   newObjectDialog = new NewObjectDialog();
 
-  fileMenu = menuBar()->addMenu("File");
-  QAction* newItemAction = fileMenu->addAction("New Item");
-  QAction* loadWFAction = fileMenu->addAction("Load Workflow");
-  QAction* quitAction = fileMenu->addAction("Quit");
-
   tabWidget = new QTabWidget();
-
   Workflow* workflow = DataModel::getInstance().getMainWorkflow();
   tabWidget->addTab(workflow->getWidget(), "Root");
   setCentralWidget(tabWidget);
 
-  connect(newItemAction, SIGNAL(triggered()), this, SLOT(newItem()));
-  connect(loadWFAction, SIGNAL(triggered()), this, SLOT(loadWorkflow()));
-  connect(quitAction, SIGNAL(triggered()), this, SLOT(quit()));
+  fileMenu = menuBar()->addMenu("File");
+  connect(fileMenu->addAction("New Item"), SIGNAL(triggered()), this, SLOT(newItem()));
+  connect(fileMenu->addAction("Load Workflow"), SIGNAL(triggered()), this, SLOT(loadWorkflow()));
+  connect(fileMenu->addAction("Save Workflow"), SIGNAL(triggered()), this, SLOT(saveWorkflow()));
+  connect(fileMenu->addAction("Load Library"), SIGNAL(triggered()), this, SLOT(loadLibrary()));
+  connect(fileMenu->addAction("Quit"), SIGNAL(triggered()), this, SLOT(quit()));
 
   workflow->resumeFromModel();
 }
@@ -53,6 +52,7 @@ void MainWindow::quit() {
 }
 
 void MainWindow::newItem() {
+  newObjectDialog->updateList();
   if (newObjectDialog->exec() == QDialog::Accepted && newObjectDialog->getSelectedClass().size()) {
     DataModel::getInstance().getMainWorkflow()->newModule(newObjectDialog->getSelectedClass().toUtf8().data());
   }
@@ -68,6 +68,30 @@ void MainWindow::loadWorkflow() {
         workflow->resumeFromModel();
         tabWidget->addTab(workflow->getWidget(), "New");
       }
+    }
+  }
+}
+
+void MainWindow::saveWorkflow() {
+  QFileDialog fileDialog(this);
+  if (fileDialog.exec() == QDialog::Accepted) {
+    QStringList filenames = fileDialog.selectedFiles();
+    if (filenames.size()) {
+      Controller::getInstance().saveCurrentWorkflow(filenames[0].toUtf8().data());
+    }
+  }
+}
+
+void MainWindow::loadLibrary() {
+  QFileDialog fileDialog(this);
+  if (fileDialog.exec() == QDialog::Accepted) {
+    QStringList filenames = fileDialog.selectedFiles();
+    if (filenames.size()) {
+      string filename = filenames[0].toUtf8().data();
+      LibraryLoader::getInstance().loadLibrary(filename);
+      vector<string>* libs = DataModel::getInstance().getMainWorkflow()->getLibraries();
+      libs->push_back(filename);
+      DataModel::getInstance().getMainWorkflow()->setLibraries(libs);
     }
   }
 }

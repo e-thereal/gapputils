@@ -11,10 +11,7 @@ NewObjectDialog::NewObjectDialog(QWidget *parent)
   ui.setupUi(this);
   //setFixedSize(381, 311);
 
-  ReflectableClassFactory& factory = ReflectableClassFactory::getInstance();
-  vector<string>& classNames = factory.getClassNames();
-  for (unsigned i = 0; i < classNames.size(); ++i)
-    ui.listWidget->addItem(classNames[i].c_str());
+  updateList();
 
   connect(ui.cancelButton, SIGNAL(clicked(bool)), this, SLOT(cancelButtonClicked(bool)));
   connect(ui.addButton, SIGNAL(clicked(bool)), this, SLOT(addButtonClicked(bool)));
@@ -23,6 +20,14 @@ NewObjectDialog::NewObjectDialog(QWidget *parent)
 
 NewObjectDialog::~NewObjectDialog()
 {
+}
+
+void NewObjectDialog::updateList() {
+  ReflectableClassFactory& factory = ReflectableClassFactory::getInstance();
+  vector<string>& classNames = factory.getClassNames();
+  ui.listWidget->clear();
+  for (unsigned i = 0; i < classNames.size(); ++i)
+    ui.listWidget->addItem(classNames[i].c_str());
 }
 
 QString NewObjectDialog::getSelectedClass() const {

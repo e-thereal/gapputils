@@ -21,7 +21,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   //cublasInit();
-  registerClasses();
+  //registerClasses();
 
   int ret = 0;
 #ifndef AUTOTEST
@@ -31,7 +31,17 @@ int main(int argc, char *argv[])
   MainWindow w;
   w.show();
   ret = a.exec();
-  Xmlizer::ToXml("gapphost.conf.xml", model);
+
+  TiXmlElement* modelElement = Xmlizer::CreateXml(model);
+  TiXmlElement* mainWorkflowElement = new TiXmlElement("MainWorkflow");
+  TiXmlElement* workflowElement = model.getMainWorkflow()->getXml(false);
+  Xmlizer::ToXml(*workflowElement, *model.getMainWorkflow());
+
+  mainWorkflowElement->LinkEndChild(workflowElement);
+  modelElement->LinkEndChild(mainWorkflowElement);
+
+  Xmlizer::ToFile("gapphost.conf.xml", modelElement);
+
 #else
   Paper paper;
   paper.setRun(0);

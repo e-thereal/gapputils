@@ -28,6 +28,8 @@ private Q_SLOTS:
   void quit();
   void newItem();
   void loadWorkflow();
+  void saveWorkflow();
+  void loadLibrary();
 };
 
 }

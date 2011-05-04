@@ -19,8 +19,6 @@ using namespace attributes;
 
 BeginPropertyDefinitions(TestWorkflow)
 
-  ReflectableBase(workflow::Workflow)
-
   DefineProperty(Name, Input(), Observe(PROPERTY_ID))
   DefineProperty(In1, Input(), Observe(PROPERTY_ID))
   DefineProperty(Out1, Output(), Observe(PROPERTY_ID))
@@ -28,7 +26,6 @@ BeginPropertyDefinitions(TestWorkflow)
 EndPropertyDefinitions
 
 TestWorkflow::TestWorkflow() {
-
 }
 
 TestWorkflow::~TestWorkflow() {

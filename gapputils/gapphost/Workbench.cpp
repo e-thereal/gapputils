@@ -44,6 +44,12 @@ void Workbench::addCableItem(CableItem* cable) {
   scene()->addItem(cable);
 }
 
+void Workbench::removeCableItem(CableItem* cable) {
+  scene()->removeItem(cable);
+  Q_EMIT cableDeleted(cable);
+  delete cable;
+}
+
 void Workbench::setSelectedItem(ToolItem* item) {
   selectedItem = item;
 
