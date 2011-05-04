@@ -13,6 +13,7 @@ public:
     ~NewObjectDialog();
 
     QString getSelectedClass() const;
+    void updateList();
 
 private:
     Ui::NewObjectDialog ui;

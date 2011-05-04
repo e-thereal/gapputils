@@ -28,6 +28,7 @@ public:
 
   void addToolItem(ToolItem* item);
   void addCableItem(CableItem* cable);
+  void removeCableItem(CableItem* cable);
 
   void setSelectedItem(ToolItem* item);
   ToolItem* getSelectedItem() const;

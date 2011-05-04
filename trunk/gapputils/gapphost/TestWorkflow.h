@@ -14,7 +14,7 @@
 
 namespace gapputils {
 
-class TestWorkflow : public workflow::Workflow,
+class TestWorkflow : public capputils::reflection::ReflectableClass,
                      public capputils::ObservableClass
 {
   InitReflectableClass(TestWorkflow)
@@ -22,7 +22,6 @@ class TestWorkflow : public workflow::Workflow,
   Property(Name, std::string)
   Property(In1, std::string)
   Property(Out1, std::string)
-
 
 public:
   TestWorkflow();

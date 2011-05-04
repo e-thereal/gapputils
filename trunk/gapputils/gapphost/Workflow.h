@@ -14,6 +14,7 @@
 #include <qwidget.h>
 #include <vector>
 #include <qtreeview.h>
+#include <tinyxml.h>
 #include "Edge.h"
 #include "Node.h"
 
@@ -25,16 +26,18 @@ class CableItem;
 
 namespace workflow {
 
-class Workflow : public QObject, public capputils::reflection::ReflectableClass
+class Workflow : public QObject, public Node
 {
   Q_OBJECT
 
   InitReflectableClass(Workflow)
 
+  Property(Libraries, std::vector<std::string>*)
   Property(Edges, std::vector<Edge*>*)
   Property(Nodes, std::vector<Node*>*)
   Property(InputsPosition, std::vector<int>)
   Property(OutputsPosition, std::vector<int>)
+
 
   Workbench* workbench;
   QTreeView* propertyGrid;
@@ -50,6 +53,7 @@ public:
   void newCable(Edge* edge);
   void resumeFromModel();
   QWidget* getWidget();
+  TiXmlElement* getXml(bool addEmptyModule = true) const;
 
 private Q_SLOTS:
   void itemSelected(ToolItem* item);

@@ -19,7 +19,8 @@ SOURCES = main.cpp \
 		  Node.cpp \
 		  Edge.cpp \
 		  Workflow.cpp \
-		  TestWorkflow.cpp
+		  TestWorkflow.cpp \
+		  Controller.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -40,4 +41,4 @@ INCLUDEPATH += ../capputils
 INCLUDEPATH += ../tinyxml
 INCLUDEPATH += ../testlib
 INCLUDEPATH += /home/tombr/include
-LIBS += -L/home/tombr/Projects/tinyxml/Debug -L/home/tombr/Projects/capputils/Debug -L/home/tombr/Projects/gapputils/Debug -lgapputils -lcapputils -ltinyxml -lboost_signals
+LIBS += -L/home/tombr/Projects/tinyxml/Debug -L/home/tombr/Projects/capputils/Debug\ Shared -L/home/tombr/Projects/gapputils/Debug -lgapputils -lcapputils -ltinyxml -lboost_signals

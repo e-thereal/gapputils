@@ -20,7 +20,10 @@
 #include "OutputsItem.h"
 #include "CableItem.h"
 #include <HideAttribute.h>
+#include <Xmlizer.h>
+#include <VolatileAttribute.h>
 
+using namespace capputils;
 using namespace capputils::reflection;
 using namespace capputils::attributes;
 using namespace std;
@@ -33,14 +36,17 @@ namespace workflow {
 
 BeginPropertyDefinitions(Workflow)
 
-DefineProperty(Edges, Enumerable<vector<Edge*>*, true>(), Hide())
-DefineProperty(Nodes, Enumerable<vector<Node*>*, true>(), Hide())
-DefineProperty(InputsPosition, Hide())
-DefineProperty(OutputsPosition, Hide())
+ReflectableBase(Node)
+DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Volatile())
+DefineProperty(Edges, Enumerable<vector<Edge*>*, true>(), Volatile())
+DefineProperty(Nodes, Enumerable<vector<Node*>*, true>(), Volatile())
+DefineProperty(InputsPosition, Volatile())
+DefineProperty(OutputsPosition, Volatile())
 
 EndPropertyDefinitions
 
 Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0) {
+  _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
   _Nodes = new vector<Node*>();
 
@@ -50,9 +56,7 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0) {
   _OutputsPosition.push_back(170);
   _OutputsPosition.push_back(-230);
 
-  inputsNode.setModule(this);
   inputsNode.setUuid("Inputs");
-  outputsNode.setModule(this);
   outputsNode.setUuid("Outputs");
 
   workbench = new Workbench();
@@ -78,6 +82,7 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0) {
 }
 
 Workflow::~Workflow() {
+  delete _Libraries;
   delete _Edges;
   delete _Nodes;
   delete widget;
@@ -90,6 +95,21 @@ void Workflow::newModule(const std::string& name) {
   getNodes()->push_back(node);
 
   newItem(node);
+}
+
+TiXmlElement* Workflow::getXml(bool addEmptyModule) const {
+  TiXmlElement* element = new TiXmlElement(getClassName());
+  Xmlizer::AddPropertyToXml(*element, *this, findProperty("Libraries"));
+  Xmlizer::AddPropertyToXml(*element, *this, findProperty("Edges"));
+  Xmlizer::AddPropertyToXml(*element, *this, findProperty("Nodes"));
+  Xmlizer::AddPropertyToXml(*element, *this, findProperty("InputsPosition"));
+  Xmlizer::AddPropertyToXml(*element, *this, findProperty("OutputsPosition"));
+  if (addEmptyModule) {
+    TiXmlElement* moduleElement = new TiXmlElement("Module");
+    moduleElement->LinkEndChild(new TiXmlElement(getModule()->getClassName()));
+    element->LinkEndChild(moduleElement);
+  }
+  return element;
 }
 
 void Workflow::newItem(Node* node) {
@@ -148,6 +168,8 @@ void Workflow::newCable(Edge* edge) {
 }
 
 void Workflow::resumeFromModel() {
+  inputsNode.setModule(getModule());
+  outputsNode.setModule(getModule());
   inputsNode.setX(getInputsPosition()[0]);
   inputsNode.setY(getInputsPosition()[1]);
   outputsNode.setX(getOutputsPosition()[0]);
