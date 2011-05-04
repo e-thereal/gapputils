@@ -40,6 +40,24 @@
     <ClCompile Include="HideAttribute.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AltovaXml.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Compare.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CsvReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CsvWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PdfLatex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gapputils.h">
@@ -55,6 +73,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HideAttribute.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AltovaXml.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Compare.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CsvReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CsvWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PdfLatex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

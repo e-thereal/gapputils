@@ -73,18 +73,30 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AltovaXml.cpp" />
+    <ClCompile Include="Compare.cpp" />
+    <ClCompile Include="CsvReader.cpp" />
+    <ClCompile Include="CsvWriter.cpp" />
     <ClCompile Include="gapputils.cpp" />
     <ClCompile Include="HideAttribute.cpp" />
     <ClCompile Include="InputAttribute.cpp" />
     <ClCompile Include="LabelAttribute.cpp" />
     <ClCompile Include="OutputAttribute.cpp" />
+    <ClCompile Include="PdfLatex.cpp" />
+    <ClCompile Include="TextWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AltovaXml.h" />
+    <ClInclude Include="Compare.h" />
+    <ClInclude Include="CsvReader.h" />
+    <ClInclude Include="CsvWriter.h" />
     <ClInclude Include="gapputils.h" />
     <ClInclude Include="HideAttribute.h" />
     <ClInclude Include="InputAttribute.h" />
     <ClInclude Include="LabelAttribute.h" />
     <ClInclude Include="OutputAttribute.h" />
+    <ClInclude Include="PdfLatex.h" />
+    <ClInclude Include="TextWriter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
