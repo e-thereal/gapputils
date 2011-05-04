@@ -1,6 +1,7 @@
 #include "DataModel.h"
 
 #include <ReuseAttribute.h>
+#include <VolatileAttribute.h>
 
 using namespace capputils::attributes;
 
@@ -12,7 +13,7 @@ namespace host {
 
 BeginPropertyDefinitions(DataModel)
 
-  ReflectableProperty(MainWorkflow)
+  ReflectableProperty(MainWorkflow, Volatile())
 
 EndPropertyDefinitions
 
