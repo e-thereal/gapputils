@@ -5,7 +5,7 @@
 
 #include <ReflectableClass.h>
 
-#include "Graph.h"
+#include "Workflow.h"
 
 namespace gapputils {
 
@@ -16,7 +16,7 @@ class DataModel : public capputils::reflection::ReflectableClass
 
   InitReflectableClass(DataModel)
 
-  Property(Graph, workflow::Graph*)
+  Property(MainWorkflow, workflow::Workflow*)
 
 private:
   static DataModel* instance;

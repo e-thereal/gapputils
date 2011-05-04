@@ -12,7 +12,7 @@ namespace host {
 
 BeginPropertyDefinitions(DataModel)
 
-  ReflectableProperty(Graph, Reuse())
+  ReflectableProperty(MainWorkflow)
 
 EndPropertyDefinitions
 
@@ -20,12 +20,10 @@ DataModel* DataModel::instance = 0;
 
 DataModel::DataModel(void)
 {
-  _Graph = new Graph();
 }
 
 DataModel::~DataModel(void)
 {
-  delete _Graph;
 }
 
 DataModel& DataModel::getInstance() {

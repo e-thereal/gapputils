@@ -11,8 +11,8 @@ namespace workflow {
 BeginPropertyDefinitions(Edge)
 
   DefineProperty(OutputNode)
-  DefineProperty(InputNode)
   DefineProperty(OutputProperty)
+  DefineProperty(InputNode)
   DefineProperty(InputProperty)
   DefineProperty(CableItem, Volatile())
 
@@ -21,7 +21,6 @@ EndPropertyDefinitions
 Edge::Edge(void) : _CableItem(0)
 {
 }
-
 
 Edge::~Edge(void)
 {
