@@ -4,17 +4,10 @@
 #include <QtGui/QMainWindow>
 
 #include <qmenu.h>
-#include <qstandarditemmodel.h>
-#include "Person.h"
-#include "ModelHarmonizer.h"
-#include <qtreeview.h>
-
 #include "NewObjectDialog.h"
+#include <qtabwidget.h>
 
 namespace gapputils {
-
-class Workbench;
-class ToolItem;
 
 namespace host {
 
@@ -24,10 +17,8 @@ class MainWindow : public QMainWindow
 
 private:
   QMenu* fileMenu;
-  QTreeView* propertyGrid;
-  QWidget* centralWidget;
   NewObjectDialog* newObjectDialog;
-  Workbench* bench;
+  QTabWidget* tabWidget;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
@@ -36,7 +27,7 @@ public:
 private Q_SLOTS:
   void quit();
   void newItem();
-  void itemSelected(ToolItem* item);
+  void loadWorkflow();
 };
 
 }
