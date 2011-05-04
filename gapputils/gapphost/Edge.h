@@ -19,8 +19,8 @@ class Edge : public capputils::reflection::ReflectableClass
   InitReflectableClass(Edge)
 
   Property(OutputNode, std::string)
-  Property(InputNode, std::string)
   Property(OutputProperty, std::string)
+  Property(InputNode, std::string)
   Property(InputProperty, std::string)
   Property(CableItem, CableItem*)
 
