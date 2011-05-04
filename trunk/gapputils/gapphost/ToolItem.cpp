@@ -129,7 +129,7 @@ QPointF ToolConnection::attachmentPos() const {
 ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
  : node(node), bench(bench), harmonizer(node->getModule()),
    width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
-   labelWidth(50), outputsWidth(0), labelFont(QApplication::font())
+   labelWidth(35), outputsWidth(0), labelFont(QApplication::font())
 {
   setFlag(ItemIsMovable);
   // TODO: check if this causes problems
@@ -145,16 +145,7 @@ ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
   if (observable)
     observable->Changed.connect(capputils::EventHandler<ToolItem>(this, &ToolItem::changedHandler));
 
-  vector<IClassProperty*>& properties = object->getProperties();
-  for (unsigned i = 0; i < properties.size(); ++i) {
-    if (properties[i]->getAttribute<InputAttribute>()) {
-      inputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Input, this, properties[i]));
-    }
-    if (properties[i]->getAttribute<OutputAttribute>()) {
-      outputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Output, this, properties[i]));
-    }
-  }
-
+  updateConnections();
   updateSize();
 }
 
@@ -165,7 +156,27 @@ ToolItem::~ToolItem() {
     delete outputs[i];
 }
 
-void ToolItem::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void ToolItem::updateConnections() {
+  for (unsigned i = 0; i < inputs.size(); ++i)
+    delete inputs[i];
+  for (unsigned i = 0; i < outputs.size(); ++i)
+    delete outputs[i];
+  inputs.clear();
+  outputs.clear();
+
+  ReflectableClass* object = node->getModule();
+  vector<IClassProperty*>& properties = object->getProperties();
+  for (unsigned i = 0; i < properties.size(); ++i) {
+    if (properties[i]->getAttribute<InputAttribute>()) {
+      inputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Input, this, properties[i]));
+    }
+    if (properties[i]->getAttribute<OutputAttribute>()) {
+      outputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Output, this, properties[i]));
+    }
+  }
+}
+
+void ToolItem::changedHandler(capputils::ObservableClass* /*sender*/, int /*eventId*/) {
   updateSize();
   update();
 }
@@ -235,9 +246,9 @@ void ToolItem::updateSize() {
   QFontMetrics labelFontMetrics(labelFont);
   inputsWidth = outputsWidth = 0;
   for (unsigned i = 0; i < inputs.size(); ++i)
-    inputsWidth = max(inputsWidth, fontMetrics.boundingRect(inputs[i]->label).width());
+    inputsWidth = max(inputsWidth, fontMetrics.boundingRect(inputs[i]->label).width() + 8);
   for (unsigned i = 0; i < outputs.size(); ++i)
-    outputsWidth = max(outputsWidth, fontMetrics.boundingRect(outputs[i]->label).width());
+    outputsWidth = max(outputsWidth, fontMetrics.boundingRect(outputs[i]->label).width() + 8);
 
   width = (inputs.size() ? inputsWidth : 0) + labelWidth + (outputs.size() ? outputsWidth : 0);
   height = 30;
@@ -308,7 +319,7 @@ std::string ToolItem::getLabel() const {
       return properties[i]->getStringValue(*getNode()->getModule());
     }
   }
-  return "";
+  return string("[") + getNode()->getModule()->getClassName() + "]";
 }
 
 void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
@@ -316,11 +327,6 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
   Q_UNUSED(option)
 
   QString label = getLabel().c_str();
-  if (label.size() == 0) {
-    label.append("[");
-    label.append(getNode()->getModule()->getClassName().c_str());
-    label.append("]");
-  }
 
   drawBox(painter);
   drawConnections(painter);

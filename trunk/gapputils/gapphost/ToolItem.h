@@ -71,10 +71,12 @@ public:
   ToolConnection* hitConnection(int x, int y, ToolConnection::Direction direction) const;
   ToolConnection* getConnection(const std::string& propertyName, ToolConnection::Direction direction) const;
   void updateSize();
+
   void updateConnectionPositions();
   void drawConnections(QPainter* painter, bool showLabel = true);
   void drawBox(QPainter* painter);
-  std::string getLabel() const;
+  virtual std::string getLabel() const;
+  virtual void updateConnections();
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event);
   QVariant itemChange(GraphicsItemChange change, const QVariant &value);
