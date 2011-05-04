@@ -6,6 +6,7 @@
 #include <ArgumentsParser.h>
 #include <Verifier.h>
 #include <iostream>
+#include <gapputils.h>
 
 //#include "../GaussianProcesses/Paper.h"
 #include "DataModel.h"
@@ -20,6 +21,8 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   //cublasInit();
+  registerClasses();
+
   int ret = 0;
 #ifndef AUTOTEST
   QApplication a(argc, argv);
