@@ -122,28 +122,7 @@
     <ClCompile Include="GeneratedFiles\Release\moc_ShowImageDialog.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="PdfLatex.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextWriter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AltovaXml.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CsvReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CsvWriter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Compare.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DataModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Graph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Edge.cpp">
@@ -152,13 +131,22 @@
     <ClCompile Include="Node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WorkflowController.cpp">
+    <ClCompile Include="InputsItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_WorkflowController.cpp">
+    <ClCompile Include="OutputsItem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestWorkflow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Workflow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_Workflow.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_WorkflowController.cpp">
+    <ClCompile Include="GeneratedFiles\Release\moc_Workflow.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
   </ItemGroup>
@@ -190,7 +178,7 @@
     <CustomBuild Include="ShowImageDialog.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="WorkflowController.h">
+    <CustomBuild Include="Workflow.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -219,34 +207,22 @@
     <ClInclude Include="ImageViewerItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PdfLatex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TextWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AltovaXml.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CsvReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CsvWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Compare.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DataModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Graph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Edge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Node.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputsItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputsItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestWorkflow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

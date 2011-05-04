@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'MainWindow.h'
 **
-** Created: Thu Apr 28 17:36:01 2011
+** Created: Tue May 3 18:25:59 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -33,14 +33,14 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
  // slots: signature, parameters, type, tag, flags
       29,   28,   28,   28, 0x08,
       36,   28,   28,   28, 0x08,
-      51,   46,   28,   28, 0x08,
+      46,   28,   28,   28, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_gapputils__host__MainWindow[] = {
     "gapputils::host::MainWindow\0\0quit()\0"
-    "newItem()\0item\0itemSelected(ToolItem*)\0"
+    "newItem()\0loadWorkflow()\0"
 };
 
 const QMetaObject gapputils::host::MainWindow::staticMetaObject = {
@@ -74,7 +74,7 @@ int gapputils::host::MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void
         switch (_id) {
         case 0: quit(); break;
         case 1: newItem(); break;
-        case 2: itemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 2: loadWorkflow(); break;
         default: ;
         }
         _id -= 3;

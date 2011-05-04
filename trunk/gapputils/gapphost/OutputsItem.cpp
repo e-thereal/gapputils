@@ -18,6 +18,7 @@ using namespace workflow;
 using namespace attributes;
 
 OutputsItem::OutputsItem(Node* node, Workbench *bench) : ToolItem(node, bench) {
+  deletable = false;
   updateConnections();
   updateSize();
 }

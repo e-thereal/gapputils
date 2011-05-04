@@ -129,11 +129,13 @@ QPointF ToolConnection::attachmentPos() const {
 ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
  : node(node), bench(bench), harmonizer(node->getModule()),
    width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
-   labelWidth(35), outputsWidth(0), labelFont(QApplication::font())
+   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), deletable(true)
 {
   setFlag(ItemIsMovable);
   // TODO: check if this causes problems
-  //setFlag(ItemSendsGeometryChanges);
+#if (QT_VERSION >= 0x040700)
+  setFlag(ItemSendsGeometryChanges);
+#endif
   setCacheMode(DeviceCoordinateCache);
   setZValue(3);
 
@@ -183,6 +185,10 @@ void ToolItem::changedHandler(capputils::ObservableClass* /*sender*/, int /*even
 
 void ToolItem::setWorkbench(Workbench* bench) {
   this->bench = bench;
+}
+
+bool ToolItem::isDeletable() const {
+  return deletable;
 }
 
 Node* ToolItem::getNode() const {
