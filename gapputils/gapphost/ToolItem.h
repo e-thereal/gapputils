@@ -59,6 +59,7 @@ protected:
   std::vector<ToolConnection*> inputs;
   std::vector<ToolConnection*> outputs;
   QFont labelFont;
+  bool deletable;
 
 public:
   ToolItem(workflow::Node* node, Workbench *bench = 0);
@@ -77,6 +78,7 @@ public:
   void drawBox(QPainter* painter);
   virtual std::string getLabel() const;
   virtual void updateConnections();
+  virtual bool isDeletable() const;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event);
   QVariant itemChange(GraphicsItemChange change, const QVariant &value);

@@ -159,7 +159,7 @@ void Workbench::keyPressEvent(QKeyEvent *event)
 {
   switch (event->key()) {
   case Qt::Key_Delete:
-    if (selectedItem) {
+    if (selectedItem && selectedItem->isDeletable()) {
       scene()->removeItem(selectedItem);
       Q_EMIT itemDeleted(selectedItem);
       delete selectedItem;

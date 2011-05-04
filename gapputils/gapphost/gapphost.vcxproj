@@ -79,11 +79,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AltovaXml.cpp" />
     <ClCompile Include="CableItem.cpp" />
-    <ClCompile Include="Compare.cpp" />
-    <ClCompile Include="CsvReader.cpp" />
-    <ClCompile Include="CsvWriter.cpp" />
     <ClCompile Include="DataModel.cpp" />
     <ClCompile Include="Edge.cpp" />
     <ClCompile Include="FilenameEdit.cpp" />
@@ -105,7 +101,7 @@
     <ClCompile Include="GeneratedFiles\Debug\moc_Workbench.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_WorkflowController.cpp">
+    <ClCompile Include="GeneratedFiles\Debug\moc_Workflow.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_FilenameEdit.cpp">
@@ -126,13 +122,13 @@
     <ClCompile Include="GeneratedFiles\Release\moc_Workbench.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_WorkflowController.cpp">
+    <ClCompile Include="GeneratedFiles\Release\moc_Workflow.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="ImageViewer.cpp" />
     <ClCompile Include="ImageViewerItem.cpp" />
+    <ClCompile Include="InputsItem.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_MainWindow.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -144,15 +140,15 @@
     <ClCompile Include="ModelHarmonizer.cpp" />
     <ClCompile Include="NewObjectDialog.cpp" />
     <ClCompile Include="Node.cpp" />
-    <ClCompile Include="PdfLatex.cpp" />
+    <ClCompile Include="OutputsItem.cpp" />
     <ClCompile Include="Person.cpp" />
     <ClCompile Include="PropertyGridDelegate.cpp" />
     <ClCompile Include="PropertyReference.cpp" />
     <ClCompile Include="ShowImageDialog.cpp" />
-    <ClCompile Include="TextWriter.cpp" />
+    <ClCompile Include="TestWorkflow.cpp" />
     <ClCompile Include="ToolItem.cpp" />
     <ClCompile Include="Workbench.cpp" />
-    <ClCompile Include="WorkflowController.cpp" />
+    <ClCompile Include="Workflow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
@@ -167,13 +163,9 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AltovaXml.h" />
-    <ClInclude Include="Compare.h" />
-    <ClInclude Include="CsvReader.h" />
-    <ClInclude Include="CsvWriter.h" />
     <ClInclude Include="CustomToolItemAttribute.h" />
     <ClInclude Include="CableItem.h" />
-    <CustomBuild Include="WorkflowController.h">
+    <CustomBuild Include="Workflow.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing %(Identity)...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
@@ -196,7 +188,6 @@
     <ClInclude Include="DataModel.h" />
     <ClInclude Include="Edge.h" />
     <ClInclude Include="GeneratedFiles\ui_NewObjectDialog.h" />
-    <ClInclude Include="Graph.h" />
     <ClInclude Include="ImageLoader.h" />
     <CustomBuild Include="NewObjectDialog.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
@@ -220,9 +211,10 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB  "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I." "-I." "-I." "ShowImageDialog.h" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"</Command>
     </CustomBuild>
+    <ClInclude Include="InputsItem.h" />
     <ClInclude Include="Node.h" />
-    <ClInclude Include="PdfLatex.h" />
-    <ClInclude Include="TextWriter.h" />
+    <ClInclude Include="OutputsItem.h" />
+    <ClInclude Include="TestWorkflow.h" />
     <ClInclude Include="ToolItem.h" />
     <CustomBuild Include="Workbench.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
