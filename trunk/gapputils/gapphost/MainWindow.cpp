@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   connect(fileMenu->addAction("Load Library"), SIGNAL(triggered()), this, SLOT(loadLibrary()));
   connect(fileMenu->addAction("Quit"), SIGNAL(triggered()), this, SLOT(quit()));
 
-  workflow->resumeFromModel();
+
 }
 
 MainWindow::~MainWindow()
@@ -87,11 +87,10 @@ void MainWindow::loadLibrary() {
   if (fileDialog.exec() == QDialog::Accepted) {
     QStringList filenames = fileDialog.selectedFiles();
     if (filenames.size()) {
-      string filename = filenames[0].toUtf8().data();
-      LibraryLoader::getInstance().loadLibrary(filename);
-      vector<string>* libs = DataModel::getInstance().getMainWorkflow()->getLibraries();
-      libs->push_back(filename);
-      DataModel::getInstance().getMainWorkflow()->setLibraries(libs);
+      Workflow* workflow = DataModel::getInstance().getMainWorkflow();
+      vector<string>* libs = workflow->getLibraries();
+      libs->push_back(filenames[0].toUtf8().data());
+      workflow->setLibraries(libs);
     }
   }
 }
