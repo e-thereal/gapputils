@@ -104,7 +104,7 @@ bool CableItem::needOutput() const {
 }
 
 void CableItem::disconnectInput() {
-  if (input) {
+  if (input && input->parent->getNode()) {
     ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getNode()->getModule());
     if (observable)
       observable->Changed.disconnect(changeEventHandler);

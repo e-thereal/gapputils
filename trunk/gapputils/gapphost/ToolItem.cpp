@@ -194,6 +194,10 @@ Node* ToolItem::getNode() const {
   return node;
 }
 
+void ToolItem::setNode(workflow::Node* node) {
+  this->node = node;
+}
+
 QAbstractItemModel* ToolItem::getModel() const {
   return harmonizer.getModel();
 }

@@ -45,9 +45,12 @@ void Workbench::addCableItem(CableItem* cable) {
 }
 
 void Workbench::removeCableItem(CableItem* cable) {
-  scene()->removeItem(cable);
-  Q_EMIT cableDeleted(cable);
-  delete cable;
+  // TODO: Workaround. When loading workflows, you get an error here. Cable seems to be already removed
+  if (cable->scene() == scene()) {
+    scene()->removeItem(cable);
+    Q_EMIT cableDeleted(cable);
+    delete cable;
+  }
 }
 
 void Workbench::setSelectedItem(ToolItem* item) {

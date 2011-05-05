@@ -52,7 +52,7 @@ DefineProperty(OutputsPosition, Volatile())
 
 EndPropertyDefinitions
 
-Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0) {
+Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true) {
   _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
   _Nodes = new vector<Node*>();
@@ -91,10 +91,31 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0) {
 }
 
 Workflow::~Workflow() {
-  delete _Libraries;
+  LibraryLoader& loader = LibraryLoader::getInstance();
+
+  disconnect(workbench, SIGNAL(itemSelected(ToolItem*)), this, SLOT(itemSelected(ToolItem*)));
+  disconnect(workbench, SIGNAL(itemChanged(ToolItem*)), this, SLOT(itemChangedHandler(ToolItem*)));
+  disconnect(workbench, SIGNAL(itemDeleted(ToolItem*)), this, SLOT(deleteItem(ToolItem*)));
+  disconnect(workbench, SIGNAL(cableCreated(CableItem*)), this, SLOT(createEdge(CableItem*)));
+  disconnect(workbench, SIGNAL(cableDeleted(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
+  if (ownWidget)
+    delete widget;
+
+  for (unsigned i = 0; i < _Edges->size(); ++i)
+    delete _Edges->at(i);
   delete _Edges;
+
+  for (unsigned i = 0; i < _Nodes->size(); ++i)
+    delete _Nodes->at(i);
   delete _Nodes;
-  delete widget;
+
+  // Unload libraries
+  for (unsigned i = 0; i < _Libraries->size(); ++i)
+    loader.freeLibrary(_Libraries->at(i));
+  delete _Libraries;
+
+  inputsNode.setModule(0);
+  outputsNode.setModule(0);
 }
 
 void Workflow::newModule(const std::string& name) {
@@ -195,7 +216,8 @@ void Workflow::resumeFromModel() {
     newCable(edges->at(i));
 }
 
-QWidget* Workflow::getWidget() {
+QWidget* Workflow::dispenseWidget() {
+  ownWidget = false;
   return widget;
 }
 

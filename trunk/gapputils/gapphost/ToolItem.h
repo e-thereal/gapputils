@@ -67,6 +67,7 @@ public:
 
   void setWorkbench(Workbench* bench);
   workflow::Node* getNode() const;
+  void setNode(workflow::Node* node);
   QAbstractItemModel* getModel() const;
 
   ToolConnection* hitConnection(int x, int y, ToolConnection::Direction direction) const;

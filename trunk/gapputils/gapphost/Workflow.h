@@ -46,6 +46,7 @@ private:
   QWidget* widget;
   Node inputsNode, outputsNode;
   std::set<std::string> loadedLibraries;
+  bool ownWidget;
 
 public:
   Workflow();
@@ -55,7 +56,8 @@ public:
   void newItem(Node* node);
   void newCable(Edge* edge);
   void resumeFromModel();
-  QWidget* getWidget();
+  /// The workflow loses ownership of the widget when calling this method
+  QWidget* dispenseWidget();
   TiXmlElement* getXml(bool addEmptyModule = true) const;
 
 private:
