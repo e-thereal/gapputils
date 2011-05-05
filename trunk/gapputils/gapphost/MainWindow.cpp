@@ -3,6 +3,7 @@
 #include <qaction.h>
 #include <qmenubar.h>
 #include <qfiledialog.h>
+#include <iostream>
 
 #include <Xmlizer.h>
 #include <LibraryLoader.h>
@@ -38,6 +39,12 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   connect(fileMenu->addAction("Reload Workflow"), SIGNAL(triggered()), this, SLOT(reload()));
   connect(fileMenu->addAction("Load Library"), SIGNAL(triggered()), this, SLOT(loadLibrary()));
   connect(fileMenu->addAction("Quit"), SIGNAL(triggered()), this, SLOT(quit()));
+  connect(&reloadTimer, SIGNAL(timeout()), this, SLOT(checkLibraryUpdates()));
+
+  if (DataModel::getInstance().getAutoReload()) {
+    reloadTimer.setInterval(1000);
+    reloadTimer.start();
+  }
 }
 
 MainWindow::~MainWindow()
@@ -116,6 +123,13 @@ void MainWindow::reload() {
   model.setMainWorkflow(workflow);
   workflow->resumeFromModel();
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
+}
+
+void MainWindow::checkLibraryUpdates() {
+  if (LibraryLoader::getInstance().librariesUpdated()) {
+    cout << "Update detected." << endl;
+    reload();
+  }
 }
 
 }
