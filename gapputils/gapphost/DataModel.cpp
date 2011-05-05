@@ -15,13 +15,14 @@ namespace host {
 BeginPropertyDefinitions(DataModel)
   DefineProperty(NoGui, Flag(), Volatile())
   DefineProperty(Help, Flag(), Volatile())
+  DefineProperty(AutoReload, Flag(), Volatile())
   ReflectableProperty(MainWorkflow, Volatile())
 
 EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;
 
-DataModel::DataModel(void) : _NoGui(false), _Help(false)
+DataModel::DataModel(void) : _NoGui(false), _Help(false), _AutoReload(false)
 {
 }
 

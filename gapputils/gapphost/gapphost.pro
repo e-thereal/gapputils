@@ -41,4 +41,4 @@ INCLUDEPATH += ../capputils
 INCLUDEPATH += ../tinyxml
 INCLUDEPATH += ../testlib
 INCLUDEPATH += /home/tombr/include
-LIBS += -L/home/tombr/Projects/tinyxml/Debug -L/home/tombr/Projects/capputils/Debug\ Shared -L/home/tombr/Projects/gapputils/Debug -lgapputils -lcapputils -ltinyxml -lboost_signals
+LIBS += -L/home/tombr/Projects/tinyxml/Debug -L/home/tombr/Projects/capputils/Debug\ Shared -L"/home/tombr/Projects/gapputils/Debug Shared" -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem

@@ -18,6 +18,7 @@ class DataModel : public capputils::reflection::ReflectableClass
 
   Property(NoGui, bool)
   Property(Help, bool)
+  Property(AutoReload, bool)
   Property(MainWorkflow, workflow::Workflow*)
 
 private:
