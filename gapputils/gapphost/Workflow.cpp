@@ -22,6 +22,9 @@
 #include <HideAttribute.h>
 #include <Xmlizer.h>
 #include <VolatileAttribute.h>
+#include <ObserveAttribute.h>
+#include <EventHandler.h>
+#include <LibraryLoader.h>
 
 using namespace capputils;
 using namespace capputils::reflection;
@@ -34,10 +37,14 @@ using namespace attributes;
 
 namespace workflow {
 
+enum PropertyIds {
+  LibrariesId
+};
+
 BeginPropertyDefinitions(Workflow)
 
 ReflectableBase(Node)
-DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Volatile())
+DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Volatile(), Observe(LibrariesId))
 DefineProperty(Edges, Enumerable<vector<Edge*>*, true>(), Volatile())
 DefineProperty(Nodes, Enumerable<vector<Node*>*, true>(), Volatile())
 DefineProperty(InputsPosition, Volatile())
@@ -79,6 +86,8 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0) {
   connect(workbench, SIGNAL(itemDeleted(ToolItem*)), this, SLOT(deleteItem(ToolItem*)));
   connect(workbench, SIGNAL(cableCreated(CableItem*)), this, SLOT(createEdge(CableItem*)));
   connect(workbench, SIGNAL(cableDeleted(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
+
+  this->Changed.connect(EventHandler<Workflow>(this, &Workflow::changedHandler));
 }
 
 Workflow::~Workflow() {
@@ -188,6 +197,36 @@ void Workflow::resumeFromModel() {
 
 QWidget* Workflow::getWidget() {
   return widget;
+}
+
+void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
+  if (eventId == LibrariesId) {
+    cout << "Libraries updated." << endl;
+    LibraryLoader& loader = LibraryLoader::getInstance();
+    set<string> unusedLibraries = loadedLibraries;
+    vector<string>* libraries = getLibraries();
+    for (unsigned i = 0; i < libraries->size(); ++i) {
+
+      const string& lib = libraries->at(i);
+
+      // Check if new library
+      if (loadedLibraries.find(lib) == loadedLibraries.end()) {
+        loader.loadLibrary(lib);
+        loadedLibraries.insert(lib);
+      }
+      // Check if library is still marked for unloading
+      set<string>::iterator pos = unusedLibraries.find(lib);
+      if (pos != unusedLibraries.end())
+        unusedLibraries.erase(pos);
+    }
+
+    // Unload all unused libraries
+    for (set<string>::iterator pos = unusedLibraries.begin();
+        pos != unusedLibraries.end(); ++pos)
+    {
+      loader.freeLibrary(*pos);
+    }
+  }
 }
 
 void Workflow::itemSelected(ToolItem* item) {

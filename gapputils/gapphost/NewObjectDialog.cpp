@@ -1,6 +1,7 @@
 #include "NewObjectDialog.h"
 
 #include <ReflectableClassFactory.h>
+#include <algorithm>
 
 using namespace std;
 using namespace capputils::reflection;
@@ -24,7 +25,8 @@ NewObjectDialog::~NewObjectDialog()
 
 void NewObjectDialog::updateList() {
   ReflectableClassFactory& factory = ReflectableClassFactory::getInstance();
-  vector<string>& classNames = factory.getClassNames();
+  vector<string> classNames = factory.getClassNames();
+  sort(classNames.begin(), classNames.end());
   ui.listWidget->clear();
   for (unsigned i = 0; i < classNames.size(); ++i)
     ui.listWidget->addItem(classNames[i].c_str());

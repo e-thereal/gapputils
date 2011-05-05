@@ -21,16 +21,30 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   //cublasInit();
-  //registerClasses();
+  registerClasses();
 
   int ret = 0;
 #ifndef AUTOTEST
   QApplication a(argc, argv);
   DataModel& model = DataModel::getInstance();
   Xmlizer::FromXml(model, "gapphost.conf.xml");
+  reflection::ReflectableClass& wfModule = *model.getMainWorkflow()->getModule();
+
+  ArgumentsParser::Parse(model, argc, argv);
+  ArgumentsParser::Parse(wfModule, argc, argv);
+  if (model.getHelp()) {
+    ArgumentsParser::PrintDefaultUsage("gapphost", model);
+    ArgumentsParser::PrintUsage("Workflow switches:", wfModule);
+    return 0;
+  }
+
+  model.getMainWorkflow()->resumeFromModel();
+
   MainWindow w;
-  w.show();
-  ret = a.exec();
+  if (!model.getNoGui()) {
+    w.show();
+    ret = a.exec();
+  }
 
   TiXmlElement* modelElement = Xmlizer::CreateXml(model);
   TiXmlElement* mainWorkflowElement = new TiXmlElement("MainWorkflow");

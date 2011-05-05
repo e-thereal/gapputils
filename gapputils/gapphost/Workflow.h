@@ -9,12 +9,14 @@
 #define WORKFLOW_H_
 
 #include <ReflectableClass.h>
+#include <ObservableClass.h>
 
 #include <qobject.h>
 #include <qwidget.h>
 #include <vector>
 #include <qtreeview.h>
 #include <tinyxml.h>
+#include <set>
 #include "Edge.h"
 #include "Node.h"
 
@@ -26,7 +28,7 @@ class CableItem;
 
 namespace workflow {
 
-class Workflow : public QObject, public Node
+class Workflow : public QObject, public Node, public capputils::ObservableClass
 {
   Q_OBJECT
 
@@ -38,11 +40,12 @@ class Workflow : public QObject, public Node
   Property(InputsPosition, std::vector<int>)
   Property(OutputsPosition, std::vector<int>)
 
-
+private:
   Workbench* workbench;
   QTreeView* propertyGrid;
   QWidget* widget;
   Node inputsNode, outputsNode;
+  std::set<std::string> loadedLibraries;
 
 public:
   Workflow();
@@ -54,6 +57,9 @@ public:
   void resumeFromModel();
   QWidget* getWidget();
   TiXmlElement* getXml(bool addEmptyModule = true) const;
+
+private:
+  void changedHandler(capputils::ObservableClass* sender, int eventId);
 
 private Q_SLOTS:
   void itemSelected(ToolItem* item);
