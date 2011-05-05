@@ -47,6 +47,7 @@
 								<option id="gnu.cpp.link.option.paths.1627543331" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug}&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.344790480" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
@@ -498,6 +499,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/capputils"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/capputils/Debug"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/capputils/Debug Shared"/>
 						<entry flags="RESOLVED" kind="libraryFile" name="capputils"/>
 					</externalSetting>
 				</externalSettings>
