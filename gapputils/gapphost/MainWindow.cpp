@@ -28,18 +28,16 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   newObjectDialog = new NewObjectDialog();
 
   tabWidget = new QTabWidget();
-  Workflow* workflow = DataModel::getInstance().getMainWorkflow();
-  tabWidget->addTab(workflow->getWidget(), "Root");
+  tabWidget->addTab(DataModel::getInstance().getMainWorkflow()->dispenseWidget(), "Main");
   setCentralWidget(tabWidget);
 
   fileMenu = menuBar()->addMenu("File");
   connect(fileMenu->addAction("New Item"), SIGNAL(triggered()), this, SLOT(newItem()));
   connect(fileMenu->addAction("Load Workflow"), SIGNAL(triggered()), this, SLOT(loadWorkflow()));
   connect(fileMenu->addAction("Save Workflow"), SIGNAL(triggered()), this, SLOT(saveWorkflow()));
+  connect(fileMenu->addAction("Reload Workflow"), SIGNAL(triggered()), this, SLOT(reload()));
   connect(fileMenu->addAction("Load Library"), SIGNAL(triggered()), this, SLOT(loadLibrary()));
   connect(fileMenu->addAction("Quit"), SIGNAL(triggered()), this, SLOT(quit()));
-
-
 }
 
 MainWindow::~MainWindow()
@@ -60,13 +58,20 @@ void MainWindow::newItem() {
 
 void MainWindow::loadWorkflow() {
   QFileDialog fileDialog(this);
+  DataModel& model = DataModel::getInstance();
+
   if (fileDialog.exec() == QDialog::Accepted) {
     QStringList filenames = fileDialog.selectedFiles();
     if (filenames.size()) {
       Workflow* workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(filenames[0].toUtf8().data()));
       if (workflow) {
         workflow->resumeFromModel();
-        tabWidget->addTab(workflow->getWidget(), "New");
+
+        Workflow* oldWorkflow = model.getMainWorkflow();
+        delete oldWorkflow;
+        tabWidget->removeTab(0);
+        model.setMainWorkflow(workflow);
+        tabWidget->addTab(workflow->dispenseWidget(), "Main");
       }
     }
   }
@@ -93,6 +98,24 @@ void MainWindow::loadLibrary() {
       workflow->setLibraries(libs);
     }
   }
+}
+
+void MainWindow::reload() {
+  DataModel& model = DataModel::getInstance();
+  Workflow* workflow = model.getMainWorkflow();
+
+  TiXmlElement* workflowElement = workflow->getXml(false);
+  Xmlizer::ToXml(*workflowElement, *workflow);
+  delete workflow;
+  workflow = 0;
+  tabWidget->removeTab(0);
+  workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(*workflowElement));
+  if (!workflow)
+    throw "could not reload workflow";
+
+  model.setMainWorkflow(workflow);
+  workflow->resumeFromModel();
+  tabWidget->addTab(workflow->dispenseWidget(), "Main");
 }
 
 }

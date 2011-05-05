@@ -8,6 +8,8 @@
 
 #include <VolatileAttribute.h>
 
+#include "ToolItem.h"
+
 using namespace capputils::attributes;
 
 namespace gapputils {
@@ -32,6 +34,10 @@ Node::Node(void) :_X(0), _Y(0), _Module(0), _ToolItem(0)
 
 Node::~Node(void)
 {
+  if (_ToolItem)
+    _ToolItem->setNode(0);
+  if (_Module)
+    delete _Module;
 }
 
 }
