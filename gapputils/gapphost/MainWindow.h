@@ -21,6 +21,7 @@ private:
   NewObjectDialog* newObjectDialog;
   QTabWidget* tabWidget;
   QTimer reloadTimer;
+  bool libsChanged;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);

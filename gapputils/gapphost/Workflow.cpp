@@ -109,6 +109,10 @@ Workflow::~Workflow() {
     delete _Nodes->at(i);
   delete _Nodes;
 
+  if (getModule())
+    delete getModule();
+  setModule(0);
+
   // Unload libraries
   for (unsigned i = 0; i < _Libraries->size(); ++i)
     loader.freeLibrary(_Libraries->at(i));

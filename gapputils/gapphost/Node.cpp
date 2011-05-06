@@ -7,6 +7,7 @@
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 
 #include <VolatileAttribute.h>
+#include <ReflectableClassFactory.h>
 
 #include "ToolItem.h"
 
@@ -37,7 +38,7 @@ Node::~Node(void)
   if (_ToolItem)
     _ToolItem->setNode(0);
   if (_Module)
-    delete _Module;
+    capputils::reflection::ReflectableClassFactory::getInstance().deleteInstance(_Module);
 }
 
 }
