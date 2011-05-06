@@ -92,7 +92,7 @@ void CsvReader::changeEventHandler(capputils::ObservableClass* sender, int event
         vector<string> tokens;
 
         tokenize(line, tokens, ",");
-        for (int columnIndex = 0; columnIndex < tokens.size(); ++columnIndex) { 
+        for (int columnIndex = 0; columnIndex < (int)tokens.size(); ++columnIndex) {
           if (firstColumn <= columnIndex && (lastColumn == -1 || columnIndex <= lastColumn)) {
             stringstream stream(tokens[columnIndex]);
             stream >> value;
@@ -111,9 +111,9 @@ void CsvReader::changeEventHandler(capputils::ObservableClass* sender, int event
       delete getData();
 
     double* data = new double[dataVector.size() * columnCount];
-    for (int i = 0, k = 0; i < dataVector.size(); ++i) {
+    for (unsigned i = 0, k = 0; i < dataVector.size(); ++i) {
       vector<double>* dataRow = dataVector[i];
-      for (int j = 0; j < dataRow->size(); ++j, ++k) {
+      for (unsigned j = 0; j < dataRow->size(); ++j, ++k) {
         data[k] = dataRow->at(j);
       }
       k += columnCount - dataRow->size();
