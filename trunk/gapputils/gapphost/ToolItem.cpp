@@ -16,9 +16,10 @@
 #include <QFontMetrics>
 #include "Workbench.h"
 
-#include "LabelAttribute.h"
-#include "InputAttribute.h"
-#include "OutputAttribute.h"
+#include <LabelAttribute.h>
+#include <InputAttribute.h>
+#include <OutputAttribute.h>
+#include <ShortNameAttribute.h>
 #include "CableItem.h"
 
 using namespace capputils;
@@ -166,13 +167,20 @@ void ToolItem::updateConnections() {
   outputs.clear();
 
   ReflectableClass* object = node->getModule();
+  ShortNameAttribute* shortName = 0;
   vector<IClassProperty*>& properties = object->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<InputAttribute>()) {
-      inputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Input, this, properties[i]));
+      string label = properties[i]->getName();
+      if ((shortName = properties[i]->getAttribute<ShortNameAttribute>()))
+        label = shortName->getName();
+      inputs.push_back(new ToolConnection(label.c_str(), ToolConnection::Input, this, properties[i]));
     }
     if (properties[i]->getAttribute<OutputAttribute>()) {
-      outputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Output, this, properties[i]));
+      string label = properties[i]->getName();
+      if ((shortName = properties[i]->getAttribute<ShortNameAttribute>()))
+        label = shortName->getName();
+      outputs.push_back(new ToolConnection(label.c_str(), ToolConnection::Output, this, properties[i]));
     }
   }
 }

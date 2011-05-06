@@ -10,6 +10,7 @@
 
 #include "DataModel.h"
 #include "Controller.h"
+#include <ReflectableClassFactory.h>
 
 using namespace std;
 using namespace capputils;
@@ -21,7 +22,7 @@ using namespace workflow;
 namespace host {
 
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
-    : QMainWindow(parent, flags)
+    : QMainWindow(parent, flags), libsChanged(false)
 {
   setWindowTitle("Application Host");
   this->setGeometry(150, 150, 800, 600);
@@ -113,7 +114,7 @@ void MainWindow::reload() {
 
   TiXmlElement* workflowElement = workflow->getXml(false);
   Xmlizer::ToXml(*workflowElement, *workflow);
-  delete workflow;
+  reflection::ReflectableClassFactory::getInstance().deleteInstance(workflow);
   workflow = 0;
   tabWidget->removeTab(0);
   workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(*workflowElement));
@@ -127,9 +128,15 @@ void MainWindow::reload() {
 
 void MainWindow::checkLibraryUpdates() {
   if (LibraryLoader::getInstance().librariesUpdated()) {
-    cout << "Update detected." << endl;
+    cout << "Update scheduled." << endl;
+    libsChanged = true;
+    return;
+  }
+  if (libsChanged) {
+    cout << "Updating libraries..." << endl;
     reload();
   }
+  libsChanged = false;
 }
 
 }
