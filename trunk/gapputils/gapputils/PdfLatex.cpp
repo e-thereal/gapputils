@@ -11,6 +11,8 @@
 #include <Verifier.h>
 #include <FilenameAttribute.h>
 
+#include "ShortNameAttribute.h"
+
 using namespace capputils::attributes;
 using namespace std;
 
@@ -25,11 +27,11 @@ using namespace attributes;
 
 BeginPropertyDefinitions(PdfLatex)
 
-  DefineProperty(TexFilename, FileExists(), Input(), Observe(PROPERTY_ID), Filename())
+  DefineProperty(TexFilename, ShortName("TeX"), FileExists(), Input(), Observe(PROPERTY_ID), Filename())
   DefineProperty(CommandName, Observe(PROPERTY_ID))
   DefineProperty(ParameterString, Observe(PROPERTY_ID))
-  DefineProperty(OutputName, Output(), Observe(PROPERTY_ID))
-  DefineProperty(CommandOutput, Output(), Observe(PROPERTY_ID))
+  DefineProperty(OutputName, ShortName("Pdf"), Output(), Observe(PROPERTY_ID))
+  DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 

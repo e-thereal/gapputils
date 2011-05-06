@@ -9,6 +9,7 @@
 #include <NotEqualAssertion.h>
 #include <EventHandler.h>
 #include <Verifier.h>
+#include "ShortNameAttribute.h"
 
 #include <cstdio>
 
@@ -30,11 +31,11 @@ enum PropertyIds {
 
 BeginPropertyDefinitions(AltovaXml)
 
-DefineProperty(InputName, Input(), Filename(), FileExists(), Observe(InputId))
-DefineProperty(OutputName, Output(), Filename(), NotEqual<string>(""), Observe(OutputId))
-DefineProperty(XsltName, Input(), Filename(), FileExists(), Observe(XsltId))
+DefineProperty(InputName, ShortName("Xml"), Input(), Filename(), FileExists(), Observe(InputId))
+DefineProperty(OutputName, ShortName("Out"), Output(), Filename(), NotEqual<string>(""), Observe(OutputId))
+DefineProperty(XsltName, ShortName("Xslt"), Input(), Filename(), FileExists(), Observe(XsltId))
 DefineProperty(CommandName, Observe(CommandId))
-DefineProperty(CommandOutput, Output(), Observe(CommandOutputId))
+DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(CommandOutputId))
 
 EndPropertyDefinitions
 
