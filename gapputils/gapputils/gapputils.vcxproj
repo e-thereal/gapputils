@@ -83,6 +83,7 @@
     <ClCompile Include="LabelAttribute.cpp" />
     <ClCompile Include="OutputAttribute.cpp" />
     <ClCompile Include="PdfLatex.cpp" />
+    <ClCompile Include="ShortNameAttribute.cpp" />
     <ClCompile Include="TextWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -96,6 +97,7 @@
     <ClInclude Include="LabelAttribute.h" />
     <ClInclude Include="OutputAttribute.h" />
     <ClInclude Include="PdfLatex.h" />
+    <ClInclude Include="ShortNameAttribute.h" />
     <ClInclude Include="TextWriter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
