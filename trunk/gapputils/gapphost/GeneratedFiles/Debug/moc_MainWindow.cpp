@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'MainWindow.h'
 **
-** Created: Tue May 3 18:25:59 2011
+** Created: Sun May 8 14:33:02 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-       3,   14, // methods
+       7,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -34,13 +34,18 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
       29,   28,   28,   28, 0x08,
       36,   28,   28,   28, 0x08,
       46,   28,   28,   28, 0x08,
+      61,   28,   28,   28, 0x08,
+      76,   28,   28,   28, 0x08,
+      90,   28,   28,   28, 0x08,
+      99,   28,   28,   28, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_gapputils__host__MainWindow[] = {
     "gapputils::host::MainWindow\0\0quit()\0"
-    "newItem()\0loadWorkflow()\0"
+    "newItem()\0loadWorkflow()\0saveWorkflow()\0"
+    "loadLibrary()\0reload()\0checkLibraryUpdates()\0"
 };
 
 const QMetaObject gapputils::host::MainWindow::staticMetaObject = {
@@ -75,9 +80,13 @@ int gapputils::host::MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void
         case 0: quit(); break;
         case 1: newItem(); break;
         case 2: loadWorkflow(); break;
+        case 3: saveWorkflow(); break;
+        case 4: loadLibrary(); break;
+        case 5: reload(); break;
+        case 6: checkLibraryUpdates(); break;
         default: ;
         }
-        _id -= 3;
+        _id -= 7;
     }
     return _id;
 }

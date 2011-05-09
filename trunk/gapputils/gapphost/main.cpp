@@ -7,11 +7,15 @@
 #include <Verifier.h>
 #include <iostream>
 #include <gapputils.h>
+#include <ReflectableClassFactory.h>
 
 //#include "../GaussianProcesses/Paper.h"
 #include "DataModel.h"
+#include "Workflow.h"
+#include "DefaultInterface.h"
 
 using namespace gapputils::host;
+using namespace gapputils::workflow;
 using namespace gapputils;
 using namespace capputils;
 using namespace std;
@@ -28,6 +32,13 @@ int main(int argc, char *argv[])
   QApplication a(argc, argv);
   DataModel& model = DataModel::getInstance();
   Xmlizer::FromXml(model, "gapphost.conf.xml");
+
+  // Initialize if necessary
+  if (!model.getMainWorkflow())
+    model.setMainWorkflow(new Workflow());
+  if (!model.getMainWorkflow()->getModule())
+    model.getMainWorkflow()->setModule(new DefaultInterface());
+
   reflection::ReflectableClass& wfModule = *model.getMainWorkflow()->getModule();
 
   ArgumentsParser::Parse(model, argc, argv);
@@ -55,6 +66,7 @@ int main(int argc, char *argv[])
   modelElement->LinkEndChild(mainWorkflowElement);
 
   Xmlizer::ToFile("gapphost.conf.xml", modelElement);
+  delete model.getMainWorkflow();
 
 #else
   Paper paper;

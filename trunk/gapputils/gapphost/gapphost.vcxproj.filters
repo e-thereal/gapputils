@@ -149,6 +149,12 @@
     <ClCompile Include="GeneratedFiles\Release\moc_Workflow.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="Controller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DefaultInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
@@ -223,6 +229,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TestWorkflow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DefaultInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
