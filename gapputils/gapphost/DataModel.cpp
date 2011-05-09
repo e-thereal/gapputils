@@ -22,7 +22,7 @@ EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;
 
-DataModel::DataModel(void) : _NoGui(false), _Help(false), _AutoReload(false)
+DataModel::DataModel(void) : _NoGui(false), _Help(false), _AutoReload(false), _MainWorkflow(0)
 {
 }
 

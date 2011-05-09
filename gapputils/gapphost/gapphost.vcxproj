@@ -80,7 +80,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CableItem.cpp" />
+    <ClCompile Include="Controller.cpp" />
     <ClCompile Include="DataModel.cpp" />
+    <ClCompile Include="DefaultInterface.cpp" />
     <ClCompile Include="Edge.cpp" />
     <ClCompile Include="FilenameEdit.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_FilenameEdit.cpp">
@@ -163,6 +165,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Controller.h" />
     <ClInclude Include="CustomToolItemAttribute.h" />
     <ClInclude Include="CableItem.h" />
     <CustomBuild Include="Workflow.h">
@@ -186,6 +189,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB  "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I." "-I." "-I." "FilenameEdit.h" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"</Command>
     </CustomBuild>
     <ClInclude Include="DataModel.h" />
+    <ClInclude Include="DefaultInterface.h" />
     <ClInclude Include="Edge.h" />
     <ClInclude Include="GeneratedFiles\ui_NewObjectDialog.h" />
     <ClInclude Include="ImageLoader.h" />
