@@ -10,6 +10,7 @@
 #include <EventHandler.h>
 #include <Verifier.h>
 #include "ShortNameAttribute.h"
+#include <VolatileAttribute.h>
 
 #include <cstdio>
 
@@ -35,7 +36,7 @@ DefineProperty(InputName, ShortName("Xml"), Input(), Filename(), FileExists(), O
 DefineProperty(OutputName, ShortName("Out"), Output(), Filename(), NotEqual<string>(""), Observe(OutputId))
 DefineProperty(XsltName, ShortName("Xslt"), Input(), Filename(), FileExists(), Observe(XsltId))
 DefineProperty(CommandName, Observe(CommandId))
-DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(CommandOutputId))
+DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(CommandOutputId), Volatile())
 
 EndPropertyDefinitions
 

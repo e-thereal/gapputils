@@ -8,6 +8,7 @@
 #ifndef LABELATTRIBUTE_H_
 #define LABELATTRIBUTE_H_
 
+#include "gapputils.h"
 #include <IAttribute.h>
 
 namespace gapputils {

@@ -10,6 +10,7 @@
 #include <FileExists.h>
 #include <Verifier.h>
 #include <FilenameAttribute.h>
+#include <VolatileAttribute.h>
 
 #include "ShortNameAttribute.h"
 
@@ -31,7 +32,7 @@ BeginPropertyDefinitions(PdfLatex)
   DefineProperty(CommandName, Observe(PROPERTY_ID))
   DefineProperty(ParameterString, Observe(PROPERTY_ID))
   DefineProperty(OutputName, ShortName("Pdf"), Output(), Observe(PROPERTY_ID))
-  DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(PROPERTY_ID))
+  DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(PROPERTY_ID), Volatile())
 
 EndPropertyDefinitions
 

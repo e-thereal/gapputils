@@ -2,6 +2,7 @@
 #ifndef _GAPPUTILS_ALTOVAXML_H_
 #define _GAPPUTILS_ALTOVAXML_H_
 
+#include "gapputils.h"
 #include <ReflectableClass.h>
 #include <ObservableClass.h>
 
