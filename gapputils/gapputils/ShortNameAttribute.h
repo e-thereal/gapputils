@@ -8,6 +8,7 @@
 #ifndef SHORTNAMEATTRIBUTE_H_
 #define SHORTNAMEATTRIBUTE_H_
 
+#include "gapputils.h"
 #include <IAttribute.h>
 
 #include <string>

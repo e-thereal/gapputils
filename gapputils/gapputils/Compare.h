@@ -3,6 +3,7 @@
 #ifndef _GAPPUTILS_H_
 #define _GAPPUTILS_H_
 
+#include "gapputils.h"
 #include <ReflectableClass.h>
 #include <ObservableClass.h>
 #include <Enumerators.h>

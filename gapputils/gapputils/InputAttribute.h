@@ -2,6 +2,7 @@
 #ifndef _INPUTATTRIBUTE_H_
 #define _INPUTATTRIBUTE_H_
 
+#include "gapputils.h"
 #include <IAttribute.h>
 
 namespace gapputils {
