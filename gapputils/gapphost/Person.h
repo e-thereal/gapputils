@@ -10,6 +10,8 @@
 #include <Enumerators.h>
 #include <ObservableClass.h>
 
+namespace test {
+
 class Address : public capputils::reflection::ReflectableClass,
                 public capputils::ObservableClass
 {
@@ -62,5 +64,7 @@ public:
   Person(void);
   ~Person(void);
 };
+
+}
 
 #endif

@@ -4,13 +4,17 @@
 #include <qmenubar.h>
 #include <qfiledialog.h>
 #include <iostream>
+#include <qsplitter.h>
 
 #include <Xmlizer.h>
 #include <LibraryLoader.h>
+#include <qtoolbox.h>
+#include <qtreewidget.h>
 
 #include "DataModel.h"
 #include "Controller.h"
 #include <ReflectableClassFactory.h>
+#include <qbrush.h>
 
 using namespace std;
 using namespace capputils;
@@ -21,17 +25,85 @@ using namespace workflow;
 
 namespace host {
 
+QTreeWidgetItem* newCategory(const string& name) {
+  QLinearGradient gradient(0, 0, 0, 20);
+  gradient.setColorAt(0, Qt::white);
+  gradient.setColorAt(1, Qt::lightGray);
+
+  QTreeWidgetItem* item = new QTreeWidgetItem(1);
+  item->setBackground(0, gradient);
+  item->setText(0, name.c_str());
+  item->setTextAlignment(0, Qt::AlignHCenter);
+
+  return item;
+}
+
+QTreeWidgetItem* newTool(const string& name) {
+  QTreeWidgetItem* item = new QTreeWidgetItem();
+  item->setText(0, name.c_str());
+  
+  return item;
+}
+
+void updateToolBox(QTreeWidget* toolBox) {
+  toolBox->setIndentation(5);
+  toolBox->setHeaderHidden(true);
+  toolBox->setRootIsDecorated(false);
+  toolBox->clear();
+
+  reflection::ReflectableClassFactory& factory = reflection::ReflectableClassFactory::getInstance();
+  vector<string> classNames = factory.getClassNames();
+  sort(classNames.begin(), classNames.end());
+
+  QTreeWidgetItem* item = newCategory("");
+  string groupString("");
+
+  for (unsigned i = 0; i < classNames.size(); ++i) {
+    string name = classNames[i];
+    string currentGroupString;
+
+    int pos = name.find_last_of(":");
+    if (pos != string::npos) {
+      currentGroupString = name.substr(0, pos-1);
+    } else {
+      pos = -1;
+    }
+
+    if (currentGroupString.compare(groupString)) {
+      groupString = currentGroupString;
+      item = newCategory(groupString);
+      toolBox->addTopLevelItem(item);
+    }
+
+    item->addChild(newTool(name.substr(pos+1)));
+  }
+  
+
+  toolBox->expandAll();
+}
+
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
     : QMainWindow(parent, flags), libsChanged(false)
 {
+  QLinearGradient gradient(0, 0, 0, 20);
+  gradient.setColorAt(0, Qt::white);
+  gradient.setColorAt(1, Qt::lightGray);
+
   setWindowTitle("Application Host");
-  this->setGeometry(150, 150, 800, 600);
+  this->setGeometry(150, 150, 1200, 600);
 
   newObjectDialog = new NewObjectDialog();
 
   tabWidget = new QTabWidget();
   tabWidget->addTab(DataModel::getInstance().getMainWorkflow()->dispenseWidget(), "Main");
-  setCentralWidget(tabWidget);
+
+  toolBox = new QTreeWidget();
+  updateToolBox(toolBox);
+  
+  QSplitter* splitter = new QSplitter(Qt::Horizontal);
+  splitter->addWidget(toolBox);
+  splitter->addWidget(tabWidget);
+  setCentralWidget(splitter);
 
   fileMenu = menuBar()->addMenu("File");
   connect(fileMenu->addAction("New Item"), SIGNAL(triggered()), this, SLOT(newItem()));
@@ -41,6 +113,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   connect(fileMenu->addAction("Load Library"), SIGNAL(triggered()), this, SLOT(loadLibrary()));
   connect(fileMenu->addAction("Quit"), SIGNAL(triggered()), this, SLOT(quit()));
   connect(&reloadTimer, SIGNAL(timeout()), this, SLOT(checkLibraryUpdates()));
+  connect(toolBox, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(itemClickedHandler(QTreeWidgetItem*, int)));
+  connect(toolBox, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(itemDoubleClickedHandler(QTreeWidgetItem*, int)));
 
   if (DataModel::getInstance().getAutoReload()) {
     reloadTimer.setInterval(1000);
@@ -55,6 +129,24 @@ MainWindow::~MainWindow()
 
 void MainWindow::quit() {
   this->close();
+}
+
+void MainWindow::itemClickedHandler(QTreeWidgetItem *item, int column) {
+  if (item->childCount()) {
+    item->setExpanded(!item->isExpanded());
+  }
+}
+
+void MainWindow::itemDoubleClickedHandler(QTreeWidgetItem *item, int column) {
+  if (!item->childCount()) {
+    // new tool
+    string classname = item->text(0).toUtf8().data();
+    while ((item = item->parent())) { 
+      classname = string(item->text(0).toUtf8().data()) + "::" + classname;
+    }
+    cout << "New item: " << classname.c_str() << endl;
+    DataModel::getInstance().getMainWorkflow()->newModule(classname);
+  }
 }
 
 void MainWindow::newItem() {
@@ -124,6 +216,7 @@ void MainWindow::reload() {
   model.setMainWorkflow(workflow);
   workflow->resumeFromModel();
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
+  updateToolBox(toolBox);
 }
 
 void MainWindow::checkLibraryUpdates() {

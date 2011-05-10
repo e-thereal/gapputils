@@ -12,6 +12,8 @@
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
+namespace test {
+
 BeginPropertyDefinitions(Address)
 
 DefineProperty(Street, Observe(PROPERTY_ID))
@@ -49,4 +51,6 @@ Person::Person(void) : _FirstName("Tom"), _Name("Brosch"), _Age(27), _Address(0)
 Person::~Person(void)
 {
   delete _Address;
+}
+
 }
