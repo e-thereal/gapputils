@@ -25,6 +25,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   //cublasInit();
+
   registerClasses();
 
   int ret = 0;
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
   modelElement->LinkEndChild(mainWorkflowElement);
 
   Xmlizer::ToFile("gapphost.conf.xml", modelElement);
-  delete model.getMainWorkflow();
+  //delete model.getMainWorkflow();
 
 #else
   Paper paper;

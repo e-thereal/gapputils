@@ -7,6 +7,7 @@
 #include "NewObjectDialog.h"
 #include <qtabwidget.h>
 #include <qtimer.h>
+#include <qtreewidget.h>
 
 namespace gapputils {
 
@@ -20,6 +21,7 @@ private:
   QMenu* fileMenu;
   NewObjectDialog* newObjectDialog;
   QTabWidget* tabWidget;
+  QTreeWidget* toolBox;
   QTimer reloadTimer;
   bool libsChanged;
 
@@ -35,6 +37,8 @@ private Q_SLOTS:
   void loadLibrary();
   void reload();
   void checkLibraryUpdates();
+  void itemDoubleClickedHandler(QTreeWidgetItem *item, int column);
+  void itemClickedHandler(QTreeWidgetItem *item, int column);
 };
 
 }

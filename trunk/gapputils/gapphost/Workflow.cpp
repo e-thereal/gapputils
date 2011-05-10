@@ -98,6 +98,7 @@ Workflow::~Workflow() {
   disconnect(workbench, SIGNAL(itemDeleted(ToolItem*)), this, SLOT(deleteItem(ToolItem*)));
   disconnect(workbench, SIGNAL(cableCreated(CableItem*)), this, SLOT(createEdge(CableItem*)));
   disconnect(workbench, SIGNAL(cableDeleted(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
+  //workbench->scene()->clear();
   if (ownWidget)
     delete widget;
 
@@ -132,7 +133,7 @@ void Workflow::newModule(const std::string& name) {
 }
 
 TiXmlElement* Workflow::getXml(bool addEmptyModule) const {
-  TiXmlElement* element = new TiXmlElement(getClassName());
+  TiXmlElement* element = new TiXmlElement(makeXmlName(getClassName()));
   Xmlizer::AddPropertyToXml(*element, *this, findProperty("Libraries"));
   Xmlizer::AddPropertyToXml(*element, *this, findProperty("Edges"));
   Xmlizer::AddPropertyToXml(*element, *this, findProperty("Nodes"));
@@ -140,7 +141,7 @@ TiXmlElement* Workflow::getXml(bool addEmptyModule) const {
   Xmlizer::AddPropertyToXml(*element, *this, findProperty("OutputsPosition"));
   if (addEmptyModule) {
     TiXmlElement* moduleElement = new TiXmlElement("Module");
-    moduleElement->LinkEndChild(new TiXmlElement(getModule()->getClassName()));
+    moduleElement->LinkEndChild(new TiXmlElement(makeXmlName(getModule()->getClassName())));
     element->LinkEndChild(moduleElement);
   }
   return element;
