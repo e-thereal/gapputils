@@ -15,6 +15,7 @@
 #include <sstream>
 #include <LabelAttribute.h>
 #include <HideAttribute.h>
+#include <ShortNameAttribute.h>
 
 #include "PropertyReference.h"
 
@@ -35,7 +36,11 @@ void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
     if (properties[i]->getAttribute<HideAttribute>())
       continue;
 
-    QStandardItem *key = new QStandardItem(properties[i]->getName().c_str());
+    string keyName = properties[i]->getName();
+    ShortNameAttribute* shortName = properties[i]->getAttribute<ShortNameAttribute>();
+    if (shortName)
+      keyName = keyName + " (" + shortName->getName() + ")";
+    QStandardItem* key = new QStandardItem(keyName.c_str());
     QStandardItem* value = new QStandardItem(properties[i]->getStringValue(object).c_str());
     key->setEditable(false);
     value->setData(QVariant::fromValue(PropertyReference(&object, properties[i])), Qt::UserRole);
