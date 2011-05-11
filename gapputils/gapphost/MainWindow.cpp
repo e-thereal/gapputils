@@ -197,6 +197,7 @@ void MainWindow::loadLibrary() {
       libs->push_back(filenames[0].toUtf8().data());
       workflow->setLibraries(libs);
     }
+    reload();
   }
 }
 

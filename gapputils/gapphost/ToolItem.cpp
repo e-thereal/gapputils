@@ -314,19 +314,32 @@ void ToolItem::drawConnections(QPainter* painter, bool showLabel) {
 
 void ToolItem::drawBox(QPainter* painter) {
   QLinearGradient gradient(0, 0, 0, height);
+  QLinearGradient progressGradient(0, 0, 0, height);
   if (bench && bench->getSelectedItem() == this) {
     gradient.setColorAt(0, Qt::white);
     gradient.setColorAt(1, Qt::lightGray);
+    progressGradient.setColorAt(0, Qt::white);
+    progressGradient.setColorAt(1, Qt::green);
     setZValue(4);
   } else {
     gradient.setColorAt(0, Qt::lightGray);
     gradient.setColorAt(1, Qt::gray);
+    progressGradient.setColorAt(0, Qt::lightGray);
+    progressGradient.setColorAt(1, Qt::green);
     setZValue(2);
   }
+  
 
   painter->setBrush(gradient);
   painter->setPen(QPen(Qt::black, 0));
   painter->drawRoundedRect(0, 0, width, height, 4, 4);
+
+  painter->save();
+  painter->setClipping(true);
+  painter->setClipRect(0, 0, width/2, height);
+  painter->setBrush(progressGradient);
+  painter->drawRoundedRect(0, 0, width, height, 4, 4);
+  painter->restore();
 }
 
 std::string ToolItem::getLabel() const {
