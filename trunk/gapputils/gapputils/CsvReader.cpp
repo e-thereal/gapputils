@@ -12,6 +12,7 @@
 #include <Verifier.h>
 #include <VolatileAttribute.h>
 
+#include <InputAttribute.h>
 #include "OutputAttribute.h"
 #include "LabelAttribute.h"
 #include "HideAttribute.h"
@@ -30,13 +31,13 @@ enum EventIds {
 BeginPropertyDefinitions(CsvReader)
 
   DefineProperty(Label, Label(), Observe(LabelId))
-  DefineProperty(Filename, FileExists(), Filename(), Observe(FilenameId))
-  DefineProperty(FirstColumn, Observe(FirstColumnId), Description("Zero-based index of the first column"))
-  DefineProperty(LastColumn, Observe(LastColumnId), Description("Zero-based index of the last column. A value of -1 indicates to read until the end."))
-  DefineProperty(FirstRow, Observe(FirstRowId), Description("Zero-based index of the first row"))
-  DefineProperty(LastRow, Observe(LastRowId), Description("Zero-based index of the last row. A value of -1 indicates to read until the end."))
-  DefineProperty(ColumnCount, Observe(ColumnCountId), Output())
-  DefineProperty(RowCount, Observe(RowCountId), Output())
+  DefineProperty(FirstColumn, Observe(FirstColumnId), Description("Zero-based index of the first column"), Input())
+  DefineProperty(LastColumn, Observe(LastColumnId), Description("Zero-based index of the last column. A value of -1 indicates to read until the end."), Input())
+  DefineProperty(FirstRow, Observe(FirstRowId), Description("Zero-based index of the first row"), Input())
+  DefineProperty(LastRow, Observe(LastRowId), Description("Zero-based index of the last row. A value of -1 indicates to read until the end."), Input())
+  DefineProperty(Filename, FileExists(), Filename(), Observe(FilenameId), Input(), Output(), Volatile())
+  DefineProperty(ColumnCount, Observe(ColumnCountId), Output(), Volatile())
+  DefineProperty(RowCount, Observe(RowCountId), Output(), Volatile())
   DefineProperty(Data, Observe(DataId), Output(), Hide(), Volatile())
 
 EndPropertyDefinitions

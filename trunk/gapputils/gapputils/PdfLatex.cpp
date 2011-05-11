@@ -28,10 +28,10 @@ using namespace attributes;
 
 BeginPropertyDefinitions(PdfLatex)
 
-  DefineProperty(TexFilename, ShortName("TeX"), FileExists(), Input(), Observe(PROPERTY_ID), Filename())
+  DefineProperty(TexFilename, ShortName("TeX"), FileExists(), Input(), Observe(PROPERTY_ID), Filename(), Volatile())
   DefineProperty(CommandName, Observe(PROPERTY_ID))
   DefineProperty(ParameterString, Observe(PROPERTY_ID))
-  DefineProperty(OutputName, ShortName("Pdf"), Output(), Observe(PROPERTY_ID))
+  DefineProperty(OutputName, ShortName("Pdf"), Output(), Observe(PROPERTY_ID), Volatile())
   DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(PROPERTY_ID), Volatile())
 
 EndPropertyDefinitions

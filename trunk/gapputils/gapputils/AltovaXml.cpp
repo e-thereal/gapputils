@@ -27,20 +27,22 @@ namespace gapputils {
 using namespace attributes;
 
 enum PropertyIds {
-  InputId, OutputId, XsltId, CommandId, CommandOutputId
+  InputId, OutputId, XsltId, CommandId, CommandOutputId, OutputExtensionId
 };
 
 BeginPropertyDefinitions(AltovaXml)
 
-DefineProperty(InputName, ShortName("Xml"), Input(), Filename(), FileExists(), Observe(InputId))
-DefineProperty(OutputName, ShortName("Out"), Output(), Filename(), NotEqual<string>(""), Observe(OutputId))
+DefineProperty(InputName, ShortName("Xml"), Input(), Filename(), FileExists(), Observe(InputId), Volatile())
+DefineProperty(OutputName, ShortName("Out"), Output(), Filename(), Observe(OutputId), Volatile())
 DefineProperty(XsltName, ShortName("Xslt"), Input(), Filename(), FileExists(), Observe(XsltId))
 DefineProperty(CommandName, Observe(CommandId))
-DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(CommandOutputId), Volatile())
+DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(CommandOutputId))
+DefineProperty(OutputExtension, Observe(OutputExtensionId))
 
 EndPropertyDefinitions
 
-AltovaXml::AltovaXml(void) : _InputName(""), _OutputName("gp.tex"), _XsltName("gp.xslt"), _CommandName("altovaxml"), _CommandOutput("")
+AltovaXml::AltovaXml(void) : _InputName(""), _OutputName(""), _XsltName("gp.xslt"),
+  _CommandName("altovaxml"), _CommandOutput(""), _OutputExtension(".txt")
 {
   Changed.connect(capputils::EventHandler<AltovaXml>(this, &AltovaXml::changeHandler));
 }
@@ -57,8 +59,9 @@ void AltovaXml::changeHandler(capputils::ObservableClass* sender, int eventId) {
     stringstream command;
     stringstream output;
     int ch;
+    string outputName = getInputName() + getOutputExtension();
 
-    command << getCommandName() << " -in \"" << getInputName() << "\" -out \"" << getOutputName() << "\" -xslt2 \"" << getXsltName() << "\"";
+    command << getCommandName() << " -in \"" << getInputName() << "\" -out \"" << outputName << "\" -xslt2 \"" << getXsltName() << "\"";
 
     output << "Executing: " << command.str() << endl;
 
@@ -68,7 +71,7 @@ void AltovaXml::changeHandler(capputils::ObservableClass* sender, int eventId) {
         output << (char)ch;
       }
       pclose(stream);
-      setOutputName(getOutputName());
+      setOutputName(outputName);
     } else {
       output << "Error executing command." << endl;
     }

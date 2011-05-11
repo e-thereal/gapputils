@@ -18,6 +18,7 @@ class AltovaXml : public capputils::reflection::ReflectableClass,
   Property(XsltName, std::string)
   Property(CommandName, std::string)
   Property(CommandOutput, std::string)
+  Property(OutputExtension, std::string)
 
 public:
   AltovaXml(void);
