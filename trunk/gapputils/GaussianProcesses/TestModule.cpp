@@ -43,7 +43,11 @@ void TestModule::changedHandler(capputils::ObservableClass* sender, int eventId)
 void TestModule::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   for (int i = 0; i <= 100; ++i) {
     monitor->reportProgress(i);
+#ifdef WIN32
+    _sleep(100);
+#else
     usleep(10000);
+#endif
   }
   result = 2 * getX();
 }
