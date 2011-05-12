@@ -80,11 +80,13 @@
     <ClCompile Include="gapputils.cpp" />
     <ClCompile Include="HideAttribute.cpp" />
     <ClCompile Include="InputAttribute.cpp" />
+    <ClCompile Include="IProgressMonitor.cpp" />
     <ClCompile Include="LabelAttribute.cpp" />
     <ClCompile Include="OutputAttribute.cpp" />
     <ClCompile Include="PdfLatex.cpp" />
     <ClCompile Include="ShortNameAttribute.cpp" />
     <ClCompile Include="TextWriter.cpp" />
+    <ClCompile Include="WorkflowElement.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AltovaXml.h" />
@@ -94,11 +96,13 @@
     <ClInclude Include="gapputils.h" />
     <ClInclude Include="HideAttribute.h" />
     <ClInclude Include="InputAttribute.h" />
+    <ClInclude Include="IProgressMonitor.h" />
     <ClInclude Include="LabelAttribute.h" />
     <ClInclude Include="OutputAttribute.h" />
     <ClInclude Include="PdfLatex.h" />
     <ClInclude Include="ShortNameAttribute.h" />
     <ClInclude Include="TextWriter.h" />
+    <ClInclude Include="WorkflowElement.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
