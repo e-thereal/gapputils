@@ -11,9 +11,10 @@
 #include <LabelAttribute.h>
 #include <ShortNameAttribute.h>
 #include <VolatileAttribute.h>
+#include <cmath>
 
-#include "../gptest/gplib.h"
-#include "../gptest/NLML.h"
+//#include "../gptest/gplib.h"
+//#include "../gptest/NLML.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -93,18 +94,18 @@ void GP::changeHandler(capputils::ObservableClass* sender, int eventId) {
 
     float *cov = new float[xstar.size() * xstar.size()];
 
-    gplib::GP& gp = gplib::GP::getInstance();
+    //gplib::GP& gp = gplib::GP::getInstance();
 
     float length = getLength();
 
-    gp.gp(&mu[0], cov, &x[0], &y[0], &xstar[0], x.size(), 1, xstar.size(), getSigmaF(),
-       getSigmaN(), &length);
+    //gp.gp(&mu[0], cov, &x[0], &y[0], &xstar[0], x.size(), 1, xstar.size(), getSigmaF(),
+    //   getSigmaN(), &length);
 
     for (int i = 0; i < xstar.size(); ++i)
       ci[i] = 2 * sqrt(cov[i + i * xstar.size()]);
 
-    gplib::NLML nlml(&x[0], &y[0], x.size(), 1);
-    cout << "nlml = " << nlml.eval(getSigmaF(), getSigmaN(), &length) << endl;
+    //gplib::NLML nlml(&x[0], &y[0], x.size(), 1);
+    //cout << "nlml = " << nlml.eval(getSigmaF(), getSigmaN(), &length) << endl;
 
     setCI(ci);
     setMu(mu);
@@ -115,7 +116,7 @@ void GP::changeHandler(capputils::ObservableClass* sender, int eventId) {
   if (eventId == TrainId && getTrain()) {
     bool automatic = getAuto();
     setAuto(false);
-    gplib::GP& gp = gplib::GP::getInstance();
+    //gplib::GP& gp = gplib::GP::getInstance();
     float sigmaF = getSigmaF();
     float sigmaN = getSigmaN();
     float length = getLength();
@@ -123,7 +124,7 @@ void GP::changeHandler(capputils::ObservableClass* sender, int eventId) {
     vector<float> x = getX();
     vector<float> y = getY();
 
-    gp.trainGP(sigmaF, sigmaN, &length, &x[0], &y[0], x.size(), 1);
+    //gp.trainGP(sigmaF, sigmaN, &length, &x[0], &y[0], x.size(), 1);
 
     setSigmaF(sigmaF);
     setSigmaN(sigmaN);

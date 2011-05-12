@@ -12,8 +12,9 @@
 #include <LabelAttribute.h>
 #include <ShortNameAttribute.h>
 #include <VolatileAttribute.h>
+#include <cmath>
 
-#include "../gptest/gplib.h"
+//#include "../gptest/gplib.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -117,11 +118,11 @@ void GPRegression::changeEventHandler(capputils::ObservableClass* sender, int ev
     standardize(x, means, vars);
     standardize(xstar, means, vars);
 
-    gplib::GP& gp = gplib::GP::getInstance();
-    gp.trainGP(sigmaF, sigmaN, &length[0], &x[0], &y[0], n, d);
+    //gplib::GP& gp = gplib::GP::getInstance();
+    //gp.trainGP(sigmaF, sigmaN, &length[0], &x[0], &y[0], n, d);
 
     // Make predictions with the GP
-    gp.gp(&ystar[0], 0, &x[0], &y[0], &xstar[0], n, d, m, sigmaF, sigmaN, &length[0]);
+    //gp.gp(&ystar[0], 0, &x[0], &y[0], &xstar[0], n, d, m, sigmaF, sigmaN, &length[0]);
 
     if (getYstar())
       delete getYstar();
@@ -130,6 +131,14 @@ void GPRegression::changeEventHandler(capputils::ObservableClass* sender, int ev
     copy(ystar.begin(), ystar.end(), result);
     setYstar(result);
   }
+}
+
+void GPRegression::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+
+}
+
+void GPRegression::writeResults() {
+
 }
 
 }

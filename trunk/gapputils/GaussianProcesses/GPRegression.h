@@ -3,13 +3,11 @@
 #ifndef _GAPPUTILS_GPREGRESSION_H_
 #define _GAPPUTILS_GPREGRESSION_H_
 
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
+#include <WorkflowElement.h>
 
 namespace GaussianProcesses {
 
-class GPRegression : public capputils::reflection::ReflectableClass,
-                     public capputils::ObservableClass
+class GPRegression : public gapputils::workflow::WorkflowElement
 {
   InitReflectableClass(GPRegression)
 
@@ -30,6 +28,9 @@ public:
   virtual ~GPRegression(void);
 
   void changeEventHandler(capputils::ObservableClass* sender, int eventId);
+
+  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
+  virtual void writeResults();
 };
 
 }
