@@ -12,7 +12,7 @@
 #include <Verifier.h>
 #include <VolatileAttribute.h>
 
-#include <InputAttribute.h>
+#include "InputAttribute.h"
 #include "OutputAttribute.h"
 #include "LabelAttribute.h"
 #include "HideAttribute.h"
