@@ -75,18 +75,18 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CholeskyDecomposition.h" />
     <ClInclude Include="GP.h" />
     <ClInclude Include="GPRegression.h" />
     <ClInclude Include="Interface.h" />
     <ClInclude Include="IntSplitter.h" />
+    <ClInclude Include="TestModule.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CholeskyDecomposition.cpp" />
     <ClCompile Include="GP.cpp" />
     <ClCompile Include="GPRegression.cpp" />
     <ClCompile Include="Interface.cpp" />
     <ClCompile Include="IntSplitter.cpp" />
+    <ClCompile Include="TestModule.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
