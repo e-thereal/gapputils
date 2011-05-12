@@ -20,7 +20,9 @@ SOURCES = main.cpp \
 		  Edge.cpp \
 		  Workflow.cpp \
 		  TestWorkflow.cpp \
-		  Controller.cpp
+		  Controller.cpp \
+		  DefaultInterface.cpp \
+		  WorkflowWorker.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -32,7 +34,8 @@ HEADERS = MainWindow.h \
           FilenameEdit.h \
           NewObjectDialog.h \
           ShowImageDialog.h \
-          Workflow.h
+          Workflow.h \
+          WorkflowWorker.h
           
 CONFIG += no_keywords debug console
 QMAKE_CXXFLAGS += -std=c++0x

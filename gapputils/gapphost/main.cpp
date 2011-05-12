@@ -25,7 +25,6 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   //cublasInit();
-
   registerClasses();
 
   int ret = 0;

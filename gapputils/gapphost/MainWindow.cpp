@@ -15,6 +15,7 @@
 #include "Controller.h"
 #include <ReflectableClassFactory.h>
 #include <qbrush.h>
+#include <WorkflowElement.h>
 
 using namespace std;
 using namespace capputils;
@@ -62,6 +63,16 @@ void updateToolBox(QTreeWidget* toolBox) {
     string name = classNames[i];
     string currentGroupString;
 
+#ifdef ONLY_WORKFLOWELEMENTS
+    reflection::ReflectableClass* object = factory.newInstance(name);
+    if (dynamic_cast<WorkflowElement*>(object) == 0) {
+      cout << name << " is not a workflow element" << endl;
+      delete object;
+      continue;
+    }
+    delete object;
+#endif
+
     int pos = name.find_last_of(":");
     if (pos != string::npos) {
       currentGroupString = name.substr(0, pos-1);
@@ -85,9 +96,7 @@ void updateToolBox(QTreeWidget* toolBox) {
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
     : QMainWindow(parent, flags), libsChanged(false)
 {
-  QLinearGradient gradient(0, 0, 0, 20);
-  gradient.setColorAt(0, Qt::white);
-  gradient.setColorAt(1, Qt::lightGray);
+  Workflow* workflow = DataModel::getInstance().getMainWorkflow();
 
   setWindowTitle("Application Host");
   this->setGeometry(150, 150, 1200, 600);
@@ -95,7 +104,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   newObjectDialog = new NewObjectDialog();
 
   tabWidget = new QTabWidget();
-  tabWidget->addTab(DataModel::getInstance().getMainWorkflow()->dispenseWidget(), "Main");
+  tabWidget->addTab(workflow->dispenseWidget(), "Main");
+  connect(workflow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
 
   toolBox = new QTreeWidget();
   updateToolBox(toolBox);
@@ -105,13 +115,21 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   splitter->addWidget(tabWidget);
   setCentralWidget(splitter);
 
-  fileMenu = menuBar()->addMenu("File");
-  connect(fileMenu->addAction("New Item"), SIGNAL(triggered()), this, SLOT(newItem()));
-  connect(fileMenu->addAction("Load Workflow"), SIGNAL(triggered()), this, SLOT(loadWorkflow()));
-  connect(fileMenu->addAction("Save Workflow"), SIGNAL(triggered()), this, SLOT(saveWorkflow()));
-  connect(fileMenu->addAction("Reload Workflow"), SIGNAL(triggered()), this, SLOT(reload()));
-  connect(fileMenu->addAction("Load Library"), SIGNAL(triggered()), this, SLOT(loadLibrary()));
-  connect(fileMenu->addAction("Quit"), SIGNAL(triggered()), this, SLOT(quit()));
+  fileMenu = menuBar()->addMenu("&File");
+  fileMenu->addAction("Load Library", this, SLOT(loadLibrary()), QKeySequence(Qt::CTRL + Qt::Key_L));
+
+  fileMenu->addAction("Open Workflow", this, SLOT(loadWorkflow()), QKeySequence(Qt::CTRL + Qt::Key_O));
+  fileMenu->insertSeparator(fileMenu->actions().last());
+  fileMenu->addAction("Save Workflow", this, SLOT(saveWorkflow()), QKeySequence(Qt::CTRL + Qt::Key_S));
+  fileMenu->addAction("Reload Workflow", this, SLOT(reload()), QKeySequence(Qt::CTRL + Qt::Key_R));
+
+  fileMenu->addAction("Quit", this, SLOT(quit()));
+  fileMenu->insertSeparator(fileMenu->actions().last());
+
+  runMenu = menuBar()->addMenu("&Run");
+  runMenu->addAction("Update", this, SLOT(updateCurrentModule()), QKeySequence(Qt::Key_F5));
+  runMenu->addAction("Abort", this, SLOT(terminateUpdate()), QKeySequence(Qt::Key_Escape));
+
   connect(&reloadTimer, SIGNAL(timeout()), this, SLOT(checkLibraryUpdates()));
   connect(toolBox, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(itemClickedHandler(QTreeWidgetItem*, int)));
   connect(toolBox, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(itemDoubleClickedHandler(QTreeWidgetItem*, int)));
@@ -172,6 +190,8 @@ void MainWindow::loadWorkflow() {
         tabWidget->removeTab(0);
         model.setMainWorkflow(workflow);
         tabWidget->addTab(workflow->dispenseWidget(), "Main");
+        connect(workflow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+        updateToolBox(toolBox);
       }
     }
   }
@@ -217,6 +237,7 @@ void MainWindow::reload() {
   model.setMainWorkflow(workflow);
   workflow->resumeFromModel();
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
+  connect(workflow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
   updateToolBox(toolBox);
 }
 
@@ -231,6 +252,24 @@ void MainWindow::checkLibraryUpdates() {
     reload();
   }
   libsChanged = false;
+}
+
+void MainWindow::updateCurrentModule() {
+  fileMenu->setEnabled(false);
+  centralWidget()->setEnabled(false);
+
+  DataModel::getInstance().getMainWorkflow()->updateSelectedModule();
+}
+
+void MainWindow::terminateUpdate() {
+  fileMenu->setEnabled(true);
+  centralWidget()->setEnabled(true);
+}
+
+void MainWindow::updateFinished() {
+  cout << "Release UI" << endl;
+  fileMenu->setEnabled(true);
+  centralWidget()->setEnabled(true);
 }
 
 }

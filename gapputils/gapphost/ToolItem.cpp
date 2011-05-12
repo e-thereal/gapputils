@@ -129,7 +129,8 @@ QPointF ToolConnection::attachmentPos() const {
 ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
  : node(node), bench(bench), harmonizer(node->getModule()),
    width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
-   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), deletable(true)
+   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), deletable(true),
+   progress(-1)
 {
   setFlag(ItemIsMovable);
   // TODO: check if this causes problems
@@ -196,6 +197,11 @@ void ToolItem::setWorkbench(Workbench* bench) {
 
 bool ToolItem::isDeletable() const {
   return deletable;
+}
+
+void ToolItem::setProgress(int progress) {
+  this->progress = progress;
+  update();
 }
 
 Node* ToolItem::getNode() const {
@@ -317,13 +323,29 @@ void ToolItem::drawBox(QPainter* painter) {
   QLinearGradient progressGradient(0, 0, 0, height);
   if (bench && bench->getSelectedItem() == this) {
     gradient.setColorAt(0, Qt::white);
-    gradient.setColorAt(1, Qt::lightGray);
+    switch(progress) {
+    case -3:
+      gradient.setColorAt(1, Qt::red);
+    case -2:
+      gradient.setColorAt(1, Qt::yellow);
+      break;
+    default:
+      gradient.setColorAt(1, Qt::lightGray);
+    }
     progressGradient.setColorAt(0, Qt::white);
     progressGradient.setColorAt(1, Qt::green);
     setZValue(4);
   } else {
     gradient.setColorAt(0, Qt::lightGray);
-    gradient.setColorAt(1, Qt::gray);
+    switch(progress) {
+    case -3:
+      gradient.setColorAt(1, Qt::red);
+    case -2:
+      gradient.setColorAt(1, Qt::yellow);
+      break;
+    default:
+      gradient.setColorAt(1, Qt::gray);
+    }
     progressGradient.setColorAt(0, Qt::lightGray);
     progressGradient.setColorAt(1, Qt::green);
     setZValue(2);
@@ -334,12 +356,14 @@ void ToolItem::drawBox(QPainter* painter) {
   painter->setPen(QPen(Qt::black, 0));
   painter->drawRoundedRect(0, 0, width, height, 4, 4);
 
-  painter->save();
-  painter->setClipping(true);
-  painter->setClipRect(0, 0, width/2, height);
-  painter->setBrush(progressGradient);
-  painter->drawRoundedRect(0, 0, width, height, 4, 4);
-  painter->restore();
+  if (progress >=0) {
+    painter->save();
+    painter->setClipping(true);
+    painter->setClipRect(0, 0, width * min(100,progress) / 100, height);
+    painter->setBrush(progressGradient);
+    painter->drawRoundedRect(0, 0, width, height, 4, 4);
+    painter->restore();
+  }
 }
 
 std::string ToolItem::getLabel() const {
