@@ -19,6 +19,7 @@ class MainWindow : public QMainWindow
 
 private:
   QMenu* fileMenu;
+  QMenu* runMenu;
   NewObjectDialog* newObjectDialog;
   QTabWidget* tabWidget;
   QTreeWidget* toolBox;
@@ -39,6 +40,10 @@ private Q_SLOTS:
   void checkLibraryUpdates();
   void itemDoubleClickedHandler(QTreeWidgetItem *item, int column);
   void itemClickedHandler(QTreeWidgetItem *item, int column);
+
+  void updateCurrentModule();
+  void terminateUpdate();
+  void updateFinished();
 };
 
 }

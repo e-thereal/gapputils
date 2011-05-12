@@ -25,6 +25,7 @@
 #include <ObserveAttribute.h>
 #include <EventHandler.h>
 #include <LibraryLoader.h>
+#include <WorkflowElement.h>
 
 using namespace capputils;
 using namespace capputils::reflection;
@@ -52,7 +53,7 @@ DefineProperty(OutputsPosition, Volatile())
 
 EndPropertyDefinitions
 
-Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true) {
+Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true), worker(0) {
   _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
   _Nodes = new vector<Node*>();
@@ -87,11 +88,20 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true) 
   connect(workbench, SIGNAL(cableCreated(CableItem*)), this, SLOT(createEdge(CableItem*)));
   connect(workbench, SIGNAL(cableDeleted(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
 
+  worker = new WorkflowWorker(this);
+  worker->start();
+
   this->Changed.connect(EventHandler<Workflow>(this, &Workflow::changedHandler));
 }
 
 Workflow::~Workflow() {
   LibraryLoader& loader = LibraryLoader::getInstance();
+
+  if (worker) {
+    worker->quit();
+    worker->wait();
+    delete worker;
+  }
 
   disconnect(workbench, SIGNAL(itemSelected(ToolItem*)), this, SLOT(itemSelected(ToolItem*)));
   disconnect(workbench, SIGNAL(itemChanged(ToolItem*)), this, SLOT(itemChangedHandler(ToolItem*)));
@@ -307,6 +317,37 @@ void Workflow::deleteEdge(CableItem* cable) {
       delete edges->at(i);
       edges->erase(edges->begin() + i);
     }
+}
+
+void Workflow::updateSelectedModule() {
+  // build stack and set all to red
+
+  cout << "[" << QThread::currentThreadId() << "] " << "Update selected module" << endl;
+  processStack();
+}
+
+void Workflow::processStack() {
+  cout << "[" << QThread::currentThreadId() << "] " << "Process stack" << endl;
+  workbench->getSelectedItem()->setProgress(-2);
+  Q_EMIT processModule(workbench->getSelectedItem()->getNode());
+}
+
+void Workflow::finalizeModuleUpdate(Node* node) {
+  cout << "[" << QThread::currentThreadId() << "] " << "Finalize module update." << endl;
+  // write results
+  WorkflowElement* element = dynamic_cast<WorkflowElement*>(node->getModule());
+  if (element)
+    element->writeResults();
+  node->getToolItem()->setProgress(100);
+
+  // processStack (will emit updateFinished signal)
+  Q_EMIT updateFinished();
+  // set all back
+  node->getToolItem()->setProgress(-1);
+}
+
+void Workflow::showProgress(Node* node, int i) {
+  node->getToolItem()->setProgress(i);
 }
 
 }

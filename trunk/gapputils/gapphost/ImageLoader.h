@@ -2,11 +2,10 @@
 #ifndef _IMAGELOADER_H_
 #define _IMAGELOADER_H_
 
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
 #include <string>
 
 #include <qimage.h>
+#include <WorkflowElement.h>
 
 namespace capputils {
 
@@ -26,9 +25,8 @@ public:
 
 namespace gapputils {
 
-class ImageLoader : public capputils::reflection::ReflectableClass, public capputils::ObservableClass
+class ImageLoader : public gapputils::workflow::WorkflowElement
 {
-
   class ChangeEventHandler {
   private:
     ImageLoader* loader;
@@ -55,6 +53,9 @@ public:
   virtual ~ImageLoader(void);
 
   void loadImage();
+  virtual void execute(workflow::IProgressMonitor* monitor) const { }
+  virtual void writeResults() { }
+
 };
 
 }

@@ -60,6 +60,7 @@ protected:
   std::vector<ToolConnection*> outputs;
   QFont labelFont;
   bool deletable;
+  int progress;
 
 public:
   ToolItem(workflow::Node* node, Workbench *bench = 0);
@@ -80,6 +81,8 @@ public:
   virtual std::string getLabel() const;
   virtual void updateConnections();
   virtual bool isDeletable() const;
+  /// progess is in %
+  void setProgress(int progress);
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event);
   QVariant itemChange(GraphicsItemChange change, const QVariant &value);

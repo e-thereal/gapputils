@@ -8,7 +8,6 @@
 #ifndef WORKFLOW_H_
 #define WORKFLOW_H_
 
-#include <ReflectableClass.h>
 #include <ObservableClass.h>
 
 #include <qobject.h>
@@ -19,6 +18,7 @@
 #include <set>
 #include "Edge.h"
 #include "Node.h"
+#include "WorkflowWorker.h"
 
 namespace gapputils {
 
@@ -47,6 +47,7 @@ private:
   Node inputsNode, outputsNode;
   std::set<std::string> loadedLibraries;
   bool ownWidget;
+  WorkflowWorker* worker;
 
 public:
   Workflow();
@@ -60,6 +61,10 @@ public:
   QWidget* dispenseWidget();
   TiXmlElement* getXml(bool addEmptyModule = true) const;
 
+  /// This call is asynchronous. updateFinished signal is emitted when done.
+  void updateSelectedModule();
+  void processStack();
+
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
@@ -69,6 +74,13 @@ private Q_SLOTS:
   void deleteItem(ToolItem* item);
   void createEdge(CableItem* cable);
   void deleteEdge(CableItem* cable);
+
+  void finalizeModuleUpdate(Node* node);
+  void showProgress(Node* node, int i);
+
+Q_SIGNALS:
+  void updateFinished();
+  void processModule(Node* node);
 };
 
 }
