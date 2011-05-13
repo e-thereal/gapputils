@@ -3,18 +3,16 @@
 #ifndef gapputils_GP_H
 #define gapputils_GP_H
 
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
+#include <WorkflowElement.h>
 
 #include <vector>
 
 namespace GaussianProcesses {
 
-class GP : public capputils::reflection::ReflectableClass,
-           public capputils::ObservableClass
+class GPTest : public gapputils::workflow::WorkflowElement
 {
 
-  InitReflectableClass(GP)
+  InitReflectableClass(GPTest)
 
   Property(Label, std::string)
   Property(X, std::vector<float>)
@@ -29,14 +27,19 @@ class GP : public capputils::reflection::ReflectableClass,
   Property(SigmaF, float)
   Property(Length, float)
   Property(SigmaN, float)
-  Property(Auto, bool)
   Property(Train, bool)
 
+private:
+  mutable GPTest* data;
+
 public:
-  GP(void);
-  virtual ~GP(void);
+  GPTest(void);
+  virtual ~GPTest(void);
 
   void changeHandler(capputils::ObservableClass* sender, int eventId);
+
+  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
+  virtual void writeResults();
 };
 
 }

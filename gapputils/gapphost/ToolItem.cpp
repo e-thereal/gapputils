@@ -162,7 +162,6 @@ MultiConnection::~MultiConnection() {
     delete connections[i];
 }
 
-// TODO: change it to return a list of connections
 bool MultiConnection::hits(std::vector<ToolConnection*>& connections,
     int x, int y) const
 {
@@ -272,7 +271,6 @@ ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
    progress(-1), deleting(false)
 {
   setFlag(ItemIsMovable);
-  // TODO: check if this causes problems
 #if (QT_VERSION >= 0x040700)
   setFlag(ItemSendsGeometryChanges);
 #endif
@@ -455,8 +453,6 @@ void ToolItem::updateConnectionPositions() {
   for (int i = 0, pos = -((int)inputs.size()-1) * connectionDistance / 2 + height/2; i < (int)inputs.size(); ++i, pos += connectionDistance) {
     inputs[i]->setPos(0, pos);
   }
-  // Todo: Get total height by summing all heights of all MultiConnections
-  //       Increment height by height of current multi connection
 
   int outputsHeight = 0;
   for (unsigned i = 0; i < outputs.size(); ++i)
