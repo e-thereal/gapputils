@@ -4,13 +4,11 @@
 #define _GAPPUTILS_PDFLATEX_H_
 
 #include "gapputils.h"
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
+#include "WorkflowElement.h"
 
 namespace gapputils {
 
-class PdfLatex : public capputils::reflection::ReflectableClass,
-                 public capputils::ObservableClass
+class PdfLatex : public workflow::WorkflowElement
 {
 
 InitReflectableClass(PdfLatex)
@@ -21,11 +19,15 @@ Property(ParameterString, std::string)
 Property(OutputName, std::string)
 Property(CommandOutput, std::string)
 
+private:
+  mutable PdfLatex* data;
+
 public:
   PdfLatex(void);
   virtual ~PdfLatex(void);
 
-  void changedHandler(capputils::ObservableClass* sender, int eventId);
+  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
+  virtual void writeResults();
 };
 
 }

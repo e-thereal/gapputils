@@ -4,18 +4,15 @@
 #define _GAPPUTILS_CSVREADER_H_
 
 #include "gapputils.h"
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
+#include "WorkflowElement.h"
 
 namespace gapputils {
 
-class CsvReader : public capputils::reflection::ReflectableClass,
-                  public capputils::ObservableClass
+class CsvReader : public workflow::WorkflowElement
 {
 
 InitReflectableClass(CsvReader)
 
-Property(Label, std::string)
 Property(Filename, std::string)
 Property(FirstColumn, int)
 Property(LastColumn, int)
@@ -25,11 +22,15 @@ Property(ColumnCount, int)
 Property(RowCount, int)
 Property(Data, double*)
 
+private:
+  mutable CsvReader* data;
+
 public:
   CsvReader(void);
   virtual ~CsvReader(void);
 
-  void changeEventHandler(capputils::ObservableClass* sender, int eventId);
+  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
+  virtual void writeResults();
 };
 
 }

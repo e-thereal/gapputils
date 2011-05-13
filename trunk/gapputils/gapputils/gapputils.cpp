@@ -1,6 +1,6 @@
 #include "gapputils.h"
 
-#include "AltovaXml.h"
+#include "XslTransformation.h"
 #include "Compare.h"
 #include "CsvReader.h"
 #include "CsvWriter.h"
@@ -10,7 +10,7 @@
 namespace gapputils {
 
 void registerClasses() {
-  AltovaXml();
+  XslTransformation();
   Compare();
   CsvReader();
   CsvWriter();

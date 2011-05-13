@@ -8,6 +8,7 @@
 #include <NotEqualAssertion.h>
 #include <EventHandler.h>
 #include <Verifier.h>
+#include <VolatileAttribute.h>
 
 using namespace capputils::attributes;
 using namespace std;
@@ -18,23 +19,27 @@ using namespace attributes;
 
 BeginPropertyDefinitions(TextWriter)
 
-DefineProperty(Text, Input(), Observe(PROPERTY_ID))
+ReflectableBase(workflow::WorkflowElement)
+DefineProperty(Text, Input(), Observe(PROPERTY_ID), Volatile())
 DefineProperty(Filename, Filename(), NotEqual<string>(""), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
 TextWriter::TextWriter() : _Text(""), _Filename("") {
-  Changed.connect(capputils::EventHandler<TextWriter>(this, &TextWriter::changeHandler));
+  setLabel("Writer");
 }
 
 TextWriter::~TextWriter() { }
 
-void TextWriter::changeHandler(capputils::ObservableClass* sender, int eventId) {
+void TextWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (capputils::Verifier::Valid(*this)) {
     ofstream outfile(getFilename().c_str());
     outfile << getText();
     outfile.close();
   }
+}
+
+void TextWriter::writeResults() {
 }
 
 }

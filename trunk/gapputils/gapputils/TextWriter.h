@@ -4,13 +4,11 @@
 #define _GAPPUTILS_TEXTWRITER_H_
 
 #include "gapputils.h"
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
+#include "WorkflowElement.h"
 
 namespace gapputils {
 
-class TextWriter : public capputils::reflection::ReflectableClass,
-                   public capputils::ObservableClass
+class TextWriter : public workflow::WorkflowElement
 {
   InitReflectableClass(TextWriter)
 
@@ -21,7 +19,8 @@ public:
   TextWriter();
   virtual ~TextWriter();
 
-  void changeHandler(capputils::ObservableClass* sender, int eventId);
+  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
+  virtual void writeResults();
 };
 
 }
