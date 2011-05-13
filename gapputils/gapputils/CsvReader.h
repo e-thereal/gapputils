@@ -26,7 +26,7 @@ private:
   mutable CsvReader* data;
 
 public:
-  CsvReader(void);
+  CsvReader();
   virtual ~CsvReader(void);
 
   virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
