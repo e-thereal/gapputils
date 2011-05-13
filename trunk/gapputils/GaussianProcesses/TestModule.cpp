@@ -23,12 +23,11 @@ BeginPropertyDefinitions(TestModule)
     ReflectableBase(gapputils::workflow::WorkflowElement)
     DefineProperty(X1, Input(), Observe(PROPERTY_ID))
     DefineProperty(X2, Input(), Observe(PROPERTY_ID))
-    DefineProperty(Y1, Output(), Observe(PROPERTY_ID))
-    DefineProperty(Y2, Output(), Observe(PROPERTY_ID))
+    DefineProperty(Y, Output(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-TestModule::TestModule() : _X1(0), _X2(0), _Y1(0), _Y2(0), upToDate(true) {
+TestModule::TestModule() : _X1(0), _X2(0), _Y(0), upToDate(true) {
   setLabel("TestModule");
   Changed.connect(capputils::EventHandler<TestModule>(this, &TestModule::changedHandler));
 }
@@ -46,7 +45,7 @@ void TestModule::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   for (int i = 0; i <= 100; ++i) {
     monitor->reportProgress(i);
 #ifdef WIN32
-    _sleep(100);
+    _sleep(10);
 #else
     usleep(10000);
 #endif
@@ -55,8 +54,7 @@ void TestModule::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 }
 
 void TestModule::writeResults() {
-  setY1(result);
-  setY2(result);
+  setY(result);
 }
 
 }
