@@ -4,8 +4,10 @@
 #include <qpainter.h>
 #include "Workbench.h"
 #include <ObservableClass.h>
+#include <iostream>
 
 using namespace capputils;
+using namespace std;
 
 namespace gapputils {
 
@@ -104,10 +106,12 @@ bool CableItem::needOutput() const {
 }
 
 void CableItem::disconnectInput() {
-  if (input && input->parent->getNode()) {
-    ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getNode()->getModule());
-    if (observable)
-      observable->Changed.disconnect(changeEventHandler);
+  if (input) {
+    if (input->parent->getNode()) {
+      ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getNode()->getModule());
+      if (observable)
+        observable->Changed.disconnect(changeEventHandler);
+    }
     ToolConnection* temp = input;
     input = 0;
     temp->disconnect();

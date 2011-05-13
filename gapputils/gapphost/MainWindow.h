@@ -8,6 +8,7 @@
 #include <qtabwidget.h>
 #include <qtimer.h>
 #include <qtreewidget.h>
+#include <qsplitter.h>
 
 namespace gapputils {
 

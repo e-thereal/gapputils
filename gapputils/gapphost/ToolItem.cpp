@@ -37,7 +37,7 @@ using namespace workflow;
 ToolConnection::ToolConnection(const QString& label, Direction direction,
     ToolItem* parent, IClassProperty* property, MultiConnection* multi)
   : x(0), y(0), width(6), height(7), label(label), direction(direction),
-    parent(parent), cable(0), property(property), multi(multi)
+    parent(parent), cable(0), property(property), multi(multi), deleting(false)
 {
   ObserveAttribute* observe = property->getAttribute<ObserveAttribute>();
   if (observe) {
@@ -48,6 +48,7 @@ ToolConnection::ToolConnection(const QString& label, Direction direction,
 }
 
 ToolConnection::~ToolConnection() {
+  deleting = true;
   if (cable) {
     parent->bench->removeCableItem(cable);
   }
@@ -67,7 +68,7 @@ void ToolConnection::connect(CableItem* cable) {
 
 void ToolConnection::disconnect() {
   cable = 0;
-  if (multi)
+  if (!deleting && multi)
     multi->updateConnections();
 }
 
@@ -136,12 +137,13 @@ QPointF ToolConnection::attachmentPos() const {
 
 MultiConnection::MultiConnection(const QString& label, ToolConnection::Direction direction,
     ToolItem* parent, IClassProperty* property)
- : label(label), direction(direction), parent(parent), property(property), expanded(false)
+ : label(label), direction(direction), parent(parent), property(property), expanded(false), deleting(false)
 {
   connections.push_back(new ToolConnection(label, direction, parent, property, this));
 }
 
 MultiConnection::~MultiConnection() {
+  deleting = true;
   for (unsigned i = 0; i < connections.size(); ++i)
     delete connections[i];
 }
@@ -184,6 +186,7 @@ void MultiConnection::setPos(int x, int y) {
 }
 
 void MultiConnection::updateConnections() {
+  if (deleting) return;
   for (unsigned i = 0; i < connections.size() - 1; ++i) {
     if (connections[i]->cable == 0) {
       delete connections[i];
@@ -198,6 +201,7 @@ void MultiConnection::updateConnections() {
 }
 
 void MultiConnection::updateConnectionPositions() {
+  if (deleting) return;
   for (unsigned i = 0; i < connections.size(); ++i)
     connections[i]->setPos(x, y + (expanded ? parent->connectionDistance * i : 0));
 }
@@ -229,10 +233,6 @@ bool MultiConnection::clickEvent(int x, int y) {
   int labelWidth = fontMetrics.boundingRect(label).width();
   if (this->x - 20 - labelWidth <= x && this->y -10 <= y && y <= this->y + 10) {
     expanded = !expanded;
-    if (expanded)
-      cout << "expanded" << endl;
-    else
-      cout << "collapsed" << endl;
     parent->updateSize();
     parent->update();
     return true;
@@ -253,7 +253,7 @@ ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
  : node(node), bench(bench), harmonizer(node->getModule()),
    width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
    labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), deletable(true),
-   progress(-1)
+   progress(-1), deleting(false)
 {
   setFlag(ItemIsMovable);
   // TODO: check if this causes problems
@@ -276,6 +276,7 @@ ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
 }
 
 ToolItem::~ToolItem() {
+  deleting = true;
   vector<ToolConnection*> tempIn(inputs);
   vector<MultiConnection*> tempOut(outputs);
   inputs.clear();
@@ -288,6 +289,7 @@ ToolItem::~ToolItem() {
 }
 
 void ToolItem::updateConnections() {
+  if (deleting) return;
   for (unsigned i = 0; i < inputs.size(); ++i)
     delete inputs[i];
   for (unsigned i = 0; i < outputs.size(); ++i)
@@ -396,6 +398,7 @@ void ToolItem::updateCables() {
 }
 
 void ToolItem::updateSize() {
+  if (deleting) return;
   QFontMetrics fontMetrics(QApplication::font());
   QFontMetrics labelFontMetrics(labelFont);
   inputsWidth = outputsWidth = 0;
@@ -416,6 +419,7 @@ void ToolItem::updateSize() {
 }
 
 void ToolItem::updateConnectionPositions() {
+  if (deleting) return;
   for (int i = 0, pos = -((int)inputs.size()-1) * connectionDistance / 2 + height/2; i < (int)inputs.size(); ++i, pos += connectionDistance) {
     inputs[i]->setPos(0, pos);
   }
@@ -523,6 +527,9 @@ void ToolItem::drawBox(QPainter* painter) {
 }
 
 std::string ToolItem::getLabel() const {
+  if (deleting || !getNode() || !getNode()->getModule())
+    return "";
+
   vector<IClassProperty*>& properties = getNode()->getModule()->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<LabelAttribute>()) {

@@ -117,7 +117,6 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   sizes[0] = 180;
   sizes[1] = 1100;
   splitter->setSizes(sizes);
-
   setCentralWidget(splitter);
 
   fileMenu = menuBar()->addMenu("&File");
@@ -149,6 +148,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 MainWindow::~MainWindow()
 {
   delete fileMenu;
+  delete runMenu;
 }
 
 void MainWindow::quit() {

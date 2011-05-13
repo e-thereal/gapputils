@@ -37,6 +37,7 @@ public:
   CableItem* cable;
   capputils::reflection::IClassProperty* property;
   int propertyId;
+  bool deleting;
 
 public:
   ToolConnection(const QString& label, Direction direction, ToolItem* parent,
@@ -60,6 +61,7 @@ private:
   std::vector<ToolConnection*> connections;
   int x, y;
   bool expanded;
+  bool deleting;
 
 public:
   MultiConnection(const QString& label, ToolConnection::Direction direction, ToolItem* parent,
@@ -93,6 +95,7 @@ protected:
   QFont labelFont;
   bool deletable;
   int progress;
+  bool deleting;
 
 public:
   ToolItem(workflow::Node* node, Workbench *bench = 0);
