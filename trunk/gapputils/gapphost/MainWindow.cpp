@@ -233,7 +233,7 @@ void MainWindow::reload() {
 
   TiXmlElement* workflowElement = workflow->getXml(false);
   Xmlizer::ToXml(*workflowElement, *workflow);
-  reflection::ReflectableClassFactory::getInstance().deleteInstance(workflow);
+  delete workflow;
   workflow = 0;
   tabWidget->removeTab(0);
   workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(*workflowElement));

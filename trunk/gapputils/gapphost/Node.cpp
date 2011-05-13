@@ -44,8 +44,9 @@ Node::~Node(void)
 {
   if (_ToolItem)
     _ToolItem->setNode(0);
-  if (_Module)
-    capputils::reflection::ReflectableClassFactory::getInstance().deleteInstance(_Module);
+  if (_Module) {
+    delete _Module;
+  }
 }
 
 void Node::changedHandler(capputils::ObservableClass*, int) {

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#include <iostream>
 
 #include <ObserveAttribute.h>
 #include <FileExists.h>
@@ -40,7 +41,7 @@ BeginPropertyDefinitions(CsvReader)
 
 EndPropertyDefinitions
 
-CsvReader::CsvReader(void) : _Filename(""), _FirstColumn(0), _LastColumn(-1),
+CsvReader::CsvReader() : _Filename(""), _FirstColumn(0), _LastColumn(-1),
 _FirstRow(1), _LastRow(-1), _ColumnCount(0), _RowCount(0), _Data(0), data(0)
 {
   setLabel("Reader");
