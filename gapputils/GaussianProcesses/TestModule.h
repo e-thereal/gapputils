@@ -18,8 +18,7 @@ class TestModule : public gapputils::workflow::WorkflowElement {
 
   Property(X1, int)
   Property(X2, int)
-  Property(Y1, int)
-  Property(Y2, int)
+  Property(Y, int)
 
 private:
   bool upToDate;
