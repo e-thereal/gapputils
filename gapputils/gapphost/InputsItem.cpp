@@ -42,7 +42,7 @@ void InputsItem::updateConnections() {
   vector<IClassProperty*>& properties = object->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<InputAttribute>()) {
-      outputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Output, this, properties[i]));
+      outputs.push_back(new MultiConnection(properties[i]->getName().c_str(), ToolConnection::Output, this, properties[i]));
     }
   }
 }

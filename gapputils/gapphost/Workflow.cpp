@@ -80,6 +80,7 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true),
   QSplitter* splitter = new QSplitter(Qt::Horizontal);
   splitter->addWidget(workbench);
   splitter->addWidget(propertyGrid);
+  splitter->setSizes(QList<int>() << 900 << 260);
   widget = splitter;
 
   connect(workbench, SIGNAL(itemSelected(ToolItem*)), this, SLOT(itemSelected(ToolItem*)));
@@ -120,17 +121,19 @@ Workflow::~Workflow() {
     delete _Nodes->at(i);
   delete _Nodes;
 
-  if (getModule())
-    delete getModule();
-  setModule(0);
+  inputsNode.setModule(0);
+  outputsNode.setModule(0);
+
+  ReflectableClass* module = getModule();
+  if (module) {
+    setModule(0);
+    delete module;
+  }
 
   // Unload libraries
   for (unsigned i = 0; i < _Libraries->size(); ++i)
     loader.freeLibrary(_Libraries->at(i));
   delete _Libraries;
-
-  inputsNode.setModule(0);
-  outputsNode.setModule(0);
 }
 
 void Workflow::newModule(const std::string& name) {
@@ -191,11 +194,12 @@ void Workflow::newCable(Edge* edge) {
   if (outputsNode.getUuid().compare(inputNodeUuid) == 0)
     inputNode = &outputsNode;
 
-  for (unsigned i = 0; i < nodes->size(); ++i)
+  for (unsigned i = 0; i < nodes->size(); ++i) {
     if (nodes->at(i)->getUuid().compare(outputNodeUuid) == 0)
       outputNode = nodes->at(i);
-    else if (nodes->at(i)->getUuid().compare(inputNodeUuid) == 0)
+    if (nodes->at(i)->getUuid().compare(inputNodeUuid) == 0)
       inputNode = nodes->at(i);
+  }
 
   ToolConnection *outputConnection = 0, *inputConnection = 0;
   if (outputNode && inputNode) {
@@ -238,7 +242,7 @@ QWidget* Workflow::dispenseWidget() {
 
 void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
   if (eventId == LibrariesId) {
-    cout << "Libraries updated." << endl;
+    //cout << "Libraries updated." << endl;
     LibraryLoader& loader = LibraryLoader::getInstance();
     set<string> unusedLibraries = loadedLibraries;
     vector<string>* libraries = getLibraries();
@@ -319,31 +323,65 @@ void Workflow::deleteEdge(CableItem* cable) {
     }
 }
 
-void Workflow::updateSelectedModule() {
-  // build stack and set all to red
+void Workflow::buildStack(Node* node) {
+  nodeStack.push(node);
+  node->getToolItem()->setProgress(-3);
 
-  cout << "[" << QThread::currentThreadId() << "] " << "Update selected module" << endl;
+  // call build stack for all input connected nodes
+  vector<ToolConnection*>& inputs = node->getToolItem()->getInputs();
+  for (unsigned i = 0; i < inputs.size(); ++i) {
+    CableItem* cable = inputs[i]->cable;
+    if (cable && cable->getInput()) {
+      buildStack(cable->getInput()->parent->getNode());
+    }
+  }
+}
+
+void Workflow::updateSelectedModule() {
+  //cout << "[" << QThread::currentThreadId() << "] " << "Update selected module" << endl;
+  // build stack and set all to red
+  buildStack(workbench->getSelectedItem()->getNode());
+  processStack();
+}
+
+void Workflow::updateOutputs() {
+  buildStack(&outputsNode);
   processStack();
 }
 
 void Workflow::processStack() {
-  cout << "[" << QThread::currentThreadId() << "] " << "Process stack" << endl;
-  workbench->getSelectedItem()->setProgress(-2);
-  Q_EMIT processModule(workbench->getSelectedItem()->getNode());
+  //cout << "[" << QThread::currentThreadId() << "] " << "Process stack" << endl;
+  while (!nodeStack.empty()) {
+    Node* node = nodeStack.top();
+    nodeStack.pop();
+
+    processedStack.push(node);
+    if (!node->getUpToDate()) {
+      node->getToolItem()->setProgress(-2);
+      Q_EMIT processModule(node);
+      return;
+    } else {
+      node->getToolItem()->setProgress(100);
+    }
+  }
+  Q_EMIT updateFinished();
+
+  // set all back
+  for(; !processedStack.empty(); processedStack.pop())
+    processedStack.top()->getToolItem()->setProgress(-1);
 }
 
 void Workflow::finalizeModuleUpdate(Node* node) {
-  cout << "[" << QThread::currentThreadId() << "] " << "Finalize module update." << endl;
+  //cout << "[" << QThread::currentThreadId() << "] " << "Finalize module update." << endl;
   // write results
   WorkflowElement* element = dynamic_cast<WorkflowElement*>(node->getModule());
   if (element)
     element->writeResults();
   node->getToolItem()->setProgress(100);
+  node->setUpToDate(true);
 
   // processStack (will emit updateFinished signal)
-  Q_EMIT updateFinished();
-  // set all back
-  node->getToolItem()->setProgress(-1);
+  processStack();
 }
 
 void Workflow::showProgress(Node* node, int i) {

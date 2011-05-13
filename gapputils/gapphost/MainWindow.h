@@ -42,6 +42,7 @@ private Q_SLOTS:
   void itemClickedHandler(QTreeWidgetItem *item, int column);
 
   void updateCurrentModule();
+  void updateWorkflow();
   void terminateUpdate();
   void updateFinished();
 };

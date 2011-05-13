@@ -8,9 +8,14 @@
 
 #include <VolatileAttribute.h>
 #include <ReflectableClassFactory.h>
+#include <ObserveAttribute.h>
+#include <EventHandler.h>
+#include <iostream>
 
 #include "ToolItem.h"
 
+using namespace std;
+using namespace capputils;
 using namespace capputils::attributes;
 
 namespace gapputils {
@@ -21,16 +26,18 @@ BeginPropertyDefinitions(Node)
   DefineProperty(Uuid)
   DefineProperty(X)
   DefineProperty(Y)
-  ReflectableProperty(Module)
+  ReflectableProperty(Module, Observe(PROPERTY_ID))
   DefineProperty(ToolItem, Volatile())
+  DefineProperty(UpToDate, Volatile())
 EndPropertyDefinitions
 
-Node::Node(void) :_X(0), _Y(0), _Module(0), _ToolItem(0)
+Node::Node(void) :_X(0), _Y(0), _Module(0), _ToolItem(0), _UpToDate(false)
 {
   boost::uuids::uuid uuid = boost::uuids::random_generator()();
   std::stringstream stream;
   stream << uuid;
   _Uuid = stream.str();
+  Changed.connect(EventHandler<Node>(this, &Node::changedHandler));
 }
 
 Node::~Node(void)
@@ -39,6 +46,12 @@ Node::~Node(void)
     _ToolItem->setNode(0);
   if (_Module)
     capputils::reflection::ReflectableClassFactory::getInstance().deleteInstance(_Module);
+}
+
+void Node::changedHandler(capputils::ObservableClass*, int) {
+  if (!getUpToDate())
+    return;
+  setUpToDate(false);
 }
 
 }

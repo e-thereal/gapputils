@@ -16,8 +16,10 @@ class TestModule : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(TestModule)
 
-  Property(X, int)
-  Property(Y, int)
+  Property(X1, int)
+  Property(X2, int)
+  Property(Y1, int)
+  Property(Y2, int)
 
 private:
   bool upToDate;

@@ -2,6 +2,7 @@
 
 #include <ObserveAttribute.h>
 #include <InputAttribute.h>
+#include <OutputAttribute.h>
 #include <FilenameAttribute.h>
 
 using namespace capputils::attributes;
@@ -20,6 +21,7 @@ BeginPropertyDefinitions(Interface)
   DefineProperty(FirstTestRow, Input(), Observe(PROPERTY_ID))
   DefineProperty(LastTestRow, Input(), Observe(PROPERTY_ID))
   DefineProperty(Test, Input(), Observe(PROPERTY_ID), Filename())
+  DefineProperty(Result, Output(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 

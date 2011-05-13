@@ -5,6 +5,7 @@
 #include <OutputAttribute.h>
 #include <VolatileAttribute.h>
 #include <LabelAttribute.h>
+#include <ShortNameAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -14,9 +15,9 @@ namespace GaussianProcesses {
 BeginPropertyDefinitions(IntSplitter)
 
   DefineProperty(Label, Label(), Observe(PROPERTY_ID))
-  DefineProperty(In, Input(), Observe(PROPERTY_ID))
-  DefineProperty(Out1, Output(), Observe(PROPERTY_ID))
-  DefineProperty(Out2, Output(), Observe(PROPERTY_ID))
+  DefineProperty(In, Input(), Observe(PROPERTY_ID), ShortName(""))
+  DefineProperty(Out1, Output(), Observe(PROPERTY_ID), ShortName(""))
+  DefineProperty(Out2, Output(), Observe(PROPERTY_ID), ShortName(""))
 
 EndPropertyDefinitions
 

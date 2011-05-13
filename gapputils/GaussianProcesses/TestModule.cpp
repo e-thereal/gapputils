@@ -21,12 +21,14 @@ namespace GaussianProcesses {
 BeginPropertyDefinitions(TestModule)
 
     ReflectableBase(gapputils::workflow::WorkflowElement)
-    DefineProperty(X, Input(), Observe(PROPERTY_ID))
-    DefineProperty(Y, Output(), Observe(PROPERTY_ID))
+    DefineProperty(X1, Input(), Observe(PROPERTY_ID))
+    DefineProperty(X2, Input(), Observe(PROPERTY_ID))
+    DefineProperty(Y1, Output(), Observe(PROPERTY_ID))
+    DefineProperty(Y2, Output(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-TestModule::TestModule() : _X(0), _Y(0), upToDate(true) {
+TestModule::TestModule() : _X1(0), _X2(0), _Y1(0), _Y2(0), upToDate(true) {
   setLabel("TestModule");
   Changed.connect(capputils::EventHandler<TestModule>(this, &TestModule::changedHandler));
 }
@@ -49,11 +51,12 @@ void TestModule::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     usleep(10000);
 #endif
   }
-  result = 2 * getX();
+  result = getX1() * getX2();
 }
 
 void TestModule::writeResults() {
-  setY(result);
+  setY1(result);
+  setY2(result);
 }
 
 }
