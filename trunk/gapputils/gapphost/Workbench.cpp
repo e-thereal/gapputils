@@ -29,7 +29,6 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0), 
   setRenderHint(QPainter::Antialiasing);
   setTransformationAnchor(AnchorUnderMouse);
   scale(qreal(1), qreal(1));
-  
 }
 
 Workbench::~Workbench() {

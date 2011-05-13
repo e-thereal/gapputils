@@ -51,12 +51,12 @@ int main(int argc, char *argv[])
 
   model.getMainWorkflow()->resumeFromModel();
 
-  MainWindow w;
+  MainWindow* w = new MainWindow();
   if (model.getNoGui()) {
     // TODO: wait until update has finished.
     model.getMainWorkflow()->updateOutputs();
   } else {
-    w.show();
+    w->show();
     ret = a.exec();
   }
 
@@ -69,7 +69,8 @@ int main(int argc, char *argv[])
   modelElement->LinkEndChild(mainWorkflowElement);
 
   Xmlizer::ToFile("gapphost.conf.xml", modelElement);
-  //delete model.getMainWorkflow();
+  delete model.getMainWorkflow();
+  delete w;
 
 #else
   Paper paper;

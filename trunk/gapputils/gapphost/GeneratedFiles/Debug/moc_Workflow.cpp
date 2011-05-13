@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workflow.h'
 **
-** Created: Sun May 8 14:33:03 2011
+** Created: Thu May 12 21:00:33 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,29 +23,38 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-       5,   14, // methods
+       9,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
-       0,       // signalCount
+       2,       // signalCount
+
+ // signals: signature, parameters, type, tag, flags
+      31,   30,   30,   30, 0x05,
+      53,   48,   30,   30, 0x05,
 
  // slots: signature, parameters, type, tag, flags
-      36,   31,   30,   30, 0x08,
-      60,   31,   30,   30, 0x08,
-      90,   31,   30,   30, 0x08,
-     118,  112,   30,   30, 0x08,
-     141,  112,   30,   30, 0x08,
+      79,   74,   30,   30, 0x08,
+     103,   74,   30,   30, 0x08,
+     133,   74,   30,   30, 0x08,
+     161,  155,   30,   30, 0x08,
+     184,  155,   30,   30, 0x08,
+     207,   48,   30,   30, 0x08,
+     242,  235,   30,   30, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_gapputils__workflow__Workflow[] = {
-    "gapputils::workflow::Workflow\0\0item\0"
-    "itemSelected(ToolItem*)\0"
+    "gapputils::workflow::Workflow\0\0"
+    "updateFinished()\0node\0processModule(Node*)\0"
+    "item\0itemSelected(ToolItem*)\0"
     "itemChangedHandler(ToolItem*)\0"
     "deleteItem(ToolItem*)\0cable\0"
     "createEdge(CableItem*)\0deleteEdge(CableItem*)\0"
+    "finalizeModuleUpdate(Node*)\0node,i\0"
+    "showProgress(Node*,int)\0"
 };
 
 const QMetaObject gapputils::workflow::Workflow::staticMetaObject = {
@@ -69,8 +78,6 @@ void *gapputils::workflow::Workflow::qt_metacast(const char *_clname)
         return static_cast<void*>(const_cast< Workflow*>(this));
     if (!strcmp(_clname, "Node"))
         return static_cast< Node*>(const_cast< Workflow*>(this));
-    if (!strcmp(_clname, "capputils::ObservableClass"))
-        return static_cast< capputils::ObservableClass*>(const_cast< Workflow*>(this));
     return QObject::qt_metacast(_clname);
 }
 
@@ -81,15 +88,32 @@ int gapputils::workflow::Workflow::qt_metacall(QMetaObject::Call _c, int _id, vo
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: itemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 1: itemChangedHandler((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 2: deleteItem((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 3: createEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
-        case 4: deleteEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 0: updateFinished(); break;
+        case 1: processModule((*reinterpret_cast< Node*(*)>(_a[1]))); break;
+        case 2: itemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 3: itemChangedHandler((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 4: deleteItem((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 5: createEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 6: deleteEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 7: finalizeModuleUpdate((*reinterpret_cast< Node*(*)>(_a[1]))); break;
+        case 8: showProgress((*reinterpret_cast< Node*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
         default: ;
         }
-        _id -= 5;
+        _id -= 9;
     }
     return _id;
+}
+
+// SIGNAL 0
+void gapputils::workflow::Workflow::updateFinished()
+{
+    QMetaObject::activate(this, &staticMetaObject, 0, 0);
+}
+
+// SIGNAL 1
+void gapputils::workflow::Workflow::processModule(Node * _t1)
+{
+    void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
+    QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }
 QT_END_MOC_NAMESPACE

@@ -299,6 +299,7 @@ void Workflow::deleteItem(ToolItem* item) {
       // remove and delete node
       delete nodes->at(i);
       nodes->erase(nodes->begin() + i);
+      break;
     }
 }
 
