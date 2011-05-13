@@ -4,16 +4,14 @@
 #define _GAPPUTILS_H_
 
 #include "gapputils.h"
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
+#include "WorkflowElement.h"
 #include <Enumerators.h>
 
 namespace gapputils {
 
 ReflectableEnum(ErrorType, MSE, SSD, CC);
 
-class Compare : public capputils::reflection::ReflectableClass,
-                public capputils::ObservableClass
+class Compare : public workflow::WorkflowElement
 {
 
   InitReflectableClass(Compare)
@@ -24,11 +22,15 @@ class Compare : public capputils::reflection::ReflectableClass,
   Property(Count, int)
   Property(Error, double)
 
+private:
+  mutable Compare* data;
+
 public:
   Compare(void);
   ~Compare(void);
 
-  void changeEventHandler(capputils::ObservableClass* sender, int eventId);
+  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
+  virtual void writeResults();
 };
 
 }

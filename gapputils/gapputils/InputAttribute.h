@@ -4,6 +4,7 @@
 
 #include "gapputils.h"
 #include <IAttribute.h>
+#include "ShortNameAttribute.h"
 
 namespace gapputils {
 
@@ -16,7 +17,13 @@ public:
   virtual ~InputAttribute(void);
 };
 
+class NamedInputAttribute : public InputAttribute, public ShortNameAttribute {
+public:
+  NamedInputAttribute(const std::string& name);
+};
+
 capputils::attributes::AttributeWrapper* Input();
+capputils::attributes::AttributeWrapper* Input(const std::string& name);
 
 }
 

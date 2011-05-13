@@ -11,6 +11,7 @@
 #include <Verifier.h>
 #include <FilenameAttribute.h>
 #include <VolatileAttribute.h>
+#include "HideAttribute.h"
 
 #include "ShortNameAttribute.h"
 
@@ -27,48 +28,62 @@ namespace gapputils {
 using namespace attributes;
 
 BeginPropertyDefinitions(PdfLatex)
+  ReflectableBase(workflow::WorkflowElement)
 
   DefineProperty(TexFilename, ShortName("TeX"), FileExists(), Input(), Observe(PROPERTY_ID), Filename(), Volatile())
   DefineProperty(CommandName, Observe(PROPERTY_ID))
   DefineProperty(ParameterString, Observe(PROPERTY_ID))
   DefineProperty(OutputName, ShortName("Pdf"), Output(), Observe(PROPERTY_ID), Volatile())
-  DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(PROPERTY_ID), Volatile())
+  DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(PROPERTY_ID), Volatile(), Hide())
 
 EndPropertyDefinitions
 
-PdfLatex::PdfLatex(void) : _TexFilename(""), _CommandName("pdflatex"), _ParameterString(" -enable-write18 -interaction=nonstopmode"), _OutputName(""), _CommandOutput("")
+PdfLatex::PdfLatex(void) : _TexFilename(""), _CommandName("pdflatex"),
+    _ParameterString(" -enable-write18 -interaction=nonstopmode"),
+    _OutputName(""), _CommandOutput(""), data(0)
 {
-  this->Changed.connect(capputils::EventHandler<PdfLatex>(this, &PdfLatex::changedHandler));
+  setLabel("PdfLatex");
 }
 
 PdfLatex::~PdfLatex(void)
 {
+  if (data)
+    delete data;
 }
 
-void PdfLatex::changedHandler(capputils::ObservableClass* sender, int eventId) {
-  if ((eventId == 0 || eventId == 1 || eventId == 2) && capputils::Verifier::Valid(*this)) {
-    const string& texName = getTexFilename();
-    stringstream command;
-    stringstream output;
-    int ch;
+void PdfLatex::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+  if (!data)
+    data = new PdfLatex();
 
-    command << getCommandName().c_str() << " \"" << texName.c_str() << "\" " << getParameterString().c_str();
+  if (!capputils::Verifier::Valid(*this))
+    return;
 
-    output << "Executing: " << command.str() << endl;
+  const string& texName = getTexFilename();
+  stringstream command;
+  stringstream output;
+  int ch;
 
-    FILE* stream = popen(command.str().c_str(), "r");
-    if (stream) {
-      while ( (ch=fgetc(stream)) != EOF ) {
-        output << (char)ch;
-      }
-      pclose(stream);
-      setOutputName(texName.substr(0, texName.size() - 3) + "pdf");
-    } else {
-      output << "Error executing command." << endl;
+  command << getCommandName().c_str() << " \"" << texName.c_str() << "\" " << getParameterString().c_str();
+
+  output << "Executing: " << command.str() << endl;
+
+  FILE* stream = popen(command.str().c_str(), "r");
+  if (stream) {
+    while ( (ch=fgetc(stream)) != EOF ) {
+      output << (char)ch;
     }
-
-    setCommandOutput(output.str());
+    pclose(stream);
+    data->setOutputName(texName.substr(0, texName.size() - 3) + "pdf");
+  } else {
+    output << "Error executing command." << endl;
   }
+
+  data->setCommandOutput(output.str());
+}
+
+void PdfLatex::writeResults() {
+  setOutputName(data->getOutputName());
+  setCommandOutput(data->getCommandOutput());
 }
 
 }

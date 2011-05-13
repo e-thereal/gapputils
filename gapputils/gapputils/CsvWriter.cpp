@@ -9,6 +9,7 @@
 #include <EventHandler.h>
 #include "HideAttribute.h"
 #include <VolatileAttribute.h>
+#include "ShortNameAttribute.h"
 
 #include <fstream>
 
@@ -19,23 +20,21 @@ namespace gapputils {
 
 using namespace attributes;
 
-enum PropertyIds {
-  LabelId, FilenameId, ColumnCountId, RowCountId, DataId
-};
-
 BeginPropertyDefinitions(CsvWriter)
 
-  DefineProperty(Label, Observe(LabelId), Label())
-  DefineProperty(Filename, Observe(FilenameId), Filename(), NotEqual<string>(""))
-  DefineProperty(ColumnCount, Observe(ColumnCountId), Input())
-  DefineProperty(RowCount, Observe(RowCountId), Input())
-  DefineProperty(Data, Observe(DataId), Input(), NotEqual<double*>(0), Hide(), Volatile())
+  ReflectableBase(workflow::WorkflowElement)
+
+  DefineProperty(Filename, Observe(PROPERTY_ID), Filename(), NotEqual<string>(""))
+  DefineProperty(ColumnCount, ShortName("CC"), Observe(PROPERTY_ID), Input(), Volatile())
+  DefineProperty(RowCount, ShortName("RC"), Observe(PROPERTY_ID), Input(), Volatile())
+  DefineProperty(Data, Observe(PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), Volatile())
 
 EndPropertyDefinitions
 
-CsvWriter::CsvWriter(void) : _Label("Writer"), _Filename(""), _ColumnCount(0), _RowCount(0), _Data(0)
+CsvWriter::CsvWriter(void) : _Filename(""),
+    _ColumnCount(0), _RowCount(0), _Data(0)
 {
-  Changed.connect(capputils::EventHandler<CsvWriter>(this, &CsvWriter::changeEventHandler));
+  setLabel("Writer");
 }
 
 
@@ -43,27 +42,29 @@ CsvWriter::~CsvWriter(void)
 {
 }
 
-void CsvWriter::changeEventHandler(capputils::ObservableClass* sender, int eventId) {
+void CsvWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  if (eventId == DataId || eventId == FilenameId) {
-    ofstream outfile(getFilename().c_str());
+  ofstream outfile(getFilename().c_str());
 
-    double* data = getData();
-    int rows = getRowCount();
-    int cols = getColumnCount();
+  double* data = getData();
+  int rows = getRowCount();
+  int cols = getColumnCount();
 
-    for (int i = 0, k = 0; i < rows; ++i) {
-      if (cols)
-        outfile << data[k++];
-      for (int j = 1; j < cols; ++j, ++k)
-        outfile << ", " << data[k];
-      outfile << endl;
-    }
-
-    outfile.close();
+  for (int i = 0, k = 0; i < rows; ++i) {
+    if (cols)
+      outfile << data[k++];
+    for (int j = 1; j < cols; ++j, ++k)
+      outfile << ", " << data[k];
+    outfile << endl;
+    monitor->reportProgress(100 * i / rows);
   }
+
+  outfile.close();
+}
+
+void CsvWriter::writeResults() {
 }
 
 }

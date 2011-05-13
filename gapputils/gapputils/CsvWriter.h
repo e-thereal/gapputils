@@ -4,17 +4,14 @@
 #define _GAPPUTILS_CSVWRITER_H_
 
 #include "gapputils.h"
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
+#include "WorkflowElement.h"
 
 namespace gapputils {
 
-class CsvWriter : public capputils::reflection::ReflectableClass,
-                  public capputils::ObservableClass
+class CsvWriter : public workflow::WorkflowElement
 {
   InitReflectableClass(CsvWriter)
 
-  Property(Label, std::string)
   Property(Filename, std::string)
   Property(ColumnCount, int)
   Property(RowCount, int)
@@ -24,7 +21,8 @@ public:
   CsvWriter(void);
   virtual ~CsvWriter(void);
 
-  void changeEventHandler(capputils::ObservableClass* sender, int eventId);
+  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
+  virtual void writeResults();
 };
 
 }
