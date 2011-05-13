@@ -20,7 +20,7 @@ class Workbench : public QGraphicsView {
 
 private:
   ToolItem* selectedItem;
-  CableItem* currentCable;
+  std::vector<CableItem*> currentCables;
 
 public:
   Workbench(QWidget *parent = 0);
@@ -32,7 +32,7 @@ public:
 
   void setSelectedItem(ToolItem* item);
   ToolItem* getSelectedItem() const;
-  CableItem* getCurrentCable() const;
+  std::vector<CableItem*>& getCurrentCables();
   void notifyItemChange(ToolItem* item);
 
 Q_SIGNALS:

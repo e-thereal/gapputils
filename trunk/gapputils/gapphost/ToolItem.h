@@ -38,6 +38,7 @@ public:
   capputils::reflection::IClassProperty* property;
   int propertyId;
   bool deleting;
+  bool reconnecting;
 
 public:
   ToolConnection(const QString& label, Direction direction, ToolItem* parent,
@@ -68,7 +69,7 @@ public:
       capputils::reflection::IClassProperty* property);
   virtual ~MultiConnection();
 
-  ToolConnection* hit(int x, int y);
+  bool hits(std::vector<ToolConnection*>& connections, int x, int y) const;
   ToolConnection* getLastConnection();
   capputils::reflection::IClassProperty* getProperty() const;
   void adjust();
@@ -107,6 +108,9 @@ public:
   QAbstractItemModel* getModel() const;
 
   ToolConnection* hitConnection(int x, int y, ToolConnection::Direction direction) const;
+
+  /// Adds the connections to the connections vector
+  bool hitConnections(std::vector<ToolConnection*>& connections, int x, int y, ToolConnection::Direction direction) const;
   ToolConnection* getConnection(const std::string& propertyName, ToolConnection::Direction direction) const;
   std::vector<ToolConnection*>& getInputs();
   void updateSize();

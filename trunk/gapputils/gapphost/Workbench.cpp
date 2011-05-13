@@ -19,7 +19,7 @@ using namespace std;
 
 namespace gapputils {
 
-Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0), currentCable(0) {
+Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0) {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
   scene->setSceneRect(-250, -250, 500, 500);
@@ -65,8 +65,8 @@ ToolItem* Workbench::getSelectedItem() const {
   return selectedItem;
 }
 
-CableItem* Workbench::getCurrentCable() const {
-  return currentCable;
+vector<CableItem*>& Workbench::getCurrentCables() {
+  return currentCables;
 }
 
 void Workbench::notifyItemChange(ToolItem* item) {
@@ -74,6 +74,8 @@ void Workbench::notifyItemChange(ToolItem* item) {
 }
 
 void Workbench::mousePressEvent(QMouseEvent* event) {
+  vector<ToolConnection*> connections;
+
   Q_FOREACH(QGraphicsItem* item, scene()->items()) {
     ToolItem* tool = dynamic_cast<ToolItem*>(item);
     if (tool) {
@@ -82,15 +84,22 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
       int ey = mousePos.y();
       int tx = item->x();
       int ty = item->y();
-      ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Output);
-      if (connection) {
-        if (connection->cable) {
-          currentCable = connection->cable;
-          currentCable->disconnectInput();
-          currentCable->setDragPoint(mapToScene(event->pos()));
-          Q_EMIT cableDeleted(currentCable);
-        } else {
-          currentCable = new CableItem(this, connection);
+      connections.clear();
+      if (tool->hitConnections(connections, ex - tx, ey - ty, ToolConnection::Output)) {
+        // all connected cables are current cables
+        for (unsigned i = 0; i < connections.size(); ++i) {
+          ToolConnection* connection = connections[i];
+          if (connection->cable) {
+            CableItem* currentCable = connection->cable;
+            currentCables.push_back(currentCable);
+            currentCable->disconnectInput();
+            currentCable->setDragPoint(mapToScene(event->pos()));
+            Q_EMIT cableDeleted(currentCable);
+          }
+        }
+        if (currentCables.size() == 0) {
+          CableItem* currentCable = new CableItem(this, connections[0]);
+          currentCables.push_back(currentCable);
           currentCable->setDragPoint(mapToScene(event->pos()));
           scene()->addItem(currentCable);
         }
@@ -98,15 +107,17 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
           item->update();
         }
       }
-      connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
+      ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
       if (connection) {
         if (connection->cable) {
-          currentCable = connection->cable;
+          CableItem* currentCable = connection->cable;
+          currentCables.push_back(currentCable);
           currentCable->disconnectOutput();
           currentCable->setDragPoint(mapToScene(event->pos()));
           Q_EMIT cableDeleted(currentCable);
         } else {
-          currentCable = new CableItem(this, 0, connection);
+          CableItem* currentCable = new CableItem(this, 0, connection);
+          currentCables.push_back(currentCable);
           currentCable->setDragPoint(mapToScene(event->pos()));
           scene()->addItem(currentCable);
         }
@@ -120,7 +131,7 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
 }
 
 void Workbench::mouseReleaseEvent(QMouseEvent* event) {
-  if (currentCable) {
+  if (currentCables.size()) {
     bool foundConnection = false;
     Q_FOREACH(QGraphicsItem* item, scene()->items()) {
       ToolItem* tool = dynamic_cast<ToolItem*>(item);
@@ -130,32 +141,44 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
         int ey = mousePos.y();
         int tx = item->x();
         int ty = item->y();
-        if (currentCable->needOutput()) {
+        if (currentCables.size() == 1 && currentCables[0]->needOutput()) {
           ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
-          if (connection && connection->property->getType() == currentCable->getInput()->property->getType()) {
+          if (connection && connection->property->getType() == currentCables[0]->getInput()->property->getType()) {
             foundConnection = true;
-            currentCable->setOutput(connection);
-            currentCable->endDrag();
-            Q_EMIT cableCreated(currentCable);
+            currentCables[0]->setOutput(connection);
+            currentCables[0]->endDrag();
+            Q_EMIT cableCreated(currentCables[0]);
             break;
           }
-        } else if (currentCable->needInput()) {
-          ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Output);
-          if (connection && connection->property->getType() == currentCable->getOutput()->property->getType()) {
-            foundConnection = true;
-            currentCable->setInput(connection);
-            currentCable->endDrag();
-            Q_EMIT cableCreated(currentCable);
-            break;
+        } else if (currentCables[0]->needInput()) {
+
+          // Single Cable Case
+          if (currentCables.size() == 1) {
+            vector<ToolConnection*> connections;
+            tool->hitConnections(connections, ex - tx, ey - ty, ToolConnection::Output);
+            if (connections.size()) {
+              ToolConnection* connection = connections[connections.size()-1];
+              if (connection->property->getType() == currentCables[0]->getOutput()->property->getType()) {
+                foundConnection = true;
+                currentCables[0]->setInput(connection);
+                currentCables[0]->endDrag();
+                Q_EMIT cableCreated(currentCables[0]);
+                break;
+              }
+            }
           }
+
+          //TODO: Handle moving a bundle of connections.
         }
       }
     }
     if (!foundConnection) {
-      scene()->removeItem(currentCable);
-      delete currentCable;
+      for (unsigned i = 0; i < currentCables.size(); ++i) {
+        scene()->removeItem(currentCables[i]);
+        delete currentCables[i];
+      }
     }
-    currentCable = 0;
+    currentCables.clear();
     Q_FOREACH (QGraphicsItem *item, scene()->items()) {
       item->update();
     }
@@ -179,9 +202,8 @@ void Workbench::keyPressEvent(QKeyEvent *event)
 }
 
 void Workbench::mouseMoveEvent(QMouseEvent* event) {
-  if (currentCable) {
-    currentCable->setDragPoint(mapToScene(event->pos()));
-  }
+  for (unsigned i = 0; i < currentCables.size(); ++i)
+    currentCables[i]->setDragPoint(mapToScene(event->pos()));
   QGraphicsView::mouseMoveEvent(event);
 }
 
