@@ -21,11 +21,13 @@ BeginPropertyDefinitions(Interface)
   DefineProperty(FirstTestRow, Input(), Observe(PROPERTY_ID))
   DefineProperty(LastTestRow, Input(), Observe(PROPERTY_ID))
   DefineProperty(Test, Input(), Observe(PROPERTY_ID), Filename())
-  DefineProperty(Result, Output(), Observe(PROPERTY_ID))
+  DefineProperty(Error, Output(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-Interface::Interface(void)
+Interface::Interface(void) : _FirstColumn(1), _LastColumn(-1), _GoalColumn(0),
+_FirstTrainRow(1), _LastTrainRow(-1), _Train(""), _FirstTestRow(1), _LastTestRow(-1),
+_Test("")
 {
 }
 
