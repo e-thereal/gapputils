@@ -223,6 +223,8 @@ void MultiConnection::updateConnectionPositions() {
 void MultiConnection::draw(QPainter* painter, bool showLabel) const {
   QFontMetrics fontMetrics(QApplication::font());
   int labelWidth = fontMetrics.boundingRect(label).width();
+
+  // TODO: if one of the connections is connected with a current cable, draw that one
   for (unsigned i = 0; i < connections.size() && (expanded ? 1 : i < 1); ++i)
     connections[i]->draw(painter, showLabel);
 
@@ -435,7 +437,7 @@ void ToolItem::updateSize() {
   for (unsigned i = 0; i < inputs.size(); ++i)
     inputsWidth = max(inputsWidth, fontMetrics.boundingRect(inputs[i]->label).width() + 8);
   for (unsigned i = 0; i < outputs.size(); ++i)
-    outputsWidth = max(outputsWidth, fontMetrics.boundingRect(outputs[i]->getLabel()).width() + 8);
+    outputsWidth = max(outputsWidth, fontMetrics.boundingRect(outputs[i]->getLabel()).width() + 14);
 
   width = (inputs.size() ? inputsWidth : 0) + labelWidth + (outputs.size() ? outputsWidth : 0);
   height = 30;
