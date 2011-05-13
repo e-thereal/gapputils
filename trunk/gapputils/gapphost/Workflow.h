@@ -19,6 +19,7 @@
 #include "Edge.h"
 #include "Node.h"
 #include "WorkflowWorker.h"
+#include <stack>
 
 namespace gapputils {
 
@@ -28,7 +29,7 @@ class CableItem;
 
 namespace workflow {
 
-class Workflow : public QObject, public Node, public capputils::ObservableClass
+class Workflow : public QObject, public Node
 {
   Q_OBJECT
 
@@ -48,6 +49,8 @@ private:
   std::set<std::string> loadedLibraries;
   bool ownWidget;
   WorkflowWorker* worker;
+  std::stack<Node*> nodeStack;
+  std::stack<Node*> processedStack;
 
 public:
   Workflow();
@@ -63,7 +66,9 @@ public:
 
   /// This call is asynchronous. updateFinished signal is emitted when done.
   void updateSelectedModule();
+  void updateOutputs();
   void processStack();
+  void buildStack(Node* node);
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);

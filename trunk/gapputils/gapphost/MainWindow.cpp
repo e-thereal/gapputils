@@ -113,6 +113,11 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   QSplitter* splitter = new QSplitter(Qt::Horizontal);
   splitter->addWidget(toolBox);
   splitter->addWidget(tabWidget);
+  QList<int> sizes = splitter->sizes();
+  sizes[0] = 180;
+  sizes[1] = 1100;
+  splitter->setSizes(sizes);
+
   setCentralWidget(splitter);
 
   fileMenu = menuBar()->addMenu("&File");
@@ -128,6 +133,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   runMenu = menuBar()->addMenu("&Run");
   runMenu->addAction("Update", this, SLOT(updateCurrentModule()), QKeySequence(Qt::Key_F5));
+  runMenu->addAction("Update All", this, SLOT(updateWorkflow()), QKeySequence(Qt::Key_F9));
   runMenu->addAction("Abort", this, SLOT(terminateUpdate()), QKeySequence(Qt::Key_Escape));
 
   connect(&reloadTimer, SIGNAL(timeout()), this, SLOT(checkLibraryUpdates()));
@@ -162,7 +168,7 @@ void MainWindow::itemDoubleClickedHandler(QTreeWidgetItem *item, int column) {
     while ((item = item->parent())) { 
       classname = string(item->text(0).toUtf8().data()) + "::" + classname;
     }
-    cout << "New item: " << classname.c_str() << endl;
+    //cout << "New item: " << classname.c_str() << endl;
     DataModel::getInstance().getMainWorkflow()->newModule(classname);
   }
 }
@@ -261,13 +267,20 @@ void MainWindow::updateCurrentModule() {
   DataModel::getInstance().getMainWorkflow()->updateSelectedModule();
 }
 
+void MainWindow::updateWorkflow() {
+  fileMenu->setEnabled(false);
+  centralWidget()->setEnabled(false);
+
+  DataModel::getInstance().getMainWorkflow()->updateOutputs();
+}
+
 void MainWindow::terminateUpdate() {
   fileMenu->setEnabled(true);
   centralWidget()->setEnabled(true);
 }
 
 void MainWindow::updateFinished() {
-  cout << "Release UI" << endl;
+  //cout << "Release UI" << endl;
   fileMenu->setEnabled(true);
   centralWidget()->setEnabled(true);
 }

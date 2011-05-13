@@ -19,7 +19,7 @@ namespace gapputils {
 namespace workflow {
 
 WorkflowWorker::WorkflowWorker(Workflow* workflow) : QThread(), workflow(workflow), worker(0) {
-  cout << "[" << QThread::currentThreadId() << "] " << "Worker created." << endl;
+  //cout << "[" << QThread::currentThreadId() << "] " << "Worker created." << endl;
 }
 
 WorkflowWorker::~WorkflowWorker() {
@@ -32,7 +32,7 @@ WorkflowWorker::~WorkflowWorker() {
 }
 
 void WorkflowWorker::run() {
-  cout << "[" << QThread::currentThreadId() << "] " << "start thread." << endl;
+  //cout << "[" << QThread::currentThreadId() << "] " << "start thread." << endl;
 
   worker = new WorkflowWorker(0);
   connect(worker, SIGNAL(progressed(Node*, int)), workflow, SLOT(showProgress(Node*, int)));
@@ -40,7 +40,7 @@ void WorkflowWorker::run() {
   connect(workflow, SIGNAL(processModule(Node*)), worker, SLOT(updateModule(Node*)));
 
   exec();
-  cout << "[" << QThread::currentThreadId() << "] " << "thread finished" << endl;
+  //cout << "[" << QThread::currentThreadId() << "] " << "thread finished" << endl;
 }
 
 void WorkflowWorker::updateModule(Node* node) {

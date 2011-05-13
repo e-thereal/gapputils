@@ -19,6 +19,7 @@ class Interface : public gapputils::workflow::WorkflowElement
   Property(FirstTestRow, int)
   Property(LastTestRow, int)
   Property(Test, std::string)
+  Property(Result, int)
 
 public:
   Interface(void);
