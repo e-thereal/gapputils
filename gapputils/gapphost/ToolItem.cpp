@@ -37,7 +37,8 @@ using namespace workflow;
 ToolConnection::ToolConnection(const QString& label, Direction direction,
     ToolItem* parent, IClassProperty* property, MultiConnection* multi)
   : x(0), y(0), width(6), height(7), label(label), direction(direction),
-    parent(parent), cable(0), property(property), multi(multi), deleting(false)
+    parent(parent), cable(0), property(property), multi(multi), deleting(false),
+    reconnecting(false)
 {
   ObserveAttribute* observe = property->getAttribute<ObserveAttribute>();
   if (observe) {
@@ -55,6 +56,7 @@ ToolConnection::~ToolConnection() {
 }
 
 void ToolConnection::connect(CableItem* cable) {
+  reconnecting = true;
   if (this->cable) {
     CableItem* temp = this->cable;
     this->cable = 0;
@@ -62,23 +64,32 @@ void ToolConnection::connect(CableItem* cable) {
     delete temp;
   }
   this->cable = cable;
+  reconnecting = false;
   if (multi)
     multi->updateConnections();
 }
 
 void ToolConnection::disconnect() {
   cable = 0;
-  if (!deleting && multi)
+  if (!deleting && !reconnecting && multi)
     multi->updateConnections();
 }
 
 void ToolConnection::draw(QPainter* painter, bool showLabel) const {
-  CableItem* currentCable = parent->bench->getCurrentCable();
+  // TODO: handle bundles right
+  CableItem* currentCable = 0;
+  vector<CableItem*>& cables = parent->bench->getCurrentCables();
+  if (cables.size())
+    currentCable = cables[0];
+
   painter->save();
   painter->setPen(Qt::black);
   switch (direction) {
   case Input:
-    if (currentCable && currentCable->needOutput() && currentCable->getInput()->property->getType() == property->getType()) {
+    if (currentCable &&
+        currentCable->needOutput() &&
+        currentCable->getInput()->property->getType() == property->getType())
+    {
       painter->setBrush(Qt::white);
     } else if(parent->isSelected() && !currentCable) {
       painter->setBrush(Qt::white);
@@ -95,7 +106,10 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
     break;
 
   case Output:
-    if (currentCable && currentCable->needInput() && currentCable->getOutput()->property->getType() == property->getType()) {
+    if (currentCable &&
+        currentCable->needInput() &&
+        currentCable->getOutput()->property->getType() == property->getType())
+    {
       painter->setBrush(Qt::white);
     } else if(parent->isSelected() && !currentCable) {
       painter->setBrush(Qt::white);
@@ -149,13 +163,13 @@ MultiConnection::~MultiConnection() {
 }
 
 // TODO: change it to return a list of connections
-ToolConnection* MultiConnection::hit(int x, int y) {
-  if (!expanded)
-    return 0;
-  for (unsigned i = 0; i < connections.size(); ++i)
-    if (connections[i]->hit(x, y))
-      return connections[i];
-  return 0;
+bool MultiConnection::hits(std::vector<ToolConnection*>& connections,
+    int x, int y) const
+{
+  for (unsigned i = 0; i < this->connections.size(); ++i)
+    if (this->connections[i]->hit(x, y))
+      connections.push_back(this->connections[i]);
+  return connections.size();
 }
 
 // TODO: deprecated. will be replaced by getConnections() or new connection
@@ -353,12 +367,28 @@ ToolConnection* ToolItem::hitConnection(int x, int y, ToolConnection::Direction 
         return inputs[i];
   } else {
     for (unsigned i = 0; i < outputs.size(); ++i) {
-      ToolConnection* connection = outputs[i]->hit(x, y);
-      if (connection)
-        return connection;
+      vector<ToolConnection*> connections;
+      if (outputs[i]->hits(connections, x, y))
+        return connections[0];
     }
   }
   return 0;
+}
+
+bool ToolItem::hitConnections(std::vector<ToolConnection*>& connections, int x, int y, ToolConnection::Direction direction) const {
+  if (direction == ToolConnection::Input) {
+    ToolConnection* connection = hitConnection(x, y, direction);
+    if (connection) {
+      connections.push_back(connection);
+      return true;
+    }
+  } else {
+    for (unsigned i = 0; i < outputs.size(); ++i) {
+      if (outputs[i]->hits(connections, x, y))
+        return true;
+    }
+  }
+  return false;
 }
 
 ToolConnection* ToolItem::getConnection(const std::string& propertyName, ToolConnection::Direction direction) const {

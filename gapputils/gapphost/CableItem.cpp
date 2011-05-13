@@ -141,7 +141,17 @@ void CableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem* /*optio
   QPainterPath path;
   path.moveTo(sourcePoint);
   path.cubicTo(sourcePoint + QPointF(50, 0), destPoint + QPointF(-50, 0), destPoint);
-  if ((bench->getCurrentCable() == this) || (bench->getCurrentCable() == 0  && input && input->parent->isSelected()) || (bench->getCurrentCable() == 0  && output && output->parent->isSelected())) {
+
+  bool isCurrentCable = false;
+  vector<CableItem*>& cables = bench->getCurrentCables();
+  for (unsigned i = 0; i < cables.size(); ++i) {
+    if (cables[i] == this) {
+      isCurrentCable = true;
+      break;
+    }
+  }
+
+  if (isCurrentCable || (bench->getCurrentCables().size() == 0  && input && input->parent->isSelected()) || (bench->getCurrentCables().size() == 0  && output && output->parent->isSelected())) {
     setZValue(3);
     painter->setPen(QPen(Qt::darkGray, 4.5));
     painter->drawPath(path);
