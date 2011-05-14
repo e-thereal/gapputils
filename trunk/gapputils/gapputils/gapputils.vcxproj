@@ -73,11 +73,12 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AltovaXml.cpp" />
     <ClCompile Include="Compare.cpp" />
     <ClCompile Include="CsvReader.cpp" />
     <ClCompile Include="CsvWriter.cpp" />
+    <ClCompile Include="DefaultWorkflowElement.cpp" />
     <ClCompile Include="gapputils.cpp" />
+    <ClCompile Include="GenericViewer.cpp" />
     <ClCompile Include="HideAttribute.cpp" />
     <ClCompile Include="InputAttribute.cpp" />
     <ClCompile Include="IProgressMonitor.cpp" />
@@ -87,13 +88,15 @@
     <ClCompile Include="ShortNameAttribute.cpp" />
     <ClCompile Include="TextWriter.cpp" />
     <ClCompile Include="WorkflowElement.cpp" />
+    <ClCompile Include="XslTransformation.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AltovaXml.h" />
     <ClInclude Include="Compare.h" />
     <ClInclude Include="CsvReader.h" />
     <ClInclude Include="CsvWriter.h" />
+    <ClInclude Include="DefaultWorkflowElement.h" />
     <ClInclude Include="gapputils.h" />
+    <ClInclude Include="GenericViewer.h" />
     <ClInclude Include="HideAttribute.h" />
     <ClInclude Include="InputAttribute.h" />
     <ClInclude Include="IProgressMonitor.h" />
@@ -103,6 +106,7 @@
     <ClInclude Include="ShortNameAttribute.h" />
     <ClInclude Include="TextWriter.h" />
     <ClInclude Include="WorkflowElement.h" />
+    <ClInclude Include="XslTransformation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

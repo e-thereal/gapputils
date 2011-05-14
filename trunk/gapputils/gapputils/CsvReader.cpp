@@ -4,6 +4,7 @@
 #include <sstream>
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 #include <ObserveAttribute.h>
 #include <FileExists.h>
@@ -139,9 +140,14 @@ void CsvReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 void CsvReader::writeResults() {
   if (getData())
     delete getData();
+
+  size_t count = data->getColumnCount() * data->getRowCount();
+  double* _data = new double[count];
+  std::copy(data->getData(), data->getData() + count, _data);
+
   setColumnCount(data->getColumnCount());
   setRowCount(data->getRowCount());
-  setData(data->getData());
+  setData(_data);
 }
 
 }
