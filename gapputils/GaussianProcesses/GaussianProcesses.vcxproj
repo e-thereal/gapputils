@@ -75,17 +75,19 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GP.h" />
     <ClInclude Include="GPRegression.h" />
+    <ClInclude Include="GPTest.h" />
     <ClInclude Include="Interface.h" />
     <ClInclude Include="IntSplitter.h" />
+    <ClInclude Include="TestInterface.h" />
     <ClInclude Include="TestModule.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GP.cpp" />
     <ClCompile Include="GPRegression.cpp" />
+    <ClCompile Include="GPTest.cpp" />
     <ClCompile Include="Interface.cpp" />
     <ClCompile Include="IntSplitter.cpp" />
+    <ClCompile Include="TestInterface.cpp" />
     <ClCompile Include="TestModule.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
