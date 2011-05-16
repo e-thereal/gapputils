@@ -31,6 +31,8 @@ public:
   virtual ~DataModel(void);
 
   static DataModel& getInstance();
+
+  void saveToFile(const char* filename);
 };
 
 }

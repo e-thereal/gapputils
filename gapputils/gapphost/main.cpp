@@ -60,16 +60,8 @@ int main(int argc, char *argv[])
     ret = a.exec();
   }
 
-  TiXmlElement* modelElement = Xmlizer::CreateXml(model);
-  TiXmlElement* mainWorkflowElement = new TiXmlElement("MainWorkflow");
-  TiXmlElement* workflowElement = model.getMainWorkflow()->getXml(false);
-  Xmlizer::ToXml(*workflowElement, *model.getMainWorkflow());
-
-  mainWorkflowElement->LinkEndChild(workflowElement);
-  modelElement->LinkEndChild(mainWorkflowElement);
-
-  Xmlizer::ToFile("gapphost.conf.xml", modelElement);
-  //delete model.getMainWorkflow();
+  model.saveToFile("gapphost.conf.xml");
+  delete model.getMainWorkflow();
 
 #else
   Paper paper;

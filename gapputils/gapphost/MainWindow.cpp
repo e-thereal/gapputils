@@ -122,10 +122,11 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   fileMenu = menuBar()->addMenu("&File");
   fileMenu->addAction("Load Library", this, SLOT(loadLibrary()), QKeySequence(Qt::CTRL + Qt::Key_L));
 
-  fileMenu->addAction("Open Workflow", this, SLOT(loadWorkflow()), QKeySequence(Qt::CTRL + Qt::Key_O));
+  fileMenu->addAction("Open", this, SLOT(loadWorkflow()), QKeySequence(Qt::CTRL + Qt::Key_O));
   fileMenu->insertSeparator(fileMenu->actions().last());
-  fileMenu->addAction("Save Workflow", this, SLOT(saveWorkflow()), QKeySequence(Qt::CTRL + Qt::Key_S));
-  fileMenu->addAction("Reload Workflow", this, SLOT(reload()), QKeySequence(Qt::CTRL + Qt::Key_R));
+  fileMenu->addAction("Save", this, SLOT(save()), QKeySequence(Qt::CTRL + Qt::Key_S));
+  fileMenu->addAction("Save as", this, SLOT(saveWorkflow()));
+  fileMenu->addAction("Reload", this, SLOT(reload()), QKeySequence(Qt::CTRL + Qt::Key_R));
 
   fileMenu->addAction("Quit", this, SLOT(quit()));
   fileMenu->insertSeparator(fileMenu->actions().last());
@@ -283,6 +284,10 @@ void MainWindow::updateFinished() {
   //cout << "Release UI" << endl;
   fileMenu->setEnabled(true);
   centralWidget()->setEnabled(true);
+}
+
+void MainWindow::save() {
+  DataModel::getInstance().saveToFile("gapphost.conf.xml");
 }
 
 }
