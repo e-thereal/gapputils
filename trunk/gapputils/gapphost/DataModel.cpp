@@ -3,7 +3,10 @@
 #include <ReuseAttribute.h>
 #include <VolatileAttribute.h>
 #include <FlagAttribute.h>
+#include <tinyxml.h>
+#include <Xmlizer.h>
 
+using namespace capputils;
 using namespace capputils::attributes;
 
 namespace gapputils {
@@ -34,6 +37,18 @@ DataModel& DataModel::getInstance() {
   if (!instance)
     instance = new DataModel();
   return *instance;
+}
+
+void DataModel::saveToFile(const char* filename) {
+  TiXmlElement* modelElement = Xmlizer::CreateXml(*this);
+  TiXmlElement* mainWorkflowElement = new TiXmlElement("MainWorkflow");
+  TiXmlElement* workflowElement = getMainWorkflow()->getXml(false);
+  Xmlizer::ToXml(*workflowElement, *getMainWorkflow());
+
+  mainWorkflowElement->LinkEndChild(workflowElement);
+  modelElement->LinkEndChild(mainWorkflowElement);
+
+  Xmlizer::ToFile(filename, modelElement);
 }
   
 }

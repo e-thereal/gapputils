@@ -36,6 +36,7 @@ private Q_SLOTS:
   void newItem();
   void loadWorkflow();
   void saveWorkflow();
+  void save();
   void loadLibrary();
   void reload();
   void checkLibraryUpdates();
