@@ -6,6 +6,7 @@
 #include "CsvWriter.h"
 #include "PdfLatex.h"
 #include "TextWriter.h"
+#include "Concater.h"
 
 namespace gapputils {
 
@@ -16,6 +17,8 @@ void registerClasses() {
   CsvWriter();
   PdfLatex();
   TextWriter();
+  Concater con;
+  con.getSeparator();
 }
 
 }

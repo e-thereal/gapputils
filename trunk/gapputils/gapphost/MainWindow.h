@@ -31,6 +31,8 @@ public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
   virtual ~MainWindow();
 
+  virtual void closeEvent(QCloseEvent *event);
+
 private Q_SLOTS:
   void quit();
   void newItem();

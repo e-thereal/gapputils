@@ -11,6 +11,7 @@
 #include <ObserveAttribute.h>
 #include <EventHandler.h>
 #include <iostream>
+#include <WorkflowElement.h>
 
 #include "ToolItem.h"
 
@@ -49,7 +50,7 @@ Node::~Node(void)
   }
 }
 
-void Node::changedHandler(capputils::ObservableClass*, int) {
+void Node::changedHandler(capputils::ObservableClass* sender, int eventId) {
   if (!getUpToDate())
     return;
   setUpToDate(false);

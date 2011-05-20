@@ -26,6 +26,7 @@
 #include <EventHandler.h>
 #include <LibraryLoader.h>
 #include <WorkflowElement.h>
+#include <Verifier.h>
 
 using namespace capputils;
 using namespace capputils::reflection;
@@ -38,14 +39,12 @@ using namespace attributes;
 
 namespace workflow {
 
-enum PropertyIds {
-  LibrariesId
-};
+int Workflow::librariesId;
 
 BeginPropertyDefinitions(Workflow)
 
 ReflectableBase(Node)
-DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Volatile(), Observe(LibrariesId))
+DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Volatile(), Observe(librariesId = PROPERTY_ID))
 DefineProperty(Edges, Enumerable<vector<Edge*>*, true>(), Volatile())
 DefineProperty(Nodes, Enumerable<vector<Node*>*, true>(), Volatile())
 DefineProperty(InputsPosition, Volatile())
@@ -241,7 +240,7 @@ QWidget* Workflow::dispenseWidget() {
 }
 
 void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
-  if (eventId == LibrariesId) {
+  if (eventId == librariesId) {
     //cout << "Libraries updated." << endl;
     LibraryLoader& loader = LibraryLoader::getInstance();
     set<string> unusedLibraries = loadedLibraries;
@@ -333,7 +332,8 @@ void Workflow::buildStack(Node* node) {
   for (unsigned i = 0; i < inputs.size(); ++i) {
     CableItem* cable = inputs[i]->cable;
     if (cable && cable->getInput()) {
-      buildStack(cable->getInput()->parent->getNode());
+      Node* newNode = cable->getInput()->parent->getNode();
+      buildStack(newNode);
     }
   }
 }
@@ -341,6 +341,7 @@ void Workflow::buildStack(Node* node) {
 void Workflow::updateSelectedModule() {
   //cout << "[" << QThread::currentThreadId() << "] " << "Update selected module" << endl;
   // build stack and set all to red
+  //workbench->getSelectedItem()->getNode()->setUpToDate(false);
   buildStack(workbench->getSelectedItem()->getNode());
   processStack();
 }
@@ -357,7 +358,8 @@ void Workflow::processStack() {
     nodeStack.pop();
 
     processedStack.push(node);
-    if (!node->getUpToDate()) {
+    // Update the not, if it needs update or if it is the last one
+    if (nodeStack.empty() || !Verifier::UpToDate(*node->getModule())) {
       node->getToolItem()->setProgress(-2);
       Q_EMIT processModule(node);
       return;
@@ -379,7 +381,7 @@ void Workflow::finalizeModuleUpdate(Node* node) {
   if (element)
     element->writeResults();
   node->getToolItem()->setProgress(100);
-  node->setUpToDate(true);
+  //node->setUpToDate(true);
 
   // processStack (will emit updateFinished signal)
   processStack();

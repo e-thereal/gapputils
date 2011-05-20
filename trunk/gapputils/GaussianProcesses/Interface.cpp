@@ -6,7 +6,6 @@
 #include <FilenameAttribute.h>
 
 using namespace capputils::attributes;
-using namespace gapputils::attributes;
 
 namespace GaussianProcesses {
 

@@ -22,7 +22,8 @@ SOURCES = main.cpp \
 		  TestWorkflow.cpp \
 		  Controller.cpp \
 		  DefaultInterface.cpp \
-		  WorkflowWorker.cpp
+		  WorkflowWorker.cpp \
+		  GenericViewer.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \

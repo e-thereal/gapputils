@@ -2,6 +2,38 @@
 
 #include <qevent.h>
 #include <qfiledialog.h>
+#include <boost/filesystem.hpp>
+
+using namespace boost::filesystem;
+
+path makeRelative(const path& absolute) {
+  path current = current_path();
+
+  path::iterator ci = current.begin();
+  path::iterator ai = absolute.begin();
+
+  path relative;
+
+  // skip what is the same
+  for(; !ci->compare(*ai); ++ci, ++ai);
+  for(; ci != current.end() && ci->compare("."); ++ci)
+    relative /= "..";
+  for(; ai != absolute.end(); ++ai)
+    relative /= *ai;
+
+  return relative;
+}
+
+bool inCurrentDir(const path filename) {
+  path current = current_path();
+
+  path::iterator ci = current.begin();
+  path::iterator ai = filename.begin();
+
+  for(; !ci->compare(*ai); ++ci, ++ai);
+
+  return ci == current.end();
+}
 
 FilenameEdit::FilenameEdit(QWidget *parent)
   : QFrame(parent)
@@ -31,7 +63,10 @@ void FilenameEdit::clickedHandler() {
   if (fileDialog.exec() == QDialog::Accepted) {
     QStringList filenames = fileDialog.selectedFiles();
     if (filenames.size()) {
-      edit->setText(filenames[0]);
+      path filename(filenames[0].toAscii().data());
+      if (inCurrentDir(filename))
+        filename = makeRelative(filename);
+      edit->setText(filename.file_string().c_str());
       Q_EMIT editingFinished();
     }
   }

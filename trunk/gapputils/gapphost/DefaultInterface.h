@@ -2,22 +2,19 @@
 #ifndef _GAPPUTILS_DEFAULTINTERFACE_H_
 #define _GAPPUTILS_DEFAULTINTERFACE_H_
 
-#include <WorkflowElement.h>
+#include <DefaultWorkflowElement.h>
 
 namespace gapputils {
 
 namespace host {
 
-class DefaultInterface : public gapputils::workflow::WorkflowElement
+class DefaultInterface : public gapputils::workflow::DefaultWorkflowElement
 {
   InitReflectableClass(DefaultInterface)
 
 public:
   DefaultInterface(void);
   virtual ~DefaultInterface(void);
-
-  virtual void execute(workflow::IProgressMonitor* monitor) const { }
-  virtual void writeResults() { }
 };
 
 }

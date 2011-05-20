@@ -2,11 +2,11 @@
 #ifndef _GAUSSIANPROCESSES_INTERFACE_H_
 #define _GAUSSIANPROCESSES_INTERFACE_H_
 
-#include <WorkflowElement.h>
+#include <DefaultWorkflowElement.h>
 
 namespace GaussianProcesses {
 
-class Interface : public gapputils::workflow::WorkflowElement
+class Interface : public gapputils::workflow::DefaultWorkflowElement
 {
   InitReflectableClass(Interface)
 
@@ -24,9 +24,6 @@ class Interface : public gapputils::workflow::WorkflowElement
 public:
   Interface(void);
   virtual ~Interface(void);
-
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const { }
-  virtual void writeResults() { }
 };
 
 }
