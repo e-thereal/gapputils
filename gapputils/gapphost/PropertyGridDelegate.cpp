@@ -14,7 +14,6 @@ using namespace std;
 PropertyGridDelegate::PropertyGridDelegate(QObject *parent)
   : QStyledItemDelegate(parent)
 {
-
 }
 
 QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
@@ -104,7 +103,8 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
 }
 
 void PropertyGridDelegate::commitAndCloseEditor() {
-  FilenameEdit *editor = qobject_cast<FilenameEdit *>(sender());
+  //FilenameEdit *editor = qobject_cast<FilenameEdit *>(sender());
+  QWidget* editor = qobject_cast<QWidget*>(sender());
   Q_EMIT commitData(editor);
   Q_EMIT closeEditor(editor);
 }

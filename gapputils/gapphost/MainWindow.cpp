@@ -96,10 +96,11 @@ void updateToolBox(QTreeWidget* toolBox) {
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
     : QMainWindow(parent, flags), libsChanged(false)
 {
-  Workflow* workflow = DataModel::getInstance().getMainWorkflow();
+  DataModel& model = DataModel::getInstance();
+  Workflow* workflow = model.getMainWorkflow();
 
   setWindowTitle("Application Host");
-  this->setGeometry(150, 150, 1200, 600);
+  this->setGeometry(model.getWindowX(), model.getWindowY(), model.getWindowWidth(), model.getWindowHeight());
 
   newObjectDialog = new NewObjectDialog();
 
@@ -150,6 +151,16 @@ MainWindow::~MainWindow()
 {
   delete fileMenu;
   delete runMenu;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+  DataModel& model = DataModel::getInstance();
+  model.setWindowX(x());
+  model.setWindowY(y());
+  model.setWindowWidth(width());
+  model.setWindowHeight(height());
+
+  QMainWindow::closeEvent(event);
 }
 
 void MainWindow::quit() {

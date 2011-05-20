@@ -51,6 +51,7 @@ private:
   WorkflowWorker* worker;
   std::stack<Node*> nodeStack;
   std::stack<Node*> processedStack;
+  static int librariesId;
 
 public:
   Workflow();

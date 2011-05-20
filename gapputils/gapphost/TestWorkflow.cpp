@@ -15,8 +15,6 @@ using namespace capputils::attributes;
 
 namespace gapputils {
 
-using namespace attributes;
-
 BeginPropertyDefinitions(TestWorkflow)
 
   DefineProperty(Name, Input(), Observe(PROPERTY_ID))

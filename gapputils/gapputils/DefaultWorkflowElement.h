@@ -22,7 +22,7 @@ public:
   DefaultWorkflowElement();
   virtual ~DefaultWorkflowElement();
 
-  virtual void execute(IProgressMonitor* monitor) const { }
+  virtual void execute(IProgressMonitor*) const { }
   virtual void writeResults() { }
 };
 

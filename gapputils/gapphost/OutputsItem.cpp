@@ -8,14 +8,15 @@
 #include "OutputsItem.h"
 
 #include <OutputAttribute.h>
+#include <ShortNameAttribute.h>
 
 using namespace capputils::reflection;
+using namespace capputils::attributes;
 using namespace std;
 
 namespace gapputils {
 
 using namespace workflow;
-using namespace attributes;
 
 OutputsItem::OutputsItem(Node* node, Workbench *bench) : ToolItem(node, bench) {
   deletable = false;
@@ -39,10 +40,14 @@ void OutputsItem::updateConnections() {
   outputs.clear();
 
   ReflectableClass* object = node->getModule();
+  ShortNameAttribute* shortName = 0;
   vector<IClassProperty*>& properties = object->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<OutputAttribute>()) {
-      inputs.push_back(new ToolConnection(properties[i]->getName().c_str(), ToolConnection::Input, this, properties[i]));
+      string label = properties[i]->getName();
+      if ((shortName = properties[i]->getAttribute<ShortNameAttribute>()))
+        label = shortName->getName();
+      inputs.push_back(new ToolConnection(label.c_str(), ToolConnection::Input, this, properties[i]));
     }
   }
 }

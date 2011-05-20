@@ -8,14 +8,15 @@
 #include "InputsItem.h"
 
 #include <InputAttribute.h>
+#include <ShortNameAttribute.h>
 
 using namespace capputils::reflection;
+using namespace capputils::attributes;
 using namespace std;
 
 namespace gapputils {
 
 using namespace workflow;
-using namespace attributes;
 
 InputsItem::InputsItem(Node* node, Workbench *bench) : ToolItem(node, bench) {
   deletable = false;
@@ -39,10 +40,14 @@ void InputsItem::updateConnections() {
   outputs.clear();
 
   ReflectableClass* object = node->getModule();
+  ShortNameAttribute* shortName = 0;
   vector<IClassProperty*>& properties = object->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<InputAttribute>()) {
-      outputs.push_back(new MultiConnection(properties[i]->getName().c_str(), ToolConnection::Output, this, properties[i]));
+      string label = properties[i]->getName();
+      if ((shortName = properties[i]->getAttribute<ShortNameAttribute>()))
+        label = shortName->getName();
+      outputs.push_back(new MultiConnection(label.c_str(), ToolConnection::Output, this, properties[i]));
     }
   }
 }

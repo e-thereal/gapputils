@@ -10,6 +10,7 @@
 
 #include <ReflectableClass.h>
 #include <ObservableClass.h>
+#include <TimedClass.h>
 
 #include "IProgressMonitor.h"
 
@@ -18,11 +19,14 @@ namespace gapputils {
 namespace workflow {
 
 class WorkflowElement : public capputils::reflection::ReflectableClass,
-                        public capputils::ObservableClass {
+                        public capputils::ObservableClass,
+                        public capputils::TimedClass
+{
 
-InitAbstractReflectableClass(WorkflowElement)
+  InitAbstractReflectableClass(WorkflowElement)
 
-Property(Label, std::string)
+  Property(Label, std::string)
+  Property(SetOnCompilation, int)
 
 public:
   WorkflowElement();
@@ -34,5 +38,14 @@ public:
 }
 
 }
+
+#define WfeUpdateTimestamp \
+  { \
+  if (hasProperty("SetOnCompilation")) { \
+    capputils::attributes::TimeStampAttribute* timeStamp = findProperty("SetOnCompilation")->getAttribute<capputils::attributes::TimeStampAttribute>(); \
+    if (timeStamp) \
+      timeStamp->setTime(*this, __DATE__" "__TIME__); \
+  } \
+  }
 
 #endif /* WORKFLOWELEMENT_H_ */

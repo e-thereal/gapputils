@@ -9,8 +9,12 @@
 
 #include "LabelAttribute.h"
 #include <ObserveAttribute.h>
+#include <TimeStampAttribute.h>
+#include <VolatileAttribute.h>
+#include "HideAttribute.h"
 
 using namespace capputils::attributes;
+using namespace gapputils::attributes;
 
 namespace gapputils {
 
@@ -20,7 +24,8 @@ namespace workflow {
 
 BeginAbstractPropertyDefinitions(WorkflowElement)
 
-    DefineProperty(Label, Label(), Observe(PROPERTY_ID))
+  DefineProperty(Label, Label(), Observe(PROPERTY_ID))
+  DefineProperty(SetOnCompilation, TimeStamp(PROPERTY_ID), Hide(), Volatile())
 
 EndPropertyDefinitions
 

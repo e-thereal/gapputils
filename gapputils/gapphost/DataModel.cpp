@@ -19,13 +19,17 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(NoGui, Flag(), Volatile())
   DefineProperty(Help, Flag(), Volatile())
   DefineProperty(AutoReload, Flag(), Volatile())
+  DefineProperty(WindowX)
+  DefineProperty(WindowY)
+  DefineProperty(WindowWidth)
+  DefineProperty(WindowHeight)
   ReflectableProperty(MainWorkflow, Volatile())
-
 EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;
 
-DataModel::DataModel(void) : _NoGui(false), _Help(false), _AutoReload(false), _MainWorkflow(0)
+DataModel::DataModel(void) : _NoGui(false), _Help(false), _AutoReload(false),
+    _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600), _MainWorkflow(0)
 {
 }
 

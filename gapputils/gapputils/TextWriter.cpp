@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include "InputAttribute.h"
+#include <InputAttribute.h>
 #include <FilenameAttribute.h>
 #include <ObserveAttribute.h>
 #include <NotEqualAssertion.h>
@@ -14,8 +14,6 @@ using namespace capputils::attributes;
 using namespace std;
 
 namespace gapputils {
-
-using namespace attributes;
 
 BeginPropertyDefinitions(TextWriter)
 
