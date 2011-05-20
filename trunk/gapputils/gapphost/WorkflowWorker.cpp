@@ -45,10 +45,7 @@ void WorkflowWorker::run() {
 
 void WorkflowWorker::updateModule(Node* node) {
   currentNode = node;
-  WorkflowElement* element = dynamic_cast<WorkflowElement*>(node->getModule());
-  if (element) {
-    element->execute(this);
-  }
+  node->update(this);
 
   Q_EMIT moduleUpdated(node);
 }

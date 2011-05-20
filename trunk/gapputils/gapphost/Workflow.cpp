@@ -359,7 +359,7 @@ void Workflow::processStack() {
 
     processedStack.push(node);
     // Update the not, if it needs update or if it is the last one
-    if (nodeStack.empty() || !Verifier::UpToDate(*node->getModule())) {
+    if (nodeStack.empty() || !node->isUpToDate()) {
       node->getToolItem()->setProgress(-2);
       Q_EMIT processModule(node);
       return;
@@ -375,13 +375,9 @@ void Workflow::processStack() {
 }
 
 void Workflow::finalizeModuleUpdate(Node* node) {
-  //cout << "[" << QThread::currentThreadId() << "] " << "Finalize module update." << endl;
   // write results
-  WorkflowElement* element = dynamic_cast<WorkflowElement*>(node->getModule());
-  if (element)
-    element->writeResults();
+  node->writeResults();
   node->getToolItem()->setProgress(100);
-  //node->setUpToDate(true);
 
   // processStack (will emit updateFinished signal)
   processStack();
@@ -389,6 +385,17 @@ void Workflow::finalizeModuleUpdate(Node* node) {
 
 void Workflow::showProgress(Node* node, int i) {
   node->getToolItem()->setProgress(i);
+}
+
+bool Workflow::update(IProgressMonitor* monitor) {
+  // Create a new interface module instance
+  // Connect outputs to everything the original interface is connected to
+  // Update the new interface module as it would be the current node
+  // remove all created connections
+}
+
+void Workflow::writeResults() {
+  // Write all output properties of interace copy to the interface module
 }
 
 }
