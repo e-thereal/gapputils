@@ -5,6 +5,7 @@
 
 #include <ReflectableClass.h>
 #include <ObservableClass.h>
+#include <IProgressMonitor.h>
 
 namespace gapputils {
 
@@ -23,11 +24,14 @@ class Node : public capputils::reflection::ReflectableClass,
   Property(Y, int)
   Property(Module, capputils::reflection::ReflectableClass*)
   Property(ToolItem, ToolItem*)
-  Property(UpToDate, bool)
 
 public:
   Node();
   virtual ~Node(void);
+
+  virtual bool isUpToDate() const;
+  virtual bool update(IProgressMonitor* monitor);
+  virtual void writeResults();
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);

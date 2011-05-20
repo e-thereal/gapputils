@@ -71,6 +71,9 @@ public:
   void processStack();
   void buildStack(Node* node);
 
+  virtual bool update(IProgressMonitor* monitor);
+  virtual void writeResults();
+
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 

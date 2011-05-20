@@ -12,6 +12,7 @@
 #include <EventHandler.h>
 #include <iostream>
 #include <WorkflowElement.h>
+#include <Verifier.h>
 
 #include "ToolItem.h"
 
@@ -29,10 +30,9 @@ BeginPropertyDefinitions(Node)
   DefineProperty(Y)
   ReflectableProperty(Module, Observe(PROPERTY_ID))
   DefineProperty(ToolItem, Volatile())
-  DefineProperty(UpToDate, Volatile())
 EndPropertyDefinitions
 
-Node::Node(void) :_X(0), _Y(0), _Module(0), _ToolItem(0), _UpToDate(false)
+Node::Node(void) :_X(0), _Y(0), _Module(0), _ToolItem(0)
 {
   boost::uuids::uuid uuid = boost::uuids::random_generator()();
   std::stringstream stream;
@@ -50,10 +50,24 @@ Node::~Node(void)
   }
 }
 
-void Node::changedHandler(capputils::ObservableClass* sender, int eventId) {
-  if (!getUpToDate())
-    return;
-  setUpToDate(false);
+bool Node::isUpToDate() const {
+  return Verifier::UpToDate(*getModule());
+}
+
+bool Node::update(IProgressMonitor* monitor) {
+  WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
+  if (element) {
+    element->execute(monitor);
+  }
+}
+
+void Node::writeResults() {
+  WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
+  if (element)
+    element->writeResults();
+}
+
+void Node::changedHandler(capputils::ObservableClass*, int) {
 }
 
 }
