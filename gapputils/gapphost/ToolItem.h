@@ -9,9 +9,9 @@
 #define TOOLITEM_H_
 
 #include <qgraphicsitem.h>
-#include <ReflectableClass.h>
+#include <capputils/ReflectableClass.h>
 #include <qabstractitemmodel.h>
-#include <ObservableClass.h>
+#include <capputils/ObservableClass.h>
 #include <vector>
 
 #include "ModelHarmonizer.h"

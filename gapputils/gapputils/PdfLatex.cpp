@@ -3,17 +3,17 @@
 #include <stdio.h>
 #include <sstream>
 
-#include <ObserveAttribute.h>
-#include <EventHandler.h>
-#include "InputAttribute.h"
-#include "OutputAttribute.h"
-#include <FileExists.h>
-#include <Verifier.h>
-#include <FilenameAttribute.h>
-#include <VolatileAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/EventHandler.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/FileExists.h>
+#include <capputils/Verifier.h>
+#include <capputils/FilenameAttribute.h>
+#include <capputils/VolatileAttribute.h>
 #include "HideAttribute.h"
 
-#include "ShortNameAttribute.h"
+#include <capputils/ShortNameAttribute.h>
 
 using namespace capputils::attributes;
 using namespace std;

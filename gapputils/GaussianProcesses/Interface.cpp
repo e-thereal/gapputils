@@ -1,9 +1,9 @@
 #include "Interface.h"
 
-#include <ObserveAttribute.h>
-#include <InputAttribute.h>
-#include <OutputAttribute.h>
-#include <FilenameAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/FilenameAttribute.h>
 
 using namespace capputils::attributes;
 

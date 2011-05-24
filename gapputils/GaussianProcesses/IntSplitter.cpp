@@ -1,11 +1,11 @@
 #include "IntSplitter.h"
 
-#include <ObserveAttribute.h>
-#include <InputAttribute.h>
-#include <OutputAttribute.h>
-#include <VolatileAttribute.h>
-#include <LabelAttribute.h>
-#include <ShortNameAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/VolatileAttribute.h>
+#include <gapputils/LabelAttribute.h>
+#include <capputils/ShortNameAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;

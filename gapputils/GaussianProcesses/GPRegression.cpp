@@ -2,16 +2,16 @@
 
 #include <algorithm>
 
-#include <ObserveAttribute.h>
-#include <InputAttribute.h>
-#include <OutputAttribute.h>
-#include <EventHandler.h>
-#include <NotEqualAssertion.h>
-#include <Verifier.h>
-#include <HideAttribute.h>
-#include <LabelAttribute.h>
-#include <ShortNameAttribute.h>
-#include <VolatileAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/EventHandler.h>
+#include <capputils/NotEqualAssertion.h>
+#include <capputils/Verifier.h>
+#include <gapputils/HideAttribute.h>
+#include <gapputils/LabelAttribute.h>
+#include <capputils/ShortNameAttribute.h>
+#include <capputils/VolatileAttribute.h>
 #include <cmath>
 
 //#include "../gptest/gplib.h"

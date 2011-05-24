@@ -1,15 +1,15 @@
 #include "CsvWriter.h"
 
-#include "InputAttribute.h"
-#include <ObserveAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/ObserveAttribute.h>
 #include "LabelAttribute.h"
-#include <FilenameAttribute.h>
-#include <NotEqualAssertion.h>
-#include <Verifier.h>
-#include <EventHandler.h>
+#include <capputils/FilenameAttribute.h>
+#include <capputils/NotEqualAssertion.h>
+#include <capputils/Verifier.h>
+#include <capputils/EventHandler.h>
 #include "HideAttribute.h"
-#include <VolatileAttribute.h>
-#include "ShortNameAttribute.h"
+#include <capputils/VolatileAttribute.h>
+#include <capputils/ShortNameAttribute.h>
 
 #include <fstream>
 

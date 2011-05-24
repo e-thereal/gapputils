@@ -7,8 +7,8 @@
 
 #include "InputsItem.h"
 
-#include <InputAttribute.h>
-#include <ShortNameAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/ShortNameAttribute.h>
 
 using namespace capputils::reflection;
 using namespace capputils::attributes;

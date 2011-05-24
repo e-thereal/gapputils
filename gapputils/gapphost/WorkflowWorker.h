@@ -10,8 +10,8 @@
 
 #include <qthread.h>
 
-#include <Node.h>
-#include <IProgressMonitor.h>
+#include "Node.h"
+#include <gapputils/IProgressMonitor.h>
 
 namespace gapputils {
 

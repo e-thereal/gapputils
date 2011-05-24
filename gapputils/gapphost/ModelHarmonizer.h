@@ -9,9 +9,9 @@
 #define MODELHARMONIZER_H_
 
 #include <qstandarditemmodel.h>
-#include <ReflectableClass.h>
+#include <capputils/ReflectableClass.h>
 #include <qobject.h>
-#include <ObservableClass.h>
+#include <capputils/ObservableClass.h>
 
 namespace gapputils {
 

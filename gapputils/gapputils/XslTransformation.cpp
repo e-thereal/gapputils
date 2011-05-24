@@ -1,16 +1,16 @@
 #include "XslTransformation.h"
 
-#include "InputAttribute.h"
-#include "OutputAttribute.h"
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
 #include "LabelAttribute.h"
-#include <FileExists.h>
-#include <FilenameAttribute.h>
-#include <ObserveAttribute.h>
-#include <NotEqualAssertion.h>
-#include <EventHandler.h>
-#include <Verifier.h>
-#include "ShortNameAttribute.h"
-#include <VolatileAttribute.h>
+#include <capputils/FileExists.h>
+#include <capputils/FilenameAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/NotEqualAssertion.h>
+#include <capputils/EventHandler.h>
+#include <capputils/Verifier.h>
+#include <capputils/ShortNameAttribute.h>
+#include <capputils/VolatileAttribute.h>
 #include "HideAttribute.h"
 
 #include <cstdio>

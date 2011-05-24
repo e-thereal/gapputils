@@ -1,12 +1,12 @@
 #include "ImageLoader.h"
 
-#include <OutputAttribute.h>
-#include <LabelAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <gapputils/LabelAttribute.h>
 
-#include <FilenameAttribute.h>
-#include <ObserveAttribute.h>
-#include <VolatileAttribute.h>
-#include <HideAttribute.h>
+#include <capputils/FilenameAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/VolatileAttribute.h>
+#include <gapputils/HideAttribute.h>
 
 using namespace capputils::attributes;
 

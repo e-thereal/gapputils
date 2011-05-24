@@ -8,9 +8,9 @@
 #include "WorkflowElement.h"
 
 #include "LabelAttribute.h"
-#include <ObserveAttribute.h>
-#include <TimeStampAttribute.h>
-#include <VolatileAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/TimeStampAttribute.h>
+#include <capputils/VolatileAttribute.h>
 #include "HideAttribute.h"
 
 using namespace capputils::attributes;

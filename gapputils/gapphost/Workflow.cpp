@@ -7,10 +7,10 @@
 
 #include "Workflow.h"
 
-#include <EnumerableAttribute.h>
+#include <capputils/EnumerableAttribute.h>
 #include "Workbench.h"
 
-#include <ReflectableClassFactory.h>
+#include <capputils/ReflectableClassFactory.h>
 #include <qtreeview.h>
 #include <qsplitter.h>
 
@@ -19,14 +19,14 @@
 #include "InputsItem.h"
 #include "OutputsItem.h"
 #include "CableItem.h"
-#include <HideAttribute.h>
-#include <Xmlizer.h>
-#include <VolatileAttribute.h>
-#include <ObserveAttribute.h>
-#include <EventHandler.h>
-#include <LibraryLoader.h>
-#include <WorkflowElement.h>
-#include <Verifier.h>
+#include <gapputils/HideAttribute.h>
+#include <capputils/Xmlizer.h>
+#include <capputils/VolatileAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/EventHandler.h>
+#include <capputils/LibraryLoader.h>
+#include <gapputils/WorkflowElement.h>
+#include <capputils/Verifier.h>
 
 using namespace capputils;
 using namespace capputils::reflection;

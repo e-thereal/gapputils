@@ -1,12 +1,12 @@
 #include "ImageViewer.h"
 
-#include <LabelAttribute.h>
-#include <InputAttribute.h>
+#include <gapputils/LabelAttribute.h>
+#include <capputils/InputAttribute.h>
 #include "ImageViewerItem.h"
 #include "CustomToolItemAttribute.h"
-#include <ObserveAttribute.h>
-#include <HideAttribute.h>
-#include <VolatileAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <gapputils/HideAttribute.h>
+#include <capputils/VolatileAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;

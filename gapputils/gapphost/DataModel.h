@@ -3,7 +3,7 @@
 #ifndef _GAPPHOST_DATAMODEL_H_
 #define _GAPPHOST_DATAMODEL_H_
 
-#include <ReflectableClass.h>
+#include <capputils/ReflectableClass.h>
 
 #include "Workflow.h"
 

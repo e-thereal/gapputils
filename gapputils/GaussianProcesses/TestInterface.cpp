@@ -7,12 +7,11 @@
 
 #include "TestInterface.h"
 
-#include <OutputAttribute.h>
-#include <ObserveAttribute.h>
-#include <VolatileAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/VolatileAttribute.h>
 
 using namespace capputils::attributes;
-using namespace gapputils::attributes;
 
 namespace GaussianProcesses {
 

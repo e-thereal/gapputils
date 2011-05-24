@@ -1,6 +1,6 @@
 #include "Edge.h"
 
-#include <VolatileAttribute.h>
+#include <capputils/VolatileAttribute.h>
 
 using namespace capputils::attributes;
 

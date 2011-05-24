@@ -6,13 +6,13 @@
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 
-#include <VolatileAttribute.h>
-#include <ReflectableClassFactory.h>
-#include <ObserveAttribute.h>
-#include <EventHandler.h>
+#include <capputils/VolatileAttribute.h>
+#include <capputils/ReflectableClassFactory.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/EventHandler.h>
 #include <iostream>
-#include <WorkflowElement.h>
-#include <Verifier.h>
+#include <gapputils/WorkflowElement.h>
+#include <capputils/Verifier.h>
 
 #include "ToolItem.h"
 

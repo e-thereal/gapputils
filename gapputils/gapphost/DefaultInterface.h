@@ -2,7 +2,7 @@
 #ifndef _GAPPUTILS_DEFAULTINTERFACE_H_
 #define _GAPPUTILS_DEFAULTINTERFACE_H_
 
-#include <DefaultWorkflowElement.h>
+#include <gapputils/DefaultWorkflowElement.h>
 
 namespace gapputils {
 

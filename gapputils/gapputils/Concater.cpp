@@ -7,12 +7,12 @@
 
 #include "Concater.h"
 
-#include <ObserveAttribute.h>
-#include <EventHandler.h>
-#include "InputAttribute.h"
-#include "OutputAttribute.h"
-#include <NotEqualAssertion.h>
-#include <Verifier.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/EventHandler.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/NotEqualAssertion.h>
+#include <capputils/Verifier.h>
 
 using namespace capputils::attributes;
 using namespace std;

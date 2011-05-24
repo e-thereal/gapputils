@@ -8,9 +8,9 @@
 #ifndef WORKFLOWELEMENT_H_
 #define WORKFLOWELEMENT_H_
 
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
-#include <TimedClass.h>
+#include <capputils/ReflectableClass.h>
+#include <capputils/ObservableClass.h>
+#include <capputils/TimedClass.h>
 
 #include "IProgressMonitor.h"
 

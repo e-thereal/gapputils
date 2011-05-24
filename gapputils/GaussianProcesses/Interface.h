@@ -2,7 +2,7 @@
 #ifndef _GAUSSIANPROCESSES_INTERFACE_H_
 #define _GAUSSIANPROCESSES_INTERFACE_H_
 
-#include <DefaultWorkflowElement.h>
+#include <gapputils/DefaultWorkflowElement.h>
 
 namespace GaussianProcesses {
 

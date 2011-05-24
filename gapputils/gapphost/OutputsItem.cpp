@@ -7,8 +7,8 @@
 
 #include "OutputsItem.h"
 
-#include <OutputAttribute.h>
-#include <ShortNameAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/ShortNameAttribute.h>
 
 using namespace capputils::reflection;
 using namespace capputils::attributes;

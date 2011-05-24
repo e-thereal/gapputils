@@ -7,9 +7,9 @@
 
 #include "TestWorkflow.h"
 
-#include <InputAttribute.h>
-#include <OutputAttribute.h>
-#include <ObserveAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/ObserveAttribute.h>
 
 using namespace capputils::attributes;
 

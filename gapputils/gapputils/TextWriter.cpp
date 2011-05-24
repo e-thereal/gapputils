@@ -2,13 +2,13 @@
 
 #include <fstream>
 
-#include <InputAttribute.h>
-#include <FilenameAttribute.h>
-#include <ObserveAttribute.h>
-#include <NotEqualAssertion.h>
-#include <EventHandler.h>
-#include <Verifier.h>
-#include <VolatileAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/FilenameAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/NotEqualAssertion.h>
+#include <capputils/EventHandler.h>
+#include <capputils/Verifier.h>
+#include <capputils/VolatileAttribute.h>
 
 using namespace capputils::attributes;
 using namespace std;

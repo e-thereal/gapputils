@@ -7,15 +7,15 @@
 
 #include "ModelHarmonizer.h"
 
-#include <DescriptionAttribute.h>
-#include <Enumerator.h>
-#include <IReflectableAttribute.h>
-#include <ScalarAttribute.h>
+#include <capputils/DescriptionAttribute.h>
+#include <capputils/Enumerator.h>
+#include <capputils/IReflectableAttribute.h>
+#include <capputils/ScalarAttribute.h>
 #include <iostream>
 #include <sstream>
-#include <LabelAttribute.h>
-#include <HideAttribute.h>
-#include <ShortNameAttribute.h>
+#include <gapputils/LabelAttribute.h>
+#include <gapputils/HideAttribute.h>
+#include <capputils/ShortNameAttribute.h>
 
 #include "PropertyReference.h"
 

@@ -1,10 +1,10 @@
 #include "DataModel.h"
 
-#include <ReuseAttribute.h>
-#include <VolatileAttribute.h>
-#include <FlagAttribute.h>
-#include <tinyxml.h>
-#include <Xmlizer.h>
+#include <capputils/ReuseAttribute.h>
+#include <capputils/VolatileAttribute.h>
+#include <capputils/FlagAttribute.h>
+#include <tinyxml/tinyxml.h>
+#include <capputils/Xmlizer.h>
 
 using namespace capputils;
 using namespace capputils::attributes;

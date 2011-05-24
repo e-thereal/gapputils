@@ -2,12 +2,12 @@
 #include <QtGui/QApplication>
 
 //#include <cublas.h>
-#include <Xmlizer.h>
-#include <ArgumentsParser.h>
-#include <Verifier.h>
+#include <capputils/Xmlizer.h>
+#include <capputils/ArgumentsParser.h>
+#include <capputils/Verifier.h>
 #include <iostream>
-#include <gapputils.h>
-#include <ReflectableClassFactory.h>
+#include <gapputils/gapputils.h>
+#include <capputils/ReflectableClassFactory.h>
 
 //#include "../GaussianProcesses/Paper.h"
 #include "DataModel.h"

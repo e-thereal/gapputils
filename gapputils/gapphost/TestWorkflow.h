@@ -10,7 +10,7 @@
 
 #include "Workflow.h"
 
-#include <ObservableClass.h>
+#include <capputils/ObservableClass.h>
 
 namespace gapputils {
 

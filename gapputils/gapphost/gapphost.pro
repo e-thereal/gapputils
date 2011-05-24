@@ -40,9 +40,6 @@ HEADERS = MainWindow.h \
           
 CONFIG += no_keywords debug console
 QMAKE_CXXFLAGS += -std=c++0x
-INCLUDEPATH += ../gapputils
-INCLUDEPATH += ../capputils
-INCLUDEPATH += ../tinyxml
-INCLUDEPATH += ../testlib
+INCLUDEPATH += /home/tombr/Projects
 INCLUDEPATH += /home/tombr/include
 LIBS += -L/home/tombr/Projects/tinyxml/Debug -L/home/tombr/Projects/capputils/Debug\ Shared -L"/home/tombr/Projects/gapputils/Debug Shared" -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem

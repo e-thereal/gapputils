@@ -2,8 +2,8 @@
 #ifndef _IMAGEVIEWER_H_
 #define _IMAGEVIEWER_H_
 
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
+#include <capputils/ReflectableClass.h>
+#include <capputils/ObservableClass.h>
 
 #include <string>
 #include <qimage.h>
