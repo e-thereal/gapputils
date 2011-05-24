@@ -1,9 +1,9 @@
 #include "PropertyGridDelegate.h"
 
 #include <qcombobox.h>
-#include <IReflectableAttribute.h>
-#include <FilenameAttribute.h>
-#include <Enumerator.h>
+#include <capputils/IReflectableAttribute.h>
+#include <capputils/FilenameAttribute.h>
+#include <capputils/Enumerator.h>
 #include "PropertyReference.h"
 #include "FilenameEdit.h"
 

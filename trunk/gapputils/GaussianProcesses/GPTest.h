@@ -3,7 +3,7 @@
 #ifndef gapputils_GP_H
 #define gapputils_GP_H
 
-#include <WorkflowElement.h>
+#include <gapputils/WorkflowElement.h>
 
 #include <vector>
 

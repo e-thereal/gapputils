@@ -1,13 +1,13 @@
 #include "Person.h"
 
-#include <DescriptionAttribute.h>
-#include <ScalarAttribute.h>
-#include <ObserveAttribute.h>
-#include <ReuseAttribute.h>
+#include <capputils/DescriptionAttribute.h>
+#include <capputils/ScalarAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/ReuseAttribute.h>
 
-#include <LabelAttribute.h>
-#include <InputAttribute.h>
-#include <OutputAttribute.h>
+#include <gapputils/LabelAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;

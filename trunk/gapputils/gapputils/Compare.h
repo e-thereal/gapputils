@@ -5,7 +5,7 @@
 
 #include "gapputils.h"
 #include "WorkflowElement.h"
-#include <Enumerators.h>
+#include <capputils/Enumerators.h>
 
 namespace gapputils {
 

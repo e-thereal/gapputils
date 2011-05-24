@@ -8,7 +8,7 @@
 #ifndef GENERICVIEWER_H_
 #define GENERICVIEWER_H_
 
-#include <DefaultWorkflowElement.h>
+#include <gapputils/DefaultWorkflowElement.h>
 #include <qprocess.h>
 
 namespace gapputils {

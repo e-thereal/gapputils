@@ -10,17 +10,17 @@
 #include <QStyleOptionGraphicsItem>
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
-#include <ObserveAttribute.h>
-#include <EventHandler.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/EventHandler.h>
 #include <qapplication.h>
 #include <QFontMetrics>
 #include <qstylepainter.h>
 #include "Workbench.h"
 
-#include <LabelAttribute.h>
-#include <InputAttribute.h>
-#include <OutputAttribute.h>
-#include <ShortNameAttribute.h>
+#include <gapputils/LabelAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/ShortNameAttribute.h>
 #include <qpicture.h>
 #include "CableItem.h"
 

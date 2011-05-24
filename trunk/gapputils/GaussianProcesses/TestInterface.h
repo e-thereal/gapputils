@@ -8,8 +8,8 @@
 #ifndef TESTINTERFACE_H_
 #define TESTINTERFACE_H_
 
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
+#include <capputils/ReflectableClass.h>
+#include <capputils/ObservableClass.h>
 
 namespace GaussianProcesses {
 

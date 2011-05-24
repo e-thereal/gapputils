@@ -5,7 +5,7 @@
 #include <string>
 
 #include <qimage.h>
-#include <WorkflowElement.h>
+#include <gapputils/WorkflowElement.h>
 
 namespace capputils {
 

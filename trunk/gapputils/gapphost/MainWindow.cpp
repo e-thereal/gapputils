@@ -6,16 +6,16 @@
 #include <iostream>
 #include <qsplitter.h>
 
-#include <Xmlizer.h>
-#include <LibraryLoader.h>
+#include <capputils/Xmlizer.h>
+#include <capputils/LibraryLoader.h>
 #include <qtoolbox.h>
 #include <qtreewidget.h>
 
 #include "DataModel.h"
 #include "Controller.h"
-#include <ReflectableClassFactory.h>
+#include <capputils/ReflectableClassFactory.h>
 #include <qbrush.h>
-#include <WorkflowElement.h>
+#include <gapputils/WorkflowElement.h>
 
 using namespace std;
 using namespace capputils;

@@ -3,7 +3,7 @@
 #ifndef _GAPPHOST_EDGE_H_
 #define _GAPPHOST_EDGE_H_
 
-#include <ReflectableClass.h>
+#include <capputils/ReflectableClass.h>
 
 #include "Node.h"
 

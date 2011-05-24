@@ -4,7 +4,7 @@
 #include <QObject>
 #include <qmetatype.h>
 
-#include <ReflectableClass.h>
+#include <capputils/ReflectableClass.h>
 
 class PropertyReference /*: public QObject*/
 {

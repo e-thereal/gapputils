@@ -8,13 +8,13 @@
 #ifndef WORKFLOW_H_
 #define WORKFLOW_H_
 
-#include <ObservableClass.h>
+#include <capputils/ObservableClass.h>
 
 #include <qobject.h>
 #include <qwidget.h>
 #include <vector>
 #include <qtreeview.h>
-#include <tinyxml.h>
+#include <tinyxml/tinyxml.h>
 #include <set>
 #include "Edge.h"
 #include "Node.h"

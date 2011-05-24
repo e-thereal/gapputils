@@ -7,15 +7,15 @@
 
 #include "GenericViewer.h"
 
-#include <FilenameAttribute.h>
-#include <InputAttribute.h>
-#include <FileExists.h>
-#include <ObserveAttribute.h>
-#include <Verifier.h>
+#include <capputils/FilenameAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/FileExists.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/Verifier.h>
 #include <sstream>
 #include <cstdlib>
-#include <EventHandler.h>
-#include <VolatileAttribute.h>
+#include <capputils/EventHandler.h>
+#include <capputils/VolatileAttribute.h>
 
 #include <iostream>
 #include <signal.h>

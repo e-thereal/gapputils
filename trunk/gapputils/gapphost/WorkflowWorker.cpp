@@ -8,7 +8,7 @@
 #include "WorkflowWorker.h"
 
 #include "Workflow.h"
-#include <WorkflowElement.h>
+#include <gapputils/WorkflowElement.h>
 
 #include <iostream>
 

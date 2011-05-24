@@ -1,15 +1,15 @@
 #include "Compare.h"
 
-#include <ObserveAttribute.h>
-#include "InputAttribute.h"
-#include "OutputAttribute.h"
+#include <capputils/ObserveAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
 #include "LabelAttribute.h"
-#include <NotEqualAssertion.h>
-#include <Verifier.h>
-#include <EventHandler.h>
+#include <capputils/NotEqualAssertion.h>
+#include <capputils/Verifier.h>
+#include <capputils/EventHandler.h>
 
 #include "HideAttribute.h"
-#include <VolatileAttribute.h>
+#include <capputils/VolatileAttribute.h>
 
 using namespace capputils::attributes;
 

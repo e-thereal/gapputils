@@ -3,9 +3,9 @@
 #ifndef _GAPPHOST_NODE_H_
 #define _GAPPHOST_NODE_H_
 
-#include <ReflectableClass.h>
-#include <ObservableClass.h>
-#include <IProgressMonitor.h>
+#include <capputils/ReflectableClass.h>
+#include <capputils/ObservableClass.h>
+#include <gapputils/IProgressMonitor.h>
 
 namespace gapputils {
 

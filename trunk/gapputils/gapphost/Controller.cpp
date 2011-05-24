@@ -7,7 +7,7 @@
 
 #include "Controller.h"
 
-#include <Xmlizer.h>
+#include <capputils/Xmlizer.h>
 
 using namespace std;
 using namespace capputils;

@@ -1,16 +1,16 @@
 #include "GPTest.h"
 
-#include <ObserveAttribute.h>
-#include <EventHandler.h>
-#include <OutputAttribute.h>
-#include <FilenameAttribute.h>
-#include <NotEqualAssertion.h>
-#include <Verifier.h>
-#include <Xmlizer.h>
-#include <EnumerableAttribute.h>
-#include <LabelAttribute.h>
-#include <ShortNameAttribute.h>
-#include <VolatileAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/EventHandler.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/FilenameAttribute.h>
+#include <capputils/NotEqualAssertion.h>
+#include <capputils/Verifier.h>
+#include <capputils/Xmlizer.h>
+#include <capputils/EnumerableAttribute.h>
+#include <gapputils/LabelAttribute.h>
+#include <capputils/ShortNameAttribute.h>
+#include <capputils/VolatileAttribute.h>
 #include <cmath>
 
 //#include "../gptest/gplib.h"

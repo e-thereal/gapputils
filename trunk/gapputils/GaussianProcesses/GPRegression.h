@@ -3,7 +3,7 @@
 #ifndef _GAPPUTILS_GPREGRESSION_H_
 #define _GAPPUTILS_GPREGRESSION_H_
 
-#include <WorkflowElement.h>
+#include <gapputils/WorkflowElement.h>
 
 namespace GaussianProcesses {
 

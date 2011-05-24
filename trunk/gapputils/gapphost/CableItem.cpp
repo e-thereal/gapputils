@@ -3,7 +3,7 @@
 #include "ToolItem.h"
 #include <qpainter.h>
 #include "Workbench.h"
-#include <ObservableClass.h>
+#include <capputils/ObservableClass.h>
 #include <iostream>
 
 using namespace capputils;

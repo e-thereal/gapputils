@@ -6,19 +6,19 @@
 #include <iostream>
 #include <algorithm>
 
-#include <ObserveAttribute.h>
-#include <FileExists.h>
-#include <FilenameAttribute.h>
-#include <DescriptionAttribute.h>
-#include <EventHandler.h>
-#include <Verifier.h>
-#include <VolatileAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/FileExists.h>
+#include <capputils/FilenameAttribute.h>
+#include <capputils/DescriptionAttribute.h>
+#include <capputils/EventHandler.h>
+#include <capputils/Verifier.h>
+#include <capputils/VolatileAttribute.h>
 
-#include "InputAttribute.h"
-#include "OutputAttribute.h"
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
 #include "LabelAttribute.h"
 #include "HideAttribute.h"
-#include "ShortNameAttribute.h"
+#include <capputils/ShortNameAttribute.h>
 
 using namespace capputils::attributes;
 using namespace std;
