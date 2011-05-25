@@ -7,18 +7,17 @@
 
 #include "WorkflowElement.h"
 
-#include "LabelAttribute.h"
 #include <capputils/ObserveAttribute.h>
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/VolatileAttribute.h>
+
 #include "HideAttribute.h"
+#include "LabelAttribute.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
 namespace gapputils {
-
-using namespace attributes;
 
 namespace workflow {
 
@@ -29,7 +28,7 @@ BeginAbstractPropertyDefinitions(WorkflowElement)
 
 EndPropertyDefinitions
 
-WorkflowElement::WorkflowElement() : _Label("Label") {
+WorkflowElement::WorkflowElement() : _Label("Element") {
 }
 
 }
