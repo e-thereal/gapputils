@@ -24,9 +24,9 @@ WorkflowWorker::WorkflowWorker(Workflow* workflow) : QThread(), workflow(workflo
 
 WorkflowWorker::~WorkflowWorker() {
   if (worker) {
-    disconnect(worker, SIGNAL(progressed(Node*, int)), workflow, SLOT(showProgress(Node*, int)));
-    disconnect(worker, SIGNAL(moduleUpdated(Node*)), workflow, SLOT(finalizeModuleUpdate(Node*)));
-    disconnect(workflow, SIGNAL(processModule(Node*)), worker, SLOT(updateModule(Node*)));
+    disconnect(worker, SIGNAL(progressed(workflow::Node*, int)), workflow, SLOT(showProgress(workflow::Node*, int)));
+    disconnect(worker, SIGNAL(moduleUpdated(workflow::Node*)), workflow, SLOT(finalizeModuleUpdate(workflow::Node*)));
+    disconnect(workflow, SIGNAL(processModule(workflow::Node*)), worker, SLOT(updateModule(workflow::Node*)));
     delete worker;
   }
 }
@@ -35,9 +35,9 @@ void WorkflowWorker::run() {
   //cout << "[" << QThread::currentThreadId() << "] " << "start thread." << endl;
 
   worker = new WorkflowWorker(0);
-  connect(worker, SIGNAL(progressed(Node*, int)), workflow, SLOT(showProgress(Node*, int)));
-  connect(worker, SIGNAL(moduleUpdated(Node*)), workflow, SLOT(finalizeModuleUpdate(Node*)));
-  connect(workflow, SIGNAL(processModule(Node*)), worker, SLOT(updateModule(Node*)));
+  connect(worker, SIGNAL(progressed(workflow::Node*, int)), workflow, SLOT(showProgress(workflow::Node*, int)));
+  connect(worker, SIGNAL(moduleUpdated(workflow::Node*)), workflow, SLOT(finalizeModuleUpdate(workflow::Node*)));
+  connect(workflow, SIGNAL(processModule(workflow::Node*)), worker, SLOT(updateModule(workflow::Node*)));
 
   exec();
   //cout << "[" << QThread::currentThreadId() << "] " << "thread finished" << endl;

@@ -47,7 +47,7 @@ private:
   QWidget* widget;
   Node inputsNode, outputsNode;
   std::set<std::string> loadedLibraries;
-  bool ownWidget;
+  bool ownWidget, hasIONodes;
   WorkflowWorker* worker;
   std::stack<Node*> nodeStack;
   std::stack<Node*> processedStack;
@@ -75,6 +75,8 @@ public:
   virtual bool update(IProgressMonitor* monitor);
   virtual void writeResults();
 
+  void setUiEnabled(bool enabled);
+
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
@@ -85,14 +87,14 @@ private Q_SLOTS:
   void createEdge(CableItem* cable);
   void deleteEdge(CableItem* cable);
 
-  void finalizeModuleUpdate(Node* node);
-  void showProgress(Node* node, int i);
+  void finalizeModuleUpdate(workflow::Node* node);
+  void showProgress(workflow::Node* node, int i);
   void showWorkflow(workflow::Workflow* workflow);
   void delegateDeleteCalled(workflow::Workflow* workflow);
 
 Q_SIGNALS:
-  void updateFinished();
-  void processModule(Node* node);
+  void updateFinished(workflow::Node* node);
+  void processModule(workflow::Node* node);
   void showWorkflowRequest(workflow::Workflow* workflow);
   void deleteCalled(workflow::Workflow* workflow);
 };

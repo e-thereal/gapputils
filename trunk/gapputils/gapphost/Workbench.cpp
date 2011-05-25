@@ -19,7 +19,9 @@ using namespace std;
 
 namespace gapputils {
 
-Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0) {
+Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
+    modifiable(true)
+{
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
   scene->setSceneRect(-250, -250, 500, 500);
@@ -32,6 +34,10 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0) {
 }
 
 Workbench::~Workbench() {
+}
+
+void Workbench::setModifiable(bool modifiable) {
+  this->modifiable = modifiable;
 }
 
 void Workbench::addToolItem(ToolItem* item) {
@@ -75,6 +81,11 @@ void Workbench::notifyItemChange(ToolItem* item) {
 
 void Workbench::mousePressEvent(QMouseEvent* event) {
   vector<ToolConnection*> connections;
+
+  if (!modifiable) {
+    QGraphicsView::mousePressEvent(event);
+    return;
+  }
 
   Q_FOREACH(QGraphicsItem* item, scene()->items()) {
     ToolItem* tool = dynamic_cast<ToolItem*>(item);
@@ -131,6 +142,11 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
 }
 
 void Workbench::mouseReleaseEvent(QMouseEvent* event) {
+  if (!modifiable) {
+    QGraphicsView::mouseReleaseEvent(event);
+    return;
+  }
+
   if (currentCables.size()) {
     bool foundConnection = false;
     Q_FOREACH(QGraphicsItem* item, scene()->items()) {
@@ -194,6 +210,11 @@ void Workbench::removeToolItem(ToolItem* item) {
 
 void Workbench::keyPressEvent(QKeyEvent *event)
 {
+  if (!modifiable) {
+    QGraphicsView::keyPressEvent(event);
+    return;
+  }
+
   switch (event->key()) {
   case Qt::Key_Delete:
     if (selectedItem && selectedItem->isDeletable()) {

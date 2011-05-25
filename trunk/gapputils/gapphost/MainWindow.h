@@ -36,6 +36,7 @@ public:
   virtual ~MainWindow();
 
   virtual void closeEvent(QCloseEvent *event);
+  void setGuiEnabled(bool enabled);
 
 private Q_SLOTS:
   void quit();
@@ -52,9 +53,10 @@ private Q_SLOTS:
   void updateCurrentModule();
   void updateWorkflow();
   void terminateUpdate();
-  void updateFinished();
+  void updateFinished(workflow::Node* node);
   void showWorkflow(workflow::Workflow* workflow);
   void closeWorkflow(workflow::Workflow* workflow);
+  void closeWorkflow(int tabIndex);
 };
 
 }
