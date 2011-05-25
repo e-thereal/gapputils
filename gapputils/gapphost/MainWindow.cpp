@@ -89,9 +89,7 @@ void updateToolBox(QTreeWidget* toolBox) {
 
     item->addChild(newTool(name.substr(pos+1)));
   }
-  
-
-  toolBox->expandAll();
+  //toolBox->expandAll();
 }
 
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
@@ -263,7 +261,8 @@ void MainWindow::reload() {
   TiXmlElement* workflowElement = Xmlizer::CreateXml(*workflow);
   delete workflow;
   workflow = 0;
-  // tabWidget->removeTab(0); (deleting the workflow will automatically remove the tab)
+  tabWidget->removeTab(0); // First tab is never automatically removed
+  openWorkflows.clear();    // All tabs should now be closed. Either because they were closed due to delete or because they were removed manually
   workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(*workflowElement));
   if (!workflow)
     throw "could not reload workflow";
@@ -272,7 +271,6 @@ void MainWindow::reload() {
   workflow->resumeFromModel();
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
   openWorkflows.push_back(workflow);
-  connect(workflow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
   connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
   connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
   updateToolBox(toolBox);
