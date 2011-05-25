@@ -1,11 +1,11 @@
 /*
- * WorkflowElement.cpp
+ * WorkflowInterface.cpp
  *
- *  Created on: May 11, 2011
+ *  Created on: May 24, 2011
  *      Author: tombr
  */
 
-#include "WorkflowElement.h"
+#include "WorkflowInterface.h"
 
 #include <capputils/ObserveAttribute.h>
 #include <capputils/TimeStampAttribute.h>
@@ -21,14 +21,16 @@ namespace gapputils {
 
 namespace workflow {
 
-BeginAbstractPropertyDefinitions(WorkflowElement)
-
+BeginPropertyDefinitions(WorkflowInterface)
   DefineProperty(Label, Label(), Observe(PROPERTY_ID))
   DefineProperty(SetOnCompilation, TimeStamp(PROPERTY_ID), Hide(), Volatile())
-
 EndPropertyDefinitions
 
-WorkflowElement::WorkflowElement() : _Label("Element") {
+WorkflowInterface::WorkflowInterface() : _Label("Interface") {
+
+}
+
+WorkflowInterface::~WorkflowInterface() {
 }
 
 }
