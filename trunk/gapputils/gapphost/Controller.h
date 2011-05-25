@@ -28,7 +28,7 @@ public:
 
   static Controller& getInstance();
 
-  void saveCurrentWorkflow(const std::string& filename);
+  //void saveCurrentWorkflow(const std::string& filename);
 };
 
 }

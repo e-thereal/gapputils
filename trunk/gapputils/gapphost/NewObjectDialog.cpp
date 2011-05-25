@@ -1,6 +1,6 @@
 #include "NewObjectDialog.h"
 
-#include <ReflectableClassFactory.h>
+#include <capputils/ReflectableClassFactory.h>
 #include <algorithm>
 
 using namespace std;

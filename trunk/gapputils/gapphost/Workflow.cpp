@@ -7,26 +7,29 @@
 
 #include "Workflow.h"
 
-#include <capputils/EnumerableAttribute.h>
-#include "Workbench.h"
-
-#include <capputils/ReflectableClassFactory.h>
 #include <qtreeview.h>
 #include <qsplitter.h>
+
+#include <capputils/ReflectableClassFactory.h>
+#include <capputils/Xmlizer.h>
+#include <capputils/VolatileAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/EventHandler.h>
+#include <capputils/LibraryLoader.h>
+#include <capputils/Verifier.h>
+#include <capputils/EnumerableAttribute.h>
+
+#include <gapputils/HideAttribute.h>
+#include <gapputils/WorkflowElement.h>
+#include <gapputils/WorkflowInterface.h>
 
 #include "PropertyGridDelegate.h"
 #include "CustomToolItemAttribute.h"
 #include "InputsItem.h"
 #include "OutputsItem.h"
 #include "CableItem.h"
-#include <gapputils/HideAttribute.h>
-#include <capputils/Xmlizer.h>
-#include <capputils/VolatileAttribute.h>
-#include <capputils/ObserveAttribute.h>
-#include <capputils/EventHandler.h>
-#include <capputils/LibraryLoader.h>
-#include <gapputils/WorkflowElement.h>
-#include <capputils/Verifier.h>
+#include "Workbench.h"
+#include "WorkflowItem.h"
 
 using namespace capputils;
 using namespace capputils::reflection;
@@ -43,12 +46,16 @@ int Workflow::librariesId;
 
 BeginPropertyDefinitions(Workflow)
 
+// Libraries must be the first property since libraries must be loaded before all other modules
+DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Observe(librariesId = PROPERTY_ID))
+
+// Add Properties of node after libraries (module could be an object of a class of one of the libraries)
 ReflectableBase(Node)
-DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Volatile(), Observe(librariesId = PROPERTY_ID))
-DefineProperty(Edges, Enumerable<vector<Edge*>*, true>(), Volatile())
-DefineProperty(Nodes, Enumerable<vector<Node*>*, true>(), Volatile())
-DefineProperty(InputsPosition, Volatile())
-DefineProperty(OutputsPosition, Volatile())
+
+DefineProperty(Edges, Enumerable<vector<Edge*>*, true>())
+DefineProperty(Nodes, Enumerable<vector<Node*>*, true>())
+DefineProperty(InputsPosition)
+DefineProperty(OutputsPosition)
 
 EndPropertyDefinitions
 
@@ -95,6 +102,8 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true),
 }
 
 Workflow::~Workflow() {
+  Q_EMIT deleteCalled(this);
+
   LibraryLoader& loader = LibraryLoader::getInstance();
 
   if (worker) {
@@ -135,16 +144,45 @@ Workflow::~Workflow() {
   delete _Libraries;
 }
 
+void addDependencies(Workflow* workflow, const std::string& classname) {
+  // Update libraries
+  string libName = LibraryLoader::getInstance().classDefinedIn(classname);
+  if (libName.size()) {
+    vector<string>* libraries = workflow->getLibraries();
+    unsigned i = 0;
+    for (; i < libraries->size(); ++i)
+      if (libraries->at(i).compare(libName) == 0)
+        break;
+    if (i == libraries->size()) {
+      libraries->push_back(libName);
+      workflow->setLibraries(libraries);
+    }
+  }
+}
+
 void Workflow::newModule(const std::string& name) {
   ReflectableClass* object = ReflectableClassFactory::getInstance().newInstance(name);
-  Node* node = new Node();
-  node->setModule(object);
+  addDependencies(this, name);
+
+  Node* node = 0;
+  if (dynamic_cast<WorkflowInterface*>(object)) {
+    Workflow* workflow = new Workflow();
+    workflow->setModule(object);
+    addDependencies(workflow, name);
+    workflow->resumeFromModel();
+    connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
+    node = workflow;
+  } else {
+    node = new Node();
+    node->setModule(object);
+  }
+
   getNodes()->push_back(node);
 
   newItem(node);
 }
 
-TiXmlElement* Workflow::getXml(bool addEmptyModule) const {
+/*TiXmlElement* Workflow::getXml(bool addEmptyModule) const {
   TiXmlElement* element = new TiXmlElement(makeXmlName(getClassName()));
   Xmlizer::AddPropertyToXml(*element, *this, findProperty("Libraries"));
   Xmlizer::AddPropertyToXml(*element, *this, findProperty("Edges"));
@@ -157,13 +195,16 @@ TiXmlElement* Workflow::getXml(bool addEmptyModule) const {
     element->LinkEndChild(moduleElement);
   }
   return element;
-}
+}*/
 
 void Workflow::newItem(Node* node) {
   ToolItem* item;
   ICustomToolItemAttribute* customToolItem = node->getModule()->getAttribute<ICustomToolItemAttribute>();
-
-  if (node == &inputsNode)
+  Workflow* workflow = dynamic_cast<Workflow*>(node);
+  if (workflow) {
+    item = new WorkflowItem(node);
+    connect((WorkflowItem*)item, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
+  } else if (node == &inputsNode)
     item = new InputsItem(node);
   else if (node == &outputsNode)
     item = new OutputsItem(node);
@@ -228,8 +269,14 @@ void Workflow::resumeFromModel() {
 
   vector<Node*>* nodes = getNodes();
   vector<Edge*>* edges = getEdges();
-  for (unsigned i = 0; i < nodes->size(); ++i)
+  for (unsigned i = 0; i < nodes->size(); ++i) {
+    Workflow* workflow = dynamic_cast<Workflow*>(nodes->at(i));
+    if (workflow) {
+      workflow->resumeFromModel();
+      connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
+    }
     newItem(nodes->at(i));
+  }
   for (unsigned i = 0; i < edges->size(); ++i)
     newCable(edges->at(i));
 }
@@ -387,15 +434,46 @@ void Workflow::showProgress(Node* node, int i) {
   node->getToolItem()->setProgress(i);
 }
 
+void Workflow::showWorkflow(Workflow* workflow) {
+  Q_EMIT showWorkflowRequest(workflow);
+}
+
 bool Workflow::update(IProgressMonitor* monitor) {
-  // Create a new interface module instance
-  // Connect outputs to everything the original interface is connected to
-  // Update the new interface module as it would be the current node
-  // remove all created connections
+  return true;
 }
 
 void Workflow::writeResults() {
-  // Write all output properties of interace copy to the interface module
+}
+
+void Workflow::delegateDeleteCalled(workflow::Workflow* workflow) {
+  Q_EMIT deleteCalled(workflow);
+}
+
+void Workflow::load(const string& filename) {
+  // Delete all current nodes and edges
+  // Load model data from xml file
+  // resume
+  /*for (unsigned i = 0; i < _Edges->size(); ++i) {
+    delete _Edges->at(i)->getCableItem();
+    delete _Edges->at(i);
+  }*/
+  while (_Edges->size()) {
+    workbench->removeCableItem(_Edges->at(0)->getCableItem());
+  }
+
+  while (_Nodes->size()) {
+    workbench->removeToolItem(_Nodes->at(0)->getToolItem());
+  }
+
+  workbench->removeToolItem(inputsNode.getToolItem());
+  workbench->removeToolItem(outputsNode.getToolItem());
+
+  ReflectableClass* module = getModule();
+  Xmlizer::FromXml(*this, filename);
+  ReflectableClass* temp = getModule();
+  setModule(module);
+  delete temp;
+  resumeFromModel();
 }
 
 }

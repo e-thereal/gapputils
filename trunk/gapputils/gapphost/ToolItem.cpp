@@ -482,6 +482,10 @@ void ToolItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
   QGraphicsItem::mouseReleaseEvent(event);
 }
 
+void ToolItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
+  QGraphicsItem::mouseDoubleClickEvent(event);
+}
+
 bool ToolItem::isSelected() const {
   return this == bench->getSelectedItem();
 }

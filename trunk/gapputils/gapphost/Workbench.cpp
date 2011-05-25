@@ -186,14 +186,18 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
   QGraphicsView::mouseReleaseEvent(event);
 }
 
+void Workbench::removeToolItem(ToolItem* item) {
+  scene()->removeItem(item);
+  Q_EMIT itemDeleted(item);
+  delete item;
+}
+
 void Workbench::keyPressEvent(QKeyEvent *event)
 {
   switch (event->key()) {
   case Qt::Key_Delete:
     if (selectedItem && selectedItem->isDeletable()) {
-      scene()->removeItem(selectedItem);
-      Q_EMIT itemDeleted(selectedItem);
-      delete selectedItem;
+      removeToolItem(selectedItem);
     }
     break;
   default:

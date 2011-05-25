@@ -127,10 +127,11 @@ public:
   /// progess is in %
   void setProgress(int progress);
 
-  void mousePressEvent(QGraphicsSceneMouseEvent* event);
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+  virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
+  virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+  virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
   QVariant itemChange(GraphicsItemChange change, const QVariant &value);
-  
+
   QRectF boundingRect() const;
   QPainterPath shape() const;
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

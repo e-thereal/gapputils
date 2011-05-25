@@ -30,9 +30,10 @@ Controller& Controller::getInstance() {
   return *instance;
 }
 
-void Controller::saveCurrentWorkflow(const std::string& filename) {
-  Xmlizer::ToFile(filename, model.getMainWorkflow()->getXml());
-}
+/*void Controller::saveCurrentWorkflow(const std::string& filename) {
+  //Xmlizer::ToFile(filename, model.getMainWorkflow()->getXml());
+  Xmlizer::ToXml(filename, *model.getMainWorkflow());
+}*/
 
 }
 

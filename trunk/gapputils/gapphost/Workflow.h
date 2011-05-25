@@ -63,13 +63,14 @@ public:
   void resumeFromModel();
   /// The workflow loses ownership of the widget when calling this method
   QWidget* dispenseWidget();
-  TiXmlElement* getXml(bool addEmptyModule = true) const;
+  //TiXmlElement* getXml(bool addEmptyModule = true) const;
 
   /// This call is asynchronous. updateFinished signal is emitted when done.
   void updateSelectedModule();
   void updateOutputs();
   void processStack();
   void buildStack(Node* node);
+  void load(const std::string& filename);
 
   virtual bool update(IProgressMonitor* monitor);
   virtual void writeResults();
@@ -86,10 +87,14 @@ private Q_SLOTS:
 
   void finalizeModuleUpdate(Node* node);
   void showProgress(Node* node, int i);
+  void showWorkflow(workflow::Workflow* workflow);
+  void delegateDeleteCalled(workflow::Workflow* workflow);
 
 Q_SIGNALS:
   void updateFinished();
   void processModule(Node* node);
+  void showWorkflowRequest(workflow::Workflow* workflow);
+  void deleteCalled(workflow::Workflow* workflow);
 };
 
 }

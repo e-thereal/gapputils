@@ -23,7 +23,8 @@ SOURCES = main.cpp \
 		  Controller.cpp \
 		  DefaultInterface.cpp \
 		  WorkflowWorker.cpp \
-		  GenericViewer.cpp
+		  GenericViewer.cpp \
+		  WorkflowItem.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -36,7 +37,8 @@ HEADERS = MainWindow.h \
           NewObjectDialog.h \
           ShowImageDialog.h \
           Workflow.h \
-          WorkflowWorker.h
+          WorkflowWorker.h \
+          WorkflowItem.h
           
 CONFIG += no_keywords debug console
 QMAKE_CXXFLAGS += -std=c++0x
