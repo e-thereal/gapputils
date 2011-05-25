@@ -59,7 +59,7 @@ DefineProperty(OutputsPosition)
 
 EndPropertyDefinitions
 
-Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true), worker(0) {
+Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true), hasIONodes(false), worker(0) {
   _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
   _Nodes = new vector<Node*>();
@@ -171,6 +171,7 @@ void Workflow::newModule(const std::string& name) {
     addDependencies(workflow, name);
     workflow->resumeFromModel();
     connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
+    connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
     node = workflow;
   } else {
     node = new Node();
@@ -257,15 +258,18 @@ void Workflow::newCable(Edge* edge) {
 }
 
 void Workflow::resumeFromModel() {
-  inputsNode.setModule(getModule());
-  outputsNode.setModule(getModule());
-  inputsNode.setX(getInputsPosition()[0]);
-  inputsNode.setY(getInputsPosition()[1]);
-  outputsNode.setX(getOutputsPosition()[0]);
-  outputsNode.setY(getOutputsPosition()[1]);
+  if (!hasIONodes) {
+    hasIONodes = true;
+    inputsNode.setModule(getModule());
+    outputsNode.setModule(getModule());
+    inputsNode.setX(getInputsPosition()[0]);
+    inputsNode.setY(getInputsPosition()[1]);
+    outputsNode.setX(getOutputsPosition()[0]);
+    outputsNode.setY(getOutputsPosition()[1]);
 
-  newItem(&inputsNode);
-  newItem(&outputsNode);
+    newItem(&inputsNode);
+    newItem(&outputsNode);
+  }
 
   vector<Node*>* nodes = getNodes();
   vector<Edge*>* edges = getEdges();
@@ -274,6 +278,7 @@ void Workflow::resumeFromModel() {
     if (workflow) {
       workflow->resumeFromModel();
       connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
+      connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
     }
     newItem(nodes->at(i));
   }
@@ -405,16 +410,22 @@ void Workflow::processStack() {
     nodeStack.pop();
 
     processedStack.push(node);
-    // Update the not, if it needs update or if it is the last one
+    // Update the node, if it needs update or if it is the last one
     if (nodeStack.empty() || !node->isUpToDate()) {
       node->getToolItem()->setProgress(-2);
-      Q_EMIT processModule(node);
+      Workflow* workflow = dynamic_cast<Workflow*>(node);
+      if (workflow) {
+        connect(workflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(finalizeModuleUpdate(workflow::Node*)));
+        workflow->updateOutputs();
+      } else {
+        Q_EMIT processModule(node);
+      }
       return;
     } else {
       node->getToolItem()->setProgress(100);
     }
   }
-  Q_EMIT updateFinished();
+  Q_EMIT updateFinished(this);
 
   // set all back
   for(; !processedStack.empty(); processedStack.pop())
@@ -422,8 +433,12 @@ void Workflow::processStack() {
 }
 
 void Workflow::finalizeModuleUpdate(Node* node) {
-  // write results
-  node->writeResults();
+  Workflow* workflow = dynamic_cast<Workflow*>(node);
+  if (workflow) {
+    disconnect(workflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(finalizeModuleUpdate(workflow::Node*)));
+  } else {
+    node->writeResults();
+  }
   node->getToolItem()->setProgress(100);
 
   // processStack (will emit updateFinished signal)
@@ -451,12 +466,8 @@ void Workflow::delegateDeleteCalled(workflow::Workflow* workflow) {
 
 void Workflow::load(const string& filename) {
   // Delete all current nodes and edges
-  // Load model data from xml file
+  // Load model data from xml file (only selected properties)
   // resume
-  /*for (unsigned i = 0; i < _Edges->size(); ++i) {
-    delete _Edges->at(i)->getCableItem();
-    delete _Edges->at(i);
-  }*/
   while (_Edges->size()) {
     workbench->removeCableItem(_Edges->at(0)->getCableItem());
   }
@@ -465,15 +476,23 @@ void Workflow::load(const string& filename) {
     workbench->removeToolItem(_Nodes->at(0)->getToolItem());
   }
 
-  workbench->removeToolItem(inputsNode.getToolItem());
-  workbench->removeToolItem(outputsNode.getToolItem());
-
-  ReflectableClass* module = getModule();
-  Xmlizer::FromXml(*this, filename);
-  ReflectableClass* temp = getModule();
-  setModule(module);
-  delete temp;
+  Xmlizer::GetPropertyFromXml(*this, findProperty("Libraries"), filename);
+  Xmlizer::GetPropertyFromXml(*this, findProperty("Nodes"), filename);
+  Xmlizer::GetPropertyFromXml(*this, findProperty("Edges"), filename);
   resumeFromModel();
+}
+
+void Workflow::setUiEnabled(bool enabled) {
+  //widget->setEnabled(enabled);
+  propertyGrid->setEnabled(enabled);
+  workbench->setModifiable(enabled);
+
+  vector<Node*>* nodes = getNodes();
+  for (unsigned i = 0; i < nodes->size(); ++i) {
+    Workflow* workflow = dynamic_cast<Workflow*>(nodes->at(i));
+    if (workflow)
+      workflow->setUiEnabled(enabled);
+  }
 }
 
 }

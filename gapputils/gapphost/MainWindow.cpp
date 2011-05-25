@@ -106,10 +106,11 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   newObjectDialog = new NewObjectDialog();
 
   tabWidget = new QTabWidget();
+  tabWidget->setTabsClosable(true);
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
   openWorkflows.push_back(workflow);
 
-  connect(workflow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+  connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeWorkflow(int)));
   connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
   connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
 
@@ -290,28 +291,40 @@ void MainWindow::checkLibraryUpdates() {
   libsChanged = false;
 }
 
-void MainWindow::updateCurrentModule() {
-  fileMenu->setEnabled(false);
-  centralWidget()->setEnabled(false);
+void MainWindow::setGuiEnabled(bool enabled) {
+  fileMenu->setEnabled(enabled);
+  toolBox->setEnabled(enabled);
+  //for (int i = 0; i < tabWidget->count(); ++i)
+  //  tabWidget->widget(i)->setEnabled(enabled);
+  for (unsigned i = 0; i < openWorkflows.size(); ++i)
+    openWorkflows[i]->setUiEnabled(enabled);
+}
 
-  DataModel::getInstance().getMainWorkflow()->updateSelectedModule();
+void MainWindow::updateCurrentModule() {
+  setGuiEnabled(false);
+
+  Workflow* workingWorkflow = openWorkflows[tabWidget->currentIndex()];
+  connect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
+  workingWorkflow->updateSelectedModule();
 }
 
 void MainWindow::updateWorkflow() {
-  fileMenu->setEnabled(false);
-  centralWidget()->setEnabled(false);
+  setGuiEnabled(false);
 
-  DataModel::getInstance().getMainWorkflow()->updateOutputs();
+  Workflow* workingWorkflow = openWorkflows[tabWidget->currentIndex()];
+  connect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
+  workingWorkflow->updateOutputs();
 }
 
 void MainWindow::terminateUpdate() {
-  fileMenu->setEnabled(true);
-  centralWidget()->setEnabled(true);
+  setGuiEnabled(true);
 }
 
-void MainWindow::updateFinished() {
-  fileMenu->setEnabled(true);
-  centralWidget()->setEnabled(true);
+void MainWindow::updateFinished(Node* node) {
+  setGuiEnabled(true);
+  Workflow* workingWorkflow = dynamic_cast<Workflow*>(node);
+  if (workingWorkflow)
+    disconnect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
 }
 
 void MainWindow::save() {
@@ -341,13 +354,19 @@ void MainWindow::showWorkflow(workflow::Workflow* workflow) {
 void MainWindow::closeWorkflow(workflow::Workflow* workflow) {
   assert((int)openWorkflows.size() == tabWidget->count());
 
-  unsigned pos = 0;
-  for(;pos < openWorkflows.size(); ++pos) {
+  for(unsigned pos = 0; pos < openWorkflows.size(); ++pos) {
     if (openWorkflows[pos] == workflow) {
-      tabWidget->removeTab(pos);
-      openWorkflows.erase(openWorkflows.begin() + pos);
+      closeWorkflow(pos);
+      break;
     }
   }
+}
+
+void MainWindow::closeWorkflow(int tabIndex) {
+  if (tabIndex == 0)
+    return;
+  tabWidget->removeTab(tabIndex);
+  openWorkflows.erase(openWorkflows.begin() + tabIndex);
 }
 
 }

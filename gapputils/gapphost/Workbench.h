@@ -21,6 +21,7 @@ class Workbench : public QGraphicsView {
 private:
   ToolItem* selectedItem;
   std::vector<CableItem*> currentCables;
+  bool modifiable;
 
 public:
   Workbench(QWidget *parent = 0);
@@ -35,6 +36,8 @@ public:
   ToolItem* getSelectedItem() const;
   std::vector<CableItem*>& getCurrentCables();
   void notifyItemChange(ToolItem* item);
+
+  void setModifiable(bool modifiable);
 
 Q_SIGNALS:
   void itemSelected(ToolItem* item);
