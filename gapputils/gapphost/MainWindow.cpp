@@ -13,6 +13,7 @@
 
 #include "DataModel.h"
 #include "Controller.h"
+#include "ToolItem.h"
 #include <capputils/ReflectableClassFactory.h>
 #include <qbrush.h>
 #include <gapputils/WorkflowElement.h>
@@ -106,7 +107,11 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   tabWidget = new QTabWidget();
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
+  openWorkflows.push_back(workflow);
+
   connect(workflow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+  connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
+  connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
 
   toolBox = new QTreeWidget();
   updateToolBox(toolBox);
@@ -167,21 +172,22 @@ void MainWindow::quit() {
   this->close();
 }
 
-void MainWindow::itemClickedHandler(QTreeWidgetItem *item, int column) {
+void MainWindow::itemClickedHandler(QTreeWidgetItem *item, int) {
   if (item->childCount()) {
     item->setExpanded(!item->isExpanded());
   }
 }
 
-void MainWindow::itemDoubleClickedHandler(QTreeWidgetItem *item, int column) {
+void MainWindow::itemDoubleClickedHandler(QTreeWidgetItem *item, int) {
   if (!item->childCount()) {
     // new tool
     string classname = item->text(0).toUtf8().data();
-    while ((item = item->parent())) { 
+    while ((item = item->parent())) {
       classname = string(item->text(0).toUtf8().data()) + "::" + classname;
     }
     //cout << "New item: " << classname.c_str() << endl;
-    DataModel::getInstance().getMainWorkflow()->newModule(classname);
+    //DataModel::getInstance().getMainWorkflow()->newModule(classname);
+    openWorkflows[tabWidget->currentIndex()]->newModule(classname);
   }
 }
 
@@ -199,18 +205,23 @@ void MainWindow::loadWorkflow() {
   if (fileDialog.exec() == QDialog::Accepted) {
     QStringList filenames = fileDialog.selectedFiles();
     if (filenames.size()) {
-      Workflow* workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(filenames[0].toUtf8().data()));
+      /*Workflow* workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(filenames[0].toUtf8().data()));
       if (workflow) {
         workflow->resumeFromModel();
 
         Workflow* oldWorkflow = model.getMainWorkflow();
         delete oldWorkflow;
-        tabWidget->removeTab(0);
+        //tabWidget->removeTab(0); (delete will automatically remove the tab)
         model.setMainWorkflow(workflow);
         tabWidget->addTab(workflow->dispenseWidget(), "Main");
+        openWorkflows.push_back(workflow);
+
         connect(workflow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+        connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
+        connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
         updateToolBox(toolBox);
-      }
+      }*/
+      openWorkflows[tabWidget->currentIndex()]->load(filenames[0].toUtf8().data());
     }
   }
 }
@@ -220,7 +231,8 @@ void MainWindow::saveWorkflow() {
   if (fileDialog.exec() == QDialog::Accepted) {
     QStringList filenames = fileDialog.selectedFiles();
     if (filenames.size()) {
-      Controller::getInstance().saveCurrentWorkflow(filenames[0].toUtf8().data());
+      //Controller::getInstance().saveCurrentWorkflow(filenames[0].toUtf8().data());
+      Xmlizer::ToXml(filenames[0].toUtf8().data(), *openWorkflows[tabWidget->currentIndex()]);
     }
   }
 }
@@ -230,11 +242,13 @@ void MainWindow::loadLibrary() {
   if (fileDialog.exec() == QDialog::Accepted) {
     QStringList filenames = fileDialog.selectedFiles();
     if (filenames.size()) {
-      Workflow* workflow = DataModel::getInstance().getMainWorkflow();
+      //Workflow* workflow = DataModel::getInstance().getMainWorkflow();
+      Workflow* workflow = openWorkflows[tabWidget->currentIndex()];
       vector<string>* libs = workflow->getLibraries();
       libs->push_back(filenames[0].toUtf8().data());
       workflow->setLibraries(libs);
     }
+    // TODO: why reload here?
     reload();
   }
 }
@@ -243,11 +257,12 @@ void MainWindow::reload() {
   DataModel& model = DataModel::getInstance();
   Workflow* workflow = model.getMainWorkflow();
 
-  TiXmlElement* workflowElement = workflow->getXml(false);
-  Xmlizer::ToXml(*workflowElement, *workflow);
+  //TiXmlElement* workflowElement = workflow->getXml(false);
+  //Xmlizer::ToXml(*workflowElement, *workflow);
+  TiXmlElement* workflowElement = Xmlizer::CreateXml(*workflow);
   delete workflow;
   workflow = 0;
-  tabWidget->removeTab(0);
+  // tabWidget->removeTab(0); (deleting the workflow will automatically remove the tab)
   workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(*workflowElement));
   if (!workflow)
     throw "could not reload workflow";
@@ -255,7 +270,10 @@ void MainWindow::reload() {
   model.setMainWorkflow(workflow);
   workflow->resumeFromModel();
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
+  openWorkflows.push_back(workflow);
   connect(workflow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+  connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
+  connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
   updateToolBox(toolBox);
 }
 
@@ -292,13 +310,44 @@ void MainWindow::terminateUpdate() {
 }
 
 void MainWindow::updateFinished() {
-  //cout << "Release UI" << endl;
   fileMenu->setEnabled(true);
   centralWidget()->setEnabled(true);
 }
 
 void MainWindow::save() {
   DataModel::getInstance().saveToFile("gapphost.conf.xml");
+}
+
+void MainWindow::showWorkflow(workflow::Workflow* workflow) {
+  assert((int)openWorkflows.size() == tabWidget->count());
+
+  unsigned pos = 0;
+  for(;pos < openWorkflows.size(); ++pos) {
+    if (openWorkflows[pos] == workflow)
+      break;
+  }
+
+  if (pos < openWorkflows.size()) {
+    tabWidget->setCurrentIndex(pos);
+  } else {
+    int currentIndex = tabWidget->count();
+
+    tabWidget->addTab(workflow->dispenseWidget(), workflow->getToolItem()->getLabel().c_str());
+    openWorkflows.push_back(workflow);
+    tabWidget->setCurrentIndex(currentIndex);
+  }
+}
+
+void MainWindow::closeWorkflow(workflow::Workflow* workflow) {
+  assert((int)openWorkflows.size() == tabWidget->count());
+
+  unsigned pos = 0;
+  for(;pos < openWorkflows.size(); ++pos) {
+    if (openWorkflows[pos] == workflow) {
+      tabWidget->removeTab(pos);
+      openWorkflows.erase(openWorkflows.begin() + pos);
+    }
+  }
 }
 
 }

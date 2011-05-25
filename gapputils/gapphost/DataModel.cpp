@@ -23,7 +23,7 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(WindowY)
   DefineProperty(WindowWidth)
   DefineProperty(WindowHeight)
-  ReflectableProperty(MainWorkflow, Volatile())
+  ReflectableProperty(MainWorkflow)
 EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;
@@ -44,15 +44,16 @@ DataModel& DataModel::getInstance() {
 }
 
 void DataModel::saveToFile(const char* filename) {
-  TiXmlElement* modelElement = Xmlizer::CreateXml(*this);
-  TiXmlElement* mainWorkflowElement = new TiXmlElement("MainWorkflow");
-  TiXmlElement* workflowElement = getMainWorkflow()->getXml(false);
-  Xmlizer::ToXml(*workflowElement, *getMainWorkflow());
+  //TiXmlElement* modelElement = Xmlizer::CreateXml(*this);
+  //TiXmlElement* mainWorkflowElement = new TiXmlElement("MainWorkflow");
+  //TiXmlElement* workflowElement = getMainWorkflow()->getXml(false);
+  //Xmlizer::ToXml(*workflowElement, *getMainWorkflow());
 
-  mainWorkflowElement->LinkEndChild(workflowElement);
-  modelElement->LinkEndChild(mainWorkflowElement);
+  //mainWorkflowElement->LinkEndChild(workflowElement);
+  //modelElement->LinkEndChild(mainWorkflowElement);
 
-  Xmlizer::ToFile(filename, modelElement);
+  //Xmlizer::ToFile(filename, modelElement);
+  Xmlizer::ToXml(filename, *this);
 }
   
 }

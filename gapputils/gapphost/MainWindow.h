@@ -9,6 +9,9 @@
 #include <qtimer.h>
 #include <qtreewidget.h>
 #include <qsplitter.h>
+#include "Workflow.h"
+
+#include <map>
 
 namespace gapputils {
 
@@ -26,6 +29,7 @@ private:
   QTreeWidget* toolBox;
   QTimer reloadTimer;
   bool libsChanged;
+  std::vector<workflow::Workflow*> openWorkflows;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
@@ -49,6 +53,8 @@ private Q_SLOTS:
   void updateWorkflow();
   void terminateUpdate();
   void updateFinished();
+  void showWorkflow(workflow::Workflow* workflow);
+  void closeWorkflow(workflow::Workflow* workflow);
 };
 
 }
