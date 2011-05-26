@@ -27,9 +27,6 @@
     <ClInclude Include="IntSplitter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TestModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GPTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -45,9 +42,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="IntSplitter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TestModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GPTest.cpp">

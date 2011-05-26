@@ -45,7 +45,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CUDA_INC_PATH);$(SolutionDir)tinyxml;$(BOOST_INC_PATH);$(SolutionDir)gapputils;$(SolutionDir)capputils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CUDA_INC_PATH);$(SolutionDir);$(BOOST_INC_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -80,7 +80,6 @@
     <ClInclude Include="Interface.h" />
     <ClInclude Include="IntSplitter.h" />
     <ClInclude Include="TestInterface.h" />
-    <ClInclude Include="TestModule.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GPRegression.cpp" />
@@ -88,7 +87,6 @@
     <ClCompile Include="Interface.cpp" />
     <ClCompile Include="IntSplitter.cpp" />
     <ClCompile Include="TestInterface.cpp" />
-    <ClCompile Include="TestModule.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
