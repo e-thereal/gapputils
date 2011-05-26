@@ -28,13 +28,7 @@
     <ClCompile Include="gapputils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InputAttribute.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LabelAttribute.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OutputAttribute.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HideAttribute.cpp">
@@ -55,9 +49,6 @@
     <ClCompile Include="TextWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ShortNameAttribute.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="WorkflowElement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -67,10 +58,16 @@
     <ClCompile Include="DefaultWorkflowElement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GenericViewer.cpp">
+    <ClCompile Include="XslTransformation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="XslTransformation.cpp">
+    <ClCompile Include="Concater.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StringReplacer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WorkflowInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -78,13 +75,7 @@
     <ClInclude Include="gapputils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="InputAttribute.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LabelAttribute.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OutputAttribute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HideAttribute.h">
@@ -105,9 +96,6 @@
     <ClInclude Include="TextWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ShortNameAttribute.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WorkflowElement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -117,10 +105,16 @@
     <ClInclude Include="DefaultWorkflowElement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GenericViewer.h">
+    <ClInclude Include="XslTransformation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="XslTransformation.h">
+    <ClInclude Include="Concater.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringReplacer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WorkflowInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
