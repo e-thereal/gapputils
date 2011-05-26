@@ -453,8 +453,7 @@ void Workflow::showWorkflow(Workflow* workflow) {
   Q_EMIT showWorkflowRequest(workflow);
 }
 
-bool Workflow::update(IProgressMonitor* monitor) {
-  return true;
+void Workflow::update(IProgressMonitor* monitor) {
 }
 
 void Workflow::writeResults() {
@@ -483,7 +482,6 @@ void Workflow::load(const string& filename) {
 }
 
 void Workflow::setUiEnabled(bool enabled) {
-  //widget->setEnabled(enabled);
   propertyGrid->setEnabled(enabled);
   workbench->setModifiable(enabled);
 

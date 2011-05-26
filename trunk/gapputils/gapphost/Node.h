@@ -30,7 +30,7 @@ public:
   virtual ~Node(void);
 
   virtual bool isUpToDate() const;
-  virtual bool update(IProgressMonitor* monitor);
+  virtual void update(IProgressMonitor* monitor);
   virtual void writeResults();
 
 private:

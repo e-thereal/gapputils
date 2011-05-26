@@ -54,7 +54,7 @@ bool Node::isUpToDate() const {
   return Verifier::UpToDate(*getModule());
 }
 
-bool Node::update(IProgressMonitor* monitor) {
+void Node::update(IProgressMonitor* monitor) {
   WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
   if (element) {
     element->execute(monitor);

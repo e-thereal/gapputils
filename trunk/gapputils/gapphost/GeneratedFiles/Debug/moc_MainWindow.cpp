@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'MainWindow.h'
 **
-** Created: Fri May 13 08:33:35 2011
+** Created: Wed May 25 23:38:48 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-      13,   14, // methods
+      17,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -36,14 +36,18 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
       46,   28,   28,   28, 0x08,
       61,   28,   28,   28, 0x08,
       76,   28,   28,   28, 0x08,
-      90,   28,   28,   28, 0x08,
-      99,   28,   28,   28, 0x08,
-     133,  121,   28,   28, 0x08,
-     180,  121,   28,   28, 0x08,
-     221,   28,   28,   28, 0x08,
-     243,   28,   28,   28, 0x08,
-     260,   28,   28,   28, 0x08,
-     278,   28,   28,   28, 0x08,
+      83,   28,   28,   28, 0x08,
+      97,   28,   28,   28, 0x08,
+     106,   28,   28,   28, 0x08,
+     140,  128,   28,   28, 0x08,
+     187,  128,   28,   28, 0x08,
+     228,   28,   28,   28, 0x08,
+     250,   28,   28,   28, 0x08,
+     267,   28,   28,   28, 0x08,
+     290,  285,   28,   28, 0x08,
+     331,  322,   28,   28, 0x08,
+     365,  322,   28,   28, 0x08,
+     409,  400,   28,   28, 0x08,
 
        0        // eod
 };
@@ -51,11 +55,16 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
 static const char qt_meta_stringdata_gapputils__host__MainWindow[] = {
     "gapputils::host::MainWindow\0\0quit()\0"
     "newItem()\0loadWorkflow()\0saveWorkflow()\0"
-    "loadLibrary()\0reload()\0checkLibraryUpdates()\0"
-    "item,column\0itemDoubleClickedHandler(QTreeWidgetItem*,int)\0"
+    "save()\0loadLibrary()\0reload()\0"
+    "checkLibraryUpdates()\0item,column\0"
+    "itemDoubleClickedHandler(QTreeWidgetItem*,int)\0"
     "itemClickedHandler(QTreeWidgetItem*,int)\0"
     "updateCurrentModule()\0updateWorkflow()\0"
-    "terminateUpdate()\0updateFinished()\0"
+    "terminateUpdate()\0node\0"
+    "updateFinished(workflow::Node*)\0"
+    "workflow\0showWorkflow(workflow::Workflow*)\0"
+    "closeWorkflow(workflow::Workflow*)\0"
+    "tabIndex\0closeWorkflow(int)\0"
 };
 
 const QMetaObject gapputils::host::MainWindow::staticMetaObject = {
@@ -91,18 +100,22 @@ int gapputils::host::MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void
         case 1: newItem(); break;
         case 2: loadWorkflow(); break;
         case 3: saveWorkflow(); break;
-        case 4: loadLibrary(); break;
-        case 5: reload(); break;
-        case 6: checkLibraryUpdates(); break;
-        case 7: itemDoubleClickedHandler((*reinterpret_cast< QTreeWidgetItem*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 8: itemClickedHandler((*reinterpret_cast< QTreeWidgetItem*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 9: updateCurrentModule(); break;
-        case 10: updateWorkflow(); break;
-        case 11: terminateUpdate(); break;
-        case 12: updateFinished(); break;
+        case 4: save(); break;
+        case 5: loadLibrary(); break;
+        case 6: reload(); break;
+        case 7: checkLibraryUpdates(); break;
+        case 8: itemDoubleClickedHandler((*reinterpret_cast< QTreeWidgetItem*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 9: itemClickedHandler((*reinterpret_cast< QTreeWidgetItem*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 10: updateCurrentModule(); break;
+        case 11: updateWorkflow(); break;
+        case 12: terminateUpdate(); break;
+        case 13: updateFinished((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
+        case 14: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 15: closeWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 16: closeWorkflow((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
-        _id -= 13;
+        _id -= 17;
     }
     return _id;
 }
