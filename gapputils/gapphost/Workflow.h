@@ -72,7 +72,7 @@ public:
   void buildStack(Node* node);
   void load(const std::string& filename);
 
-  virtual bool update(IProgressMonitor* monitor);
+  virtual void update(IProgressMonitor* monitor);
   virtual void writeResults();
 
   void setUiEnabled(bool enabled);
