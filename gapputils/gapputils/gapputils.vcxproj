@@ -47,7 +47,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>GAPPUTILS_EXPORTS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;GAPPUTILS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(BOOST_INC_PATH);$(SolutionDir)tinyxml;$(SolutionDir)capputils;.\GeneratedFiles;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\qtmain;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BOOST_INC_PATH);$(SolutionDir);.\GeneratedFiles;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\qtmain;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -74,38 +74,36 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Compare.cpp" />
+    <ClCompile Include="Concater.cpp" />
     <ClCompile Include="CsvReader.cpp" />
     <ClCompile Include="CsvWriter.cpp" />
     <ClCompile Include="DefaultWorkflowElement.cpp" />
     <ClCompile Include="gapputils.cpp" />
-    <ClCompile Include="GenericViewer.cpp" />
     <ClCompile Include="HideAttribute.cpp" />
-    <ClCompile Include="InputAttribute.cpp" />
     <ClCompile Include="IProgressMonitor.cpp" />
     <ClCompile Include="LabelAttribute.cpp" />
-    <ClCompile Include="OutputAttribute.cpp" />
     <ClCompile Include="PdfLatex.cpp" />
-    <ClCompile Include="ShortNameAttribute.cpp" />
+    <ClCompile Include="StringReplacer.cpp" />
     <ClCompile Include="TextWriter.cpp" />
     <ClCompile Include="WorkflowElement.cpp" />
+    <ClCompile Include="WorkflowInterface.cpp" />
     <ClCompile Include="XslTransformation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Compare.h" />
+    <ClInclude Include="Concater.h" />
     <ClInclude Include="CsvReader.h" />
     <ClInclude Include="CsvWriter.h" />
     <ClInclude Include="DefaultWorkflowElement.h" />
     <ClInclude Include="gapputils.h" />
-    <ClInclude Include="GenericViewer.h" />
     <ClInclude Include="HideAttribute.h" />
-    <ClInclude Include="InputAttribute.h" />
     <ClInclude Include="IProgressMonitor.h" />
     <ClInclude Include="LabelAttribute.h" />
-    <ClInclude Include="OutputAttribute.h" />
     <ClInclude Include="PdfLatex.h" />
-    <ClInclude Include="ShortNameAttribute.h" />
+    <ClInclude Include="StringReplacer.h" />
     <ClInclude Include="TextWriter.h" />
     <ClInclude Include="WorkflowElement.h" />
+    <ClInclude Include="WorkflowInterface.h" />
     <ClInclude Include="XslTransformation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
