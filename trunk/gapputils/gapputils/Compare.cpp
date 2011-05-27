@@ -17,6 +17,8 @@ namespace gapputils {
 
 using namespace attributes;
 
+DefineEnum(ErrorType)
+
 BeginPropertyDefinitions(Compare)
 
   ReflectableProperty(Type, Observe(PROPERTY_ID), Label())

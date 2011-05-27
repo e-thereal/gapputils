@@ -247,8 +247,7 @@ void MainWindow::loadLibrary() {
       libs->push_back(filenames[0].toUtf8().data());
       workflow->setLibraries(libs);
     }
-    // TODO: why reload here?
-    reload();
+    updateToolBox(toolBox);
   }
 }
 
@@ -263,10 +262,10 @@ void MainWindow::reload() {
   workflow = 0;
   tabWidget->removeTab(0); // First tab is never automatically removed
   openWorkflows.clear();    // All tabs should now be closed. Either because they were closed due to delete or because they were removed manually
+
   workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(*workflowElement));
   if (!workflow)
     throw "could not reload workflow";
-
   model.setMainWorkflow(workflow);
   workflow->resumeFromModel();
   tabWidget->addTab(workflow->dispenseWidget(), "Main");

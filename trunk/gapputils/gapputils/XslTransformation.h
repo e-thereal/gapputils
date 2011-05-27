@@ -24,6 +24,7 @@ class XslTransformation : public workflow::WorkflowElement
 
 private:
   mutable XslTransformation* data;
+  static int inputId, extId;
 
 public:
   XslTransformation(void);
@@ -31,6 +32,8 @@ public:
 
   virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
   virtual void writeResults();
+
+  void changedEventHandler(capputils::ObservableClass* sender, int eventId);
 };
 
 }

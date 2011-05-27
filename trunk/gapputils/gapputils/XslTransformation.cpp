@@ -27,15 +27,18 @@ namespace gapputils {
 
 using namespace attributes;
 
+int XslTransformation::inputId;
+int XslTransformation::extId;
+
 BeginPropertyDefinitions(XslTransformation)
 
 ReflectableBase(workflow::WorkflowElement)
-DefineProperty(InputName, ShortName("Xml"), Input(), Filename(), FileExists(), Observe(PROPERTY_ID), Volatile())
-DefineProperty(OutputName, ShortName("Out"), Output(), Filename(), Observe(PROPERTY_ID), Volatile())
+DefineProperty(InputName, ShortName("Xml"), Input(), Filename(), FileExists(), Observe(inputId = PROPERTY_ID))
+DefineProperty(OutputName, ShortName("Out"), Output(), Filename(), Observe(PROPERTY_ID))
 DefineProperty(XsltName, ShortName("Xslt"), Input(), Filename(), FileExists(), Observe(PROPERTY_ID))
 DefineProperty(CommandName, Observe(PROPERTY_ID))
 DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(PROPERTY_ID), Hide())
-DefineProperty(OutputExtension, Observe(PROPERTY_ID))
+DefineProperty(OutputExtension, Observe(extId = PROPERTY_ID))
 DefineProperty(InSwitch, Observe(PROPERTY_ID))
 DefineProperty(OutSwitch, Observe(PROPERTY_ID))
 DefineProperty(XsltSwitch, Observe(PROPERTY_ID))
@@ -48,6 +51,7 @@ XslTransformation::XslTransformation(void) : _InputName(""), _OutputName(""), _X
   _InSwitch("-in "), _OutSwitch("-out "), _XsltSwitch("-xslt2 "), data(0)
 {
   setLabel("Xslt");
+  Changed.connect(capputils::EventHandler<XslTransformation>(this, &XslTransformation::changedEventHandler));
 }
 #else
 XslTransformation::XslTransformation(void) : _InputName(""), _OutputName(""), _XsltName(""),
@@ -55,6 +59,7 @@ XslTransformation::XslTransformation(void) : _InputName(""), _OutputName(""), _X
   _InSwitch("-s:"), _OutSwitch("-o:"), _XsltSwitch("-xsl:"), data(0)
 {
   setLabel("Xslt");
+  Changed.connect(capputils::EventHandler<XslTransformation>(this, &XslTransformation::changedEventHandler));
 }
 #endif
 
@@ -62,6 +67,12 @@ XslTransformation::~XslTransformation(void)
 {
   if (data)
     delete data;
+}
+
+void XslTransformation::changedEventHandler(capputils::ObservableClass* sender, int eventId) {
+  if (eventId == inputId || eventId == extId) {
+    setOutputName(getInputName() + getOutputExtension());
+  }
 }
 
 void XslTransformation::execute(gapputils::workflow::IProgressMonitor* monitor) const {
@@ -74,10 +85,9 @@ void XslTransformation::execute(gapputils::workflow::IProgressMonitor* monitor) 
   stringstream command;
   stringstream output;
   int ch;
-  string outputName = getInputName() + getOutputExtension();
 
   command << getCommandName() << " " << getInSwitch() << "\"" << getInputName() << "\" "
-          << getOutSwitch() << "\"" << outputName << "\" "
+          << getOutSwitch() << "\"" << getOutputName() << "\" "
           << getXsltSwitch() << "\"" << getXsltName() << "\"";
 
   output << "Executing: " << command.str() << endl;
@@ -88,7 +98,6 @@ void XslTransformation::execute(gapputils::workflow::IProgressMonitor* monitor) 
       output << (char)ch;
     }
     pclose(stream);
-    data->setOutputName(outputName);
   } else {
     output << "Error executing command." << endl;
   }
@@ -99,7 +108,7 @@ void XslTransformation::execute(gapputils::workflow::IProgressMonitor* monitor) 
 void XslTransformation::writeResults() {
   if(!data)
     return;
-  setOutputName(data->getOutputName());
+  setOutputName(getOutputName());
   setCommandOutput(data->getCommandOutput());
 }
 

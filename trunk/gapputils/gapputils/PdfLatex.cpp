@@ -1,19 +1,22 @@
 #include "PdfLatex.h"
 
-#include <stdio.h>
+#include <cstdio>
+#include <iostream>
 #include <sstream>
 
-#include <capputils/ObserveAttribute.h>
 #include <capputils/EventHandler.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
 #include <capputils/FileExists.h>
-#include <capputils/Verifier.h>
 #include <capputils/FilenameAttribute.h>
-#include <capputils/VolatileAttribute.h>
-#include "HideAttribute.h"
-
+#include <capputils/InputAttribute.h>
+#include <capputils/ObserveAttribute.h>
+#include <capputils/OutputAttribute.h>
 #include <capputils/ShortNameAttribute.h>
+#include <capputils/Verifier.h>
+#include <capputils/VolatileAttribute.h>
+
+#include <boost/filesystem.hpp>
+
+#include "HideAttribute.h"
 
 using namespace capputils::attributes;
 using namespace std;
@@ -27,10 +30,12 @@ namespace gapputils {
 
 using namespace attributes;
 
+int PdfLatex::texId;
+
 BeginPropertyDefinitions(PdfLatex)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(TexFilename, ShortName("TeX"), FileExists(), Input(), Observe(PROPERTY_ID), Filename(), Volatile())
+  DefineProperty(TexFilename, ShortName("TeX"), FileExists(), Input(), Observe(texId = PROPERTY_ID), Filename(), Volatile())
   DefineProperty(CommandName, Observe(PROPERTY_ID))
   DefineProperty(ParameterString, Observe(PROPERTY_ID))
   DefineProperty(OutputName, ShortName("Pdf"), Output(), Observe(PROPERTY_ID), Volatile())
@@ -43,6 +48,7 @@ PdfLatex::PdfLatex(void) : _TexFilename(""), _CommandName("pdflatex"),
     _OutputName(""), _CommandOutput(""), data(0)
 {
   setLabel("PdfLatex");
+  Changed.connect(capputils::EventHandler<PdfLatex>(this, &PdfLatex::changedEventHandler));
 }
 
 PdfLatex::~PdfLatex(void)
@@ -51,29 +57,37 @@ PdfLatex::~PdfLatex(void)
     delete data;
 }
 
+void PdfLatex::changedEventHandler(capputils::ObservableClass* sender, int eventId) {
+  if (eventId == texId) {
+    const string& texName = getTexFilename();
+    setOutputName(texName.substr(0, texName.size() - 3) + "pdf");
+  }
+}
+
 void PdfLatex::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+  using namespace boost::filesystem;
+
   if (!data)
     data = new PdfLatex();
 
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  const string& texName = getTexFilename();
   stringstream command;
   stringstream output;
   int ch;
 
-  command << getCommandName().c_str() << " \"" << texName.c_str() << "\" " << getParameterString().c_str();
+  path outputName = getOutputName();
+  command << getCommandName().c_str() << " -output-directory=\"" << outputName.branch_path().string() << "\""
+          << " " << getParameterString().c_str() << " \"" << getTexFilename() << "\"";
 
-  output << "Executing: " << command.str() << endl;
-
+  cout << "Executing: " << command.str() << endl;
   FILE* stream = popen(command.str().c_str(), "r");
   if (stream) {
     while ( (ch=fgetc(stream)) != EOF ) {
       output << (char)ch;
     }
     pclose(stream);
-    data->setOutputName(texName.substr(0, texName.size() - 3) + "pdf");
   } else {
     output << "Error executing command." << endl;
   }
@@ -82,7 +96,7 @@ void PdfLatex::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 }
 
 void PdfLatex::writeResults() {
-  setOutputName(data->getOutputName());
+  setOutputName(getOutputName());
   setCommandOutput(data->getCommandOutput());
 }
 
