@@ -118,8 +118,11 @@ Workflow::~Workflow() {
   disconnect(workbench, SIGNAL(cableCreated(CableItem*)), this, SLOT(createEdge(CableItem*)));
   disconnect(workbench, SIGNAL(cableDeleted(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
   //workbench->scene()->clear();
-  if (ownWidget)
+  if (ownWidget) {
     delete widget;
+    inputsNode.setToolItem(0);
+    outputsNode.setToolItem(0);
+  }
 
   for (unsigned i = 0; i < _Edges->size(); ++i)
     delete _Edges->at(i);
