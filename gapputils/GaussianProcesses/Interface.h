@@ -2,11 +2,11 @@
 #ifndef _GAUSSIANPROCESSES_INTERFACE_H_
 #define _GAUSSIANPROCESSES_INTERFACE_H_
 
-#include <gapputils/DefaultWorkflowElement.h>
+#include <gapputils/WorkflowInterface.h>
 
 namespace GaussianProcesses {
 
-class Interface : public gapputils::workflow::DefaultWorkflowElement
+class Interface : public gapputils::workflow::WorkflowInterface
 {
   InitReflectableClass(Interface)
 
