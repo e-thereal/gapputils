@@ -7,10 +7,4 @@
 #endif
 #endif
 
-namespace gapputils {
-
-void registerClasses();
-
-}
-
 #endif // GAPPUTILS_H

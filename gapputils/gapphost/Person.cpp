@@ -25,6 +25,8 @@ EndPropertyDefinitions
 
 Address::Address() : _Street("W 11th Ave"), _City("Vancouver"), _StreetNumber(1065), _AppartmentNumber(207) { }
 
+DefineEnum(Gender)
+
 BeginPropertyDefinitions(Person)
 
 DefineProperty(FirstName,

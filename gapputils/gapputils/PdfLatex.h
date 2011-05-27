@@ -21,6 +21,7 @@ Property(CommandOutput, std::string)
 
 private:
   mutable PdfLatex* data;
+  static int texId;
 
 public:
   PdfLatex(void);
@@ -28,6 +29,8 @@ public:
 
   virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
   virtual void writeResults();
+
+  void changedEventHandler(capputils::ObservableClass* sender, int eventId);
 };
 
 }

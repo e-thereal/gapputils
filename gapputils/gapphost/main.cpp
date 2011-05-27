@@ -6,7 +6,6 @@
 #include <capputils/ArgumentsParser.h>
 #include <capputils/Verifier.h>
 #include <iostream>
-#include <gapputils/gapputils.h>
 #include <capputils/ReflectableClassFactory.h>
 
 //#include "../GaussianProcesses/Paper.h"
@@ -25,8 +24,6 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   //cublasInit();
-  registerClasses();
-
   int ret = 0;
 #ifndef AUTOTEST
   QApplication a(argc, argv);
