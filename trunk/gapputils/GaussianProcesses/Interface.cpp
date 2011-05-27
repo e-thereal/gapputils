@@ -4,12 +4,15 @@
 #include <capputils/InputAttribute.h>
 #include <capputils/OutputAttribute.h>
 #include <capputils/FilenameAttribute.h>
+#include <capputils/TimeStampAttribute.h>
 
 using namespace capputils::attributes;
 
 namespace GaussianProcesses {
 
 BeginPropertyDefinitions(Interface)
+
+  ReflectableBase(gapputils::workflow::WorkflowInterface)
 
   DefineProperty(FirstColumn, Input(), Observe(PROPERTY_ID))
   DefineProperty(LastColumn, Input(), Observe(PROPERTY_ID))
@@ -28,6 +31,8 @@ Interface::Interface(void) : _FirstColumn(1), _LastColumn(-1), _GoalColumn(0),
 _FirstTrainRow(1), _LastTrainRow(-1), _Train(""), _FirstTestRow(1), _LastTestRow(-1),
 _Test("")
 {
+  WfiUpdateTimestamp
+  setLabel("Interface");
 }
 
 
