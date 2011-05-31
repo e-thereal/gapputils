@@ -14,16 +14,16 @@ BeginPropertyDefinitions(Interface)
 
   ReflectableBase(gapputils::workflow::WorkflowInterface)
 
-  DefineProperty(FirstColumn, Input(), Observe(PROPERTY_ID))
-  DefineProperty(LastColumn, Input(), Observe(PROPERTY_ID))
-  DefineProperty(GoalColumn, Input(), Observe(PROPERTY_ID))
-  DefineProperty(FirstTrainRow, Input(), Observe(PROPERTY_ID))
-  DefineProperty(LastTrainRow, Input(), Observe(PROPERTY_ID))
-  DefineProperty(Train, Input(), Observe(PROPERTY_ID), Filename())
-  DefineProperty(FirstTestRow, Input(), Observe(PROPERTY_ID))
-  DefineProperty(LastTestRow, Input(), Observe(PROPERTY_ID))
-  DefineProperty(Test, Input(), Observe(PROPERTY_ID), Filename())
-  DefineProperty(Error, Output(), Observe(PROPERTY_ID))
+  DefineProperty(FirstColumn, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(LastColumn, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(GoalColumn, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(FirstTrainRow, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(LastTrainRow, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Train, Input(), Observe(PROPERTY_ID), Filename(), TimeStamp(PROPERTY_ID))
+  DefineProperty(FirstTestRow, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(LastTestRow, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Test, Input(), Observe(PROPERTY_ID), Filename(), TimeStamp(PROPERTY_ID))
+  DefineProperty(Error, Output(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
