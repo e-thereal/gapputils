@@ -53,10 +53,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;GAPPUTILSCOMMON_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(BOOST_INC_PATH);$(SolutionDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(BOOST_LIB_PATH);$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -79,10 +81,22 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Compare.h" />
+    <ClInclude Include="Concater.h" />
+    <ClInclude Include="CsvReader.h" />
+    <ClInclude Include="CsvWriter.h" />
+    <ClInclude Include="PdfLatex.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="StringReplacer.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TextWriter.h" />
+    <ClInclude Include="XslTransformation.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Compare.cpp" />
+    <ClCompile Include="Concater.cpp" />
+    <ClCompile Include="CsvReader.cpp" />
+    <ClCompile Include="CsvWriter.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -92,10 +106,14 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="gapputils.common.cpp" />
+    <ClCompile Include="PdfLatex.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="StringReplacer.cpp" />
+    <ClCompile Include="TextWriter.cpp" />
+    <ClCompile Include="XslTransformation.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
