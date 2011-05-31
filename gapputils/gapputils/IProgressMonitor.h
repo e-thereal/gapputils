@@ -8,6 +8,8 @@
 #ifndef IPROGRESSMONITOR_H_
 #define IPROGRESSMONITOR_H_
 
+#include "gapputils.h"
+
 namespace gapputils {
 
 namespace workflow {
