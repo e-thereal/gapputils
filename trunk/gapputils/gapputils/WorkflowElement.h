@@ -8,6 +8,8 @@
 #ifndef WORKFLOWELEMENT_H_
 #define WORKFLOWELEMENT_H_
 
+#include "gapputils.h"
+
 #include <capputils/ReflectableClass.h>
 #include <capputils/ObservableClass.h>
 #include <capputils/TimedClass.h>
