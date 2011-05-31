@@ -25,9 +25,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="gapputils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LabelAttribute.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,7 +78,22 @@
     <ClInclude Include="HideAttribute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WorkflowElement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IProgressMonitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DefaultWorkflowElement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WorkflowInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Compare.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Concater.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CsvReader.h">
@@ -93,28 +105,13 @@
     <ClInclude Include="PdfLatex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TextWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WorkflowElement.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="IProgressMonitor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DefaultWorkflowElement.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XslTransformation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Concater.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="StringReplacer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WorkflowInterface.h">
+    <ClInclude Include="TextWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="XslTransformation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
