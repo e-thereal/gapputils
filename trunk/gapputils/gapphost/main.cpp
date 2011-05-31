@@ -7,6 +7,7 @@
 #include <capputils/Verifier.h>
 #include <iostream>
 #include <capputils/ReflectableClassFactory.h>
+#include <capputils/FactoryException.h>
 
 //#include "../GaussianProcesses/Paper.h"
 #include "DataModel.h"
@@ -28,8 +29,12 @@ int main(int argc, char *argv[])
 #ifndef AUTOTEST
   QApplication a(argc, argv);
   DataModel& model = DataModel::getInstance();
+  try {
   Xmlizer::FromXml(model, "gapphost.conf.xml");
-
+  } catch (capputils::exceptions::FactoryException ex) {
+    cout << ex.what() << endl;
+    return 1;
+  }
   // Initialize if necessary
   if (!model.getMainWorkflow())
     model.setMainWorkflow(new Workflow());
