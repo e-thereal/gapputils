@@ -57,6 +57,9 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
+    <Link>
+      <AdditionalLibraryDirectories>$(BOOST_LIB_PATH);$(OutDir)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -78,7 +81,6 @@
     <ClCompile Include="CsvReader.cpp" />
     <ClCompile Include="CsvWriter.cpp" />
     <ClCompile Include="DefaultWorkflowElement.cpp" />
-    <ClCompile Include="gapputils.cpp" />
     <ClCompile Include="HideAttribute.cpp" />
     <ClCompile Include="IProgressMonitor.cpp" />
     <ClCompile Include="LabelAttribute.cpp" />
