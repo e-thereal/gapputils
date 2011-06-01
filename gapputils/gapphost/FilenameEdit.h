@@ -11,9 +11,11 @@ class FilenameEdit : public QFrame
 private:
   QLineEdit* edit;
   QPushButton* button;
+  bool multiSelection;
+  bool exists;
 
 public:
-    FilenameEdit(QWidget *parent);
+    FilenameEdit(bool exists, bool multiSelection, QWidget *parent);
     ~FilenameEdit();
 
     void setText(const QString& text);

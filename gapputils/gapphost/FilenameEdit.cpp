@@ -35,8 +35,8 @@ bool inCurrentDir(const path filename) {
   return ci == current.end();
 }
 
-FilenameEdit::FilenameEdit(QWidget *parent)
-  : QFrame(parent)
+FilenameEdit::FilenameEdit(bool exists, bool multiSelection, QWidget *parent)
+  : exists(exists), multiSelection(multiSelection), QFrame(parent)
 {
   edit = new QLineEdit(this);
   edit->setVisible(true);
@@ -59,16 +59,40 @@ void FilenameEdit::focusInEvent(QFocusEvent* e) {
 }
 
 void FilenameEdit::clickedHandler() {
-  QFileDialog fileDialog(this);
-  if (fileDialog.exec() == QDialog::Accepted) {
-    QStringList filenames = fileDialog.selectedFiles();
-    if (filenames.size()) {
+  QStringList filenames;
+
+  if (exists) {
+    if (multiSelection)
+      filenames = QFileDialog::getOpenFileNames();
+    else {
+      QString filename = QFileDialog::getOpenFileName();
+      if (!filename.isNull())
+        filenames.append(filename);
+    }
+  } else {
+    QString filename = QFileDialog::getSaveFileName();
+    if (!filename.isNull())
+      filenames.append(filename);
+  }
+  if (filenames.size()) {
+    if (multiSelection) {
+      QString filenamesString;
+      for (int i = 0; i < filenames.count(); ++i) {
+        path filename(filenames[i].toAscii().data());
+        if (inCurrentDir(filename))
+          filename = makeRelative(filename);
+        if (i > 0)
+          filenamesString += " ";
+        filenamesString += QString("\"") + filename.file_string().c_str() + "\"";
+      }
+      edit->setText(filenamesString);
+    } else {
       path filename(filenames[0].toAscii().data());
       if (inCurrentDir(filename))
         filename = makeRelative(filename);
       edit->setText(filename.file_string().c_str());
-      Q_EMIT editingFinished();
     }
+    Q_EMIT editingFinished();
   }
 }
 

@@ -41,7 +41,7 @@ void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
     if (shortName)
       keyName = keyName + " (" + shortName->getName() + ")";
     QStandardItem* key = new QStandardItem(keyName.c_str());
-    QStandardItem* value = new QStandardItem(properties[i]->getStringValue(object).c_str());
+    QStandardItem* value = new QStandardItem();
     key->setEditable(false);
     value->setData(QVariant::fromValue(PropertyReference(&object, properties[i])), Qt::UserRole);
 
@@ -66,9 +66,15 @@ void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
         if (!subObject->getAttribute<ScalarAttribute>()) {
           value->setText(subObject->getClassName().c_str());
           value->setEnabled(false);
+        } else {
+          value->setText(properties[i]->getStringValue(object).c_str());
         }
         buildModel(key, *subObject);
+      } else {
+        value->setText(properties[i]->getStringValue(object).c_str());
       }
+    } else {
+      value->setText(properties[i]->getStringValue(object).c_str());
     }
     parentItem->setChild(gridPos, 0, key);
     parentItem->setChild(gridPos, 1, value);
@@ -84,7 +90,16 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object) {
       continue;
 
     QStandardItem* value = parentItem->child(gridPos, 1);
-    value->setText(properties[i]->getStringValue(object).c_str());
+    if (!value) {
+      string keyName = properties[i]->getName();
+      ShortNameAttribute* shortName = properties[i]->getAttribute<ShortNameAttribute>();
+      if (shortName)
+        keyName = keyName + " (" + shortName->getName() + ")";
+      QStandardItem* key = new QStandardItem(keyName.c_str());
+      value = new QStandardItem();
+      parentItem->setChild(gridPos, 0, key);
+      parentItem->setChild(gridPos, 1, value);
+    }
 
     IReflectableAttribute* reflectable = properties[i]->getAttribute<IReflectableAttribute>();
     if (reflectable) {
@@ -94,9 +109,15 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object) {
       if (!enumerator && subObject) {
         if (!subObject->getAttribute<ScalarAttribute>()) {
           value->setText(subObject->getClassName().c_str());
+        } else {
+          value->setText(properties[i]->getStringValue(object).c_str());
         }
         updateModel(parentItem->child(gridPos, 0), *subObject);
+      } else {
+        value->setText(properties[i]->getStringValue(object).c_str());
       }
+    } else {
+      value->setText(properties[i]->getStringValue(object).c_str());
     }
     ++gridPos;
   }

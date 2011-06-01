@@ -24,7 +24,7 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-  scene->setSceneRect(-250, -250, 500, 500);
+  scene->setSceneRect(-500, -500, 1000, 1000);
   //scene->addItem(new CablePlug());
   setScene(scene);
   setCacheMode(CacheBackground);
@@ -81,8 +81,13 @@ void Workbench::notifyItemChange(ToolItem* item) {
 
 void Workbench::mousePressEvent(QMouseEvent* event) {
   vector<ToolConnection*> connections;
+  bool connectionHit = false;
 
   if (!modifiable) {
+    if (event->button() == Qt::LeftButton)
+      setDragMode(ScrollHandDrag);
+    else if (event->button() == Qt::RightButton)
+      setDragMode(RubberBandDrag);
     QGraphicsView::mousePressEvent(event);
     return;
   }
@@ -117,6 +122,7 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
         Q_FOREACH (QGraphicsItem *item, scene()->items()) {
           item->update();
         }
+        return;
       }
       ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
       if (connection) {
@@ -135,9 +141,14 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
         Q_FOREACH (QGraphicsItem *item, scene()->items()) {
           item->update();
         }
+        return;
       }
     }
   }
+  if (event->button() == Qt::LeftButton)
+    setDragMode(ScrollHandDrag);
+  else if (event->button() == Qt::RightButton)
+    setDragMode(RubberBandDrag);
   QGraphicsView::mousePressEvent(event);
 }
 
@@ -146,6 +157,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
     QGraphicsView::mouseReleaseEvent(event);
     return;
   }
+
 
   if (currentCables.size()) {
     bool foundConnection = false;
@@ -200,6 +212,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
     }
   }
   QGraphicsView::mouseReleaseEvent(event);
+  setDragMode(NoDrag);
 }
 
 void Workbench::removeToolItem(ToolItem* item) {
@@ -216,6 +229,8 @@ void Workbench::keyPressEvent(QKeyEvent *event)
   }
 
   switch (event->key()) {
+  case Qt::Key_Space:
+    break;
   case Qt::Key_Delete:
     if (selectedItem && selectedItem->isDeletable()) {
       removeToolItem(selectedItem);
@@ -223,6 +238,11 @@ void Workbench::keyPressEvent(QKeyEvent *event)
     break;
   default:
     QGraphicsView::keyPressEvent(event);
+  }
+}
+
+void Workbench::keyReleaseEvent(QKeyEvent *event) {
+  if (event->key() == Qt::Key_Space) {
   }
 }
 
@@ -237,7 +257,9 @@ void Workbench::drawBackground(QPainter *painter, const QRectF &rect)
      Q_UNUSED(rect);
 
      // Shadow
-     QRectF sceneRect = this->sceneRect();
+     QRectF osceneRect = this->sceneRect();
+     QRectF sceneRect(osceneRect.x() + osceneRect.width() / 4, osceneRect.y() + osceneRect.height() / 4, osceneRect.width() / 2, osceneRect.height() / 2);
+
 //     QRectF rightShadow(sceneRect.right(), sceneRect.top() + 5, 5, sceneRect.height());
 //     QRectF bottomShadow(sceneRect.left() + 5, sceneRect.bottom(), sceneRect.width(), 5);
 //     if (rightShadow.intersects(rect) || rightShadow.contains(rect))
@@ -271,7 +293,7 @@ void Workbench::drawBackground(QPainter *painter, const QRectF &rect)
 
 void Workbench::wheelEvent(QWheelEvent *event)
  {
-     scaleView(pow((double)2, -event->delta() / 240.0));
+     scaleView(pow((double)1.3, -event->delta() / 240.0));
  }
 
 void Workbench::scaleView(qreal scaleFactor)

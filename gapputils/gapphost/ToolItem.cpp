@@ -271,6 +271,8 @@ ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
    progress(-1), deleting(false)
 {
   setFlag(ItemIsMovable);
+  setFlag(ItemIsSelectable);
+  setFlag(ItemIsFocusable);
 #if (QT_VERSION >= 0x040700)
   setFlag(ItemSendsGeometryChanges);
 #endif
