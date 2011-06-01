@@ -1,7 +1,10 @@
 #include "PropertyGridDelegate.h"
 
 #include <qcombobox.h>
+#include <capputils/EnumerableAttribute.h>
+#include <capputils/FromEnumerableAttribute.h>
 #include <capputils/IReflectableAttribute.h>
+#include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
 #include <capputils/Enumerator.h>
 #include "PropertyReference.h"
@@ -23,7 +26,12 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
   const QVariant& varient = index.model()->data(index, Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
-    IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
+    IClassProperty* property = reference.getProperty();
+    ReflectableClass* object = reference.getObject();
+
+    IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
+    FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
+    FilenameAttribute* fa = 0;
     if (reflectable) {
       ReflectableClass* object = reference.getObject();
       IClassProperty* prop = reference.getProperty();
@@ -36,9 +44,23 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
           box->addItem(values[i].c_str());
         return box;
       }
-    }
-    if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
-      FilenameEdit* editor = new FilenameEdit(parent);
+    } else if (fromEnumerable) {
+      QComboBox* box = new QComboBox(parent);
+      vector<IClassProperty*>& properties = object->getProperties();
+      if (fromEnumerable->getEnumerablePropertyId() < (int)properties.size()) {
+        IClassProperty* enumProperty = properties[fromEnumerable->getEnumerablePropertyId()];
+        IEnumerableAttribute* enumAttr = enumProperty->getAttribute<IEnumerableAttribute>();
+        if (enumAttr) {
+          IPropertyIterator* iter = enumAttr->getPropertyIterator(enumProperty);
+          for (iter->reset(); !iter->eof(*object); iter->next()) {
+            box->addItem(iter->getStringValue(*object).c_str());
+          }
+        }
+      }
+      return box;
+    } else if ((fa = reference.getProperty()->getAttribute<FilenameAttribute>())) {
+      bool exists = reference.getProperty()->getAttribute<FileExistsAttribute>();
+      FilenameEdit* editor = new FilenameEdit(exists, fa->getMultipleSelection(), parent);
       connect(editor, SIGNAL(editingFinished()),
                  this, SLOT(commitAndCloseEditor()));
       return editor;
@@ -54,6 +76,7 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
     IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
+    FromEnumerableAttribute* fromEnumerable = reference.getProperty()->getAttribute<FromEnumerableAttribute>();
     if (reflectable) {
       ReflectableClass* object = reference.getObject();
       IClassProperty* prop = reference.getProperty();
@@ -64,8 +87,17 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
         box->setCurrentIndex(enumerator->toInt());
         return;
       }
-    }
-    if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
+    } else if (fromEnumerable) {
+      QComboBox* box = static_cast<QComboBox*>(editor);
+      QString itemText = index.model()->data(index).toString();
+      for (int i = 0; i < box->count(); ++i) {
+        if (box->itemText(i).compare(itemText) == 0) {
+          box->setCurrentIndex(i);
+          break;
+        }
+      }
+      return;
+    } else if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
       FilenameEdit* edit = static_cast<FilenameEdit*>(editor);
       edit->setText(index.model()->data(index).toString());
     }
@@ -80,6 +112,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
     IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
+    FromEnumerableAttribute* fromEnumerable = reference.getProperty()->getAttribute<FromEnumerableAttribute>();
     if (reflectable) {
       ReflectableClass* object = reference.getObject();
       IClassProperty* prop = reference.getProperty();
@@ -91,8 +124,12 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
         model->setData(index, str, Qt::EditRole);
         return;
       }
-    }
-    if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
+    } else if (fromEnumerable) {
+      QComboBox* box = static_cast<QComboBox*>(editor);
+      QString str = box->currentText();
+      model->setData(index, str, Qt::EditRole);
+      return;
+    } else if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
       FilenameEdit* edit = static_cast<FilenameEdit*>(editor);
       QString text = edit->getText();
       model->setData(index, text);

@@ -19,6 +19,7 @@
 #include <capputils/Verifier.h>
 #include <capputils/EnumerableAttribute.h>
 
+#include <gapputils/CombinerInterface.h>
 #include <gapputils/HideAttribute.h>
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/WorkflowInterface.h>
@@ -59,7 +60,7 @@ DefineProperty(OutputsPosition)
 
 EndPropertyDefinitions
 
-Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true), hasIONodes(false), worker(0) {
+Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true), hasIONodes(false), processingCombination(false), worker(0) {
   _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
   _Nodes = new vector<Node*>();
@@ -402,6 +403,15 @@ void Workflow::updateSelectedModule() {
 }
 
 void Workflow::updateOutputs() {
+  // if multiple interface
+  //  - clear multiple outputs
+  //  - reset combinations iterator
+  CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
+  if (combiner) {
+    combiner->resetCombinations();
+    processingCombination = true;
+  }
+
   buildStack(&outputsNode);
   processStack();
 }
@@ -428,11 +438,29 @@ void Workflow::processStack() {
       node->getToolItem()->setProgress(100);
     }
   }
-  Q_EMIT updateFinished(this);
 
   // set all back
   for(; !processedStack.empty(); processedStack.pop())
     processedStack.top()->getToolItem()->setProgress(-1);
+
+  // if multiple interface:
+  //  - Add single results to multiple outputs
+  //  - if not done
+  //     * advance to next calculation
+  //     * Rebuild stack
+  //     * Start calculation (process stack)
+  CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
+  if (combiner && processingCombination) {
+    combiner->appendResults();
+    if (combiner->advanceCombinations()) {
+      buildStack(&outputsNode);
+      processStack();
+    } else {
+      processingCombination = false;
+    }
+  }
+
+  Q_EMIT updateFinished(this);
 }
 
 void Workflow::finalizeModuleUpdate(Node* node) {

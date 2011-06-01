@@ -47,7 +47,7 @@ private:
   QWidget* widget;
   Node inputsNode, outputsNode;
   std::set<std::string> loadedLibraries;
-  bool ownWidget, hasIONodes;
+  bool ownWidget, hasIONodes, processingCombination;
   WorkflowWorker* worker;
   std::stack<Node*> nodeStack;
   std::stack<Node*> processedStack;
