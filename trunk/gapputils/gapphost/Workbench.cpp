@@ -24,7 +24,7 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-  scene->setSceneRect(-500, -500, 1000, 1000);
+  scene->setSceneRect(0, 0, 5000, 3000);
   //scene->addItem(new CablePlug());
   setScene(scene);
   setCacheMode(CacheBackground);
@@ -81,7 +81,6 @@ void Workbench::notifyItemChange(ToolItem* item) {
 
 void Workbench::mousePressEvent(QMouseEvent* event) {
   vector<ToolConnection*> connections;
-  bool connectionHit = false;
 
   if (!modifiable) {
     if (event->button() == Qt::LeftButton)
@@ -255,6 +254,7 @@ void Workbench::mouseMoveEvent(QMouseEvent* event) {
 void Workbench::drawBackground(QPainter *painter, const QRectF &rect)
  {
      Q_UNUSED(rect);
+     return;
 
      // Shadow
      QRectF osceneRect = this->sceneRect();
