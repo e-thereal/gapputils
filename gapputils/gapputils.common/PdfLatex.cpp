@@ -80,7 +80,10 @@ void PdfLatex::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   int ch;
 
   path outputName = getOutputName();
-  command << getCommandName().c_str() << " -output-directory=\"" << outputName.branch_path().string() << "\""
+  string outputDir = outputName.branch_path().string();
+  if (outputDir.size() == 0)
+    outputDir = ".";
+  command << getCommandName().c_str() << " -output-directory=\"" << outputDir << "\""
           << " " << getParameterString().c_str() << " \"" << getTexFilename() << "\"";
 
   cout << "Executing: " << command.str() << endl;

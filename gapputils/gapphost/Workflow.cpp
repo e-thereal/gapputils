@@ -181,7 +181,8 @@ void Workflow::newModule(const std::string& name) {
     node = new Node();
     node->setModule(object);
   }
-
+  node->setX(workbench->scene()->sceneRect().width() / 2);
+  node->setY(workbench->scene()->sceneRect().height() / 2);
   getNodes()->push_back(node);
 
   newItem(node);
