@@ -76,6 +76,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CombinerInterface.cpp" />
     <ClCompile Include="DefaultWorkflowElement.cpp" />
     <ClCompile Include="HideAttribute.cpp" />
     <ClCompile Include="IProgressMonitor.cpp" />
@@ -84,6 +85,7 @@
     <ClCompile Include="WorkflowInterface.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CombinerInterface.h" />
     <ClInclude Include="DefaultWorkflowElement.h" />
     <ClInclude Include="gapputils.h" />
     <ClInclude Include="HideAttribute.h" />
