@@ -72,6 +72,13 @@ public:
   void buildStack(Node* node);
   void load(const std::string& filename);
 
+  /// Workflows are never up-to-date unless all modules are up-to-date
+  /**
+   * Checking if a workflow is up-to-date involves individual checks of each module
+   * Checking each modules is the same as if you would recalculate the workflow. Thus,
+   * workflows are always assumed not to be up to date.
+   */
+  virtual bool isUpToDate() const;
   virtual void update(IProgressMonitor* monitor);
   virtual void writeResults();
 

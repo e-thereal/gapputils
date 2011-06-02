@@ -52,6 +52,10 @@ void CombinerInterface::resetCombinations() {
   inputIterators.clear();
   outputIterators.clear();
 
+  maxIterations = 0;
+  currentIteration = 0;
+  int count = 0;
+
   vector<IClassProperty*>& properties = getProperties();
   FromEnumerableAttribute* fromEnumerable;
   ToEnumerableAttribute* toEnumerable;
@@ -63,6 +67,10 @@ void CombinerInterface::resetCombinations() {
       if (enumId < (int)properties.size() && (enumerable = properties[enumId]->getAttribute<IEnumerableAttribute>())) {
         IPropertyIterator* iterator = enumerable->getPropertyIterator(properties[enumId]);
         iterator->reset();
+        for (count = 0; !iterator->eof(*this); iterator->next(), ++count);
+        maxIterations = max(maxIterations, count);
+        iterator->reset();
+
         properties[i]->setValue(*this, *this, iterator);
         inputProperties.push_back(properties[i]);
         inputIterators.push_back(iterator);
@@ -92,7 +100,13 @@ void CombinerInterface::appendResults() {
 
 bool CombinerInterface::advanceCombinations() {
   cout << "Advance combinations" << endl;
+  ++currentIteration;
 
+  // TODO: Timestamps have a precision of 1 second. Changes done within one
+  // second can not be detected by Verifier::UpToDate(). Thus, a module can be
+  // falsely tagged as up to date if it is changed multiply times within one second.
+  // Therefore, the process waits for one second before the next iteration starts.
+  sleep(1);
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
     inputIterators[i]->next();
     if (inputIterators[i]->eof(*this)) {
@@ -103,6 +117,12 @@ bool CombinerInterface::advanceCombinations() {
   }
 
   return true;
+}
+
+int CombinerInterface::getProgress() const {
+  if (maxIterations < 1)
+    return -2;
+  return 100 * currentIteration / maxIterations;
 }
 
 }

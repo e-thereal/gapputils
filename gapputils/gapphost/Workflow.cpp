@@ -411,6 +411,9 @@ void Workflow::updateOutputs() {
   if (combiner) {
     combiner->resetCombinations();
     processingCombination = true;
+    ToolItem* item = getToolItem();
+    if (item)
+      item->setProgress(5);
   }
 
   buildStack(&outputsNode);
@@ -424,6 +427,7 @@ void Workflow::processStack() {
     nodeStack.pop();
 
     processedStack.push(node);
+
     // Update the node, if it needs update or if it is the last one
     if (nodeStack.empty() || !node->isUpToDate()) {
       node->getToolItem()->setProgress(-2);
@@ -454,8 +458,12 @@ void Workflow::processStack() {
   if (combiner && processingCombination) {
     combiner->appendResults();
     if (combiner->advanceCombinations()) {
+      ToolItem* item = getToolItem();
+      if (item)
+        item->setProgress(combiner->getProgress());
       buildStack(&outputsNode);
       processStack();
+      return;       // return here. otherwise update finished is emitted.
     } else {
       processingCombination = false;
     }
@@ -483,6 +491,10 @@ void Workflow::showProgress(Node* node, int i) {
 
 void Workflow::showWorkflow(Workflow* workflow) {
   Q_EMIT showWorkflowRequest(workflow);
+}
+
+bool Workflow::isUpToDate() const {
+  return false;
 }
 
 void Workflow::update(IProgressMonitor* monitor) {
