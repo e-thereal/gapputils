@@ -60,7 +60,7 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
       return box;
     } else if ((fa = reference.getProperty()->getAttribute<FilenameAttribute>())) {
       bool exists = reference.getProperty()->getAttribute<FileExistsAttribute>();
-      FilenameEdit* editor = new FilenameEdit(exists, fa->getMultipleSelection(), parent);
+      FilenameEdit* editor = new FilenameEdit(exists, fa, parent);
       connect(editor, SIGNAL(editingFinished()),
                  this, SLOT(commitAndCloseEditor()));
       return editor;

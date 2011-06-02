@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 
 using namespace boost::filesystem;
+using namespace capputils::attributes;
 
 path makeRelative(const path& absolute) {
   path current = current_path();
@@ -35,8 +36,8 @@ bool inCurrentDir(const path filename) {
   return ci == current.end();
 }
 
-FilenameEdit::FilenameEdit(bool exists, bool multiSelection, QWidget *parent)
-  : exists(exists), multiSelection(multiSelection), QFrame(parent)
+FilenameEdit::FilenameEdit(bool exists, FilenameAttribute* filenameAttribute, QWidget *parent)
+  : exists(exists), filenameAttribute(filenameAttribute), QFrame(parent)
 {
   edit = new QLineEdit(this);
   edit->setVisible(true);
@@ -60,17 +61,18 @@ void FilenameEdit::focusInEvent(QFocusEvent* e) {
 
 void FilenameEdit::clickedHandler() {
   QStringList filenames;
+  bool multiSelection = filenameAttribute->getMultipleSelection();
 
   if (exists) {
     if (multiSelection)
-      filenames = QFileDialog::getOpenFileNames();
+      filenames = QFileDialog::getOpenFileNames(this, "Open Files", "", filenameAttribute->getPattern().c_str());
     else {
-      QString filename = QFileDialog::getOpenFileName();
+      QString filename = QFileDialog::getOpenFileName(this, "Open File", "", filenameAttribute->getPattern().c_str());
       if (!filename.isNull())
         filenames.append(filename);
     }
   } else {
-    QString filename = QFileDialog::getSaveFileName();
+    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", filenameAttribute->getPattern().c_str());
     if (!filename.isNull())
       filenames.append(filename);
   }

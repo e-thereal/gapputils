@@ -5,17 +5,20 @@
 #include <qlineedit.h>
 #include <qpushbutton.h>
 
+#include <capputils/FilenameAttribute.h>
+
 class FilenameEdit : public QFrame
 {
   Q_OBJECT
 private:
   QLineEdit* edit;
   QPushButton* button;
-  bool multiSelection;
   bool exists;
+  capputils::attributes::FilenameAttribute* filenameAttribute;
 
 public:
-    FilenameEdit(bool exists, bool multiSelection, QWidget *parent);
+    FilenameEdit(bool exists, capputils::attributes::FilenameAttribute* filenameAttribute,
+        QWidget *parent);
     ~FilenameEdit();
 
     void setText(const QString& text);

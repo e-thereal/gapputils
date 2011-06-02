@@ -22,6 +22,7 @@ class CombinerInterface : public WorkflowInterface {
 private:
   std::vector<capputils::reflection::IPropertyIterator*> inputIterators, outputIterators;
   std::vector<capputils::reflection::IClassProperty*> inputProperties, outputProperties;
+  int maxIterations, currentIteration;
 
 public:
   CombinerInterface();
@@ -44,6 +45,8 @@ public:
    * Set up the next combination. Returns false when done.
    */
   bool advanceCombinations();
+
+  int getProgress() const;
 };
 
 }

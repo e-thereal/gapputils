@@ -24,13 +24,15 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-  scene->setSceneRect(0, 0, 5000, 3000);
+  scene->setSceneRect(0, 0, 2000, 1300);
   //scene->addItem(new CablePlug());
   setScene(scene);
   setCacheMode(CacheBackground);
   setRenderHint(QPainter::Antialiasing);
   setTransformationAnchor(AnchorUnderMouse);
   scale(qreal(1), qreal(1));
+  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
 Workbench::~Workbench() {
@@ -251,14 +253,10 @@ void Workbench::mouseMoveEvent(QMouseEvent* event) {
   QGraphicsView::mouseMoveEvent(event);
 }
 
-void Workbench::drawBackground(QPainter *painter, const QRectF &rect)
- {
-     Q_UNUSED(rect);
-     return;
-
-     // Shadow
-     QRectF osceneRect = this->sceneRect();
-     QRectF sceneRect(osceneRect.x() + osceneRect.width() / 4, osceneRect.y() + osceneRect.height() / 4, osceneRect.width() / 2, osceneRect.height() / 2);
+void Workbench::drawBackground(QPainter *painter, const QRectF &rect) {
+  // Shadow
+  QRectF osceneRect = this->sceneRect();
+  QRectF sceneRect(osceneRect.x() + osceneRect.width() / 4, osceneRect.y() + osceneRect.height() / 4, osceneRect.width() / 2, osceneRect.height() / 2);
 
 //     QRectF rightShadow(sceneRect.right(), sceneRect.top() + 5, 5, sceneRect.height());
 //     QRectF bottomShadow(sceneRect.left() + 5, sceneRect.bottom(), sceneRect.width(), 5);
@@ -267,28 +265,32 @@ void Workbench::drawBackground(QPainter *painter, const QRectF &rect)
 //     if (bottomShadow.intersects(rect) || bottomShadow.contains(rect))
 //         painter->fillRect(bottomShadow, Qt::darkGray);
 
-     // Fill
-     QLinearGradient gradient(sceneRect.topLeft(), sceneRect.bottomRight());
-     gradient.setColorAt(0, Qt::white);
-     gradient.setColorAt(1, QColor(160, 160, 196));
-     painter->fillRect(rect.intersect(sceneRect), gradient);
-     painter->setBrush(Qt::NoBrush);
-     painter->drawRect(sceneRect);
+  // Fill
+  QLinearGradient gradient(sceneRect.topLeft(), sceneRect.bottomRight());
+  gradient.setColorAt(0, Qt::white);
+  gradient.setColorAt(1, QColor(160, 160, 196));
+  painter->fillRect(osceneRect, Qt::white);
+  painter->fillRect(rect.intersect(sceneRect), gradient);
+  //painter->fillRect(sceneRect, gradient);
+  painter->setBrush(Qt::NoBrush);
+  painter->drawRect(sceneRect);
 
-     // Text
-     QRectF textRect(sceneRect.left() + 8, sceneRect.top() + 4,
-                     sceneRect.width() - 16, sceneRect.height() - 8);
-     QString message(tr("Application Host Workbench"));
+  // Text
+  QRectF textRect(sceneRect.left() + 8, sceneRect.top() + 4,
+      sceneRect.width() - 16, sceneRect.height() - 8);
+  QString message(tr("Application Host Workbench"));
 
-     QFont font = painter->font();
-     font.setBold(true);
-     font.setPointSize(14);
-     painter->setFont(font);
-     painter->setPen(Qt::lightGray);
-     painter->setOpacity(0.75);
-     painter->drawText(textRect.translated(2, 2), Qt::AlignBottom | Qt::AlignRight, message);
-     painter->setPen(Qt::black);
-     painter->drawText(textRect, Qt::AlignBottom | Qt::AlignRight, message);
+  QFont font = painter->font();
+  font.setBold(true);
+  font.setPointSize(14);
+  painter->setFont(font);
+  painter->setPen(Qt::lightGray);
+  painter->setOpacity(0.75);
+  painter->drawText(textRect.translated(2, 2), Qt::AlignBottom | Qt::AlignRight, message);
+  painter->setPen(Qt::black);
+  painter->drawText(textRect, Qt::AlignBottom | Qt::AlignRight, message);
+
+  QGraphicsView::drawBackground(painter, rect);
  }
 
 void Workbench::wheelEvent(QWheelEvent *event)
