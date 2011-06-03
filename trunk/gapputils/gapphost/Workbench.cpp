@@ -251,11 +251,14 @@ void Workbench::keyReleaseEvent(QKeyEvent *event) {
 void Workbench::dragMoveEvent(QDragMoveEvent* event) {
   if (event->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist"))
     event->accept();
+
+  //QGraphicsView::dragMoveEvent(event);
 }
 
 void Workbench::dragEnterEvent(QDragEnterEvent *event) {
   if (event->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist"))
     event->accept();
+  QGraphicsView::dragEnterEvent(event);
 }
 
 void Workbench::dropEvent(QDropEvent *event) {
@@ -266,6 +269,8 @@ void Workbench::dropEvent(QDropEvent *event) {
   cout << "Class: " << model.item(0, 0)->data(Qt::UserRole).toString().toAscii().data() << endl;
   cout << "At: " << pos.x() << ", " << pos.y() << endl;
   Q_EMIT createItemRequest(pos.x(), pos.y(), model.item(0, 0)->data(Qt::UserRole).toString());
+
+  QGraphicsView::dropEvent(event);
 }
 
 void Workbench::mouseMoveEvent(QMouseEvent* event) {

@@ -513,6 +513,9 @@ void ToolItem::drawConnections(QPainter* painter, bool showLabel) {
 void ToolItem::drawBox(QPainter* painter) {
   QLinearGradient gradient(0, 0, 0, height);
   QLinearGradient progressGradient(0, 0, 0, height);
+
+  bool selected = bench->scene()->selectedItems().contains(this);
+
   if (bench && bench->getSelectedItem() == this) {
     gradient.setColorAt(0, Qt::white);
     switch(progress) {
@@ -544,8 +547,23 @@ void ToolItem::drawBox(QPainter* painter) {
     progressGradient.setColorAt(1, Qt::green);
     setZValue(2);
   }
-  
 
+  painter->save();
+  if (selected) {
+    painter->setOpacity(0.2);
+    painter->setPen(QPen(Qt::white, 15));
+    painter->drawRoundedRect(0, 0, width, height, 4, 4);
+    painter->setOpacity(0.4);
+    painter->setPen(QPen(Qt::white, 10));
+    painter->drawRoundedRect(0, 0, width, height, 4, 4);
+    painter->setOpacity(0.6);
+    painter->setPen(QPen(Qt::white, 6));
+    painter->drawRoundedRect(0, 0, width, height, 4, 4);
+    painter->setOpacity(0.8);
+    painter->setPen(QPen(Qt::white, 3));
+    painter->drawRoundedRect(0, 0, width, height, 4, 4);
+  }
+  painter->setOpacity(0.9);
   painter->setBrush(gradient);
   painter->setPen(QPen(Qt::black, 0));
   painter->drawRoundedRect(0, 0, width, height, 4, 4);
@@ -558,6 +576,7 @@ void ToolItem::drawBox(QPainter* painter) {
     painter->drawRoundedRect(0, 0, width, height, 4, 4);
     painter->restore();
   }
+  painter->restore();
 }
 
 std::string ToolItem::getLabel() const {
