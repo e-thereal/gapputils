@@ -106,7 +106,11 @@ bool CombinerInterface::advanceCombinations() {
   // second can not be detected by Verifier::UpToDate(). Thus, a module can be
   // falsely tagged as up to date if it is changed multiply times within one second.
   // Therefore, the process waits for one second before the next iteration starts.
+#ifdef _WIN32
+  _sleep(1);
+#else
   sleep(1);
+#endif
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
     inputIterators[i]->next();
     if (inputIterators[i]->eof(*this)) {

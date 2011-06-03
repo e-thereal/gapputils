@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workflow.h'
 **
-** Created: Thu Jun 2 00:05:08 2011
+** Created: Thu Jun 2 19:13:58 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-      13,   14, // methods
+      14,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -37,15 +37,16 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
      149,   99,   30,   30, 0x05,
 
  // slots: signature, parameters, type, tag, flags
-     188,  183,   30,   30, 0x08,
-     212,  183,   30,   30, 0x08,
-     242,  183,   30,   30, 0x08,
-     270,  264,   30,   30, 0x08,
-     293,  264,   30,   30, 0x08,
-     316,   31,   30,   30, 0x08,
-     361,  354,   30,   30, 0x08,
-     395,   99,   30,   30, 0x08,
-     429,   99,   30,   30, 0x08,
+     197,  183,   30,   30, 0x08,
+     230,  225,   30,   30, 0x08,
+     254,  225,   30,   30, 0x08,
+     284,  225,   30,   30, 0x08,
+     312,  306,   30,   30, 0x08,
+     335,  306,   30,   30, 0x08,
+     358,   31,   30,   30, 0x08,
+     403,  396,   30,   30, 0x08,
+     437,   99,   30,   30, 0x08,
+     471,   99,   30,   30, 0x08,
 
        0        // eod
 };
@@ -56,6 +57,7 @@ static const char qt_meta_stringdata_gapputils__workflow__Workflow[] = {
     "processModule(workflow::Node*)\0workflow\0"
     "showWorkflowRequest(workflow::Workflow*)\0"
     "deleteCalled(workflow::Workflow*)\0"
+    "x,y,classname\0createItem(int,int,QString)\0"
     "item\0itemSelected(ToolItem*)\0"
     "itemChangedHandler(ToolItem*)\0"
     "deleteItem(ToolItem*)\0cable\0"
@@ -101,18 +103,19 @@ int gapputils::workflow::Workflow::qt_metacall(QMetaObject::Call _c, int _id, vo
         case 1: processModule((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
         case 2: showWorkflowRequest((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
         case 3: deleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 4: itemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 5: itemChangedHandler((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 6: deleteItem((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 7: createEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
-        case 8: deleteEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
-        case 9: finalizeModuleUpdate((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
-        case 10: showProgress((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 11: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 12: delegateDeleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 4: createItem((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< QString(*)>(_a[3]))); break;
+        case 5: itemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 6: itemChangedHandler((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 7: deleteItem((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 8: createEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 9: deleteEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 10: finalizeModuleUpdate((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
+        case 11: showProgress((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 12: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 13: delegateDeleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
         default: ;
         }
-        _id -= 13;
+        _id -= 14;
     }
     return _id;
 }
