@@ -25,7 +25,6 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
   scene->setSceneRect(0, 0, 2000, 1300);
-  //scene->addItem(new CablePlug());
   setScene(scene);
   setCacheMode(CacheBackground);
   setRenderHint(QPainter::Antialiasing);
@@ -160,7 +159,6 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
     return;
   }
 
-
   if (currentCables.size()) {
     bool foundConnection = false;
     Q_FOREACH(QGraphicsItem* item, scene()->items()) {
@@ -234,8 +232,13 @@ void Workbench::keyPressEvent(QKeyEvent *event)
   case Qt::Key_Space:
     break;
   case Qt::Key_Delete:
-    if (selectedItem && selectedItem->isDeletable()) {
+    /*if (selectedItem && selectedItem->isDeletable()) {
       removeToolItem(selectedItem);
+    }*/
+    Q_FOREACH(QGraphicsItem* item, scene()->selectedItems()) {
+      ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
+      if (toolItem && toolItem->isDeletable())
+        removeToolItem(toolItem);
     }
     break;
   default:

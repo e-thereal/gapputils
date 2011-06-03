@@ -549,19 +549,36 @@ void ToolItem::drawBox(QPainter* painter) {
   }
 
   painter->save();
+  painter->setBrush(Qt::black);
+ 
   if (selected) {
+    const int offset = 2;
+    painter->setOpacity(0.1);
+    painter->setPen(QPen(Qt::black, 14));
+    painter->drawRoundedRect(0, offset, width, height, 4, 4);
     painter->setOpacity(0.2);
-    painter->setPen(QPen(Qt::white, 15));
-    painter->drawRoundedRect(0, 0, width, height, 4, 4);
-    painter->setOpacity(0.4);
-    painter->setPen(QPen(Qt::white, 10));
-    painter->drawRoundedRect(0, 0, width, height, 4, 4);
-    painter->setOpacity(0.6);
-    painter->setPen(QPen(Qt::white, 6));
-    painter->drawRoundedRect(0, 0, width, height, 4, 4);
-    painter->setOpacity(0.8);
-    painter->setPen(QPen(Qt::white, 3));
-    painter->drawRoundedRect(0, 0, width, height, 4, 4);
+    painter->setPen(QPen(Qt::black, 9));
+    painter->drawRoundedRect(0, offset, width, height, 4, 4);
+    painter->setOpacity(0.25);
+    painter->setPen(QPen(Qt::black, 5.5));
+    painter->drawRoundedRect(0, offset, width, height, 4, 4);
+    painter->setOpacity(0.3);
+    painter->setPen(QPen(Qt::black, 2.5));
+    painter->drawRoundedRect(0, offset, width, height, 4, 4);
+  } else {
+    /*const int offset = 1;
+    painter->setOpacity(0.1);
+    painter->setPen(QPen(Qt::black, 7));
+    painter->drawRoundedRect(0, offset, width, height, 4, 4);
+    painter->setOpacity(0.2);
+    painter->setPen(QPen(Qt::black, 5));
+    painter->drawRoundedRect(0, offset, width, height, 4, 4);
+    painter->setOpacity(0.25);
+    painter->setPen(QPen(Qt::black, 3));
+    painter->drawRoundedRect(0, offset, width, height, 4, 4);
+    painter->setOpacity(0.3);
+    painter->setPen(QPen(Qt::black, 1.5));
+    painter->drawRoundedRect(0, offset, width, height, 4, 4);*/
   }
   painter->setOpacity(0.9);
   painter->setBrush(gradient);
