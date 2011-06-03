@@ -7,6 +7,7 @@
 		<project>gapputils</project>
 		<project>optlib</project>
 		<project>tinyxml</project>
+		<project>alglib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

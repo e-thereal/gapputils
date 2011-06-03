@@ -232,6 +232,7 @@ void Workbench::keyPressEvent(QKeyEvent *event)
   case Qt::Key_Space:
     break;
   case Qt::Key_Delete:
+    // TODO: Perhaps delete all selected items.
     /*if (selectedItem && selectedItem->isDeletable()) {
       removeToolItem(selectedItem);
     }*/
