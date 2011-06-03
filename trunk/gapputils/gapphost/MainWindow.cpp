@@ -40,9 +40,10 @@ QTreeWidgetItem* newCategory(const string& name) {
   return item;
 }
 
-QTreeWidgetItem* newTool(const string& name) {
+QTreeWidgetItem* newTool(const string& name, const string& classname) {
   QTreeWidgetItem* item = new QTreeWidgetItem();
   item->setText(0, name.c_str());
+  item->setData(0, Qt::UserRole, QVariant::fromValue(QString(classname.c_str())));
   
   return item;
 }
@@ -87,7 +88,7 @@ void updateToolBox(QTreeWidget* toolBox) {
       toolBox->addTopLevelItem(item);
     }
 
-    item->addChild(newTool(name.substr(pos+1)));
+    item->addChild(newTool(name.substr(pos+1), name));
   }
   //toolBox->expandAll();
 }
@@ -113,6 +114,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
 
   toolBox = new QTreeWidget();
+  toolBox->setDragEnabled(true);
   updateToolBox(toolBox);
   
   QSplitter* splitter = new QSplitter(Qt::Horizontal);
@@ -180,12 +182,7 @@ void MainWindow::itemClickedHandler(QTreeWidgetItem *item, int) {
 void MainWindow::itemDoubleClickedHandler(QTreeWidgetItem *item, int) {
   if (!item->childCount()) {
     // new tool
-    string classname = item->text(0).toUtf8().data();
-    while ((item = item->parent())) {
-      classname = string(item->text(0).toUtf8().data()) + "::" + classname;
-    }
-    //cout << "New item: " << classname.c_str() << endl;
-    //DataModel::getInstance().getMainWorkflow()->newModule(classname);
+    string classname = item->data(0, Qt::UserRole).toString().toAscii().data();
     openWorkflows[tabWidget->currentIndex()]->newModule(classname);
   }
 }
