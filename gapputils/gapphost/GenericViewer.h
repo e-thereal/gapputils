@@ -10,10 +10,12 @@
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <qprocess.h>
+#include <qtimer.h>
 
 namespace gapputils {
 
-class GenericViewer : public workflow::DefaultWorkflowElement {
+class GenericViewer : public QObject, public workflow::DefaultWorkflowElement {
+  Q_OBJECT
 
   InitReflectableClass(GenericViewer)
 
@@ -24,12 +26,17 @@ class GenericViewer : public workflow::DefaultWorkflowElement {
 private:
   static int filename1Id, filename2Id;
   QProcess viewer;
+  QTimer updateViewTimer;
 
 public:
   GenericViewer();
   virtual ~GenericViewer();
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
+
+private Q_SLOTS:
+  void updateView();
+
 };
 
 }

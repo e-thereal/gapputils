@@ -8,13 +8,11 @@
 #ifndef TESTINTERFACE_H_
 #define TESTINTERFACE_H_
 
-#include <capputils/ReflectableClass.h>
-#include <capputils/ObservableClass.h>
+#include <gapputils/WorkflowInterface.h>
 
 namespace GaussianProcesses {
 
-class TestInterface : public capputils::reflection::ReflectableClass,
-                      public capputils::ObservableClass
+class TestInterface : public gapputils::workflow::WorkflowInterface
 {
   InitReflectableClass(TestInterface)
 

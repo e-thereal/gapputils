@@ -38,7 +38,8 @@ HEADERS = MainWindow.h \
           ShowImageDialog.h \
           Workflow.h \
           WorkflowWorker.h \
-          WorkflowItem.h
+          WorkflowItem.h \
+          GenericViewer.h
           
 CONFIG += no_keywords debug console
 QMAKE_CXXFLAGS += -std=c++0x

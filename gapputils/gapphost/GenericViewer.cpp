@@ -38,42 +38,19 @@ int GenericViewer::filename1Id;
 int GenericViewer::filename2Id;
 
 void killProcess(QProcess* process) {
-#ifdef Q_OS_LINUX2
-    Q_PID pid=process->pid();
-    QProcess killer;
-    QStringList params;
-    params << "--ppid";
-    params << QString::number(pid);
-    params << "-o";
-    params << "pid";
-    params << "--noheaders";
-    killer.start("/bin/ps",params,QIODevice::ReadOnly);
-    if(killer.waitForStarted(-1))
-    {
-        if(killer.waitForFinished(-1))
-        {
-            QByteArray temp=killer.readAllStandardOutput();
-            QString str=QString::fromLocal8Bit(temp);
-            QStringList list=str.split("\n");
-
-            for(int i=0;i<list.size();i++)
-            {
-                if(!list.at(i).isEmpty())
-                    ::kill(list.at(i).toInt(),SIGKILL);
-            }
-        }
-    }
-#endif
-    process->terminate();
+  process->terminate();
+  process->waitForFinished(100);
+  if (process->state() == QProcess::Running) {
+    process->kill();
     process->waitForFinished(100);
-    if (process->state() == QProcess::Running) {
-      process->kill();
-      process->waitForFinished(100);
-    }
+  }
 }
 
 GenericViewer::GenericViewer() {
   setLabel("Viewer");
+  updateViewTimer.setSingleShot(true);
+  updateViewTimer.setInterval(1000);
+  connect(&updateViewTimer, SIGNAL(timeout()), this, SLOT(updateView()));
   Changed.connect(capputils::EventHandler<GenericViewer>(this, &GenericViewer::changedHandler));
 }
 
@@ -90,6 +67,10 @@ void GenericViewer::changedHandler(capputils::ObservableClass*, int eventId) {
   if (eventId != filename1Id && eventId != filename2Id)
     return;
 
+  updateViewTimer.start();
+}
+
+void GenericViewer::updateView() {
   if (viewer.state() == QProcess::Running) {
     killProcess(&viewer);
   }
