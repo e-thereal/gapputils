@@ -16,6 +16,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "capputils", "capputils\capp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tinyxml", "tinyxml\tinyxml.vcxproj", "{A571956C-9097-4B72-B3CA-9627786AAECD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gapputils.common", "gapputils.common\gapputils.common.vcxproj", "{5F6A1841-8F1D-4315-9912-F7C330124D10}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A571956C-9097-4B72-B3CA-9627786AAECD} = {A571956C-9097-4B72-B3CA-9627786AAECD}
+		{B47B19A5-8F5D-467D-B0D5-B5D7115D013C} = {B47B19A5-8F5D-467D-B0D5-B5D7115D013C}
+		{42730DF7-A9EF-41DD-A213-B5D07049603E} = {42730DF7-A9EF-41DD-A213-B5D07049603E}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
@@ -54,6 +61,12 @@ Global
 		{A571956C-9097-4B72-B3CA-9627786AAECD}.Release|Win32.Build.0 = Release|Win32
 		{A571956C-9097-4B72-B3CA-9627786AAECD}.Release|x64.ActiveCfg = Release|x64
 		{A571956C-9097-4B72-B3CA-9627786AAECD}.Release|x64.Build.0 = Release|x64
+		{5F6A1841-8F1D-4315-9912-F7C330124D10}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5F6A1841-8F1D-4315-9912-F7C330124D10}.Debug|Win32.Build.0 = Debug|Win32
+		{5F6A1841-8F1D-4315-9912-F7C330124D10}.Debug|x64.ActiveCfg = Debug|Win32
+		{5F6A1841-8F1D-4315-9912-F7C330124D10}.Release|Win32.ActiveCfg = Release|Win32
+		{5F6A1841-8F1D-4315-9912-F7C330124D10}.Release|Win32.Build.0 = Release|Win32
+		{5F6A1841-8F1D-4315-9912-F7C330124D10}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
