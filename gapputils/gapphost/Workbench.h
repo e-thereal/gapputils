@@ -40,6 +40,7 @@ public:
   void setModifiable(bool modifiable);
 
 Q_SIGNALS:
+  void createItemRequest(int x, int y, QString classname);
   void itemSelected(ToolItem* item);
   void itemChanged(ToolItem* item);
   void itemDeleted(ToolItem* item);
@@ -53,6 +54,9 @@ protected:
   void drawBackground(QPainter *painter, const QRectF &rect);
   void keyPressEvent(QKeyEvent *event);
   void keyReleaseEvent(QKeyEvent *event);
+  void dragEnterEvent(QDragEnterEvent *event);
+  void dragMoveEvent(QDragMoveEvent* event);
+  void dropEvent(QDropEvent *event);
   
   void wheelEvent(QWheelEvent *event);
 

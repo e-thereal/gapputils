@@ -58,6 +58,7 @@ public:
   virtual ~Workflow();
 
   void newModule(const std::string& name);
+  void newModule(const std::string& name, int x, int y);
   void newItem(Node* node);
   void newCable(Edge* edge);
   void resumeFromModel();
@@ -88,6 +89,7 @@ private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
 private Q_SLOTS:
+  void createItem(int x, int y, QString classname);
   void itemSelected(ToolItem* item);
   void itemChangedHandler(ToolItem* item);
   void deleteItem(ToolItem* item);

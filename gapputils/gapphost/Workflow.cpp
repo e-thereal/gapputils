@@ -90,6 +90,7 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true),
   splitter->setSizes(QList<int>() << 900 << 260);
   widget = splitter;
 
+  connect(workbench, SIGNAL(createItemRequest(int, int, QString)), this, SLOT(createItem(int, int, QString)));
   connect(workbench, SIGNAL(itemSelected(ToolItem*)), this, SLOT(itemSelected(ToolItem*)));
   connect(workbench, SIGNAL(itemChanged(ToolItem*)), this, SLOT(itemChangedHandler(ToolItem*)));
   connect(workbench, SIGNAL(itemDeleted(ToolItem*)), this, SLOT(deleteItem(ToolItem*)));
@@ -113,6 +114,7 @@ Workflow::~Workflow() {
     delete worker;
   }
 
+  disconnect(workbench, SIGNAL(createItemRequest(int, int, QString)), this, SLOT(createItem(int, int, QString)));
   disconnect(workbench, SIGNAL(itemSelected(ToolItem*)), this, SLOT(itemSelected(ToolItem*)));
   disconnect(workbench, SIGNAL(itemChanged(ToolItem*)), this, SLOT(itemChangedHandler(ToolItem*)));
   disconnect(workbench, SIGNAL(itemDeleted(ToolItem*)), this, SLOT(deleteItem(ToolItem*)));
@@ -164,7 +166,20 @@ void addDependencies(Workflow* workflow, const std::string& classname) {
   }
 }
 
+void Workflow::createItem(int x, int y, QString classname) {
+  if (classname.count() == 0)
+    return;
+
+  newModule(classname.toAscii().data(), x, y);
+}
+
 void Workflow::newModule(const std::string& name) {
+  const int x = workbench->scene()->sceneRect().width() / 2;
+  const int y = workbench->scene()->sceneRect().height() / 2;
+  newModule(name, x, y);
+}
+
+void Workflow::newModule(const std::string& name, int x, int y) {
   ReflectableClass* object = ReflectableClassFactory::getInstance().newInstance(name);
   addDependencies(this, name);
 
@@ -181,8 +196,8 @@ void Workflow::newModule(const std::string& name) {
     node = new Node();
     node->setModule(object);
   }
-  node->setX(workbench->scene()->sceneRect().width() / 2);
-  node->setY(workbench->scene()->sceneRect().height() / 2);
+  node->setX(x);
+  node->setY(y);
   getNodes()->push_back(node);
 
   newItem(node);
