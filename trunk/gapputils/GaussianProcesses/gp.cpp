@@ -16,12 +16,32 @@
 
 #include "NLML.h"
 
+using namespace gapputils::workflow;
 using namespace optlib;
 using namespace std;
 
 namespace GaussianProcesses {
 
-void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, int n, int d) {
+class ProgressListener : public optlib::ConjugateGradientsOptimizer::ObserverType {
+private:
+  IProgressMonitor* monitor;
+  int i, count;
+
+public:
+  ProgressListener(IProgressMonitor* monitor, int count) : monitor(monitor), i(0), count(count) { }
+
+   virtual void eventTriggered(const IOptimizerEvent& event, IOptimizer<ConjugateGradientsOptimizer::DomainType>& sender) {
+     const DirectionSetNewSolution* newSolution = dynamic_cast<const DirectionSetNewSolution*>(&event);
+     if (newSolution) {
+       if (newSolution->phase == ProgressEvent::Start) {
+         if (monitor)
+          monitor->reportProgress(++i * 100 / count);
+       }
+     }
+   }
+};
+
+void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, int n, int d, IProgressMonitor* monitor) {
   NLML nlml(x, y, n, d);
 
   vector<double> params(2 + d);
@@ -73,6 +93,10 @@ void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, in
   GridSamplingOptimizer<ConjugateGradientsOptimizer> optimizer;
   optimizer.setParameter(GridSampling, &gridParams);
   //DownhillSimplexOptimizer optimizer;
+
+  ProgressListener listener(monitor, 3 * 5 * 5);
+  optimizer.addObserver(listener);
+
   try {
     optimizer.minimize(params, nlml);
   } catch (optlib::OptimizerException ex) {

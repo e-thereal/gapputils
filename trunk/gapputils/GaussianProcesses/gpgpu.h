@@ -12,12 +12,14 @@
 #define BLOCK_SIZE 16
 #define DT float
 
+#include <gapputils/IProgressMonitor.h>
+
 namespace GaussianProcesses {
 
 void gp(float* mu, float* cov, float* x, float* y, float* xstar, int n, int d, int m, float sigmaF, float sigmaN, float* length);
 
 // the search is always reset to 1, 1, 1
-void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, int n, int d);
+void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, int n, int d, gapputils::workflow::IProgressMonitor* monitor = 0);
 
 /*** internal cuda functions ***/
 

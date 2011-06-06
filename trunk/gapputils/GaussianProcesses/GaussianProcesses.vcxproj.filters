@@ -33,6 +33,12 @@
     <ClInclude Include="TestInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gpgpu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NLML.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GPRegression.cpp">
@@ -50,5 +56,12 @@
     <ClCompile Include="TestInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="gpgpu.cu" />
+    <CudaCompile Include="NLML.cu" />
   </ItemGroup>
 </Project>

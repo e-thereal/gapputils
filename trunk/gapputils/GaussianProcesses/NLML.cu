@@ -71,7 +71,12 @@ double NLML::eval(float sigmaF, float sigmaN, float* length) {
   printMatrix(outfile, "alpha", d_alpha.data().get(), n, 1, n);
 #endif
   // 0.5 * alpha' * alpha + log(det(K)) + n/2 * ln(2 PI)
-  float ret = 0.5f * l2norm(d_alpha.data().get(), n) + Strldet(d_K.data().get(), n, bn) + n * logTwoPiHalf;
+  float l2 = l2norm(d_alpha.data().get(), n);
+  float logDet = Strldet(d_K.data().get(), n, bn);
+  //cout << "L2: " << l2 << endl;
+  //cout << "logDet: " << logDet << endl;
+
+  float ret = 0.5f * l2 + logDet + n * logTwoPiHalf;
 #ifdef PRINT_MATRIX
   outfile << "nlml = " << ret << std::endl;
   outfile.close();
