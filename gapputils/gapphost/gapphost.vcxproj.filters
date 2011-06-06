@@ -176,6 +176,12 @@
     <ClCompile Include="GeneratedFiles\Release\moc_WorkflowItem.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_GenericViewer.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_GenericViewer.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
@@ -212,6 +218,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="WorkflowItem.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="GenericViewer.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -262,9 +271,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DefaultInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GenericViewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

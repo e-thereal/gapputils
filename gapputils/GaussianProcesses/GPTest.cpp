@@ -1,3 +1,8 @@
+#ifdef DEBUG
+#undef DEBUG
+#endif
+#define DEBUG 1
+
 #include "GPTest.h"
 
 #include <capputils/ObserveAttribute.h>

@@ -65,11 +65,11 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true),
   _Edges = new vector<Edge*>();
   _Nodes = new vector<Node*>();
 
-  _InputsPosition.push_back(-230);
-  _InputsPosition.push_back(-230);
+  _InputsPosition.push_back(500);
+  _InputsPosition.push_back(200);
 
-  _OutputsPosition.push_back(170);
-  _OutputsPosition.push_back(-230);
+  _OutputsPosition.push_back(1400);
+  _OutputsPosition.push_back(200);
 
   inputsNode.setUuid("Inputs");
   outputsNode.setUuid("Outputs");

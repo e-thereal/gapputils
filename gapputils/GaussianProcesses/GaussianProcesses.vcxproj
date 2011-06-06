@@ -29,7 +29,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-      <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 4.0.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 4.0.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -51,9 +51,13 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OutDir);$(BOOST_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CUDA_LIB_PATH);$(OutDir);$(BOOST_LIB_PATH);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cudart.lib;cublas.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <CudaCompile>
+      <Include>$(SolutionDir)</Include>
+      <CodeGeneration>compute_20,sm_20;%(CodeGeneration)</CodeGeneration>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -76,18 +80,25 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="gpgpu.h" />
     <ClInclude Include="GPRegression.h" />
     <ClInclude Include="GPTest.h" />
     <ClInclude Include="Interface.h" />
     <ClInclude Include="IntSplitter.h" />
+    <ClInclude Include="NLML.h" />
     <ClInclude Include="TestInterface.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="gp.cpp" />
     <ClCompile Include="GPRegression.cpp" />
     <ClCompile Include="GPTest.cpp" />
     <ClCompile Include="Interface.cpp" />
     <ClCompile Include="IntSplitter.cpp" />
     <ClCompile Include="TestInterface.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="gpgpu.cu" />
+    <CudaCompile Include="NLML.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

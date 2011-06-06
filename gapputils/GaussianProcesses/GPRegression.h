@@ -21,7 +21,8 @@ class GPRegression : public gapputils::workflow::WorkflowElement
   Property(Ystar, double*)
   Property(TestCount, int)
 
-  Property(Regress, bool)
+private:
+  mutable GPRegression* data;
 
 public:
   GPRegression(void);
