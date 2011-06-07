@@ -105,7 +105,7 @@ void GPTest::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     vector<float> x = getX();
     vector<float> y = getY();
 
-    trainGP(sigmaF, sigmaN, &length, &x[0], &y[0], x.size(), 1);
+    trainGP(sigmaF, sigmaN, &length, &x[0], &y[0], x.size(), 1, monitor);
     data->setSigmaF(sigmaF);
     data->setSigmaN(sigmaN);
     data->setLength(length);
@@ -119,14 +119,14 @@ void GPTest::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   float *cov = new float[xstar.size() * xstar.size()];
 
-  gp(&mu[0], cov, &x[0], &y[0], &xstar[0], x.size(), 1, xstar.size(), getSigmaF(),
-     getSigmaN(), &length);
+  gp(&mu[0], cov, &x[0], &y[0], &xstar[0], x.size(), 1, xstar.size(), sigmaF,
+      sigmaN, &length);
 
   for (int i = 0; i < xstar.size(); ++i)
     ci[i] = 2 * sqrt(cov[i + i * xstar.size()]);
 
   NLML nlml(&x[0], &y[0], x.size(), 1);
-  cout << "nlml = " << nlml.eval(getSigmaF(), getSigmaN(), &length) << endl;
+  cout << "nlml = " << nlml.eval(sigmaF, sigmaN, &length) << endl;
 
   data->setCI(ci);
   data->setMu(mu);

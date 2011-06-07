@@ -32,8 +32,8 @@
                                 </Collection>
                             </Libraries>
                             <Uuid value="28358f69-780a-4863-b1e2-d296b2fdcc03" />
-                            <X value="696" />
-                            <Y value="577" />
+                            <X value="479" />
+                            <Y value="365" />
                             <Module>
                                 <GaussianProcesses-TestInterface>
                                     <Label value="TestInterface" />
@@ -96,7 +96,7 @@
                                                             <Item value="9" />
                                                         </Collection>
                                                     </X>
-                                                    <Y timestamp="Jun 03 2011 11:30:00">
+                                                    <Y timestamp="Jun 07 2011 10:34:34">
                                                         <Collection>
                                                             <Item value="5" />
                                                             <Item value="3" />
@@ -107,7 +107,7 @@
                                                             <Item value="4" />
                                                         </Collection>
                                                     </Y>
-                                                    <OutputName value="gp.xml" timestamp="Jun 03 2011 12:50:20" />
+                                                    <OutputName value="gp.xml" timestamp="Jun 07 2011 16:28:10" />
                                                     <First value="0" timestamp="Jun 03 2011 10:15:59" />
                                                     <Step value="0.2" timestamp="Jun 03 2011 10:55:36" />
                                                     <Last value="10" timestamp="Jun 03 2011 10:15:59" />
@@ -166,119 +166,119 @@
                                                             <Item value="10" />
                                                         </Collection>
                                                     </Xstar>
-                                                    <Mu timestamp="Jun 03 2011 12:50:20">
+                                                    <Mu timestamp="Jun 07 2011 16:28:10">
                                                         <Collection>
-                                                            <Item value="1.46792" />
-                                                            <Item value="1.78357" />
-                                                            <Item value="2.08957" />
-                                                            <Item value="2.36268" />
-                                                            <Item value="2.58128" />
-                                                            <Item value="2.72886" />
-                                                            <Item value="2.79663" />
-                                                            <Item value="2.78467" />
-                                                            <Item value="2.70128" />
-                                                            <Item value="2.56094" />
-                                                            <Item value="2.38127" />
-                                                            <Item value="2.17993" />
-                                                            <Item value="1.97215" />
-                                                            <Item value="1.76934" />
-                                                            <Item value="1.57884" />
-                                                            <Item value="1.4047" />
-                                                            <Item value="1.24887" />
-                                                            <Item value="1.11249" />
-                                                            <Item value="0.996828" />
-                                                            <Item value="0.903681" />
-                                                            <Item value="0.835239" />
-                                                            <Item value="0.793473" />
-                                                            <Item value="0.779284" />
-                                                            <Item value="0.791634" />
-                                                            <Item value="0.826915" />
-                                                            <Item value="0.878737" />
-                                                            <Item value="0.938311" />
-                                                            <Item value="0.99544" />
-                                                            <Item value="1.04003" />
-                                                            <Item value="1.06388" />
-                                                            <Item value="1.06242" />
-                                                            <Item value="1.03592" />
-                                                            <Item value="0.990053" />
-                                                            <Item value="0.935365" />
-                                                            <Item value="0.885911" />
-                                                            <Item value="0.857078" />
-                                                            <Item value="0.862989" />
-                                                            <Item value="0.913859" />
-                                                            <Item value="1.01374" />
-                                                            <Item value="1.15904" />
-                                                            <Item value="1.33818" />
-                                                            <Item value="1.53262" />
-                                                            <Item value="1.71919" />
-                                                            <Item value="1.87352" />
-                                                            <Item value="1.97397" />
-                                                            <Item value="2.00523" />
-                                                            <Item value="1.96089" />
-                                                            <Item value="1.84431" />
-                                                            <Item value="1.66761" />
-                                                            <Item value="1.44919" />
-                                                            <Item value="1.2102" />
+                                                            <Item value="7.29433" />
+                                                            <Item value="6.81187" />
+                                                            <Item value="6.33714" />
+                                                            <Item value="5.87289" />
+                                                            <Item value="5.42065" />
+                                                            <Item value="4.98252" />
+                                                            <Item value="4.56145" />
+                                                            <Item value="4.15825" />
+                                                            <Item value="3.77484" />
+                                                            <Item value="3.41402" />
+                                                            <Item value="3.07593" />
+                                                            <Item value="2.76241" />
+                                                            <Item value="2.47453" />
+                                                            <Item value="2.21275" />
+                                                            <Item value="1.97832" />
+                                                            <Item value="1.77187" />
+                                                            <Item value="1.59377" />
+                                                            <Item value="1.4435" />
+                                                            <Item value="1.32198" />
+                                                            <Item value="1.22812" />
+                                                            <Item value="1.16145" />
+                                                            <Item value="1.12152" />
+                                                            <Item value="1.10754" />
+                                                            <Item value="1.11844" />
+                                                            <Item value="1.15285" />
+                                                            <Item value="1.20932" />
+                                                            <Item value="1.2868" />
+                                                            <Item value="1.38281" />
+                                                            <Item value="1.4959" />
+                                                            <Item value="1.62439" />
+                                                            <Item value="1.76573" />
+                                                            <Item value="1.91853" />
+                                                            <Item value="2.08025" />
+                                                            <Item value="2.24869" />
+                                                            <Item value="2.42154" />
+                                                            <Item value="2.59705" />
+                                                            <Item value="2.77257" />
+                                                            <Item value="2.94601" />
+                                                            <Item value="3.116" />
+                                                            <Item value="3.2793" />
+                                                            <Item value="3.43465" />
+                                                            <Item value="3.58044" />
+                                                            <Item value="3.71442" />
+                                                            <Item value="3.83481" />
+                                                            <Item value="3.94073" />
+                                                            <Item value="4.03079" />
+                                                            <Item value="4.10321" />
+                                                            <Item value="4.15756" />
+                                                            <Item value="4.19281" />
+                                                            <Item value="4.20776" />
+                                                            <Item value="4.20247" />
                                                         </Collection>
                                                     </Mu>
-                                                    <CI timestamp="Jun 03 2011 12:50:20">
+                                                    <CI timestamp="Jun 07 2011 16:28:10">
                                                         <Collection>
-                                                            <Item value="1.80513" />
-                                                            <Item value="1.71556" />
-                                                            <Item value="1.61284" />
-                                                            <Item value="1.50758" />
-                                                            <Item value="1.41294" />
-                                                            <Item value="1.34003" />
-                                                            <Item value="1.29331" />
-                                                            <Item value="1.26929" />
-                                                            <Item value="1.25997" />
-                                                            <Item value="1.25771" />
-                                                            <Item value="1.25787" />
-                                                            <Item value="1.25841" />
-                                                            <Item value="1.25862" />
-                                                            <Item value="1.2583" />
-                                                            <Item value="1.25771" />
-                                                            <Item value="1.25736" />
-                                                            <Item value="1.25748" />
-                                                            <Item value="1.25775" />
-                                                            <Item value="1.25775" />
-                                                            <Item value="1.25748" />
-                                                            <Item value="1.25736" />
-                                                            <Item value="1.25771" />
-                                                            <Item value="1.2583" />
-                                                            <Item value="1.25862" />
-                                                            <Item value="1.25841" />
-                                                            <Item value="1.25786" />
-                                                            <Item value="1.25771" />
-                                                            <Item value="1.25996" />
-                                                            <Item value="1.26929" />
-                                                            <Item value="1.29331" />
-                                                            <Item value="1.34" />
-                                                            <Item value="1.41278" />
-                                                            <Item value="1.50702" />
-                                                            <Item value="1.61119" />
-                                                            <Item value="1.71136" />
-                                                            <Item value="1.79547" />
-                                                            <Item value="1.85532" />
-                                                            <Item value="1.88645" />
-                                                            <Item value="1.88693" />
-                                                            <Item value="1.85648" />
-                                                            <Item value="1.79654" />
-                                                            <Item value="1.71176" />
-                                                            <Item value="1.61214" />
-                                                            <Item value="1.51457" />
-                                                            <Item value="1.44152" />
-                                                            <Item value="1.41419" />
-                                                            <Item value="1.44167" />
-                                                            <Item value="1.51516" />
-                                                            <Item value="1.61389" />
-                                                            <Item value="1.71621" />
-                                                            <Item value="1.80672" />
+                                                            <Item value="1.20894" />
+                                                            <Item value="1.00706" />
+                                                            <Item value="0.831949" />
+                                                            <Item value="0.683315" />
+                                                            <Item value="0.560435" />
+                                                            <Item value="0.46417" />
+                                                            <Item value="0.393738" />
+                                                            <Item value="0.34781" />
+                                                            <Item value="0.322875" />
+                                                            <Item value="0.313085" />
+                                                            <Item value="0.312109" />
+                                                            <Item value="0.31561" />
+                                                            <Item value="0.319454" />
+                                                            <Item value="0.322307" />
+                                                            <Item value="0.323441" />
+                                                            <Item value="0.322118" />
+                                                            <Item value="0.31888" />
+                                                            <Item value="0.313864" />
+                                                            <Item value="0.307975" />
+                                                            <Item value="0.301769" />
+                                                            <Item value="0.295432" />
+                                                            <Item value="0.28959" />
+                                                            <Item value="0.286411" />
+                                                            <Item value="0.285984" />
+                                                            <Item value="0.289801" />
+                                                            <Item value="0.297286" />
+                                                            <Item value="0.310737" />
+                                                            <Item value="0.328497" />
+                                                            <Item value="0.351476" />
+                                                            <Item value="0.377272" />
+                                                            <Item value="0.405799" />
+                                                            <Item value="0.435823" />
+                                                            <Item value="0.465483" />
+                                                            <Item value="0.493364" />
+                                                            <Item value="0.518576" />
+                                                            <Item value="0.539346" />
+                                                            <Item value="0.554412" />
+                                                            <Item value="0.562283" />
+                                                            <Item value="0.562825" />
+                                                            <Item value="0.554853" />
+                                                            <Item value="0.538553" />
+                                                            <Item value="0.515625" />
+                                                            <Item value="0.490262" />
+                                                            <Item value="0.46992" />
+                                                            <Item value="0.466793" />
+                                                            <Item value="0.496447" />
+                                                            <Item value="0.571969" />
+                                                            <Item value="0.69562" />
+                                                            <Item value="0.864403" />
+                                                            <Item value="1.07455" />
+                                                            <Item value="1.32251" />
                                                         </Collection>
                                                     </CI>
-                                                    <SigmaF value="1" timestamp="Jun 03 2011 12:50:20" />
-                                                    <Length value="1" timestamp="Jun 03 2011 12:50:20" />
-                                                    <SigmaN value="1" timestamp="Jun 03 2011 12:50:20" />
+                                                    <SigmaF value="19.9512" timestamp="Jun 07 2011 16:28:10" />
+                                                    <Length value="6.4687" timestamp="Jun 07 2011 16:28:10" />
+                                                    <SigmaN value="0.249442" timestamp="Jun 07 2011 16:28:10" />
                                                 </GaussianProcesses-GPTest>
                                             </Module>
                                         </gapputils-workflow-Node>
@@ -291,15 +291,15 @@
                                             <Module>
                                                 <gapputils-common-XslTransformation>
                                                     <Label value="Xslt" />
-                                                    <InputName value="gp.xml" timestamp="Jun 03 2011 12:50:20" />
-                                                    <OutputName value="gp.xml.tex" timestamp="Jun 03 2011 12:50:21" />
+                                                    <InputName value="gp.xml" timestamp="Jun 07 2011 16:28:10" />
+                                                    <OutputName value="gp.xml.tex" timestamp="Jun 07 2011 16:28:11" />
                                                     <XsltName value="gp.xslt" timestamp="Jun 03 2011 09:32:58" />
-                                                    <CommandName value="java -jar ~/tools/saxon9he.jar" timestamp="Dec 28 1969 18:00:00" />
-                                                    <CommandOutput value='Executing: java -jar ~/tools/saxon9he.jar -s:&quot;gp.xml&quot; -o:&quot;gp.xml.tex&quot; -xsl:&quot;gp.xslt&quot;&#x0A;' timestamp="Jun 03 2011 12:50:21" />
+                                                    <CommandName value="java -jar ~/tools/saxon9he.jar" timestamp="Dec 31 1969 16:00:00" />
+                                                    <CommandOutput value='Executing: java -jar ~/tools/saxon9he.jar -s:&quot;gp.xml&quot; -o:&quot;gp.xml.tex&quot; -xsl:&quot;gp.xslt&quot;&#x0A;' timestamp="Jun 07 2011 16:28:11" />
                                                     <OutputExtension value=".tex" timestamp="Jun 03 2011 09:33:13" />
-                                                    <InSwitch value="-s:" timestamp="Dec 28 1969 18:00:00" />
-                                                    <OutSwitch value="-o:" timestamp="Dec 28 1969 18:00:00" />
-                                                    <XsltSwitch value="-xsl:" timestamp="Dec 28 1969 18:00:00" />
+                                                    <InSwitch value="-s:" timestamp="Dec 31 1969 16:00:00" />
+                                                    <OutSwitch value="-o:" timestamp="Dec 31 1969 16:00:00" />
+                                                    <XsltSwitch value="-xsl:" timestamp="Dec 31 1969 16:00:00" />
                                                 </gapputils-common-XslTransformation>
                                             </Module>
                                         </gapputils-workflow-Node>
@@ -312,8 +312,8 @@
                                             <Module>
                                                 <gapputils-common-PdfLatex>
                                                     <Label value="PdfLatex" />
-                                                    <CommandName value="pdflatex" timestamp="Dec 28 1969 18:00:00" />
-                                                    <ParameterString value=" -enable-write18 -interaction=nonstopmode" timestamp="Dec 28 1969 18:00:00" />
+                                                    <CommandName value="pdflatex" timestamp="Dec 31 1969 16:00:00" />
+                                                    <ParameterString value=" -enable-write18 -interaction=nonstopmode" timestamp="Dec 31 1969 16:00:00" />
                                                 </gapputils-common-PdfLatex>
                                             </Module>
                                         </gapputils-workflow-Node>
@@ -335,8 +335,479 @@
                                     </Item>
                                 </Collection>
                             </Nodes>
-                            <InputsPosition value="633 454" />
-                            <OutputsPosition value="1248 495" />
+                            <InputsPosition value="595 506" />
+                            <OutputsPosition value="1248 494" />
+                        </gapputils-workflow-Workflow>
+                    </Item>
+                    <Item>
+                        <gapputils-workflow-Workflow>
+                            <Libraries>
+                                <Collection>
+                                    <Item value="/home/tombr/Projects/GaussianProcesses/Debug/libGaussianProcesses.so" />
+                                    <Item value="/home/tombr/Projects/gapputils.common/Debug/libgapputils.common.so" />
+                                </Collection>
+                            </Libraries>
+                            <Uuid value="e1ae4905-3eb3-4ef8-a2a3-d384231ded7e" />
+                            <X value="541" />
+                            <Y value="525" />
+                            <Module>
+                                <GaussianProcesses-Interface>
+                                    <Label value="Interface" />
+                                    <FirstColumn value="1" timestamp="Jun 07 2011 14:44:35" />
+                                    <LastColumn value="7" timestamp="Jun 07 2011 14:44:38" />
+                                    <GoalColumn value="10" timestamp="Jun 07 2011 14:44:01" />
+                                    <FirstTrainRow value="1" timestamp="Jun 07 2011 12:31:10" />
+                                    <LastTrainRow value="-1" timestamp="Jun 07 2011 12:31:13" />
+                                    <Train value="testsets/Concrete Slump/slump_test.data" timestamp="Jun 07 2011 12:30:30" />
+                                    <FirstTestRow value="1" timestamp="Jun 07 2011 12:31:15" />
+                                    <LastTestRow value="-1" timestamp="Dec 31 1969 16:00:00" />
+                                    <Test value="testsets/Concrete Slump/slump_test.data" timestamp="Jun 07 2011 12:30:48" />
+                                    <Error value="0.211984" timestamp="Jun 07 2011 16:27:59" />
+                                </GaussianProcesses-Interface>
+                            </Module>
+                            <Edges>
+                                <Collection>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="LastColumn" />
+                                            <InputNode value="74ff077e-a2af-44b5-9299-4d7c8446e1cd" />
+                                            <InputProperty value="LastColumn" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="LastColumn" />
+                                            <InputNode value="c2a2309d-8c6b-4bf1-9631-87105201230f" />
+                                            <InputProperty value="LastColumn" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="FirstTrainRow" />
+                                            <InputNode value="74ff077e-a2af-44b5-9299-4d7c8446e1cd" />
+                                            <InputProperty value="FirstRow" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="LastTrainRow" />
+                                            <InputNode value="74ff077e-a2af-44b5-9299-4d7c8446e1cd" />
+                                            <InputProperty value="LastRow" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="GoalColumn" />
+                                            <InputNode value="c2a2309d-8c6b-4bf1-9631-87105201230f" />
+                                            <InputProperty value="FirstColumn" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="GoalColumn" />
+                                            <InputNode value="c2a2309d-8c6b-4bf1-9631-87105201230f" />
+                                            <InputProperty value="LastColumn" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="FirstTrainRow" />
+                                            <InputNode value="c2a2309d-8c6b-4bf1-9631-87105201230f" />
+                                            <InputProperty value="FirstRow" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="LastTrainRow" />
+                                            <InputNode value="c2a2309d-8c6b-4bf1-9631-87105201230f" />
+                                            <InputProperty value="LastRow" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="Train" />
+                                            <InputNode value="74ff077e-a2af-44b5-9299-4d7c8446e1cd" />
+                                            <InputProperty value="Filename" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="Train" />
+                                            <InputNode value="c2a2309d-8c6b-4bf1-9631-87105201230f" />
+                                            <InputProperty value="Filename" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="FirstColumn" />
+                                            <InputNode value="2d042a46-7055-4baf-b332-b3c15ec5a55b" />
+                                            <InputProperty value="FirstColumn" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="LastColumn" />
+                                            <InputNode value="2d042a46-7055-4baf-b332-b3c15ec5a55b" />
+                                            <InputProperty value="LastColumn" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="FirstTestRow" />
+                                            <InputNode value="2d042a46-7055-4baf-b332-b3c15ec5a55b" />
+                                            <InputProperty value="FirstRow" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="LastTestRow" />
+                                            <InputNode value="2d042a46-7055-4baf-b332-b3c15ec5a55b" />
+                                            <InputProperty value="LastRow" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="Test" />
+                                            <InputNode value="2d042a46-7055-4baf-b332-b3c15ec5a55b" />
+                                            <InputProperty value="Filename" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="GoalColumn" />
+                                            <InputNode value="8df29801-6c1f-400c-99a6-1491b15b75d4" />
+                                            <InputProperty value="FirstColumn" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="GoalColumn" />
+                                            <InputNode value="8df29801-6c1f-400c-99a6-1491b15b75d4" />
+                                            <InputProperty value="LastColumn" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="FirstTestRow" />
+                                            <InputNode value="8df29801-6c1f-400c-99a6-1491b15b75d4" />
+                                            <InputProperty value="FirstRow" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="LastTestRow" />
+                                            <InputNode value="8df29801-6c1f-400c-99a6-1491b15b75d4" />
+                                            <InputProperty value="LastRow" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="Test" />
+                                            <InputNode value="8df29801-6c1f-400c-99a6-1491b15b75d4" />
+                                            <InputProperty value="Filename" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="Train" />
+                                            <InputNode value="08cf657b-56d1-44ed-913b-80906abac019" />
+                                            <InputProperty value="Filename1" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="8557ac08-cb00-4620-bead-44787ec87a0c" />
+                                            <OutputProperty value="Error" />
+                                            <InputNode value="Outputs" />
+                                            <InputProperty value="Error" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="Inputs" />
+                                            <OutputProperty value="FirstColumn" />
+                                            <InputNode value="74ff077e-a2af-44b5-9299-4d7c8446e1cd" />
+                                            <InputProperty value="FirstColumn" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="74ff077e-a2af-44b5-9299-4d7c8446e1cd" />
+                                            <OutputProperty value="ColumnCount" />
+                                            <InputNode value="dcf22dff-a811-4e7f-93b5-87a5437bbba9" />
+                                            <InputProperty value="FeatureCount" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="74ff077e-a2af-44b5-9299-4d7c8446e1cd" />
+                                            <OutputProperty value="Data" />
+                                            <InputNode value="dcf22dff-a811-4e7f-93b5-87a5437bbba9" />
+                                            <InputProperty value="X" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="c2a2309d-8c6b-4bf1-9631-87105201230f" />
+                                            <OutputProperty value="Data" />
+                                            <InputNode value="dcf22dff-a811-4e7f-93b5-87a5437bbba9" />
+                                            <InputProperty value="Y" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="74ff077e-a2af-44b5-9299-4d7c8446e1cd" />
+                                            <OutputProperty value="RowCount" />
+                                            <InputNode value="dcf22dff-a811-4e7f-93b5-87a5437bbba9" />
+                                            <InputProperty value="TrainingCount" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="2d042a46-7055-4baf-b332-b3c15ec5a55b" />
+                                            <OutputProperty value="Data" />
+                                            <InputNode value="dcf22dff-a811-4e7f-93b5-87a5437bbba9" />
+                                            <InputProperty value="Xstar" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="2d042a46-7055-4baf-b332-b3c15ec5a55b" />
+                                            <OutputProperty value="RowCount" />
+                                            <InputNode value="dcf22dff-a811-4e7f-93b5-87a5437bbba9" />
+                                            <InputProperty value="TestCount" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="8df29801-6c1f-400c-99a6-1491b15b75d4" />
+                                            <OutputProperty value="RowCount" />
+                                            <InputNode value="8557ac08-cb00-4620-bead-44787ec87a0c" />
+                                            <InputProperty value="Count" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="8df29801-6c1f-400c-99a6-1491b15b75d4" />
+                                            <OutputProperty value="ColumnCount" />
+                                            <InputNode value="3b4dfd37-7828-4996-8027-dede2da46017" />
+                                            <InputProperty value="ColumnCount" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="8df29801-6c1f-400c-99a6-1491b15b75d4" />
+                                            <OutputProperty value="RowCount" />
+                                            <InputNode value="3b4dfd37-7828-4996-8027-dede2da46017" />
+                                            <InputProperty value="RowCount" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="dcf22dff-a811-4e7f-93b5-87a5437bbba9" />
+                                            <OutputProperty value="Ystar" />
+                                            <InputNode value="3b4dfd37-7828-4996-8027-dede2da46017" />
+                                            <InputProperty value="Data" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="8df29801-6c1f-400c-99a6-1491b15b75d4" />
+                                            <OutputProperty value="Data" />
+                                            <InputNode value="8557ac08-cb00-4620-bead-44787ec87a0c" />
+                                            <InputProperty value="X" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Edge>
+                                            <OutputNode value="dcf22dff-a811-4e7f-93b5-87a5437bbba9" />
+                                            <OutputProperty value="Ystar" />
+                                            <InputNode value="8557ac08-cb00-4620-bead-44787ec87a0c" />
+                                            <InputProperty value="Y" />
+                                        </gapputils-workflow-Edge>
+                                    </Item>
+                                </Collection>
+                            </Edges>
+                            <Nodes>
+                                <Collection>
+                                    <Item>
+                                        <gapputils-workflow-Node>
+                                            <Uuid value="74ff077e-a2af-44b5-9299-4d7c8446e1cd" />
+                                            <X value="779" />
+                                            <Y value="369" />
+                                            <Module>
+                                                <gapputils-common-CsvReader>
+                                                    <Label value="X" />
+                                                    <!--Zero-based index of the first column-->
+                                                    <FirstColumn value="1" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the last column. A value of -1 indicates to read until the end.-->
+                                                    <LastColumn value="7" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the first row-->
+                                                    <FirstRow value="1" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the last row. A value of -1 indicates to read until the end.-->
+                                                    <LastRow value="-1" timestamp="Jun 07 2011 16:27:59" />
+                                                    <Filename value="testsets/Concrete Slump/slump_test.data" timestamp="Jun 07 2011 16:27:59" />
+                                                </gapputils-common-CsvReader>
+                                            </Module>
+                                        </gapputils-workflow-Node>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Node>
+                                            <Uuid value="c2a2309d-8c6b-4bf1-9631-87105201230f" />
+                                            <X value="778" />
+                                            <Y value="483" />
+                                            <Module>
+                                                <gapputils-common-CsvReader>
+                                                    <Label value="Y" />
+                                                    <!--Zero-based index of the first column-->
+                                                    <FirstColumn value="10" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the last column. A value of -1 indicates to read until the end.-->
+                                                    <LastColumn value="10" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the first row-->
+                                                    <FirstRow value="1" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the last row. A value of -1 indicates to read until the end.-->
+                                                    <LastRow value="-1" timestamp="Jun 07 2011 16:27:59" />
+                                                    <Filename value="testsets/Concrete Slump/slump_test.data" timestamp="Jun 07 2011 16:27:59" />
+                                                </gapputils-common-CsvReader>
+                                            </Module>
+                                        </gapputils-workflow-Node>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Node>
+                                            <Uuid value="2d042a46-7055-4baf-b332-b3c15ec5a55b" />
+                                            <X value="782" />
+                                            <Y value="599" />
+                                            <Module>
+                                                <gapputils-common-CsvReader>
+                                                    <Label value="Xstar" />
+                                                    <!--Zero-based index of the first column-->
+                                                    <FirstColumn value="1" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the last column. A value of -1 indicates to read until the end.-->
+                                                    <LastColumn value="7" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the first row-->
+                                                    <FirstRow value="1" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the last row. A value of -1 indicates to read until the end.-->
+                                                    <LastRow value="-1" timestamp="Jun 07 2011 16:27:59" />
+                                                    <Filename value="testsets/Concrete Slump/slump_test.data" timestamp="Jun 07 2011 16:27:59" />
+                                                </gapputils-common-CsvReader>
+                                            </Module>
+                                        </gapputils-workflow-Node>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Node>
+                                            <Uuid value="8df29801-6c1f-400c-99a6-1491b15b75d4" />
+                                            <X value="784" />
+                                            <Y value="714" />
+                                            <Module>
+                                                <gapputils-common-CsvReader>
+                                                    <Label value="Ystar" />
+                                                    <!--Zero-based index of the first column-->
+                                                    <FirstColumn value="10" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the last column. A value of -1 indicates to read until the end.-->
+                                                    <LastColumn value="10" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the first row-->
+                                                    <FirstRow value="1" timestamp="Jun 07 2011 16:27:59" />
+                                                    <!--Zero-based index of the last row. A value of -1 indicates to read until the end.-->
+                                                    <LastRow value="-1" timestamp="Jun 07 2011 16:27:59" />
+                                                    <Filename value="testsets/Concrete Slump/slump_test.data" timestamp="Jun 07 2011 16:27:59" />
+                                                </gapputils-common-CsvReader>
+                                            </Module>
+                                        </gapputils-workflow-Node>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Node>
+                                            <Uuid value="08cf657b-56d1-44ed-913b-80906abac019" />
+                                            <X value="576" />
+                                            <Y value="666" />
+                                            <Module>
+                                                <gapputils-GenericViewer>
+                                                    <Label value="Train" />
+                                                    <Program value="gedit" />
+                                                    <Filename1 value="testsets/Concrete Slump/slump_test.data" />
+                                                    <Filename2 value="" />
+                                                </gapputils-GenericViewer>
+                                            </Module>
+                                        </gapputils-workflow-Node>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Node>
+                                            <Uuid value="ad09cc2c-4cf9-4aef-bfa0-da8b55e12822" />
+                                            <X value="576" />
+                                            <Y value="747" />
+                                            <Module>
+                                                <gapputils-GenericViewer>
+                                                    <Label value="Test" />
+                                                    <Program value="" />
+                                                    <Filename1 value="" />
+                                                    <Filename2 value="" />
+                                                </gapputils-GenericViewer>
+                                            </Module>
+                                        </gapputils-workflow-Node>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Node>
+                                            <Uuid value="dcf22dff-a811-4e7f-93b5-87a5437bbba9" />
+                                            <X value="1009" />
+                                            <Y value="508" />
+                                            <Module>
+                                                <GaussianProcesses-GPRegression>
+                                                    <Label value="Regression" />
+                                                </GaussianProcesses-GPRegression>
+                                            </Module>
+                                        </gapputils-workflow-Node>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Node>
+                                            <Uuid value="8557ac08-cb00-4620-bead-44787ec87a0c" />
+                                            <X value="1156" />
+                                            <Y value="640" />
+                                            <Module>
+                                                <gapputils-common-Compare>
+                                                    <Type value="RSE" />
+                                                    <Count value="0" timestamp="Jun 07 2011 16:27:59" />
+                                                    <Error value="0.211984" timestamp="Jun 07 2011 14:46:56" />
+                                                </gapputils-common-Compare>
+                                            </Module>
+                                        </gapputils-workflow-Node>
+                                    </Item>
+                                    <Item>
+                                        <gapputils-workflow-Node>
+                                            <Uuid value="3b4dfd37-7828-4996-8027-dede2da46017" />
+                                            <X value="1152" />
+                                            <Y value="752" />
+                                            <Module>
+                                                <gapputils-common-CsvWriter>
+                                                    <Label value="Writer" />
+                                                    <Filename value="testsets/quadratic/result.txt" timestamp="Jun 07 2011 12:29:16" />
+                                                </gapputils-common-CsvWriter>
+                                            </Module>
+                                        </gapputils-workflow-Node>
+                                    </Item>
+                                </Collection>
+                            </Nodes>
+                            <InputsPosition value="525 469" />
+                            <OutputsPosition value="1384 508" />
                         </gapputils-workflow-Workflow>
                     </Item>
                 </Collection>

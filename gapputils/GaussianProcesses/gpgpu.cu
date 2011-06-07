@@ -41,7 +41,7 @@ void gp(float* mu, float* cov, float* x, float* y, float* xstar, int n, int d, i
 
   covSE(n, n, d, d_K, bn, d_x, n, d_x, n, sigmaF, sigmaN, d_length);
 
-  // calculated in columne major equals calculate Kstar' in row major
+  // calculated in column major equals calculate Kstar' in row major
   covSE(m, n, d, d_Kstar, n, d_xstar, m, d_x, n, sigmaF, 0.0, d_length);
   cholesky_cuda_block(d_K, bn);
   cublasStrsv('U', 'T', 'N', n, d_K, bn, d_alpha, 1);
@@ -223,7 +223,7 @@ DT Strldet(DT *d_m, int n, int pitch) {
   device_vector<DT> d_diag(n);
   logdiag(d_diag.data().get(), d_m, n, pitch);
 
-  return reduce(d_diag.begin(), d_diag.end(), 1.0, thrust::plus<DT>());
+  return reduce(d_diag.begin(), d_diag.end(), 0.0f, thrust::plus<DT>());
 }
 
 DT l2norm(DT *d_v, int n) {
@@ -273,6 +273,24 @@ void covSE(int m, int n, int d, DT *d_K, int ldk, DT *d_U, int ldu, DT *d_V, int
   cudaThreadSynchronize();
 }
 
+__global__ void setToIdentityKernel(DT *d_M, int n) {
+  int j = threadIdx.x + blockIdx.x * blockDim.x;
+  int i = threadIdx.y + blockIdx.y * blockDim.y;
+
+  if (i >= n || j >= n)
+    return;
+
+  d_M[j + i * n] = (i == j);
+}
+
+void setToIdentity(DT *d_M, int n) {
+  dim3 threads(BLOCK_SIZE, BLOCK_SIZE);
+  dim3 blocks((n + BLOCK_SIZE - 1) / BLOCK_SIZE, (n + BLOCK_SIZE - 1) / BLOCK_SIZE);
+
+  setToIdentityKernel<<<blocks, threads>>>(d_M, n);
+  cudaThreadSynchronize();
+}
+
 __global__ void covSEKernelFast(int m, int n, int d, DT *d_K, int ldk, DT *d_U, int ldu, DT *d_V, int ldv, DT sigmaF, DT sigmaN, DT* d_length) {
   int j = threadIdx.x + blockIdx.x * blockDim.x;
   int i = threadIdx.y + blockIdx.y * blockDim.y;
@@ -315,6 +333,56 @@ void covSEFast(int m, int n, int d, DT *d_K, int ldk, DT *d_U, int ldu, DT *d_V,
   dim3 blocks((n + BLOCK_SIZE - 1) / BLOCK_SIZE, (m + BLOCK_SIZE - 1) / BLOCK_SIZE);
 
   covSEKernelFast<<<blocks, threads>>>(m, n, d, d_K, ldk, d_U, ldu, d_V, ldv, sigmaF, sigmaN, d_length);
+  cudaThreadSynchronize();
+}
+
+__global__ void derivSEKernel(int m, int n, int d, DT *d_K, int ldk, DT *d_U, int ldu,
+    DT *d_V, int ldv, DT sigmaF, DT sigmaN, DT* d_length, int param)
+{
+  int j = threadIdx.x + blockIdx.x * blockDim.x;
+  int i = threadIdx.y + blockIdx.y * blockDim.y;
+
+  if (i >= m || j >= n)
+    return;
+
+  switch (param) {
+  case 0: {
+    // sigma f
+    DT sum = 0;
+    for (int k = 0; k < d; ++k) {
+      float diff = (d_U[i + k * ldu] - d_V[j + k * ldv]) / d_length[k];
+      sum += diff * diff;
+    }
+
+    d_K[j + i * ldk] = 2.f * expf(-1.f/2.f * sum);
+  } break;
+
+  case 1:
+    // sigma n
+    d_K[j + i * ldk] = 2.f * (i == j);
+    break;
+
+  default: {
+      // length
+      const int lparam = param - 2;
+      DT sum = 0;
+      for (int k = 0; k < d; ++k) {
+        float diff = d_U[i + k * ldu] - d_V[j + k * ldv];
+        sum += diff * diff / (d_length[k] * d_length[k]);
+      }
+      const float diff = d_U[i + lparam * ldu] - d_V[j + lparam * ldv];
+      const float lplenght = d_length[lparam];
+
+      d_K[j + i * ldk] = sigmaF * sigmaF * expf(-1.f/2.f * sum) * diff * diff / (lplenght * lplenght * lplenght);
+    }
+  }
+}
+
+void derivSE(int m, int n, int d, DT *d_K, int ldk, DT *d_U, int ldu, DT *d_V, int ldv, DT sigmaF, DT sigmaN, DT* d_length, int param) {
+  dim3 threads(BLOCK_SIZE, BLOCK_SIZE);
+  dim3 blocks((n + BLOCK_SIZE - 1) / BLOCK_SIZE, (m + BLOCK_SIZE - 1) / BLOCK_SIZE);
+
+  derivSEKernel<<<blocks, threads>>>(m, n, d, d_K, ldk, d_U, ldu, d_V, ldv, sigmaF, sigmaN, d_length, param);
   cudaThreadSynchronize();
 }
 
