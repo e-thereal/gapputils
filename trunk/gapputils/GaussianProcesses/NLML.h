@@ -9,7 +9,7 @@
 
 namespace GaussianProcesses {
 
-class NLML : public virtual optlib::IFunction<optlib::IMultiDimensionOptimizer::DomainType>
+class NLML : public virtual optlib::IDifferentiableFunction
 {
 private:
   int n, bn, d;
@@ -22,6 +22,9 @@ public:
 
   virtual double eval(const DomainType& parameter);
   double eval(float sigmaF, float sigmaN, float* length);
+
+  virtual DomainType gradient(const DomainType& parameter);
+  DomainType gradient(float sigmaF, float sigmaN, float* length);
 };
 
 }

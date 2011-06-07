@@ -58,8 +58,8 @@ void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, in
 
   GridLineParameter sigmaFLine;
   sigmaFLine.direction = sigmaFDir;
-  sigmaFLine.minValue = -2;
-  sigmaFLine.maxValue = 2;
+  sigmaFLine.minValue = -3;
+  sigmaFLine.maxValue = 3;
   sigmaFLine.samplesCount = 3;
   gridParams.gridLines.push_back(sigmaFLine);
 
@@ -71,8 +71,8 @@ void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, in
 
   GridLineParameter sigmaNLine;
   sigmaNLine.direction = sigmaNDir;
-  sigmaNLine.minValue = -2;
-  sigmaNLine.maxValue = 2;
+  sigmaNLine.minValue = -3;
+  sigmaNLine.maxValue = 3;
   sigmaNLine.samplesCount = 5;
   gridParams.gridLines.push_back(sigmaNLine);
 
@@ -85,16 +85,17 @@ void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, in
 
   GridLineParameter lengthLine;
   lengthLine.direction = lengthDir;
-  lengthLine.minValue = -2;
-  lengthLine.maxValue = 2;
+  lengthLine.minValue = -3;
+  lengthLine.maxValue = 3;
   lengthLine.samplesCount = 5;
   gridParams.gridLines.push_back(lengthLine);
 
   GridSamplingOptimizer<ConjugateGradientsOptimizer> optimizer;
   optimizer.setParameter(GridSampling, &gridParams);
+  optimizer.setGradientMethod(SteepestDescentOptimizer::Analytic);
   //DownhillSimplexOptimizer optimizer;
 
-  ProgressListener listener(monitor, 3 * 5 * 5);
+  ProgressListener listener(monitor, sigmaFLine.samplesCount * sigmaNLine.samplesCount * lengthLine.samplesCount);
   optimizer.addObserver(listener);
 
   try {

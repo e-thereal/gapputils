@@ -14,17 +14,15 @@ using namespace std;
 
 namespace GaussianProcesses {
 
-NLML::NLML(float* x, float *y, int n, int d) : n(n), d(d), d_alpha(n), d_diag(n),
-  d_x(x, x + (n * d)), d_y(y, y + n), d_length(d), length(d)
+NLML::NLML(float* x, float *y, int n, int d)
+ : n(n), d(d), d_alpha(n), d_diag(n),
+   d_x(x, x + (n * d)), d_y(y, y + n), d_length(d), length(d)
 {
   bn = n;
   if (n % BLOCK_SIZE) {
     bn += BLOCK_SIZE - (n % BLOCK_SIZE);
   }
   d_K.resize(bn * bn);
-  vector<float> vx(n * d);
-  thrust::copy(d_x.begin(), d_x.end(), vx.begin());
-  ;
 }
 
 NLML::~NLML(void)
@@ -41,6 +39,17 @@ double NLML::eval(const DomainType& parameter) {
     length[i] = exp(parameter[i + 2]);
 
   return eval(sigmaF, sigmaN, &length[0]);
+}
+
+NLML::DomainType NLML::gradient(const DomainType& parameter) {
+  assert(parameter.size() == 2 + d);
+  const float sigmaF = exp(parameter[0]);
+  const float sigmaN = exp(parameter[1]);
+
+  for (int i = 0; i < d; ++i)
+    length[i] = exp(parameter[i + 2]);
+
+  return gradient(sigmaF, sigmaN, &length[0]);
 }
 
 //#define PRINT_MATRIX
@@ -82,6 +91,40 @@ double NLML::eval(float sigmaF, float sigmaN, float* length) {
   outfile.close();
 #endif
   return ret;
+}
+
+NLML::DomainType NLML::gradient(float sigmaF, float sigmaN, float* length) {
+  vector<double> gradient(d + 2);
+
+  thrust::copy(d_y.begin(), d_y.end(), d_alpha.begin());
+  thrust::copy(length, length + d, d_length.begin());
+  covSEFast(n, n, d, d_K.data().get(), bn, d_x.data().get(), n, d_x.data().get(), n, sigmaF, sigmaN, d_length.data().get());
+  cholesky_cuda_block(d_K.data().get(), bn);
+
+  // alpha = L'\(L\y) = K^{-1}y
+  cublasStrsv('U', 'T', 'N', n, d_K.data().get(), bn, d_alpha.data().get(), 1);
+  cublasStrsv('U', 'N', 'N', n, d_K.data().get(), bn, d_alpha.data().get(), 1);
+
+  // d_W = invK = L'\(L\I) (I = identity)
+  thrust::device_vector<float> d_W(n * n);
+  setToIdentity(d_W.data().get(), n);
+  cublasStrsm('L', 'U', 'T', 'N', n, n, 1.f, d_K.data().get(), bn, d_W.data().get(), n);
+  cublasStrsm('L', 'U', 'N', 'N', n, n, 1.f, d_K.data().get(), bn, d_W.data().get(), n);
+
+  // W = invK - alpha * alpha' = -1.0 * alpha * alpha' + 1.0 * invK
+  cublasSgemm('N', 'T', n, n, 1, -1.f, d_alpha.data().get(), 1.0f, d_alpha.data().get(), 1,
+      1.0f, d_W.data().get(), n);
+
+  thrust::device_vector<float> d_dK(n * n);
+  for (int iparam = 0; iparam < gradient.size(); ++iparam) {
+    // dK/dO_i
+    derivSE(n, n, d, d_dK.data().get(), n, d_x.data().get(), n, d_x.data().get(), n, sigmaF, sigmaN, d_length.data().get(), iparam);
+
+    // dnlml_i = 1/2 * tr(W * dK/dO_i) = 1/2 * sum(W .* dK/dO_i)
+    gradient[iparam] = 0.5 * thrust::inner_product(d_W.begin(), d_W.end(), d_dK.begin(), 0.0f);
+  }
+
+  return gradient;
 }
 
 }

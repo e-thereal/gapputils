@@ -5,6 +5,7 @@
 #include <capputils/OutputAttribute.h>
 #include <capputils/FilenameAttribute.h>
 #include <capputils/TimeStampAttribute.h>
+#include <capputils/FileExists.h>
 
 using namespace capputils::attributes;
 
@@ -19,10 +20,10 @@ BeginPropertyDefinitions(Interface)
   DefineProperty(GoalColumn, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(FirstTrainRow, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(LastTrainRow, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Train, Input(), Observe(PROPERTY_ID), Filename(), TimeStamp(PROPERTY_ID))
+  DefineProperty(Train, Input(), Observe(PROPERTY_ID), Filename(), FileExists(), TimeStamp(PROPERTY_ID))
   DefineProperty(FirstTestRow, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(LastTestRow, Input(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Test, Input(), Observe(PROPERTY_ID), Filename(), TimeStamp(PROPERTY_ID))
+  DefineProperty(Test, Input(), Observe(PROPERTY_ID), Filename(), FileExists(), TimeStamp(PROPERTY_ID))
   DefineProperty(Error, Output(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions

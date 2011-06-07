@@ -11,7 +11,6 @@ class GPRegression : public gapputils::workflow::WorkflowElement
 {
   InitReflectableClass(GPRegression)
 
-  Property(Label, std::string)
   Property(FeatureCount, int)
   Property(X, double*)
   Property(Y, double*)
@@ -23,6 +22,7 @@ class GPRegression : public gapputils::workflow::WorkflowElement
 
 private:
   mutable GPRegression* data;
+  static int xId, dId;
 
 public:
   GPRegression(void);

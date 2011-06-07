@@ -1,34 +1,47 @@
-gp.d gp.o: ../gp.cpp ../gpgpu.h \
-  /home/tombr/Projects/optlib/ConjugateGradientsOptimizer.h \
-  /home/tombr/Projects/optlib/SteepestDescentOptimizer.h \
-  /home/tombr/Projects/optlib/ObservableDirectionSetOptimizer.h \
-  /home/tombr/Projects/optlib/DirectionSetOptimizer.h \
-  /home/tombr/Projects/optlib/IDirectionSetOptimizer.h \
+GPTest.d GPTest.o: ../GPTest.cpp ../GPTest.h \
+  /home/tombr/Projects/gapputils/WorkflowElement.h \
+  /home/tombr/Projects/gapputils/gapputils.h \
+  /home/tombr/Projects/capputils/ReflectableClass.h \
+  /home/tombr/Projects/capputils/capputils.h \
+  /home/tombr/Projects/capputils/IAttribute.h \
+  /home/tombr/Projects/capputils/ClassProperty.h \
+  /home/tombr/Projects/capputils/IClassProperty.h \
+  /home/tombr/Projects/capputils/AttributeExecuter.h \
+  /home/tombr/Projects/capputils/ReflectableClass.h \
+  /home/tombr/Projects/capputils/ReflectableAttribute.h \
+  /home/tombr/Projects/capputils/IReflectableAttribute.h \
+  /home/tombr/Projects/capputils/ReflectableClassFactory.h \
+  /home/tombr/Projects/capputils/ObservableClass.h \
+  /home/tombr/Projects/capputils/TimedClass.h \
+  /home/tombr/Projects/gapputils/IProgressMonitor.h \
+  /home/tombr/Projects/capputils/ObserveAttribute.h \
+  /home/tombr/Projects/capputils/IExecutableAttribute.h \
+  /home/tombr/Projects/capputils/EventHandler.h \
+  /home/tombr/Projects/capputils/ObservableClass.h \
+  /home/tombr/Projects/capputils/OutputAttribute.h \
+  /home/tombr/Projects/capputils/ShortNameAttribute.h \
+  /home/tombr/Projects/capputils/FilenameAttribute.h \
+  /home/tombr/Projects/capputils/IAssertionAttribute.h \
+  /home/tombr/Projects/capputils/NotEqualAssertion.h \
+  /home/tombr/Projects/capputils/Verifier.h \
+  /home/tombr/Projects/capputils/Xmlizer.h \
+  /home/tombr/Projects/tinyxml/tinyxml.h \
+  /home/tombr/Projects/capputils/EnumerableAttribute.h \
+  /home/tombr/Projects/capputils/IEnumerableAttribute.h \
+  /home/tombr/Projects/capputils/IPropertyIterator.h \
+  /home/tombr/Projects/gapputils/LabelAttribute.h \
+  /home/tombr/Projects/capputils/IAttribute.h \
+  /home/tombr/Projects/capputils/ShortNameAttribute.h \
+  /home/tombr/Projects/capputils/VolatileAttribute.h \
+  /home/tombr/Projects/capputils/TimeStampAttribute.h \
+  /home/tombr/Projects/capputils/IXmlableAttribute.h ../gpgpu.h \
+  /home/tombr/Projects/gapputils/IProgressMonitor.h ../NLML.h \
   /home/tombr/Projects/optlib/IMultiDimensionOptimizer.h \
   /home/tombr/Projects/optlib/IOptimizer.h \
   /home/tombr/Projects/optlib/IFunction.h \
   /home/tombr/Projects/optlib/../alglib/TypeSystem.h \
   /home/tombr/Projects/optlib/../alglib/alglib.h \
   /home/tombr/Projects/optlib/optlib.h \
-  /home/tombr/Projects/optlib/ILineOptimizer.h \
-  /home/tombr/Projects/optlib/BrentOptimizer.h \
-  /home/tombr/Projects/optlib/IParameterizable.h \
-  /home/tombr/Projects/optlib/ObservableLineOptimizer.h \
-  /home/tombr/Projects/optlib/LogEvent.h \
-  /home/tombr/Projects/optlib/IOptimizerEvent.h \
-  /home/tombr/Projects/optlib/ObservableOptimizer.h \
-  /home/tombr/Projects/optlib/IObservableOptimizer.h \
-  /home/tombr/Projects/optlib/IOptimizerObserver.h \
-  /home/tombr/Projects/optlib/IObserver.h \
-  /home/tombr/Projects/optlib/IFunctionObserver.h \
-  /home/tombr/Projects/optlib/IObservableFunction.h \
-  /home/tombr/Projects/optlib/ObservableOptimizer_template.cpp \
-  /home/tombr/Projects/optlib/DownhillSimplexOptimizer.h \
-  /home/tombr/Projects/optlib/OptimizerException.h \
-  /home/tombr/Projects/optlib/GridSamplingOptimizer.h \
-  /home/tombr/Projects/optlib/OptimizerException.h \
-  /home/tombr/Projects/optlib/GridSamplingOptimizer_template.cpp \
-  ../NLML.h /home/tombr/Projects/optlib/IMultiDimensionOptimizer.h \
   /home/tombr/Programs/cuda/include/thrust/device_vector.h \
   /home/tombr/Programs/cuda/include/thrust/detail/config.h \
   /home/tombr/Programs/cuda/include/thrust/detail/config/config.h \
@@ -282,17 +295,85 @@ gp.d gp.o: ../gp.cpp ../gpgpu.h \
   /home/tombr/Programs/cuda/include/thrust/host_vector.h \
   /home/tombr/Programs/cuda/include/thrust/detail/host_vector.inl
 
+../GPTest.h:
+
+/home/tombr/Projects/gapputils/WorkflowElement.h:
+
+/home/tombr/Projects/gapputils/gapputils.h:
+
+/home/tombr/Projects/capputils/ReflectableClass.h:
+
+/home/tombr/Projects/capputils/capputils.h:
+
+/home/tombr/Projects/capputils/IAttribute.h:
+
+/home/tombr/Projects/capputils/ClassProperty.h:
+
+/home/tombr/Projects/capputils/IClassProperty.h:
+
+/home/tombr/Projects/capputils/AttributeExecuter.h:
+
+/home/tombr/Projects/capputils/ReflectableClass.h:
+
+/home/tombr/Projects/capputils/ReflectableAttribute.h:
+
+/home/tombr/Projects/capputils/IReflectableAttribute.h:
+
+/home/tombr/Projects/capputils/ReflectableClassFactory.h:
+
+/home/tombr/Projects/capputils/ObservableClass.h:
+
+/home/tombr/Projects/capputils/TimedClass.h:
+
+/home/tombr/Projects/gapputils/IProgressMonitor.h:
+
+/home/tombr/Projects/capputils/ObserveAttribute.h:
+
+/home/tombr/Projects/capputils/IExecutableAttribute.h:
+
+/home/tombr/Projects/capputils/EventHandler.h:
+
+/home/tombr/Projects/capputils/ObservableClass.h:
+
+/home/tombr/Projects/capputils/OutputAttribute.h:
+
+/home/tombr/Projects/capputils/ShortNameAttribute.h:
+
+/home/tombr/Projects/capputils/FilenameAttribute.h:
+
+/home/tombr/Projects/capputils/IAssertionAttribute.h:
+
+/home/tombr/Projects/capputils/NotEqualAssertion.h:
+
+/home/tombr/Projects/capputils/Verifier.h:
+
+/home/tombr/Projects/capputils/Xmlizer.h:
+
+/home/tombr/Projects/tinyxml/tinyxml.h:
+
+/home/tombr/Projects/capputils/EnumerableAttribute.h:
+
+/home/tombr/Projects/capputils/IEnumerableAttribute.h:
+
+/home/tombr/Projects/capputils/IPropertyIterator.h:
+
+/home/tombr/Projects/gapputils/LabelAttribute.h:
+
+/home/tombr/Projects/capputils/IAttribute.h:
+
+/home/tombr/Projects/capputils/ShortNameAttribute.h:
+
+/home/tombr/Projects/capputils/VolatileAttribute.h:
+
+/home/tombr/Projects/capputils/TimeStampAttribute.h:
+
+/home/tombr/Projects/capputils/IXmlableAttribute.h:
+
 ../gpgpu.h:
 
-/home/tombr/Projects/optlib/ConjugateGradientsOptimizer.h:
+/home/tombr/Projects/gapputils/IProgressMonitor.h:
 
-/home/tombr/Projects/optlib/SteepestDescentOptimizer.h:
-
-/home/tombr/Projects/optlib/ObservableDirectionSetOptimizer.h:
-
-/home/tombr/Projects/optlib/DirectionSetOptimizer.h:
-
-/home/tombr/Projects/optlib/IDirectionSetOptimizer.h:
+../NLML.h:
 
 /home/tombr/Projects/optlib/IMultiDimensionOptimizer.h:
 
@@ -305,46 +386,6 @@ gp.d gp.o: ../gp.cpp ../gpgpu.h \
 /home/tombr/Projects/optlib/../alglib/alglib.h:
 
 /home/tombr/Projects/optlib/optlib.h:
-
-/home/tombr/Projects/optlib/ILineOptimizer.h:
-
-/home/tombr/Projects/optlib/BrentOptimizer.h:
-
-/home/tombr/Projects/optlib/IParameterizable.h:
-
-/home/tombr/Projects/optlib/ObservableLineOptimizer.h:
-
-/home/tombr/Projects/optlib/LogEvent.h:
-
-/home/tombr/Projects/optlib/IOptimizerEvent.h:
-
-/home/tombr/Projects/optlib/ObservableOptimizer.h:
-
-/home/tombr/Projects/optlib/IObservableOptimizer.h:
-
-/home/tombr/Projects/optlib/IOptimizerObserver.h:
-
-/home/tombr/Projects/optlib/IObserver.h:
-
-/home/tombr/Projects/optlib/IFunctionObserver.h:
-
-/home/tombr/Projects/optlib/IObservableFunction.h:
-
-/home/tombr/Projects/optlib/ObservableOptimizer_template.cpp:
-
-/home/tombr/Projects/optlib/DownhillSimplexOptimizer.h:
-
-/home/tombr/Projects/optlib/OptimizerException.h:
-
-/home/tombr/Projects/optlib/GridSamplingOptimizer.h:
-
-/home/tombr/Projects/optlib/OptimizerException.h:
-
-/home/tombr/Projects/optlib/GridSamplingOptimizer_template.cpp:
-
-../NLML.h:
-
-/home/tombr/Projects/optlib/IMultiDimensionOptimizer.h:
 
 /home/tombr/Programs/cuda/include/thrust/device_vector.h:
 

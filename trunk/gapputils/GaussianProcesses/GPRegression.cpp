@@ -11,6 +11,7 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/LabelAttribute.h>
 #include <capputils/ShortNameAttribute.h>
+#include <capputils/TimeStampAttribute.h>
 #include <capputils/VolatileAttribute.h>
 #include <cmath>
 
@@ -22,38 +23,40 @@ using namespace std;
 
 namespace GaussianProcesses {
 
-enum EventIds {
-  LabelId, FeatureCountId, XId, YId, TrainingCountId, XstarId, YstarId, TestCountId, RegressId
-};
+int GPRegression::xId;
+int GPRegression::dId;
 
 BeginPropertyDefinitions(GPRegression)
 
-  DefineProperty(Label, Label(), Observe(LabelId))
-  DefineProperty(FeatureCount, Observe(FeatureCountId), Input(), ShortName("D"), Volatile())
-  DefineProperty(X, Observe(FeatureCountId), Input(), NotEqual<double*>(0), Hide(), Volatile())
-  DefineProperty(Y, Observe(FeatureCountId), Input(), NotEqual<double*>(0), Hide(), Volatile())
-  DefineProperty(TrainingCount, Observe(FeatureCountId), Input(), ShortName("N"), Volatile())
+  ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(Xstar, Observe(FeatureCountId), Input(), NotEqual<double*>(0), Hide(), ShortName("X*"), Volatile())
-  DefineProperty(Ystar, Observe(FeatureCountId), Output(), Hide(), ShortName("Y*"), Volatile())
-  DefineProperty(TestCount, Observe(FeatureCountId), Input(), Output(), ShortName("M"), Volatile())
+  DefineProperty(FeatureCount, Observe(dId = PROPERTY_ID), Input(), ShortName("D"), Volatile(), TimeStamp(PROPERTY_ID))
+  DefineProperty(X, Observe(xId = PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(PROPERTY_ID))
+  DefineProperty(Y, Observe(PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(PROPERTY_ID))
+  DefineProperty(TrainingCount, Observe(PROPERTY_ID), Input(), ShortName("N"), Volatile(), TimeStamp(PROPERTY_ID))
+
+  DefineProperty(Xstar, Observe(PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), ShortName("X*"), Volatile(), TimeStamp(PROPERTY_ID))
+  DefineProperty(Ystar, Observe(PROPERTY_ID), Output(), Hide(), ShortName("Y*"), Volatile(), TimeStamp(PROPERTY_ID))
+  DefineProperty(TestCount, Observe(PROPERTY_ID), Input(), ShortName("M"), Volatile(), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-GPRegression::GPRegression(void) : _Label("Regression"), _FeatureCount(0), _X(0), _Y(0),
+GPRegression::GPRegression(void) : _FeatureCount(0), _X(0), _Y(0),
     _TrainingCount(0), _Xstar(0), _Ystar(0), _TestCount(0), data(0)
 {
+  WfeUpdateTimestamp
+  setLabel("GPRegression");
   Changed.connect(capputils::EventHandler<GPRegression>(this, &GPRegression::changeEventHandler));
 }
 
 
 GPRegression::~GPRegression(void)
 {
-  if (data)
-    delete data;
-
   if (getYstar())
     delete getYstar();
+
+  if (data)
+    delete data;
 }
 
 void getMean(vector<float>& means, const vector<float>& values) {
@@ -91,8 +94,6 @@ void standardize(vector<float>& values, const vector<float>& means, const vector
 }
 
 void GPRegression::changeEventHandler(capputils::ObservableClass* sender, int eventId) {
-  if (!capputils::Verifier::Valid(*this))
-    return;
 }
 
 void GPRegression::execute(gapputils::workflow::IProgressMonitor* monitor) const {
@@ -100,6 +101,9 @@ void GPRegression::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   if (!data)
     data = new GPRegression();
+
+  if (!capputils::Verifier::Valid(*this))
+    return;
 
   // Train the GP
 
@@ -140,6 +144,9 @@ void GPRegression::execute(gapputils::workflow::IProgressMonitor* monitor) const
 void GPRegression::writeResults() {
   if (!data)
     return;
+
+  if (getYstar())
+    delete getYstar();
 
   setYstar(data->getYstar());
   data->setYstar(0);
