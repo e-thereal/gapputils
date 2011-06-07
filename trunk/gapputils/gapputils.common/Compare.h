@@ -10,7 +10,7 @@ namespace gapputils {
 
 namespace common {
 
-ReflectableEnum(ErrorType, MSE, SSD, CC);
+ReflectableEnum(ErrorType, MSE, SE, RSE);
 
 class Compare : public workflow::WorkflowElement
 {
@@ -29,6 +29,8 @@ private:
 public:
   Compare(void);
   ~Compare(void);
+
+  void changeEventHandler(capputils::ObservableClass* sender, int eventId);
 
   virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
   virtual void writeResults();

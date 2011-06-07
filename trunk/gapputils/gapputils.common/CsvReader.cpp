@@ -37,7 +37,8 @@ BeginPropertyDefinitions(CsvReader)
   DefineProperty(LastColumn, ShortName("LC"), Observe(PROPERTY_ID), Description("Zero-based index of the last column. A value of -1 indicates to read until the end."), Input(), TimeStamp(PROPERTY_ID))
   DefineProperty(FirstRow, ShortName("FR"), Observe(PROPERTY_ID), Description("Zero-based index of the first row"), Input(), TimeStamp(PROPERTY_ID))
   DefineProperty(LastRow, ShortName("LR"), Observe(PROPERTY_ID), Description("Zero-based index of the last row. A value of -1 indicates to read until the end."), Input(), TimeStamp(PROPERTY_ID))
-  DefineProperty(Filename, ShortName("File"), Observe(PROPERTY_ID), FileExists(), Filename(), Input(), TimeStamp(PROPERTY_ID))
+  // TODO: workaround here. Inputs are not encoded in outputs. Therefore filename here would give wrong results
+  DefineProperty(Filename, ShortName("File"), Observe(PROPERTY_ID), FileExists(), Input(), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, ShortName("CC"), Observe(PROPERTY_ID), Output(), Volatile(), TimeStamp(PROPERTY_ID))
   DefineProperty(RowCount, ShortName("RC"), Observe(PROPERTY_ID), Output(), Volatile(), TimeStamp(PROPERTY_ID))
   DefineProperty(Data, Observe(PROPERTY_ID), Output(), Hide(), Volatile(), TimeStamp(PROPERTY_ID))
@@ -121,35 +122,35 @@ void CsvReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   csvfile.close();
 
   // Wrap up the data
-  if (this->data->getData())
-    delete this->data->getData();
+  if (data->getData())
+    delete data->getData();
 
-  double* data = new double[dataVector.size() * columnCount];
+  double* _data = new double[dataVector.size() * columnCount];
   for (unsigned i = 0, k = 0; i < dataVector.size(); ++i) {
     vector<double>* dataRow = dataVector[i];
     for (unsigned j = 0; j < dataRow->size(); ++j, ++k) {
-      data[k] = dataRow->at(j);
+      _data[k] = dataRow->at(j);
     }
     k += columnCount - dataRow->size();
     delete dataRow;
   }
 
-  this->data->setColumnCount(columnCount);
-  this->data->setRowCount(dataVector.size());
-  this->data->setData(data);
+  data->setColumnCount(columnCount);
+  data->setRowCount(dataVector.size());
+  data->setData(_data);
 }
 
 void CsvReader::writeResults() {
-  if (getData())
-    delete getData();
-
-  size_t count = data->getColumnCount() * data->getRowCount();
-  double* _data = new double[count];
-  std::copy(data->getData(), data->getData() + count, _data);
+  if (!data)
+    return;
 
   setColumnCount(data->getColumnCount());
   setRowCount(data->getRowCount());
-  setData(_data);
+
+  if (getData())
+    delete getData();
+  setData(data->getData());
+  data->setData(0);
 }
 
 }
