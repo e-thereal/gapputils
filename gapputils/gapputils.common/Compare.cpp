@@ -12,8 +12,12 @@
 #include <gapputils/LabelAttribute.h>
 #include <gapputils/HideAttribute.h>
 
+#include <iostream>
+#include <cmath>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
+using namespace std;
 
 namespace gapputils {
 
@@ -33,13 +37,16 @@ EndPropertyDefinitions
 
 Compare::Compare(void) : _Type(ErrorType::MSE), _X(0), _Y(0), _Count(0), _Error(0), data(0)
 {
+  Changed.connect(capputils::EventHandler<Compare>(this, &Compare::changeEventHandler));
 }
-
 
 Compare::~Compare(void)
 {
   if (data)
     delete data;
+}
+
+void Compare::changeEventHandler(capputils::ObservableClass* sender, int eventId) {
 }
 
 void Compare::execute(gapputils::workflow::IProgressMonitor* monitor) const {
@@ -59,6 +66,30 @@ void Compare::execute(gapputils::workflow::IProgressMonitor* monitor) const {
         error += (x[i] - y[i]) * (x[i] - y[i]);
       }
       error /= count;
+    } break;
+  case ErrorType::SE : {
+      double *x = getX();
+      double *y = getY();
+      int count = getCount();
+      for (int i = 0; i < count; ++i) {
+        error += (x[i] - y[i]) * (x[i] - y[i]);
+      }
+      error /= count;
+      error = sqrt(error);
+    } break;
+  case ErrorType::RSE : {
+      double *x = getX();
+      double *y = getY();
+      int count = getCount();
+      double xMean = 0.0;
+      for (int i = 0; i < count; ++i) {
+        error += (x[i] - y[i]) * (x[i] - y[i]);
+        xMean += x[i];
+      }
+      error /= count;
+      xMean /= count;
+      error = sqrt(error);
+      error /= xMean;
     } break;
   }
   data->setError(error);
