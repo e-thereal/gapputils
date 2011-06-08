@@ -270,8 +270,8 @@ void Workbench::dropEvent(QDropEvent *event) {
   model.dropMimeData(event->mimeData(), Qt::CopyAction, 0, 0, QModelIndex());
 
   QPointF pos = mapToScene(event->pos());
-  cout << "Class: " << model.item(0, 0)->data(Qt::UserRole).toString().toAscii().data() << endl;
-  cout << "At: " << pos.x() << ", " << pos.y() << endl;
+  //cout << "Class: " << model.item(0, 0)->data(Qt::UserRole).toString().toAscii().data() << endl;
+  //cout << "At: " << pos.x() << ", " << pos.y() << endl;
   Q_EMIT createItemRequest(pos.x(), pos.y(), model.item(0, 0)->data(Qt::UserRole).toString());
 
   QGraphicsView::dropEvent(event);

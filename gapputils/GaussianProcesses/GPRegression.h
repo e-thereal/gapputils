@@ -18,6 +18,7 @@ class GPRegression : public gapputils::workflow::WorkflowElement
 
   Property(Xstar, double*)
   Property(Ystar, double*)
+  Property(StandardDeviation, double*)
   Property(TestCount, int)
 
 private:

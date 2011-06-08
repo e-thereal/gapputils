@@ -37,12 +37,13 @@ BeginPropertyDefinitions(GPRegression)
 
   DefineProperty(Xstar, Observe(PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), ShortName("X*"), Volatile(), TimeStamp(PROPERTY_ID))
   DefineProperty(Ystar, Observe(PROPERTY_ID), Output(), Hide(), ShortName("Y*"), Volatile(), TimeStamp(PROPERTY_ID))
+  DefineProperty(StandardDeviation, Output("SD"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(TestCount, Observe(PROPERTY_ID), Input(), ShortName("M"), Volatile(), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
 GPRegression::GPRegression(void) : _FeatureCount(0), _X(0), _Y(0),
-    _TrainingCount(0), _Xstar(0), _Ystar(0), _TestCount(0), data(0)
+    _TrainingCount(0), _Xstar(0), _Ystar(0), _StandardDeviation(0), _TestCount(0), data(0)
 {
   WfeUpdateTimestamp
   setLabel("GPRegression");
@@ -54,6 +55,8 @@ GPRegression::~GPRegression(void)
 {
   if (getYstar())
     delete getYstar();
+  if (getStandardDeviation())
+    delete getStandardDeviation();
 
   if (data)
     delete data;
@@ -116,6 +119,7 @@ void GPRegression::execute(gapputils::workflow::IProgressMonitor* monitor) const
   vector<float> xstar(m * d);
   vector<float> ystar(m);
   vector<float> length(d);
+  vector<float> sd(m);
 
   copy(getX(), getX() + (d*n), x.begin());
   copy(getY(), getY() + n, y.begin());
@@ -131,14 +135,25 @@ void GPRegression::execute(gapputils::workflow::IProgressMonitor* monitor) const
   trainGP(sigmaF, sigmaN, &length[0], &x[0], &y[0], n, d, monitor);
 
   // Make predictions with the GP
-  gp(&ystar[0], 0, &x[0], &y[0], &xstar[0], n, d, m, sigmaF, sigmaN, &length[0]);
+  float *cov = new float[m * m];
+  gp(&ystar[0], cov, &x[0], &y[0], &xstar[0], n, d, m, sigmaF, sigmaN, &length[0]);
+
+  for (int i = 0; i < m; ++i)
+    sd[i] = sqrt(cov[i + i * m]);
 
   if (data->getYstar())
     delete data->getYstar();
 
+  if (data->getStandardDeviation())
+    delete data->getStandardDeviation();
+
   double* result = new double[m];
   copy(ystar.begin(), ystar.end(), result);
   data->setYstar(result);
+
+  double* standard = new double[m];
+  copy(sd.begin(), sd.end(), standard);
+  data->setStandardDeviation(standard);
 }
 
 void GPRegression::writeResults() {
@@ -147,9 +162,13 @@ void GPRegression::writeResults() {
 
   if (getYstar())
     delete getYstar();
-
   setYstar(data->getYstar());
   data->setYstar(0);
+
+  if (getStandardDeviation())
+    delete getStandardDeviation();
+  setStandardDeviation(data->getStandardDeviation());
+  data->setStandardDeviation(0);
 }
 
 }

@@ -9,6 +9,7 @@
 #include <capputils/VolatileAttribute.h>
 #include <capputils/ShortNameAttribute.h>
 #include <capputils/TimeStampAttribute.h>
+#include <capputils/OutputAttribute.h>
 
 #include <gapputils/LabelAttribute.h>
 #include <gapputils/HideAttribute.h>
@@ -27,9 +28,9 @@ BeginPropertyDefinitions(CsvWriter)
 
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(Filename, Observe(PROPERTY_ID), Filename(), NotEqual<string>(""), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, ShortName("CC"), Observe(PROPERTY_ID), Input(), Volatile(), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, ShortName("RC"), Observe(PROPERTY_ID), Input(), Volatile(), TimeStamp(PROPERTY_ID))
+  DefineProperty(Filename, Output("Csv"), Observe(PROPERTY_ID), Filename(), NotEqual<string>(""), TimeStamp(PROPERTY_ID))
+  DefineProperty(ColumnCount, ShortName("CC"), Observe(PROPERTY_ID), Input(), TimeStamp(PROPERTY_ID))
+  DefineProperty(RowCount, ShortName("RC"), Observe(PROPERTY_ID), Input(), TimeStamp(PROPERTY_ID))
   DefineProperty(Data, Observe(PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
@@ -68,6 +69,7 @@ void CsvWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 }
 
 void CsvWriter::writeResults() {
+  setFilename(getFilename());
 }
 
 }
