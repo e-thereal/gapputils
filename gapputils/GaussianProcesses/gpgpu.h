@@ -8,6 +8,8 @@
 #ifndef GAUSSIANPROCESS_GPGPU_H_
 #define GAUSSIANPROCESS_GPGPU_H_
 
+#include <iostream>
+
 #define CUDA_MAX_BLOCK_SIZE 16
 #define BLOCK_SIZE 16
 #define DT float
@@ -15,6 +17,8 @@
 #include <gapputils/IProgressMonitor.h>
 
 namespace GaussianProcesses {
+
+void printMatrix(std::ostream& stream, const char* name, float *d_m, int m, int n, int pitch);
 
 void gp(float* mu, float* cov, float* x, float* y, float* xstar, int n, int d, int m, float sigmaF, float sigmaN, float* length);
 

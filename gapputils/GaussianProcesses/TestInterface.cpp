@@ -20,6 +20,7 @@ BeginPropertyDefinitions(TestInterface)
 
  ReflectableBase(gapputils::workflow::WorkflowInterface)
  DefineProperty(Pdf, Output(), Observe(PROPERTY_ID), Volatile())
+ DefineProperty(XmlName, Output("Xml"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 

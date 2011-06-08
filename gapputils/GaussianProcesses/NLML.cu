@@ -5,6 +5,7 @@
 #include <cublas.h>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <vector>
 
@@ -52,7 +53,7 @@ NLML::DomainType NLML::gradient(const DomainType& parameter) {
   return gradient(sigmaF, sigmaN, &length[0]);
 }
 
-//#define PRINT_MATRIX
+#define PRINT_MATRIX
 
 double NLML::eval(float sigmaF, float sigmaN, float* length) {
   const float logTwoPiHalf = 0.918938533f;
@@ -95,34 +96,50 @@ double NLML::eval(float sigmaF, float sigmaN, float* length) {
 
 NLML::DomainType NLML::gradient(float sigmaF, float sigmaN, float* length) {
   vector<double> gradient(d + 2);
+  ofstream outfile("dnlml.txt");
 
   thrust::copy(d_y.begin(), d_y.end(), d_alpha.begin());
+  printMatrix(outfile, "y", d_alpha.data().get(), n, 1, n);
   thrust::copy(length, length + d, d_length.begin());
   covSEFast(n, n, d, d_K.data().get(), bn, d_x.data().get(), n, d_x.data().get(), n, sigmaF, sigmaN, d_length.data().get());
+  printMatrix(outfile, "K", d_K.data().get(), n, n, bn);
+
   cholesky_cuda_block(d_K.data().get(), bn);
+  printMatrix(outfile, "L", d_K.data().get(), n, n, bn);
 
   // alpha = L'\(L\y) = K^{-1}y
   cublasStrsv('U', 'T', 'N', n, d_K.data().get(), bn, d_alpha.data().get(), 1);
   cublasStrsv('U', 'N', 'N', n, d_K.data().get(), bn, d_alpha.data().get(), 1);
+  printMatrix(outfile, "alpha", d_alpha.data().get(), n, 1, n);
 
   // d_W = invK = L'\(L\I) (I = identity)
   thrust::device_vector<float> d_W(n * n);
   setToIdentity(d_W.data().get(), n);
+  printMatrix(outfile, "I", d_W.data().get(), n, n, n);
   cublasStrsm('L', 'U', 'T', 'N', n, n, 1.f, d_K.data().get(), bn, d_W.data().get(), n);
   cublasStrsm('L', 'U', 'N', 'N', n, n, 1.f, d_K.data().get(), bn, d_W.data().get(), n);
+  printMatrix(outfile, "invK", d_W.data().get(), n, n, n);
 
   // W = invK - alpha * alpha' = -1.0 * alpha * alpha' + 1.0 * invK
-  cublasSgemm('N', 'T', n, n, 1, -1.f, d_alpha.data().get(), 1.0f, d_alpha.data().get(), 1,
+  cublasSgemm('N', 'T', n, n, 1, -1.f, d_alpha.data().get(), n, d_alpha.data().get(), n,
       1.0f, d_W.data().get(), n);
+  printMatrix(outfile, "W", d_W.data().get(), n, n, n);
 
   thrust::device_vector<float> d_dK(n * n);
   for (int iparam = 0; iparam < gradient.size(); ++iparam) {
+    stringstream sname;
+    sname << "dK_" << iparam;
+
     // dK/dO_i
     derivSE(n, n, d, d_dK.data().get(), n, d_x.data().get(), n, d_x.data().get(), n, sigmaF, sigmaN, d_length.data().get(), iparam);
+    printMatrix(outfile, sname.str().c_str(), d_dK.data().get(), n, n, n);
 
     // dnlml_i = 1/2 * tr(W * dK/dO_i) = 1/2 * sum(W .* dK/dO_i)
     gradient[iparam] = 0.5 * thrust::inner_product(d_W.begin(), d_W.end(), d_dK.begin(), 0.0f);
+
+    outfile << "g_" << iparam << " = " << gradient[iparam] << ";" << endl;
   }
+  outfile.close();
 
   return gradient;
 }

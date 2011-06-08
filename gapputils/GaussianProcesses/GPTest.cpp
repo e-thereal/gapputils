@@ -127,6 +127,7 @@ void GPTest::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   NLML nlml(&x[0], &y[0], x.size(), 1);
   cout << "nlml = " << nlml.eval(sigmaF, sigmaN, &length) << endl;
+  nlml.gradient(sigmaF, sigmaN, &length);
 
   data->setCI(ci);
   data->setMu(mu);

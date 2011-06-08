@@ -17,6 +17,7 @@ class TestInterface : public gapputils::workflow::WorkflowInterface
   InitReflectableClass(TestInterface)
 
   Property(Pdf, std::string)
+  Property(XmlName, std::string)
 
 public:
   TestInterface();
