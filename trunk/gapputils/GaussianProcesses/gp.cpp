@@ -14,6 +14,8 @@
 #include <optlib/OptimizerException.h>
 #include <optlib/GridSamplingOptimizer.h>
 
+#include <cublas.h>
+
 #include "NLML.h"
 
 using namespace gapputils::workflow;
@@ -21,6 +23,82 @@ using namespace optlib;
 using namespace std;
 
 namespace GaussianProcesses {
+
+/// Row major matrix (as typical C style)
+template<class T>
+class Matrix {
+private:
+  T* data;
+  int rowCount, columnCount;
+
+public:
+  Matrix(int rowCount, int columnCount) : rowCount(rowCount), columnCount(columnCount) {
+    data = new T[rowCount * columnCount];
+  }
+
+  Matrix (T data[], int rowCount, int columnCount) : rowCount(rowCount), columnCount(columnCount) {
+    this->data = new T[rowCount * columnCount];
+    copy(data, data + (rowCount * columnCount), this->data);
+  }
+
+  virtual ~Matrix() {
+    delete data;
+  }
+
+  T* getData() const {
+    return data;
+  }
+
+  int getRowCount() const {
+    return rowCount;
+  }
+
+  int getColumnCount() const {
+    return columnCount;
+  }
+
+  bool isQuadratic() const {
+    return getRowCount() == getColumnCount();
+  }
+
+  T& getElement(int rowIndex, int columnIndex) {
+    return data[rowIndex * getColumnCount() + columnIndex];
+  }
+
+  T& operator()(int rowIndex, int columnIndex) {
+    return getElement(rowIndex, columnIndex);
+  }
+};
+
+template<class T>
+ostream& operator<<(ostream& stream, const Matrix<T>& matrix) {
+  const int rows = matrix.getRowCount();
+  const int cols = matrix.getColumnCount();
+  const T* data = matrix.getData();
+
+  stream << "[ ";
+  for (int i = 0, y = 0; y < rows; ++y) {
+    for (int x = 0; x < cols; ++x, ++i) {
+      stream << data[i];
+      if (x < cols - 1)
+        stream << " ";
+    }
+    if (y < rows - 1)
+      stream << "; ";
+  }
+  stream << " ]";
+
+  return stream;
+}
+
+void printMatrix(ostream& stream, const char* name, float *d_m, int m, int n, int pitch) {
+  Matrix<float> M(n, m);
+
+  //cublasGetVector(m * n, sizeof(float), d_m, 1, M.getData(), 1);
+  cublasGetMatrix(m, n, sizeof(float), d_m, pitch, M.getData(), m);
+  stream << name << " = " << M << "';" << endl;
+}
+
 
 class ProgressListener : public optlib::ConjugateGradientsOptimizer::ObserverType {
 private:
