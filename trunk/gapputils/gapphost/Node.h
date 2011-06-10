@@ -16,7 +16,6 @@ namespace workflow {
 class Node : public capputils::reflection::ReflectableClass,
              public capputils::ObservableClass
 {
-
   InitReflectableClass(Node)
 
   Property(Uuid, std::string)
