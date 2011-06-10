@@ -39,7 +39,9 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/cula/include"/>
 								</option>
+								<option id="cuda.toolchain.compiler.option.misc.other.909755605" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0" valueType="string"/>
 								<inputType id="cuda.toolchain.compiler.input.331881365" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.1250197923" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
@@ -51,6 +53,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/include"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/cula/include"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.1264514578" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.2090830618" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
@@ -79,6 +82,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/lib"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/cula/lib"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.cuda.192055691" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs.cuda" valueType="libs">
 									<listOptionValue builtIn="false" value="alglib"/>
@@ -88,6 +92,7 @@
 									<listOptionValue builtIn="false" value="capputils"/>
 									<listOptionValue builtIn="false" value="cudart"/>
 									<listOptionValue builtIn="false" value="cublas"/>
+									<listOptionValue builtIn="false" value="cula"/>
 								</option>
 								<option id="gnu.cpp.link.option.flags.340717636" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.991336940" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
