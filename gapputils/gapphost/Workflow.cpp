@@ -396,6 +396,19 @@ void Workflow::deleteEdge(CableItem* cable) {
 }
 
 void Workflow::buildStack(Node* node) {
+  // Rebuild the stack without node, thus guaranteeing that node appears only once
+  stack<Node*> oldStack;
+  while (!nodeStack.empty()) {
+    oldStack.push(nodeStack.top());
+    nodeStack.pop();
+  }
+  while (!oldStack.empty()) {
+    Node* n = oldStack.top();
+    if (n != node)
+      nodeStack.push(n);
+    oldStack.pop();
+  }
+
   nodeStack.push(node);
   node->getToolItem()->setProgress(-3);
 
@@ -509,6 +522,8 @@ void Workflow::showWorkflow(Workflow* workflow) {
 }
 
 bool Workflow::isUpToDate() const {
+  if (dynamic_cast<CombinerInterface*>(getModule()))
+    return true;
   return false;
 }
 
