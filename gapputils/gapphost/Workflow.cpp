@@ -271,6 +271,7 @@ void Workflow::newCable(Edge* edge) {
       CableItem* cable = new CableItem(workbench, outputConnection, inputConnection);
       workbench->addCableItem(cable);
       edge->setCableItem(cable);
+      edge->activate(outputNode, inputNode);
     }
   } else {
     // TODO: Error handling
@@ -381,6 +382,7 @@ void Workflow::createEdge(CableItem* cable) {
   edge->setInputNode(cable->getOutput()->parent->getNode()->getUuid());
   edge->setInputProperty(cable->getOutput()->property->getName());
   edge->setCableItem(cable);
+  edge->activate(cable->getInput()->parent->getNode(), cable->getOutput()->parent->getNode());
 
   getEdges()->push_back(edge);
 }

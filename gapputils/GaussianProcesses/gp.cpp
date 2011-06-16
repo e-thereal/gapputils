@@ -138,7 +138,7 @@ void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, in
   sigmaFLine.direction = sigmaFDir;
   sigmaFLine.minValue = -3;
   sigmaFLine.maxValue = 3;
-  sigmaFLine.samplesCount = 2;
+  sigmaFLine.samplesCount = 3;
   gridParams.gridLines.push_back(sigmaFLine);
 
   // Sigma n
@@ -168,14 +168,14 @@ void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, in
   lengthLine.samplesCount = 3;
   gridParams.gridLines.push_back(lengthLine);
 
-  //GridSamplingOptimizer<ConjugateGradientsOptimizer> optimizer;
-  //optimizer.setParameter(GridSampling, &gridParams);
-  ConjugateGradientsOptimizer optimizer;
+  GridSamplingOptimizer<ConjugateGradientsOptimizer> optimizer;
+  optimizer.setParameter(GridSampling, &gridParams);
+  //ConjugateGradientsOptimizer optimizer;
   optimizer.setGradientMethod(SteepestDescentOptimizer::Analytic);
   //DownhillSimplexOptimizer optimizer;
 
-  //ProgressListener listener(monitor, sigmaFLine.samplesCount * sigmaNLine.samplesCount * lengthLine.samplesCount);
-  //optimizer.addObserver(listener);
+  ProgressListener listener(monitor, sigmaFLine.samplesCount * sigmaNLine.samplesCount * lengthLine.samplesCount);
+  optimizer.addObserver(listener);
 
   try {
     optimizer.minimize(params, nlml);

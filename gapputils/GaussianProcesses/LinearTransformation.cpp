@@ -20,6 +20,8 @@
 
 #include <gapputils/HideAttribute.h>
 
+#include <iostream>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -61,6 +63,8 @@ void LinearTransformation::execute(gapputils::workflow::IProgressMonitor* monito
   if (!capputils::Verifier::Valid(*this))
     return;
 
+  std::cout << "Linear transformation." << std::endl;
+
   double* output = new double[getReducedFeatureCount() * getSampleCount()];
 
   lintrans(output, getReducedFeatureCount(), getSampleCount(), getInput(), getOriginalFeatureCount(), getTransformation(), getTranspose());
@@ -73,6 +77,8 @@ void LinearTransformation::execute(gapputils::workflow::IProgressMonitor* monito
 void LinearTransformation::writeResults() {
   if (!data)
     return;
+
+  setReducedFeatureCount(getReducedFeatureCount());
 
   if (getOutput())
     delete getOutput();
