@@ -17,18 +17,6 @@ class Workbench;
 
 class CableItem : public QGraphicsItem
 {
-
-  class ChangeEventHandler {
-  private:
-    CableItem* cableItem;
-
-  public:
-    ChangeEventHandler(CableItem* cableItem) : cableItem(cableItem) { }
-
-    void operator()(capputils::ObservableClass*, int eventId);
-    bool operator==(const ChangeEventHandler& handler) const;
-  } changeEventHandler;
-
 private:
   ToolConnection* input;
   ToolConnection* output;

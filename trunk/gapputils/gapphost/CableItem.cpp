@@ -11,19 +11,7 @@ using namespace std;
 
 namespace gapputils {
 
-void CableItem::ChangeEventHandler::operator()(ObservableClass*, int eventId) {
-  if (!cableItem->input || !cableItem->output)
-    return;
-
-  if (eventId == cableItem->input->propertyId)
-    cableItem->output->property->setValue(*cableItem->output->parent->getNode()->getModule(), *cableItem->input->parent->getNode()->getModule(), cableItem->input->property);
-}
-
-bool CableItem::ChangeEventHandler::operator==(const ChangeEventHandler& handler) const {
-  return handler.cableItem == cableItem;
-}
-
-CableItem::CableItem(Workbench* bench, ToolConnection* input, ToolConnection* output) : changeEventHandler(this), input(0), output(0), dragPoint(0), bench(bench)
+CableItem::CableItem(Workbench* bench, ToolConnection* input, ToolConnection* output) : input(0), output(0), dragPoint(0), bench(bench)
 {
   setAcceptedMouseButtons(0);
   if (input)
@@ -66,14 +54,6 @@ void CableItem::setInput(ToolConnection* input) {
   this->input = input;
   if (input) {
     input->connect(this);
-    ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getNode()->getModule());
-    if (observable) {
-      observable->Changed.connect(changeEventHandler);
-      //observable->fireChangeEvent(input->propertyId);
-    }
-    if (output) {
-      output->property->setValue(*output->parent->getNode()->getModule(), *input->parent->getNode()->getModule(), input->property);
-    }
   }
   adjust();
 }
@@ -82,9 +62,6 @@ void CableItem::setOutput(ToolConnection* output) {
   this->output = output;
   if (output) {
     output->connect(this);
-    if (input) {
-      output->property->setValue(*output->parent->getNode()->getModule(), *input->parent->getNode()->getModule(), input->property);
-    }
   }
   adjust();
 }
@@ -107,11 +84,7 @@ bool CableItem::needOutput() const {
 
 void CableItem::disconnectInput() {
   if (input) {
-    if (input->parent->getNode()) {
-      ObservableClass* observable = dynamic_cast<ObservableClass*>(input->parent->getNode()->getModule());
-      if (observable)
-        observable->Changed.disconnect(changeEventHandler);
-    }
+    // TODO: check if this is necessary. Simplify if possible
     ToolConnection* temp = input;
     input = 0;
     temp->disconnect();
@@ -120,6 +93,7 @@ void CableItem::disconnectInput() {
  
 void CableItem::disconnectOutput() {
   if (output) {
+    // TODO: check if this is necessary. Simplify if possible
     ToolConnection* temp = output;
     output = 0;
     temp->disconnect();
