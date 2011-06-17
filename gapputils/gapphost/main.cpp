@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
   model.saveToFile("gapphost.conf.xml");
   // TODO: Workflow not deleted at this point because this causes problems
   // solve this problems and free the workflow memory (maybe because the widget as been deleted already)
-  //delete model.getMainWorkflow();
+  delete model.getMainWorkflow();
 
 #else
   Paper paper;

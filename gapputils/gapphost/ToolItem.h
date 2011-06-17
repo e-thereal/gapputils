@@ -35,14 +35,11 @@ public:
   ToolItem* parent;
   MultiConnection* multi;
   CableItem* cable;
-  capputils::reflection::IClassProperty* property;
-  int propertyId;
-  bool deleting;
-  bool reconnecting;
+  int id;
 
 public:
   ToolConnection(const QString& label, Direction direction, ToolItem* parent,
-      capputils::reflection::IClassProperty* property, MultiConnection* multi = 0);
+      int id, MultiConnection* multi = 0);
   virtual ~ToolConnection();
 
   void draw(QPainter* painter, bool showLabel = true) const;
@@ -50,28 +47,27 @@ public:
   void setPos(int x, int y);
   QPointF attachmentPos() const;
   void connect(CableItem* cable);
-  void disconnect();
 };
 
 class MultiConnection {
+  friend class ToolItem;
+
 private:
   QString label;
   ToolConnection::Direction direction;
   ToolItem* parent;
-  capputils::reflection::IClassProperty* property;
+  int id;
   std::vector<ToolConnection*> connections;
   int x, y;
   bool expanded;
-  bool deleting;
 
 public:
   MultiConnection(const QString& label, ToolConnection::Direction direction, ToolItem* parent,
-      capputils::reflection::IClassProperty* property);
+      int id);
   virtual ~MultiConnection();
 
   bool hits(std::vector<ToolConnection*>& connections, int x, int y) const;
   ToolConnection* getLastConnection();
-  capputils::reflection::IClassProperty* getProperty() const;
   void adjust();
   QString getLabel() const;
   void setPos(int x, int y);
@@ -86,10 +82,12 @@ class ToolItem : public QGraphicsItem {
   friend class ToolConnection;
   friend class MultiConnection;
 
+public:
+  enum ProgressStates {Neutral = -1, InProgress = -2};
+
 protected:
-  workflow::Node* node;
+  std::string label;
   Workbench* bench;
-  ModelHarmonizer harmonizer;
   int width, height, adjust, connectionDistance, inputsWidth, labelWidth, outputsWidth;
   std::vector<ToolConnection*> inputs;
   std::vector<MultiConnection*> outputs;
@@ -98,28 +96,30 @@ protected:
   int progress;
   bool deleting;
 
+
 public:
-  ToolItem(workflow::Node* node, Workbench *bench = 0);
+  ToolItem(const std::string& label, Workbench *bench = 0);
   virtual ~ToolItem();
 
   void setWorkbench(Workbench* bench);
-  workflow::Node* getNode() const;
-  void setNode(workflow::Node* node);
-  QAbstractItemModel* getModel() const;
 
   ToolConnection* hitConnection(int x, int y, ToolConnection::Direction direction) const;
 
   /// Adds the connections to the connections vector
   bool hitConnections(std::vector<ToolConnection*>& connections, int x, int y, ToolConnection::Direction direction) const;
-  ToolConnection* getConnection(const std::string& propertyName, ToolConnection::Direction direction) const;
+
+  // TODO: a better way could be to get the connection by ID
+  //ToolConnection* getConnection(const std::string& propertyName, ToolConnection::Direction direction) const;
   std::vector<ToolConnection*>& getInputs();
+  void getOutputs(std::vector<ToolConnection*>& connections);
   void updateSize();
 
   void updateConnectionPositions();
+  void addConnection(const QString& label, int id, ToolConnection::Direction direction);
   void drawConnections(QPainter* painter, bool showLabel = true);
   void drawBox(QPainter* painter);
   virtual std::string getLabel() const;
-  virtual void updateConnections();
+  void setLabel(const std::string& label);
   virtual bool isDeletable() const;
 
   void updateCables();
@@ -135,10 +135,7 @@ public:
   QRectF boundingRect() const;
   QPainterPath shape() const;
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-  bool isSelected() const;
-
-protected:
-  void changedHandler(capputils::ObservableClass* sender, int eventId);
+  bool isCurrentItem() const;
 };
 
 }

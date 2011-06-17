@@ -183,14 +183,7 @@ void MainWindow::itemDoubleClickedHandler(QTreeWidgetItem *item, int) {
   if (!item->childCount()) {
     // new tool
     string classname = item->data(0, Qt::UserRole).toString().toAscii().data();
-    openWorkflows[tabWidget->currentIndex()]->newModule(classname);
-  }
-}
-
-void MainWindow::newItem() {
-  newObjectDialog->updateList();
-  if (newObjectDialog->exec() == QDialog::Accepted && newObjectDialog->getSelectedClass().size()) {
-    DataModel::getInstance().getMainWorkflow()->newModule(newObjectDialog->getSelectedClass().toUtf8().data());
+    //openWorkflows[tabWidget->currentIndex()]->newModule(classname);
   }
 }
 

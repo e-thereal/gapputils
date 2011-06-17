@@ -14,11 +14,10 @@ namespace gapputils {
 
 class InputsItem : public ToolItem {
 public:
-  InputsItem(workflow::Node* node, Workbench *bench = 0);
+  InputsItem(const std::string& label, Workbench *bench = 0);
   virtual ~InputsItem();
 
   virtual std::string getLabel() const;
-  virtual void updateConnections();
 };
 
 }

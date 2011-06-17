@@ -35,43 +35,18 @@ namespace gapputils {
 using namespace workflow;
 
 ToolConnection::ToolConnection(const QString& label, Direction direction,
-    ToolItem* parent, IClassProperty* property, MultiConnection* multi)
+    ToolItem* parent, int id, MultiConnection* multi)
   : x(0), y(0), width(6), height(7), label(label), direction(direction),
-    parent(parent), cable(0), property(property), multi(multi), deleting(false),
-    reconnecting(false)
+    parent(parent), id(id), cable(0), multi(multi)
 {
-  ObserveAttribute* observe = property->getAttribute<ObserveAttribute>();
-  if (observe) {
-    propertyId = observe->getEventId();
-  } else {
-    propertyId = -1;
-  }
 }
 
 ToolConnection::~ToolConnection() {
-  deleting = true;
-  if (cable) {
-    parent->bench->removeCableItem(cable);
-  }
 }
 
 void ToolConnection::connect(CableItem* cable) {
-  reconnecting = true;
-  if (this->cable) {
-    CableItem* temp = this->cable;
-    this->cable = 0;
-    parent->bench->scene()->removeItem(temp);
-    delete temp;
-  }
   this->cable = cable;
-  reconnecting = false;
   if (multi)
-    multi->updateConnections();
-}
-
-void ToolConnection::disconnect() {
-  cable = 0;
-  if (!deleting && !reconnecting && multi)
     multi->updateConnections();
 }
 
@@ -86,16 +61,19 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
   painter->setPen(Qt::black);
   switch (direction) {
   case Input:
-    if (currentCable &&
-        currentCable->needOutput() &&
-        currentCable->getInput()->property->getType() == property->getType())
-    {
-      painter->setBrush(Qt::white);
-    } else if(parent->isSelected() && !currentCable) {
+
+    // TODO: compatible type highlighting
+//    if (currentCable &&
+//        currentCable->needOutput() &&
+//        currentCable->getInput()->property->getType() == property->getType())
+//    {
+//      painter->setBrush(Qt::white);
+//    } else
+    if(parent->isCurrentItem() && !currentCable) {
       painter->setBrush(Qt::white);
     } else if (currentCable && currentCable->getOutput() == this) {
       painter->setBrush(Qt::white);
-    } else if (!currentCable && cable && cable->getInput()->parent->isSelected()) {
+    } else if (!currentCable && cable && cable->getInput()->parent->isCurrentItem()) {
       painter->setBrush(Qt::white);
     } else {
       painter->setBrush(Qt::darkGray);
@@ -106,16 +84,18 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
     break;
 
   case Output:
-    if (currentCable &&
-        currentCable->needInput() &&
-        currentCable->getOutput()->property->getType() == property->getType())
-    {
-      painter->setBrush(Qt::white);
-    } else if(parent->isSelected() && !currentCable) {
+    // TODO: compatible type highlighting
+//    if (currentCable &&
+//        currentCable->needInput() &&
+//        currentCable->getOutput()->property->getType() == property->getType())
+//    {
+//      painter->setBrush(Qt::white);
+//    } else
+    if(parent->isCurrentItem() && !currentCable) {
       painter->setBrush(Qt::white);
     } else if (currentCable && currentCable->getInput() == this) {
       painter->setBrush(Qt::white);
-    } else if (!currentCable && cable && cable->getOutput()->parent->isSelected()) {
+    } else if (!currentCable && cable && cable->getOutput()->parent->isCurrentItem()) {
       painter->setBrush(Qt::white);
     } else {
       painter->setBrush(Qt::darkGray);
@@ -150,14 +130,13 @@ QPointF ToolConnection::attachmentPos() const {
 }
 
 MultiConnection::MultiConnection(const QString& label, ToolConnection::Direction direction,
-    ToolItem* parent, IClassProperty* property)
- : label(label), direction(direction), parent(parent), property(property), expanded(false), deleting(false)
+    ToolItem* parent, int id)
+ : label(label), direction(direction), parent(parent), id(id), expanded(false)
 {
-  connections.push_back(new ToolConnection(label, direction, parent, property, this));
+  connections.push_back(new ToolConnection(label, direction, parent, id, this));
 }
 
 MultiConnection::~MultiConnection() {
-  deleting = true;
   for (unsigned i = 0; i < connections.size(); ++i)
     delete connections[i];
 }
@@ -178,10 +157,6 @@ ToolConnection* MultiConnection::getLastConnection() {
   return 0;
 }
 
-IClassProperty* MultiConnection::getProperty() const {
-  return property;
-}
-
 void MultiConnection::adjust() {
   for (unsigned i = 0; i < connections.size(); ++i)
     if (connections[i]->cable)
@@ -199,7 +174,6 @@ void MultiConnection::setPos(int x, int y) {
 }
 
 void MultiConnection::updateConnections() {
-  if (deleting) return;
   for (unsigned i = 0; i < connections.size() - 1; ++i) {
     if (connections[i]->cable == 0) {
       delete connections[i];
@@ -208,13 +182,12 @@ void MultiConnection::updateConnections() {
     }
   }
   if (connections.size() && connections[connections.size() - 1]->cable)
-    connections.push_back(new ToolConnection(label, direction, parent, property, this));
+    connections.push_back(new ToolConnection(label, direction, parent, id, this));
   parent->updateSize();
   parent->update();
 }
 
 void MultiConnection::updateConnectionPositions() {
-  if (deleting) return;
   for (unsigned i = 0; i < connections.size(); ++i)
     connections[i]->setPos(x, y + (expanded ? parent->connectionDistance * i : 0));
 }
@@ -264,11 +237,10 @@ int MultiConnection::getHeight() const {
   }
 }
 
-ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
- : node(node), bench(bench), harmonizer(node->getModule()),
-   width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
+ToolItem::ToolItem(const std::string& label, Workbench *bench)
+ : label(label), bench(bench), width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
    labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), deletable(true),
-   progress(-1), deleting(false)
+   progress(Neutral), deleting(false)
 {
   setFlag(ItemIsMovable);
   setFlag(ItemIsSelectable);
@@ -282,12 +254,6 @@ ToolItem::ToolItem(workflow::Node* node, Workbench *bench)
   labelFont.setBold(true);
   labelFont.setPointSize(10);
 
-  ReflectableClass* object = node->getModule();
-  ObservableClass* observable = dynamic_cast<ObservableClass*>(object);
-  if (observable)
-    observable->Changed.connect(capputils::EventHandler<ToolItem>(this, &ToolItem::changedHandler));
-
-  updateConnections();
   updateSize();
 }
 
@@ -304,39 +270,6 @@ ToolItem::~ToolItem() {
     delete tempOut[i];
 }
 
-void ToolItem::updateConnections() {
-  if (deleting) return;
-  for (unsigned i = 0; i < inputs.size(); ++i)
-    delete inputs[i];
-  for (unsigned i = 0; i < outputs.size(); ++i)
-    delete outputs[i];
-  inputs.clear();
-  outputs.clear();
-
-  ReflectableClass* object = node->getModule();
-  ShortNameAttribute* shortName = 0;
-  vector<IClassProperty*>& properties = object->getProperties();
-  for (unsigned i = 0; i < properties.size(); ++i) {
-    if (properties[i]->getAttribute<InputAttribute>()) {
-      string label = properties[i]->getName();
-      if ((shortName = properties[i]->getAttribute<ShortNameAttribute>()))
-        label = shortName->getName();
-      inputs.push_back(new ToolConnection(label.c_str(), ToolConnection::Input, this, properties[i]));
-    }
-    if (properties[i]->getAttribute<OutputAttribute>()) {
-      string label = properties[i]->getName();
-      if ((shortName = properties[i]->getAttribute<ShortNameAttribute>()))
-        label = shortName->getName();
-      outputs.push_back(new MultiConnection(label.c_str(), ToolConnection::Output, this, properties[i]));
-    }
-  }
-}
-
-void ToolItem::changedHandler(capputils::ObservableClass* /*sender*/, int /*eventId*/) {
-  updateSize();
-  update();
-}
-
 void ToolItem::setWorkbench(Workbench* bench) {
   this->bench = bench;
 }
@@ -348,18 +281,6 @@ bool ToolItem::isDeletable() const {
 void ToolItem::setProgress(int progress) {
   this->progress = progress;
   update();
-}
-
-Node* ToolItem::getNode() const {
-  return node;
-}
-
-void ToolItem::setNode(workflow::Node* node) {
-  this->node = node;
-}
-
-QAbstractItemModel* ToolItem::getModel() const {
-  return harmonizer.getModel();
 }
 
 ToolConnection* ToolItem::hitConnection(int x, int y, ToolConnection::Direction direction) const {
@@ -393,18 +314,19 @@ bool ToolItem::hitConnections(std::vector<ToolConnection*>& connections, int x, 
   return false;
 }
 
-ToolConnection* ToolItem::getConnection(const std::string& propertyName, ToolConnection::Direction direction) const {
-  if (direction == ToolConnection::Input) {
-    for (unsigned i = 0; i < inputs.size(); ++i)
-      if (inputs[i]->property->getName().compare(propertyName) == 0)
-        return inputs[i];
-  } else {
-    for (unsigned i = 0; i < outputs.size(); ++i)
-      if (outputs[i]->getProperty()->getName().compare(propertyName) == 0)
-        return outputs[i]->getLastConnection();
-  }
-  return 0;
-}
+// TODO: a better way of getting connection by name could be to get the connection by ID
+//ToolConnection* ToolItem::getConnection(const std::string& propertyName, ToolConnection::Direction direction) const {
+//  if (direction == ToolConnection::Input) {
+//    for (unsigned i = 0; i < inputs.size(); ++i)
+//      if (inputs[i]->property->getName().compare(propertyName) == 0)
+//        return inputs[i];
+//  } else {
+//    for (unsigned i = 0; i < outputs.size(); ++i)
+//      if (outputs[i]->getProperty()->getName().compare(propertyName) == 0)
+//        return outputs[i]->getLastConnection();
+//  }
+//  return 0;
+//}
 
 QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) {
   switch (change) {
@@ -468,8 +390,8 @@ void ToolItem::updateConnectionPositions() {
 }
 
 void ToolItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
-  if (bench && bench->getSelectedItem() != this)
-    bench->setSelectedItem(this);
+  if (bench && bench->getCurrentItem() != this)
+    bench->setCurrentItem(this);
 
   QPointF mousePos = mapToItem(this, event->pos());
   for (unsigned i = 0; i < outputs.size(); ++i) {
@@ -488,8 +410,8 @@ void ToolItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
   QGraphicsItem::mouseDoubleClickEvent(event);
 }
 
-bool ToolItem::isSelected() const {
-  return this == bench->getSelectedItem();
+bool ToolItem::isCurrentItem() const {
+  return this == bench->getCurrentItem();
 }
 
 QRectF ToolItem::boundingRect() const
@@ -516,7 +438,7 @@ void ToolItem::drawBox(QPainter* painter) {
 
   bool selected = bench->scene()->selectedItems().contains(this);
 
-  if (bench && bench->getSelectedItem() == this) {
+  if (bench && isCurrentItem()) {
     gradient.setColorAt(0, Qt::white);
     switch(progress) {
     case -1:
@@ -597,16 +519,26 @@ void ToolItem::drawBox(QPainter* painter) {
 }
 
 std::string ToolItem::getLabel() const {
-  if (deleting || !getNode() || !getNode()->getModule())
-    return "";
+  return label;
+}
 
-  vector<IClassProperty*>& properties = getNode()->getModule()->getProperties();
-  for (unsigned i = 0; i < properties.size(); ++i) {
-    if (properties[i]->getAttribute<LabelAttribute>()) {
-      return properties[i]->getStringValue(*getNode()->getModule());
-    }
+void ToolItem::setLabel(const std::string& label) {
+  this->label = label;
+  updateSize();
+  update();
+}
+
+void ToolItem::addConnection(const QString& label, int id, ToolConnection::Direction direction) {
+  //ToolConnection* connection = new ToolConnection()
+  if (direction == ToolConnection::Input) {
+    inputs.push_back(new ToolConnection(label, direction, this, id));
+
+  } else {
+    outputs.push_back(new MultiConnection(label, direction, this, id));
   }
-  return string("[") + getNode()->getModule()->getClassName() + "]";
+  updateConnectionPositions();
+  updateSize();
+  update();
 }
 
 void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
@@ -632,6 +564,14 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 std::vector<ToolConnection*>& ToolItem::getInputs() {
   return inputs;
+}
+
+void ToolItem::getOutputs(std::vector<ToolConnection*>& connections) {
+  for (unsigned i = 0; i < outputs.size(); ++i) {
+    MultiConnection* multi = outputs[i];
+    for (unsigned j = 0; j < multi->connections.size(); ++j)
+      connections.push_back(multi->connections[j]);
+  }
 }
 
 }

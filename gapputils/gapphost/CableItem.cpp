@@ -26,8 +26,6 @@ CableItem::~CableItem(void)
 {
   if (dragPoint)
     delete dragPoint;
-  disconnectInput();
-  disconnectOutput();
 }
 
 void CableItem::adjust() {
@@ -51,6 +49,8 @@ void CableItem::setDragPoint(QPointF point) {
 }
 
 void CableItem::setInput(ToolConnection* input) {
+  if (this->input)
+    this->input->connect(0);
   this->input = input;
   if (input) {
     input->connect(this);
@@ -59,6 +59,8 @@ void CableItem::setInput(ToolConnection* input) {
 }
 
 void CableItem::setOutput(ToolConnection* output) {
+  if (this->output)
+    this->output->connect(0);
   this->output = output;
   if (output) {
     output->connect(this);
@@ -80,24 +82,6 @@ bool CableItem::needInput() const {
 
 bool CableItem::needOutput() const {
   return !output;
-}
-
-void CableItem::disconnectInput() {
-  if (input) {
-    // TODO: check if this is necessary. Simplify if possible
-    ToolConnection* temp = input;
-    input = 0;
-    temp->disconnect();
-  }
-}
- 
-void CableItem::disconnectOutput() {
-  if (output) {
-    // TODO: check if this is necessary. Simplify if possible
-    ToolConnection* temp = output;
-    output = 0;
-    temp->disconnect();
-  }
 }
 
 void CableItem::endDrag() {
@@ -125,7 +109,7 @@ void CableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem* /*optio
     }
   }
 
-  if (isCurrentCable || (bench->getCurrentCables().size() == 0  && input && input->parent->isSelected()) || (bench->getCurrentCables().size() == 0  && output && output->parent->isSelected())) {
+  if (isCurrentCable || (bench->getCurrentCables().size() == 0  && input && input->parent->isCurrentItem()) || (bench->getCurrentCables().size() == 0  && output && output->parent->isCurrentItem())) {
     setZValue(3);
     painter->setPen(QPen(Qt::darkGray, 4.5));
     painter->drawPath(path);

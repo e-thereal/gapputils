@@ -47,29 +47,47 @@ void Workbench::addToolItem(ToolItem* item) {
   scene()->addItem(item);
 }
 
+void Workbench::removeToolItem(ToolItem* item) {
+  vector<ToolConnection*>& inputs = item->getInputs();
+  for (unsigned i = 0; i < inputs.size(); ++i) {
+    if (inputs[i]->cable)
+      removeCableItem(inputs[i]->cable);
+  }
+
+  vector<ToolConnection*> outputs;
+  item->getOutputs(outputs);
+  for (unsigned i = 0; i < outputs.size(); ++i) {
+    if (outputs[i]->cable)
+      removeCableItem(outputs[i]->cable);
+  }
+
+  scene()->removeItem(item);
+  delete item;
+}
+
 void Workbench::addCableItem(CableItem* cable) {
   scene()->addItem(cable);
 }
 
 void Workbench::removeCableItem(CableItem* cable) {
-  // TODO: Workaround. When loading workflows, you get an error here. Cable seems to be already removed
-  if (cable->scene() == scene()) {
-    scene()->removeItem(cable);
-    Q_EMIT cableDeleted(cable);
-    delete cable;
-  }
+  if (cable->getInput() && cable->getInput()->cable == cable)
+    cable->setInput(0);
+  if (cable->getOutput() && cable->getOutput()->cable == cable)
+    cable->setOutput(0);
+  scene()->removeItem(cable);
+  delete cable;
 }
 
-void Workbench::setSelectedItem(ToolItem* item) {
+void Workbench::setCurrentItem(ToolItem* item) {
   selectedItem = item;
 
   Q_FOREACH (QGraphicsItem *item, scene()->items()) {
     item->update();
   }
-  Q_EMIT itemSelected(item);
+  Q_EMIT currentItemSelected(item);
 }
 
-ToolItem* Workbench::getSelectedItem() const {
+ToolItem* Workbench::getCurrentItem() const {
   return selectedItem;
 }
 
@@ -109,9 +127,9 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
           if (connection->cable) {
             CableItem* currentCable = connection->cable;
             currentCables.push_back(currentCable);
-            currentCable->disconnectInput();
+            currentCable->setInput(0);
             currentCable->setDragPoint(mapToScene(event->pos()));
-            Q_EMIT cableDeleted(currentCable);
+//            Q_EMIT cableDeleted(currentCable);
           }
         }
         if (currentCables.size() == 0) {
@@ -130,9 +148,9 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
         if (connection->cable) {
           CableItem* currentCable = connection->cable;
           currentCables.push_back(currentCable);
-          currentCable->disconnectOutput();
+          currentCable->setOutput(0);
           currentCable->setDragPoint(mapToScene(event->pos()));
-          Q_EMIT cableDeleted(currentCable);
+//          Q_EMIT cableDeleted(currentCable);
         } else {
           CableItem* currentCable = new CableItem(this, 0, connection);
           currentCables.push_back(currentCable);
@@ -146,6 +164,7 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
       }
     }
   }
+
   if (event->button() == Qt::LeftButton)
     setDragMode(ScrollHandDrag);
   else if (event->button() == Qt::RightButton)
@@ -171,11 +190,17 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
         int ty = item->y();
         if (currentCables.size() == 1 && currentCables[0]->needOutput()) {
           ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
-          if (connection && connection->property->getType() == currentCables[0]->getInput()->property->getType()) {
+          //if (connection && connection->property->getType() == currentCables[0]->getInput()->property->getType()) {
+          // TODO: check for compatible connection
+          if (connection) {
             foundConnection = true;
+            CableItem* oldCable = connection->cable;
             currentCables[0]->setOutput(connection);
             currentCables[0]->endDrag();
-            Q_EMIT cableCreated(currentCables[0]);
+            if (oldCable) {
+              removeCableItem(oldCable);
+            }
+//            Q_EMIT cableCreated(currentCables[0]);
             break;
           }
         } else if (currentCables[0]->needInput()) {
@@ -186,24 +211,27 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
             tool->hitConnections(connections, ex - tx, ey - ty, ToolConnection::Output);
             if (connections.size()) {
               ToolConnection* connection = connections[connections.size()-1];
-              if (connection->property->getType() == currentCables[0]->getOutput()->property->getType()) {
+              // TODO: check if types are compatible
+//              if (connection->property->getType() == currentCables[0]->getOutput()->property->getType()) {
                 foundConnection = true;
+                CableItem* oldCable = connection->cable;
                 currentCables[0]->setInput(connection);
                 currentCables[0]->endDrag();
-                Q_EMIT cableCreated(currentCables[0]);
+                if (oldCable)
+                  removeCableItem(oldCable);
+//                Q_EMIT cableCreated(currentCables[0]);
                 break;
-              }
+//              }
             }
           }
-
-          //TODO: Handle moving a bundle of connections.
+//
+//          //TODO: Handle moving a bundle of connections.
         }
       }
     }
     if (!foundConnection) {
       for (unsigned i = 0; i < currentCables.size(); ++i) {
-        scene()->removeItem(currentCables[i]);
-        delete currentCables[i];
+        removeCableItem(currentCables[i]);
       }
     }
     currentCables.clear();
@@ -213,12 +241,6 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
   }
   QGraphicsView::mouseReleaseEvent(event);
   setDragMode(NoDrag);
-}
-
-void Workbench::removeToolItem(ToolItem* item) {
-  scene()->removeItem(item);
-  Q_EMIT itemDeleted(item);
-  delete item;
 }
 
 void Workbench::keyPressEvent(QKeyEvent *event)
@@ -232,14 +254,12 @@ void Workbench::keyPressEvent(QKeyEvent *event)
   case Qt::Key_Space:
     break;
   case Qt::Key_Delete:
-    // TODO: Perhaps delete all selected items.
-    /*if (selectedItem && selectedItem->isDeletable()) {
-      removeToolItem(selectedItem);
-    }*/
     Q_FOREACH(QGraphicsItem* item, scene()->selectedItems()) {
       ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
-      if (toolItem && toolItem->isDeletable())
+      if (toolItem && toolItem->isDeletable()) {
+        Q_EMIT preItemDeleted(toolItem);
         removeToolItem(toolItem);
+      }
     }
     break;
   default:

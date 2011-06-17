@@ -11,7 +11,7 @@ namespace attributes {
 
 class ICustomToolItemAttribute : public virtual capputils::attributes::IAttribute {
 public:
-  virtual ToolItem* createToolItem(workflow::Node* node, Workbench *bench = 0) const = 0;
+  virtual ToolItem* createToolItem(const std::string& label, Workbench *bench = 0) const = 0;
 };
 
 template<class T>
@@ -21,8 +21,8 @@ public:
   CustomToolItemAttribute(void) { }
   virtual ~CustomToolItemAttribute(void) { }
 
-  virtual ToolItem* createToolItem(workflow::Node* node, Workbench *bench = 0) const {
-    return new T(node, bench);
+  virtual ToolItem* createToolItem(const std::string& label, Workbench *bench = 0) const {
+    return new T(label, bench);
   }
 };
 

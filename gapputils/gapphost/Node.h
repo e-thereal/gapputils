@@ -6,6 +6,7 @@
 #include <capputils/ReflectableClass.h>
 #include <capputils/ObservableClass.h>
 #include <gapputils/IProgressMonitor.h>
+#include "ModelHarmonizer.h"
 
 namespace gapputils {
 
@@ -24,6 +25,10 @@ class Node : public capputils::reflection::ReflectableClass,
   Property(Module, capputils::reflection::ReflectableClass*)
   Property(ToolItem, ToolItem*)
 
+private:
+  ModelHarmonizer* harmonizer;
+  static int moduleId;
+
 public:
   Node();
   virtual ~Node(void);
@@ -31,6 +36,8 @@ public:
   virtual bool isUpToDate() const;
   virtual void update(IProgressMonitor* monitor);
   virtual void writeResults();
+
+  QStandardItemModel* getModel();
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);

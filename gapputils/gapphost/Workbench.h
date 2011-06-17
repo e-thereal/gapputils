@@ -29,11 +29,13 @@ public:
 
   void addToolItem(ToolItem* item);
   void addCableItem(CableItem* cable);
+
+  // disconnects and deletes a cable and removes it from the list
   void removeCableItem(CableItem* cable);
   void removeToolItem(ToolItem* item);
 
-  void setSelectedItem(ToolItem* item);
-  ToolItem* getSelectedItem() const;
+  void setCurrentItem(ToolItem* item);
+  ToolItem* getCurrentItem() const;
   std::vector<CableItem*>& getCurrentCables();
   void notifyItemChange(ToolItem* item);
 
@@ -41,9 +43,10 @@ public:
 
 Q_SIGNALS:
   void createItemRequest(int x, int y, QString classname);
-  void itemSelected(ToolItem* item);
+  void currentItemSelected(ToolItem* item);
+  void preItemDeleted(ToolItem* item);
+
   void itemChanged(ToolItem* item);
-  void itemDeleted(ToolItem* item);
   void cableCreated(CableItem* cable);
   void cableDeleted(CableItem* cable);
 
