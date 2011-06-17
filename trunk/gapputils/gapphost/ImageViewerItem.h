@@ -9,7 +9,7 @@ namespace gapputils {
 class ImageViewerItem : public ToolItem
 {
 public:
-  ImageViewerItem(workflow::Node* node, Workbench *bench = 0);
+  ImageViewerItem(const std::string& label, Workbench *bench = 0);
   virtual ~ImageViewerItem(void);
 
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

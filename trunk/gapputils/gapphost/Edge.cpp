@@ -25,43 +25,52 @@ BeginPropertyDefinitions(Edge)
 
 EndPropertyDefinitions
 
-Edge::Edge(void) : _CableItem(0), handler(this, &Edge::changedHandler)
+Edge::Edge(void) : _OutputNodePtr(0), _InputNodePtr(0), _CableItem(0), handler(this, &Edge::changedHandler)
 {
 }
 
 Edge::~Edge(void)
 {
-  capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(getOutputNodePtr()->getModule());
-  if (observable) {
-    observable->Changed.disconnect(handler);
+  if (getOutputNodePtr()) {
+    capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(getOutputNodePtr()->getModule());
+    if (observable) {
+      observable->Changed.disconnect(handler);
+    }
   }
 }
 
 void Edge::activate(Node* outputNode, Node* inputNode) {
-  setOutputNodePtr(outputNode);
-  setInputNodePtr(inputNode);
+  // Get property IDs and use them for the rest.
 
-  capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(outputNode->getModule());
-  if (observable) {
-    observable->Changed.connect(handler);
-  }
-
-  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->findProperty(getInputProperty());
-  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->findProperty(getOutputProperty());
-  if (inProp && outProp) {
-    inProp->setValue(*inputNode->getModule(), *outputNode->getModule(), outProp);
-  }
+//  setOutputNodePtr(outputNode);
+//  setInputNodePtr(inputNode);
+//
+//  capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(outputNode->getModule());
+//  if (observable) {
+//    observable->Changed.connect(handler);
+//  }
+//
+//  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->findProperty(getInputProperty());
+//  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->findProperty(getOutputProperty());
+//  if (inProp && outProp) {
+//    inProp->setValue(*inputNode->getModule(), *outputNode->getModule(), outProp);
+//  }
 }
 
 void Edge::changedHandler(capputils::ObservableClass* sender, int eventId) {
-  Node* inputNode = getInputNodePtr();
-  Node* outputNode = getOutputNodePtr();
+  // check for the right property ID
 
-  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->findProperty(getInputProperty());
-  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->findProperty(getOutputProperty());
-  if (inProp && outProp) {
-    inProp->setValue(*inputNode->getModule(), *outputNode->getModule(), outProp);
-  }
+//  Node* inputNode = getInputNodePtr();
+//  Node* outputNode = getOutputNodePtr();
+//
+//  if (!inputNode || !outputNode)
+//    return;
+//
+//  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->findProperty(getInputProperty());
+//  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->findProperty(getOutputProperty());
+//  if (inProp && outProp) {
+//    inProp->setValue(*inputNode->getModule(), *outputNode->getModule(), outProp);
+//  }
 }
 
 }

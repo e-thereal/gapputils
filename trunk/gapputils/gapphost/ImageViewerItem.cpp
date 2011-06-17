@@ -9,7 +9,7 @@ namespace gapputils {
 
 using namespace workflow;
 
-ImageViewerItem::ImageViewerItem(Node* node, Workbench *bench) : ToolItem(node, bench)
+ImageViewerItem::ImageViewerItem(const std::string& label, Workbench *bench) : ToolItem(label, bench)
 {
   width = 100;
   height = 70;
@@ -32,10 +32,11 @@ void ImageViewerItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
 }
 
 void ImageViewerItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
-  ImageViewer* viewer = dynamic_cast<ImageViewer*>(getNode()->getModule());
+  // TODO: how to implement an image viewer?
+  /*ImageViewer* viewer = dynamic_cast<ImageViewer*>(getNode()->getModule());
   if (viewer) {
     viewer->showImage();
-  }
+  }*/
 }
-  
+
 }

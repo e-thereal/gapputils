@@ -11,8 +11,8 @@
 
 namespace gapputils {
 
-WorkflowItem::WorkflowItem(workflow::Node* node, Workbench *bench)
- : QObject(), ToolItem(node, bench)
+WorkflowItem::WorkflowItem(const std::string& label, Workbench *bench)
+ : QObject(), ToolItem(label, bench)
 {
 }
 
@@ -20,10 +20,11 @@ WorkflowItem::~WorkflowItem() {
 }
 
 void WorkflowItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
-  workflow::Workflow* workflow = dynamic_cast<workflow::Workflow*>(getNode());
-  if (workflow) {
-    Q_EMIT showWorkflowRequest(workflow);
-  }
+  // TODO: emit alternative signal
+//  workflow::Workflow* workflow = dynamic_cast<workflow::Workflow*>(getNode());
+//  if (workflow) {
+//    Q_EMIT showWorkflowRequest(workflow);
+//  }
 
   ToolItem::mouseDoubleClickEvent(event);
 }

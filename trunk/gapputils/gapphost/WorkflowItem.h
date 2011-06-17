@@ -18,13 +18,14 @@ class WorkflowItem : public QObject, public ToolItem {
   Q_OBJECT
 
 public:
-  WorkflowItem(workflow::Node* node, Workbench *bench = 0);
+  WorkflowItem(const std::string& label, Workbench *bench = 0);
   virtual ~WorkflowItem();
 
   virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
 
 Q_SIGNALS:
-  void showWorkflowRequest(workflow::Workflow* workflow);
+  // TODO: how must this request be designed? Workflow information is not present
+  //void showWorkflowRequest(workflow::Workflow* workflow);
 };
 
 }

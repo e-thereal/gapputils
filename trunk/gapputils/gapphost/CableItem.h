@@ -42,8 +42,6 @@ public:
   bool needInput() const;
   bool needOutput() const;
   void endDrag();
-  void disconnectInput();
-  void disconnectOutput();
 };
 
 }
