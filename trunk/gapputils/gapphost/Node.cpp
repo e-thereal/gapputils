@@ -78,7 +78,12 @@ QStandardItemModel* Node::getModel() {
 
 void Node::changedHandler(capputils::ObservableClass*, int eventId) {
   if (eventId == moduleId) {
-    if (!getToolItem())
+    if (!getToolItem() || !getModule())
+      return;
+
+    // TODO: don't change labels of input and output nodes
+    // these nodes are identified by their deletable property (bad hack)
+    if (!getToolItem()->isDeletable())
       return;
 
     vector<IClassProperty*>& properties = getModule()->getProperties();

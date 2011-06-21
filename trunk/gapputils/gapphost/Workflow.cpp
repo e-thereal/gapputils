@@ -20,6 +20,7 @@
 #include <capputils/LibraryLoader.h>
 #include <capputils/Verifier.h>
 #include <capputils/EnumerableAttribute.h>
+#include <capputils/ShortNameAttribute.h>
 
 #include <gapputils/CombinerInterface.h>
 #include <gapputils/HideAttribute.h>
@@ -97,8 +98,8 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true),
   connect(workbench, SIGNAL(currentItemSelected(ToolItem*)), this, SLOT(itemSelected(ToolItem*)));
   connect(workbench, SIGNAL(itemChanged(ToolItem*)), this, SLOT(itemChangedHandler(ToolItem*)));
   connect(workbench, SIGNAL(preItemDeleted(ToolItem*)), this, SLOT(deleteModule(ToolItem*)));
-  //connect(workbench, SIGNAL(cableCreated(CableItem*)), this, SLOT(createEdge(CableItem*)));
-  //connect(workbench, SIGNAL(cableDeleted(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
+  connect(workbench, SIGNAL(connectionCompleted(CableItem*)), this, SLOT(createEdge(CableItem*)));
+  connect(workbench, SIGNAL(connectionRemoved(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
 
   worker = new WorkflowWorker(this);
   worker->start();
@@ -117,13 +118,6 @@ Workflow::~Workflow() {
     delete worker;
   }
 
-  //disconnect(workbench, SIGNAL(createItemRequest(int, int, QString)), this, SLOT(createModule(int, int, QString)));
-  //disconnect(workbench, SIGNAL(currentItemSelected(ToolItem*)), this, SLOT(itemSelected(ToolItem*)));
-  //disconnect(workbench, SIGNAL(itemChanged(ToolItem*)), this, SLOT(itemChangedHandler(ToolItem*)));
-  //disconnect(workbench, SIGNAL(itemDeleted(ToolItem*)), this, SLOT(deleteItem(ToolItem*)));
-  //disconnect(workbench, SIGNAL(cableCreated(CableItem*)), this, SLOT(createEdge(CableItem*)));
-  //disconnect(workbench, SIGNAL(cableDeleted(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
-  //workbench->scene()->clear();
   if (ownWidget) {
     delete widget;
     inputsNode.setToolItem(0);
@@ -141,11 +135,14 @@ Workflow::~Workflow() {
   inputsNode.setModule(0);
   outputsNode.setModule(0);
 
-  //ReflectableClass* module = getModule();
-  //if (module) {
-  //  setModule(0);
-  //  delete module;
-  //}
+  // Don't delete module before setting it to zero
+  // The module property is observed and reflectable. Thus, when resetting
+  // the module, and event listener is disconnected from the old module.
+  // This will cause the application to crash when the module has already been
+  // deleted.
+  ReflectableClass* module = getModule();
+  setModule(0);
+  delete module;
 
   // Unload libraries
   for (unsigned i = 0; i < _Libraries->size(); ++i)
@@ -179,18 +176,18 @@ void Workflow::createModule(int x, int y, QString classname) {
   addDependencies(this, name);
 
   Node* node = 0;
-//  if (dynamic_cast<WorkflowInterface*>(object)) {
-//    Workflow* workflow = new Workflow();
-//    workflow->setModule(object);
-//    addDependencies(workflow, name);
-//    workflow->resumeFromModel();
-//    connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
-//    connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
-//    node = workflow;
-//  } else {
+  if (dynamic_cast<WorkflowInterface*>(object)) {
+    Workflow* workflow = new Workflow();
+    workflow->setModule(object);
+    addDependencies(workflow, name);
+    workflow->resumeFromModel();
+    connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
+    connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
+    node = workflow;
+  } else {
     node = new Node();
     node->setModule(object);
-//  }
+  }
   node->setX(x);
   node->setY(y);
   getNodes()->push_back(node);
@@ -213,16 +210,17 @@ void Workflow::createModule(int x, int y, QString classname) {
   return element;
 }*/
 
+const std::string& getPropertyLabel(IClassProperty* prop) {
+  ShortNameAttribute* shortName = prop->getAttribute<ShortNameAttribute>();
+  if (shortName) {
+    return shortName->getName();
+  }
+  return prop->getName();
+}
+
 void Workflow::newItem(Node* node) {
   ToolItem* item;
   ICustomToolItemAttribute* customToolItem = node->getModule()->getAttribute<ICustomToolItemAttribute>();
-
-  // TODO: handle workflows correctly
-//  Workflow* workflow = dynamic_cast<Workflow*>(node);
-//  if (workflow) {
-//    item = new WorkflowItem(node);
-//    connect((WorkflowItem*)item, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
-//  } else
 
   // Get the label corrent label
   string label = string("[") + node->getModule()->getClassName() + "]";
@@ -234,21 +232,48 @@ void Workflow::newItem(Node* node) {
     }
   }
 
-  if (node == &inputsNode)
+  Workflow* workflow = dynamic_cast<Workflow*>(node);
+  if (workflow) {
+    item = new WorkflowItem(label);
+    connect((WorkflowItem*)item, SIGNAL(showWorkflowRequest(ToolItem*)), this, SLOT(showWorkflow(ToolItem*)));
+
+    for (unsigned i = 0; i < properties.size(); ++i) {
+      IClassProperty* prop = properties[i];
+      if (prop->getAttribute<InputAttribute>())
+        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
+      if (prop->getAttribute<OutputAttribute>())
+        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
+    }
+  } else if (node == &inputsNode) {
     item = new ToolItem("Inputs");
-  else if (node == &outputsNode)
+    item->setDeletable(false);
+
+    for (unsigned i = 0; i < properties.size(); ++i) {
+      IClassProperty* prop = properties[i];
+      if (prop->getAttribute<InputAttribute>())
+        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
+    }
+  } else if (node == &outputsNode) {
     item = new ToolItem("Outputs");
-  else if (customToolItem)
+    item->setDeletable(false);
+
+    for (unsigned i = 0; i < properties.size(); ++i) {
+      IClassProperty* prop = properties[i];
+      if (prop->getAttribute<OutputAttribute>())
+        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
+    }
+  } else if (customToolItem) {
     item = customToolItem->createToolItem(label);
-  else
+  } else {
     item = new ToolItem(label);
 
-  for (unsigned i = 0; i < properties.size(); ++i) {
-    IClassProperty* prop = properties[i];
-    if (prop->getAttribute<InputAttribute>())
-      item->addConnection(prop->getName().c_str(), i, ToolConnection::Input);
-    if (prop->getAttribute<OutputAttribute>())
-      item->addConnection(prop->getName().c_str(), i, ToolConnection::Output);
+    for (unsigned i = 0; i < properties.size(); ++i) {
+      IClassProperty* prop = properties[i];
+      if (prop->getAttribute<InputAttribute>())
+        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
+      if (prop->getAttribute<OutputAttribute>())
+        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
+    }
   }
 
   item->setPos(node->getX(), node->getY());
@@ -263,72 +288,78 @@ void Workflow::newCable(Edge* edge) {
 //  cout << "Connecting " << edge->getOutputNode() << "." << edge->getOutputProperty()
 //       << " with " << edge->getInputNode() << "." << edge->getInputProperty() << "... " << flush;
 //
-//  const string outputNodeUuid = edge->getOutputNode();
-//  const string inputNodeUuid = edge->getInputNode();
-//
-//  vector<Node*>* nodes = getNodes();
-//
-//  Node *outputNode = 0, *inputNode = 0;
-//
-//  if (inputsNode.getUuid().compare(outputNodeUuid) == 0)
-//    outputNode = &inputsNode;
-//  if (outputsNode.getUuid().compare(inputNodeUuid) == 0)
-//    inputNode = &outputsNode;
-//
-//  for (unsigned i = 0; i < nodes->size(); ++i) {
-//    if (nodes->at(i)->getUuid().compare(outputNodeUuid) == 0)
-//      outputNode = nodes->at(i);
-//    if (nodes->at(i)->getUuid().compare(inputNodeUuid) == 0)
-//      inputNode = nodes->at(i);
-//  }
-//
-//  ToolConnection *outputConnection = 0, *inputConnection = 0;
-//  if (outputNode && inputNode) {
-//    outputConnection = outputNode->getToolItem()->getConnection(edge->getOutputProperty(), ToolConnection::Output);
-//    inputConnection = inputNode->getToolItem()->getConnection(edge->getInputProperty(), ToolConnection::Input);
-//
-//    if (outputConnection && inputConnection) {
-//      CableItem* cable = new CableItem(workbench, outputConnection, inputConnection);
-//      workbench->addCableItem(cable);
-//      edge->setCableItem(cable);
-//      edge->activate(outputNode, inputNode);
-//    }
-//  } else {
-//    // TODO: Error handling
-//    cout << "FAILED!" << endl;
-//    return;
-//  }
+  const string outputNodeUuid = edge->getOutputNode();
+  const string inputNodeUuid = edge->getInputNode();
+
+  vector<Node*>* nodes = getNodes();
+
+  Node *outputNode = 0, *inputNode = 0;
+
+  if (inputsNode.getUuid().compare(outputNodeUuid) == 0)
+    outputNode = &inputsNode;
+  if (outputsNode.getUuid().compare(inputNodeUuid) == 0)
+    inputNode = &outputsNode;
+
+  for (unsigned i = 0; i < nodes->size(); ++i) {
+    if (nodes->at(i)->getUuid().compare(outputNodeUuid) == 0)
+      outputNode = nodes->at(i);
+    if (nodes->at(i)->getUuid().compare(inputNodeUuid) == 0)
+      inputNode = nodes->at(i);
+  }
+
+  ToolConnection *outputConnection = 0, *inputConnection = 0;
+  if (outputNode && inputNode) {
+
+    unsigned outputPropertyId, inputPropertyId;
+    if (outputNode->getModule()->getPropertyIndex(outputPropertyId, edge->getOutputProperty()) &&
+        inputNode->getModule()->getPropertyIndex(inputPropertyId, edge->getInputProperty()))
+    {
+      outputConnection = outputNode->getToolItem()->getConnection(outputPropertyId, ToolConnection::Output);
+      inputConnection = inputNode->getToolItem()->getConnection(inputPropertyId, ToolConnection::Input);
+
+      if (outputConnection && inputConnection) {
+        CableItem* cable = new CableItem(workbench, outputConnection, inputConnection);
+        workbench->addCableItem(cable);
+        edge->setCableItem(cable);
+
+        edge->activate(outputNode, inputNode);
+      }
+    }
+  } else {
+    // TODO: Error handling
+    cout << "FAILED!" << endl;
+    return;
+  }
 //  cout << "DONE!" << endl;
 }
 
 void Workflow::resumeFromModel() {
-//  if (!hasIONodes) {
-//    hasIONodes = true;
-//    inputsNode.setModule(getModule());
-//    outputsNode.setModule(getModule());
-//    inputsNode.setX(getInputsPosition()[0]);
-//    inputsNode.setY(getInputsPosition()[1]);
-//    outputsNode.setX(getOutputsPosition()[0]);
-//    outputsNode.setY(getOutputsPosition()[1]);
-//
-//    newItem(&inputsNode);
-//    newItem(&outputsNode);
-//  }
-//
+  if (!hasIONodes) {
+    hasIONodes = true;
+    inputsNode.setModule(getModule());
+    outputsNode.setModule(getModule());
+    inputsNode.setX(getInputsPosition()[0]);
+    inputsNode.setY(getInputsPosition()[1]);
+    outputsNode.setX(getOutputsPosition()[0]);
+    outputsNode.setY(getOutputsPosition()[1]);
+
+    newItem(&inputsNode);
+    newItem(&outputsNode);
+  }
+
   vector<Node*>* nodes = getNodes();
   vector<Edge*>* edges = getEdges();
   for (unsigned i = 0; i < nodes->size(); ++i) {
-    // TODO: handle workflows correctly
-//    Workflow* workflow = dynamic_cast<Workflow*>(nodes->at(i));
-//    if (workflow) {
-//      workflow->resumeFromModel();
-//      connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
-//      connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
-//    }
+    Workflow* workflow = dynamic_cast<Workflow*>(nodes->at(i));
+    if (workflow) {
+      workflow->resumeFromModel();
+      connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
+      connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
+    }
     newItem(nodes->at(i));
   }
-//  for (unsigned i = 0; i < edges->size(); ++i)
-//    newCable(edges->at(i));
+  for (unsigned i = 0; i < edges->size(); ++i)
+    newCable(edges->at(i));
 }
 
 QWidget* Workflow::dispenseWidget() {
@@ -367,58 +398,54 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
 }
 
 void Workflow::itemSelected(ToolItem* item) {
-  for (unsigned i = 0; i < _Nodes->size(); ++i) {
-    if (_Nodes->at(i)->getToolItem() == item)
-      propertyGrid->setModel(_Nodes->at(i)->getModel());
-  }
+  Node* node = getNode(item);
+  if (node)
+    propertyGrid->setModel(node->getModel());
 }
 
 void Workflow::itemChangedHandler(ToolItem* item) {
-  for (unsigned i = 0; i < _Nodes->size(); ++i) {
-    Node* node = _Nodes->at(i);
-    if (node->getToolItem() == item) {
+  Node* node = getNode(item);
+  if (node) {
+    node->setX(item->x());
+    node->setY(item->y());
+  }
 
-      // TODO: handle input and output nodes correctly
-      node->setX(item->x());
-      node->setY(item->y());
-      //
-      //  if (node == &inputsNode) {
-      //    vector<int> pos;
-      //    pos.push_back(item->x());
-      //    pos.push_back(item->y());
-      //    setInputsPosition(pos);
-      //  } else if (node == &outputsNode) {
-      //    vector<int> pos;
-      //    pos.push_back(item->x());
-      //    pos.push_back(item->y());
-      //    setOutputsPosition(pos);
-      //  }
-    }
+  if (node == &inputsNode) {
+    vector<int> pos;
+    pos.push_back(item->x());
+    pos.push_back(item->y());
+    setInputsPosition(pos);
+  } else if (node == &outputsNode) {
+    vector<int> pos;
+    pos.push_back(item->x());
+    pos.push_back(item->y());
+    setOutputsPosition(pos);
   }
 }
 
 void Workflow::deleteModule(ToolItem* item) {
-  vector<Node*>* nodes = getNodes();
-  for (unsigned i = 0; i < nodes->size(); ++i) {
-    if (nodes->at(i)->getToolItem() == item) {
-      Node* node = nodes->at(i);
+  cout << "Deleting module: " << item->getLabel() << endl;
 
-      // delete edges connected to the node
-      vector<Edge*>* edges = getEdges();
-      for (int j = (int)edges->size() - 1; j >= 0; --j) {
-        Edge* edge = edges->at(j);
-        if (edge->getInputNodePtr() == node || edge->getOutputNodePtr() == node) {
-          //workbench->removeCableItem(edge->getCableItem());
-          removeEdge(edge);
-        }
-      }
+  unsigned i = 0;
+  Node* node = getNode(item, i);
 
-      // remove and delete node
-      delete node;
-      nodes->erase(nodes->begin() + i);
-      break;
+  if (!node) {
+    cout << "Node not found!" << endl;
+    return;
+  }
+
+  // delete edges connected to the node
+  vector<Edge*>* edges = getEdges();
+  for (int j = (int)edges->size() - 1; j >= 0; --j) {
+    Edge* edge = edges->at(j);
+    if (edge->getInputNodePtr() == node || edge->getOutputNodePtr() == node) {
+      removeEdge(edge);
     }
   }
+
+  // remove and delete node
+  delete node;
+  _Nodes->erase(_Nodes->begin() + i);
 }
 
 void Workflow::removeEdge(Edge* edge) {
@@ -432,80 +459,86 @@ void Workflow::removeEdge(Edge* edge) {
 }
 
 void Workflow::createEdge(CableItem* cable) {
-//  Edge* edge = new Edge();
-//  edge->setOutputNode(cable->getInput()->parent->getNode()->getUuid());
-//  edge->setOutputProperty(cable->getInput()->property->getName());
-//  edge->setInputNode(cable->getOutput()->parent->getNode()->getUuid());
-//  edge->setInputProperty(cable->getOutput()->property->getName());
-//  edge->setCableItem(cable);
-//  edge->activate(cable->getInput()->parent->getNode(), cable->getOutput()->parent->getNode());
-//
-//  getEdges()->push_back(edge);
+  Node* outputNode = getNode(cable->getInput()->parent);
+  Node* inputNode = getNode(cable->getOutput()->parent);
+
+  // Sanity check. Should never fail
+  if (!outputNode || !outputNode->getModule() || !inputNode || !inputNode->getModule())
+    return;
+
+  Edge* edge = new Edge();
+
+  edge->setOutputNode(outputNode->getUuid());
+  edge->setOutputProperty(outputNode->getModule()->getProperties()[cable->getInput()->id]->getName());
+  edge->setInputNode(inputNode->getUuid());
+  edge->setInputProperty(inputNode->getModule()->getProperties()[cable->getOutput()->id]->getName());
+  edge->setCableItem(cable);
+  edge->activate(outputNode, inputNode);
+
+  getEdges()->push_back(edge);
 }
 
 void Workflow::deleteEdge(CableItem* cable) {
-//  vector<Edge*>* edges = getEdges();
-//  for (unsigned i = 0; i < edges->size(); ++i)
-//    if (edges->at(i)->getCableItem() == cable) {
-//      // remove and delete node
-//      delete edges->at(i);
-//      edges->erase(edges->begin() + i);
-//    }
+  unsigned pos;
+  Edge* edge = getEdge(cable, pos);
+  if (edge) {
+    delete edge;
+    _Edges->erase(_Edges->begin() + pos);
+  }
 }
 
 void Workflow::buildStack(Node* node) {
-//  // Rebuild the stack without node, thus guaranteeing that node appears only once
-//  stack<Node*> oldStack;
-//  while (!nodeStack.empty()) {
-//    oldStack.push(nodeStack.top());
-//    nodeStack.pop();
-//  }
-//  while (!oldStack.empty()) {
-//    Node* n = oldStack.top();
-//    if (n != node)
-//      nodeStack.push(n);
-//    oldStack.pop();
-//  }
-//
-//  nodeStack.push(node);
-//  node->getToolItem()->setProgress(-3);
-//
-//  // call build stack for all input connected nodes
-//  vector<ToolConnection*>& inputs = node->getToolItem()->getInputs();
-//  for (unsigned i = 0; i < inputs.size(); ++i) {
-//    CableItem* cable = inputs[i]->cable;
-//    if (cable && cable->getInput()) {
-//      Node* newNode = cable->getInput()->parent->getNode();
-//      buildStack(newNode);
-//    }
-//  }
+  // Rebuild the stack without node, thus guaranteeing that node appears only once
+  stack<Node*> oldStack;
+  while (!nodeStack.empty()) {
+    oldStack.push(nodeStack.top());
+    nodeStack.pop();
+  }
+  while (!oldStack.empty()) {
+    Node* n = oldStack.top();
+    if (n != node)
+      nodeStack.push(n);
+    oldStack.pop();
+  }
+
+  nodeStack.push(node);
+  node->getToolItem()->setProgress(-3);
+
+  // call build stack for all output nodes
+  vector<Edge*>* edges = getEdges();
+  for (int j = (int)edges->size() - 1; j >= 0; --j) {
+    Edge* edge = edges->at(j);
+    if (edge->getInputNodePtr() == node) {
+      buildStack(edge->getOutputNodePtr());
+    }
+  }
 }
 
-void Workflow::updateSelectedModule() {
+void Workflow::updateCurrentModule() {
   //cout << "[" << QThread::currentThreadId() << "] " << "Update selected module" << endl;
-  // build stack and set all to red
-  //workbench->getSelectedItem()->getNode()->setUpToDate(false);
-
-  // TODO: get node of selected item first
-  //buildStack(workbench->getSelectedItem()->getNode());
-  //processStack();
+  // build stack
+  Node* node = getNode(workbench->getCurrentItem());
+  if (node) {
+    buildStack(node);
+    processStack();
+  }
 }
 
 void Workflow::updateOutputs() {
   // if multiple interface
   //  - clear multiple outputs
   //  - reset combinations iterator
-//  CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
-//  if (combiner) {
-//    combiner->resetCombinations();
-//    processingCombination = true;
-//    ToolItem* item = getToolItem();
-//    if (item)
-//      item->setProgress(5);
-//  }
-//
-//  buildStack(&outputsNode);
-//  processStack();
+  CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
+  if (combiner) {
+    combiner->resetCombinations();
+    processingCombination = true;
+    ToolItem* item = getToolItem();
+    if (item)
+      item->setProgress(5);
+  }
+
+  buildStack(&outputsNode);
+  processStack();
 }
 
 void Workflow::processStack() {
@@ -581,6 +614,13 @@ void Workflow::showWorkflow(Workflow* workflow) {
   Q_EMIT showWorkflowRequest(workflow);
 }
 
+void Workflow::showWorkflow(ToolItem* item) {
+  Node* node = getNode(item);
+  Workflow* workflow = dynamic_cast<Workflow*>(node);
+  if (workflow)
+    Q_EMIT showWorkflowRequest(workflow);
+}
+
 bool Workflow::isUpToDate() const {
   if (dynamic_cast<CombinerInterface*>(getModule()))
     return true;
@@ -602,11 +642,17 @@ void Workflow::load(const string& filename) {
   // Load model data from xml file (only selected properties)
   // resume
   while (_Edges->size()) {
-    workbench->removeCableItem(_Edges->at(0)->getCableItem());
+    CableItem* cable = _Edges->at(0)->getCableItem();
+    removeEdge(_Edges->at(0));
+    if (cable)
+      workbench->removeCableItem(cable);
   }
 
   while (_Nodes->size()) {
-    workbench->removeToolItem(_Nodes->at(0)->getToolItem());
+    ToolItem* item = _Nodes->at(0)->getToolItem();
+    deleteModule(item);
+    if (item)
+      workbench->removeToolItem(item);
   }
 
   Xmlizer::GetPropertyFromXml(*this, findProperty("Libraries"), filename);
@@ -625,6 +671,43 @@ void Workflow::setUiEnabled(bool enabled) {
     if (workflow)
       workflow->setUiEnabled(enabled);
   }
+}
+
+Node* Workflow::getNode(ToolItem* item) {
+  unsigned pos;
+
+  if (item == inputsNode.getToolItem())
+    return &inputsNode;
+  else if (item == outputsNode.getToolItem())
+    return &outputsNode;
+  else
+    return getNode(item, pos);
+}
+
+Node* Workflow::getNode(ToolItem* item, unsigned& pos) {
+  Node* node = 0;
+  for(pos = 0; pos < _Nodes->size(); ++pos) {
+    node = _Nodes->at(pos);
+    if (node->getToolItem() == item) {
+      return node;
+    }
+  }
+  return 0;
+}
+
+Edge* Workflow::getEdge(CableItem* cable) {
+  unsigned pos;
+  return getEdge(cable, pos);
+}
+
+Edge* Workflow::getEdge(CableItem* cable, unsigned& pos) {
+  Edge* edge = 0;
+  for(pos = 0; pos < _Edges->size(); ++pos) {
+    edge = _Edges->at(pos);
+    if (edge->getCableItem() == cable)
+      return edge;
+  }
+  return 0;
 }
 
 }

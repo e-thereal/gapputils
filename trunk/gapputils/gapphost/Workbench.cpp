@@ -129,7 +129,7 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
             currentCables.push_back(currentCable);
             currentCable->setInput(0);
             currentCable->setDragPoint(mapToScene(event->pos()));
-//            Q_EMIT cableDeleted(currentCable);
+            Q_EMIT connectionRemoved(currentCable);
           }
         }
         if (currentCables.size() == 0) {
@@ -150,7 +150,7 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
           currentCables.push_back(currentCable);
           currentCable->setOutput(0);
           currentCable->setDragPoint(mapToScene(event->pos()));
-//          Q_EMIT cableDeleted(currentCable);
+          Q_EMIT connectionRemoved(currentCable);
         } else {
           CableItem* currentCable = new CableItem(this, 0, connection);
           currentCables.push_back(currentCable);
@@ -200,7 +200,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
             if (oldCable) {
               removeCableItem(oldCable);
             }
-//            Q_EMIT cableCreated(currentCables[0]);
+            Q_EMIT connectionCompleted(currentCables[0]);
             break;
           }
         } else if (currentCables[0]->needInput()) {
@@ -219,12 +219,11 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
                 currentCables[0]->endDrag();
                 if (oldCable)
                   removeCableItem(oldCable);
-//                Q_EMIT cableCreated(currentCables[0]);
+                Q_EMIT connectionCompleted(currentCables[0]);
                 break;
 //              }
             }
           }
-//
 //          //TODO: Handle moving a bundle of connections.
         }
       }

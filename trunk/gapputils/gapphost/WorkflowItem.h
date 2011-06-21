@@ -24,8 +24,7 @@ public:
   virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
 
 Q_SIGNALS:
-  // TODO: how must this request be designed? Workflow information is not present
-  //void showWorkflowRequest(workflow::Workflow* workflow);
+  void showWorkflowRequest(ToolItem* item);
 };
 
 }

@@ -20,11 +20,7 @@ WorkflowItem::~WorkflowItem() {
 }
 
 void WorkflowItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
-  // TODO: emit alternative signal
-//  workflow::Workflow* workflow = dynamic_cast<workflow::Workflow*>(getNode());
-//  if (workflow) {
-//    Q_EMIT showWorkflowRequest(workflow);
-//  }
+  Q_EMIT showWorkflowRequest(this);
 
   ToolItem::mouseDoubleClickEvent(event);
 }

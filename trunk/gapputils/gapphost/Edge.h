@@ -33,6 +33,7 @@ class Edge : public capputils::reflection::ReflectableClass
 
 private:
   capputils::EventHandler<Edge> handler;
+  unsigned inputId, outputId;
 
 public:
   Edge(void);
