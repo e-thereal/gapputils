@@ -240,7 +240,7 @@ int MultiConnection::getHeight() const {
 ToolItem::ToolItem(const std::string& label, Workbench *bench)
  : label(label), bench(bench), width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
    labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), deletable(true),
-   progress(Neutral), deleting(false)
+   progress(Neutral)
 {
   setFlag(ItemIsMovable);
   setFlag(ItemIsSelectable);
@@ -258,7 +258,6 @@ ToolItem::ToolItem(const std::string& label, Workbench *bench)
 }
 
 ToolItem::~ToolItem() {
-  deleting = true;
   vector<ToolConnection*> tempIn(inputs);
   vector<MultiConnection*> tempOut(outputs);
   inputs.clear();
@@ -276,6 +275,10 @@ void ToolItem::setWorkbench(Workbench* bench) {
 
 bool ToolItem::isDeletable() const {
   return deletable;
+}
+
+void ToolItem::setDeletable(bool deletable) {
+  this->deletable = deletable;
 }
 
 void ToolItem::setProgress(int progress) {
@@ -314,19 +317,18 @@ bool ToolItem::hitConnections(std::vector<ToolConnection*>& connections, int x, 
   return false;
 }
 
-// TODO: a better way of getting connection by name could be to get the connection by ID
-//ToolConnection* ToolItem::getConnection(const std::string& propertyName, ToolConnection::Direction direction) const {
-//  if (direction == ToolConnection::Input) {
-//    for (unsigned i = 0; i < inputs.size(); ++i)
-//      if (inputs[i]->property->getName().compare(propertyName) == 0)
-//        return inputs[i];
-//  } else {
-//    for (unsigned i = 0; i < outputs.size(); ++i)
-//      if (outputs[i]->getProperty()->getName().compare(propertyName) == 0)
-//        return outputs[i]->getLastConnection();
-//  }
-//  return 0;
-//}
+ToolConnection* ToolItem::getConnection(int id, ToolConnection::Direction direction) const {
+  if (direction == ToolConnection::Input) {
+    for (unsigned i = 0; i < inputs.size(); ++i)
+      if (inputs[i]->id == id)
+        return inputs[i];
+  } else {
+    for (unsigned i = 0; i < outputs.size(); ++i)
+      if (outputs[i]->id == id)
+        return outputs[i]->getLastConnection();
+  }
+  return 0;
+}
 
 QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) {
   switch (change) {
@@ -352,7 +354,6 @@ void ToolItem::updateCables() {
 }
 
 void ToolItem::updateSize() {
-  if (deleting) return;
   QFontMetrics fontMetrics(QApplication::font());
   QFontMetrics labelFontMetrics(labelFont);
   inputsWidth = outputsWidth = 0;
@@ -373,7 +374,6 @@ void ToolItem::updateSize() {
 }
 
 void ToolItem::updateConnectionPositions() {
-  if (deleting) return;
   for (int i = 0, pos = -((int)inputs.size()-1) * connectionDistance / 2 + height/2; i < (int)inputs.size(); ++i, pos += connectionDistance) {
     inputs[i]->setPos(0, pos);
   }

@@ -292,7 +292,7 @@ void MainWindow::updateCurrentModule() {
 
   Workflow* workingWorkflow = openWorkflows[tabWidget->currentIndex()];
   connect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
-  workingWorkflow->updateSelectedModule();
+  workingWorkflow->updateCurrentModule();
 }
 
 void MainWindow::updateWorkflow() {

@@ -47,8 +47,9 @@ Q_SIGNALS:
   void preItemDeleted(ToolItem* item);
 
   void itemChanged(ToolItem* item);
-  void cableCreated(CableItem* cable);
-  void cableDeleted(CableItem* cable);
+
+  void connectionCompleted(CableItem* cable);
+  void connectionRemoved(CableItem* cable);
 
 protected:
   void mousePressEvent(QMouseEvent* event);

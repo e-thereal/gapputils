@@ -65,7 +65,7 @@ public:
   //TiXmlElement* getXml(bool addEmptyModule = true) const;
 
   /// This call is asynchronous. updateFinished signal is emitted when done.
-  void updateSelectedModule();
+  void updateCurrentModule();
   void updateOutputs();
   void processStack();
   void buildStack(Node* node);
@@ -82,6 +82,12 @@ public:
   virtual void writeResults();
 
   void setUiEnabled(bool enabled);
+
+  Node* getNode(ToolItem* item);
+  Node* getNode(ToolItem* item, unsigned& pos);
+
+  Edge* getEdge(CableItem* cable);
+  Edge* getEdge(CableItem* cable, unsigned& pos);
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
@@ -100,6 +106,7 @@ private Q_SLOTS:
   void finalizeModuleUpdate(workflow::Node* node);
   void showProgress(workflow::Node* node, int i);
   void showWorkflow(workflow::Workflow* workflow);
+  void showWorkflow(ToolItem* item);
   void delegateDeleteCalled(workflow::Workflow* workflow);
 
 Q_SIGNALS:

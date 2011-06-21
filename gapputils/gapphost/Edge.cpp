@@ -42,35 +42,44 @@ Edge::~Edge(void)
 void Edge::activate(Node* outputNode, Node* inputNode) {
   // Get property IDs and use them for the rest.
 
-//  setOutputNodePtr(outputNode);
-//  setInputNodePtr(inputNode);
-//
-//  capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(outputNode->getModule());
-//  if (observable) {
-//    observable->Changed.connect(handler);
-//  }
-//
-//  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->findProperty(getInputProperty());
-//  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->findProperty(getOutputProperty());
-//  if (inProp && outProp) {
-//    inProp->setValue(*inputNode->getModule(), *outputNode->getModule(), outProp);
-//  }
+  setOutputNodePtr(outputNode);
+  setInputNodePtr(inputNode);
+
+  if (!inputNode->getModule()->getPropertyIndex(inputId, getInputProperty()) ||
+      !outputNode->getModule()->getPropertyIndex(outputId, getOutputProperty()))
+  {
+    return;
+  }
+
+  capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(outputNode->getModule());
+  if (observable) {
+    observable->Changed.connect(handler);
+  }
+
+  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->getProperties()[inputId];
+  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->getProperties()[outputId];
+  if (inProp && outProp) {
+    inProp->setValue(*inputNode->getModule(), *outputNode->getModule(), outProp);
+  }
 }
 
-void Edge::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void Edge::changedHandler(capputils::ObservableClass*, int eventId) {
   // check for the right property ID
 
-//  Node* inputNode = getInputNodePtr();
-//  Node* outputNode = getOutputNodePtr();
-//
-//  if (!inputNode || !outputNode)
-//    return;
-//
-//  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->findProperty(getInputProperty());
-//  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->findProperty(getOutputProperty());
-//  if (inProp && outProp) {
-//    inProp->setValue(*inputNode->getModule(), *outputNode->getModule(), outProp);
-//  }
+  if (eventId != (int)outputId)
+    return;
+
+  Node* inputNode = getInputNodePtr();
+  Node* outputNode = getOutputNodePtr();
+
+  if (!inputNode || !outputNode)
+    return;
+
+  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->getProperties()[inputId];
+  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->getProperties()[outputId];
+  if (inProp && outProp) {
+    inProp->setValue(*inputNode->getModule(), *outputNode->getModule(), outProp);
+  }
 }
 
 }

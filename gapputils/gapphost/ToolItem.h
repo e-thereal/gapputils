@@ -94,8 +94,6 @@ protected:
   QFont labelFont;
   bool deletable;
   int progress;
-  bool deleting;
-
 
 public:
   ToolItem(const std::string& label, Workbench *bench = 0);
@@ -108,8 +106,7 @@ public:
   /// Adds the connections to the connections vector
   bool hitConnections(std::vector<ToolConnection*>& connections, int x, int y, ToolConnection::Direction direction) const;
 
-  // TODO: a better way could be to get the connection by ID
-  //ToolConnection* getConnection(const std::string& propertyName, ToolConnection::Direction direction) const;
+  ToolConnection* getConnection(int id, ToolConnection::Direction direction) const;
   std::vector<ToolConnection*>& getInputs();
   void getOutputs(std::vector<ToolConnection*>& connections);
   void updateSize();
@@ -121,6 +118,7 @@ public:
   virtual std::string getLabel() const;
   void setLabel(const std::string& label);
   virtual bool isDeletable() const;
+  void setDeletable(bool deletable);
 
   void updateCables();
 
