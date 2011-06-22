@@ -5,6 +5,7 @@
  *      Author: tombr
  */
 
+#include <cuda_runtime.h>
 #include <culapackdevice.h>
 #include <thrust/device_vector.h>
 #include <thrust/copy.h>
@@ -25,12 +26,6 @@ void getPcs(double* pc, double* data, int m, int n) {
   thrust::device_vector<float> d_sigma(n);
   thrust::device_vector<float> d_Vt(n * n);
 
-  if ((status = culaInitialize()) != culaNoError) {
-    std::cout << "Could not initialize: " << culaGetStatusString(status) << std::endl;
-    delete f_data;
-    return;
-  }
-
   //culaSgesvd
   char jobu = 'A';
   char jobvt = 'A';
@@ -44,8 +39,6 @@ void getPcs(double* pc, double* data, int m, int n) {
 
   thrust::copy(d_U.begin(), d_U.end(), pc);
   //thrust::copy(data, data + count, pc);
-
-  culaShutdown();
 
   delete f_data;
 }

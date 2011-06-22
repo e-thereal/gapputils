@@ -23,6 +23,7 @@
 
 #include <culapackdevice.h>
 #include <thrust/device_vector.h>
+#include <cuda_runtime.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;

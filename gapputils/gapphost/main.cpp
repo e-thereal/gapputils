@@ -1,7 +1,10 @@
 #include "MainWindow.h"
 #include <QtGui/QApplication>
 
-//#include <cublas.h>
+// TODO: do the cuda, cublas and cula initialization stuff only if requested
+#include <cublas.h>
+#include <cula.h>
+
 #include <capputils/Xmlizer.h>
 #include <capputils/ArgumentsParser.h>
 #include <capputils/Verifier.h>
@@ -20,13 +23,17 @@ using namespace gapputils;
 using namespace capputils;
 using namespace std;
 
-//#define AUTOTEST
-
 int main(int argc, char *argv[])
 {
-  //cublasInit();
+  cublasInit();
+  culaStatus status;
+
+  if ((status = culaInitialize()) != culaNoError) {
+    std::cout << "Could not initialize CULA: " << culaGetStatusString(status) << std::endl;
+    return 1;
+  }
+
   int ret = 0;
-#ifndef AUTOTEST
   QApplication a(argc, argv);
   DataModel& model = DataModel::getInstance();
   try {
@@ -48,6 +55,9 @@ int main(int argc, char *argv[])
   if (model.getHelp()) {
     ArgumentsParser::PrintDefaultUsage("gapphost", model);
     ArgumentsParser::PrintUsage("Workflow switches:", wfModule);
+
+    cublasShutdown();
+    culaShutdown();
     return 0;
   }
 
@@ -65,14 +75,7 @@ int main(int argc, char *argv[])
   model.saveToFile("gapphost.conf.xml");
   delete model.getMainWorkflow();
 
-#else
-  Paper paper;
-  paper.setRun(0);
-  ArgumentsParser::Parse(paper, argc, argv);
-  Xmlizer::FromXml(paper, paper.getConfigurationName());
-  paper.setRun(1);
-  Xmlizer::ToXml(paper.getConfigurationName(), paper);
-#endif
-  //cublasShutdown();
+  cublasShutdown();
+  culaShutdown();
   return ret;
 }
