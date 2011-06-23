@@ -39,7 +39,7 @@ Edge::~Edge(void)
   }
 }
 
-void Edge::activate(Node* outputNode, Node* inputNode) {
+bool Edge::activate(Node* outputNode, Node* inputNode) {
   // Get property IDs and use them for the rest.
 
   setOutputNodePtr(outputNode);
@@ -48,19 +48,35 @@ void Edge::activate(Node* outputNode, Node* inputNode) {
   if (!inputNode->getModule()->getPropertyIndex(inputId, getInputProperty()) ||
       !outputNode->getModule()->getPropertyIndex(outputId, getOutputProperty()))
   {
-    return;
+    return false;
   }
+
+  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->getProperties()[inputId];
+  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->getProperties()[outputId];
+
+  if (!Edge::areCompatible(outputNode, outputId, inputNode, inputId))
+    return false;
 
   capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(outputNode->getModule());
   if (observable) {
     observable->Changed.connect(handler);
   }
 
-  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->getProperties()[inputId];
-  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->getProperties()[outputId];
   if (inProp && outProp) {
     inProp->setValue(*inputNode->getModule(), *outputNode->getModule(), outProp);
   }
+
+  return true;
+}
+
+bool Edge::areCompatible(const Node* outputNode, int outputId, const Node* inputNode, int inputId) {
+  if (!outputNode || !outputNode->getModule() || !inputNode || !inputNode->getModule())
+    return false;
+
+  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->getProperties()[inputId];
+  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->getProperties()[outputId];
+
+  return inProp->getType() == outProp->getType();
 }
 
 void Edge::changedHandler(capputils::ObservableClass*, int eventId) {

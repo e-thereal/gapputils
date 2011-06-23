@@ -10,6 +10,8 @@
 #include <qtreeview.h>
 #include <qsplitter.h>
 
+#include <cassert>
+
 #include <capputils/InputAttribute.h>
 #include <capputils/OutputAttribute.h>
 #include <capputils/ReflectableClassFactory.h>
@@ -61,10 +63,12 @@ DefineProperty(Edges, Enumerable<vector<Edge*>*, true>())
 DefineProperty(Nodes, Enumerable<vector<Node*>*, true>())
 DefineProperty(InputsPosition)
 DefineProperty(OutputsPosition)
+DefineProperty(ViewportScale)
+DefineProperty(ViewportPosition)
 
 EndPropertyDefinitions
 
-Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true), hasIONodes(false), processingCombination(false), worker(0) {
+Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), _ViewportScale(1.0), ownWidget(true), hasIONodes(false), processingCombination(false), worker(0) {
   _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
   _Nodes = new vector<Node*>();
@@ -75,11 +79,15 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true),
   _OutputsPosition.push_back(1400);
   _OutputsPosition.push_back(200);
 
+  _ViewportPosition.push_back(0);
+  _ViewportPosition.push_back(0);
+
   inputsNode.setUuid("Inputs");
   outputsNode.setUuid("Outputs");
 
   workbench = new Workbench();
   workbench->setGeometry(0, 0, 600, 600);
+  workbench->setChecker(this);
 
   propertyGrid = new QTreeView();
   propertyGrid->setAllColumnsShowFocus(false);
@@ -100,6 +108,7 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), ownWidget(true),
   connect(workbench, SIGNAL(preItemDeleted(ToolItem*)), this, SLOT(deleteModule(ToolItem*)));
   connect(workbench, SIGNAL(connectionCompleted(CableItem*)), this, SLOT(createEdge(CableItem*)));
   connect(workbench, SIGNAL(connectionRemoved(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
+  connect(workbench, SIGNAL(viewportChanged()), this, SLOT(handleViewportChanged()));
 
   worker = new WorkflowWorker(this);
   worker->start();
@@ -333,6 +342,13 @@ void Workflow::newCable(Edge* edge) {
 //  cout << "DONE!" << endl;
 }
 
+void Workflow::resumeViewport() {
+  vector<double> pos = getViewportPosition();
+  workbench->scaleView(getViewportScale());
+  workbench->centerOn(pos[0], pos[1]);
+  handleViewportChanged();
+}
+
 void Workflow::resumeFromModel() {
   if (!hasIONodes) {
     hasIONodes = true;
@@ -473,9 +489,22 @@ void Workflow::createEdge(CableItem* cable) {
   edge->setInputNode(inputNode->getUuid());
   edge->setInputProperty(inputNode->getModule()->getProperties()[cable->getOutput()->id]->getName());
   edge->setCableItem(cable);
-  edge->activate(outputNode, inputNode);
+  if (!edge->activate(outputNode, inputNode)) {
+    delete edge;
+    workbench->removeCableItem(cable);
+  } else {
+    getEdges()->push_back(edge);
+  }
+}
 
-  getEdges()->push_back(edge);
+bool Workflow::areCompatibleConnections(const ToolConnection* output, const ToolConnection* input) const {
+  assert(output);
+  assert(input);
+
+  const Node* outputNode = getNode(output->parent);
+  const Node* inputNode = getNode(input->parent);
+
+  return Edge::areCompatible(outputNode, output->id, inputNode, input->id);
 }
 
 void Workflow::deleteEdge(CableItem* cable) {
@@ -701,6 +730,53 @@ Edge* Workflow::getEdge(CableItem* cable) {
 }
 
 Edge* Workflow::getEdge(CableItem* cable, unsigned& pos) {
+  Edge* edge = 0;
+  for(pos = 0; pos < _Edges->size(); ++pos) {
+    edge = _Edges->at(pos);
+    if (edge->getCableItem() == cable)
+      return edge;
+  }
+  return 0;
+}
+
+const Node* Workflow::getNode(ToolItem* item) const {
+  unsigned pos;
+
+  if (item == inputsNode.getToolItem())
+    return &inputsNode;
+  else if (item == outputsNode.getToolItem())
+    return &outputsNode;
+  else
+    return getNode(item, pos);
+}
+
+const Node* Workflow::getNode(ToolItem* item, unsigned& pos) const {
+  Node* node = 0;
+  for(pos = 0; pos < _Nodes->size(); ++pos) {
+    node = _Nodes->at(pos);
+    if (node->getToolItem() == item) {
+      return node;
+    }
+  }
+  return 0;
+}
+
+const Edge* Workflow::getEdge(CableItem* cable) const {
+  unsigned pos;
+  return getEdge(cable, pos);
+}
+
+void Workflow::handleViewportChanged() {
+  QPointF cnt = workbench->mapToScene(workbench->viewport()->rect().center());
+
+  setViewportScale(workbench->getViewScale());
+  vector<double> position;
+  position.push_back(cnt.x());
+  position.push_back(cnt.y());
+  setViewportPosition(position);
+}
+
+const Edge* Workflow::getEdge(CableItem* cable, unsigned& pos) const {
   Edge* edge = 0;
   for(pos = 0; pos < _Edges->size(); ++pos) {
     edge = _Edges->at(pos);

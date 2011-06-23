@@ -20,7 +20,7 @@ using namespace std;
 namespace gapputils {
 
 Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
-    modifiable(true)
+    modifiable(true), checker(0), viewScale(1.0)
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -36,6 +36,10 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
 }
 
 Workbench::~Workbench() {
+}
+
+void Workbench::setChecker(CompatibilityChecker* checker) {
+  this->checker = checker;
 }
 
 void Workbench::setModifiable(bool modifiable) {
@@ -190,9 +194,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
         int ty = item->y();
         if (currentCables.size() == 1 && currentCables[0]->needOutput()) {
           ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
-          //if (connection && connection->property->getType() == currentCables[0]->getInput()->property->getType()) {
-          // TODO: check for compatible connection
-          if (connection) {
+          if (connection && areCompatible(currentCables[0]->getInput(), connection)) {
             foundConnection = true;
             CableItem* oldCable = connection->cable;
             currentCables[0]->setOutput(connection);
@@ -211,8 +213,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
             tool->hitConnections(connections, ex - tx, ey - ty, ToolConnection::Output);
             if (connections.size()) {
               ToolConnection* connection = connections[connections.size()-1];
-              // TODO: check if types are compatible
-//              if (connection->property->getType() == currentCables[0]->getOutput()->property->getType()) {
+              if (areCompatible(connection, currentCables[0]->getOutput())) {
                 foundConnection = true;
                 CableItem* oldCable = connection->cable;
                 currentCables[0]->setInput(connection);
@@ -221,7 +222,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
                   removeCableItem(oldCable);
                 Q_EMIT connectionCompleted(currentCables[0]);
                 break;
-//              }
+              }
             }
           }
 //          //TODO: Handle moving a bundle of connections.
@@ -240,7 +241,13 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
   }
   QGraphicsView::mouseReleaseEvent(event);
   setDragMode(NoDrag);
+  Q_EMIT viewportChanged();
 }
+
+bool Workbench::areCompatible(const ToolConnection* output, const ToolConnection* input) const {
+  return !checker || checker->areCompatibleConnections(output, input);
+}
+
 
 void Workbench::keyPressEvent(QKeyEvent *event)
 {
@@ -348,13 +355,19 @@ void Workbench::wheelEvent(QWheelEvent *event)
      scaleView(pow((double)1.3, -event->delta() / 240.0));
  }
 
+qreal Workbench::getViewScale() {
+  return viewScale;
+}
+
 void Workbench::scaleView(qreal scaleFactor)
  {
+   viewScale *= scaleFactor;
    qreal factor = transform().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
    if (factor < 0.07 || factor > 100)
        return;
 
    scale(scaleFactor, scaleFactor);
+   Q_EMIT viewportChanged();
  }
 
 }

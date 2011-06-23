@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
     model.getMainWorkflow()->updateOutputs();
   } else {
     w.show();
+    model.getMainWorkflow()->resumeViewport();
     ret = a.exec();
   }
 

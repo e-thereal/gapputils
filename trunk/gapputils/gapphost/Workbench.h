@@ -13,7 +13,13 @@
 namespace gapputils {
 
 class ToolItem;
+class ToolConnection;
 class CableItem;
+
+class CompatibilityChecker {
+public:
+  virtual bool areCompatibleConnections(const ToolConnection* output, const ToolConnection* input) const = 0;
+};
 
 class Workbench : public QGraphicsView {
   Q_OBJECT
@@ -21,7 +27,9 @@ class Workbench : public QGraphicsView {
 private:
   ToolItem* selectedItem;
   std::vector<CableItem*> currentCables;
+  CompatibilityChecker* checker;
   bool modifiable;
+  qreal viewScale;
 
 public:
   Workbench(QWidget *parent = 0);
@@ -29,6 +37,7 @@ public:
 
   void addToolItem(ToolItem* item);
   void addCableItem(CableItem* cable);
+  void setChecker(CompatibilityChecker* checker);
 
   // disconnects and deletes a cable and removes it from the list
   void removeCableItem(CableItem* cable);
@@ -40,6 +49,9 @@ public:
   void notifyItemChange(ToolItem* item);
 
   void setModifiable(bool modifiable);
+  void scaleView(qreal scaleFactor);
+  qreal getViewScale();
+  bool areCompatible(const ToolConnection* output, const ToolConnection* input) const;
 
 Q_SIGNALS:
   void createItemRequest(int x, int y, QString classname);
@@ -50,6 +62,8 @@ Q_SIGNALS:
 
   void connectionCompleted(CableItem* cable);
   void connectionRemoved(CableItem* cable);
+  void viewportChanged();
+
 
 protected:
   void mousePressEvent(QMouseEvent* event);
@@ -63,8 +77,6 @@ protected:
   void dropEvent(QDropEvent *event);
   
   void wheelEvent(QWheelEvent *event);
-
-  void scaleView(qreal scaleFactor);
 };
 
 }

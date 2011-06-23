@@ -40,13 +40,18 @@ public:
   virtual ~Edge(void);
 
   /**
-   * \brief Activates the edge
+   * \brief Activates the edge if the properties are compatible
+   *
+   * \return Returns \c false iff properties are not compatible.
    *
    * Activating an edge means that from now on the values of the connected
-   * properties are kept in sync.
+   * properties are kept in sync. Compatible means that both properties are
+   * of the same type or a type suitable type conversion is available.
    */
-  void activate(Node* outputNode, Node* inputNode);
+  bool activate(Node* outputNode, Node* inputNode);
   void changedHandler(capputils::ObservableClass* sender, int eventId);
+
+  static bool areCompatible(const Node* outputNode, int outputId, const Node* inputNode, int inputId);
 };
 
 }
