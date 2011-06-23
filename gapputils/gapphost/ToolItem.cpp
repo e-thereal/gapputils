@@ -63,13 +63,12 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
   case Input:
 
     // TODO: compatible type highlighting
-//    if (currentCable &&
-//        currentCable->needOutput() &&
-//        currentCable->getInput()->property->getType() == property->getType())
-//    {
-//      painter->setBrush(Qt::white);
-//    } else
-    if(parent->isCurrentItem() && !currentCable) {
+    if (currentCable &&
+        currentCable->needOutput() &&
+        parent->bench->areCompatible(currentCable->getInput(), this))
+    {
+      painter->setBrush(Qt::white);
+    } else if(parent->isCurrentItem() && !currentCable) {
       painter->setBrush(Qt::white);
     } else if (currentCable && currentCable->getOutput() == this) {
       painter->setBrush(Qt::white);
@@ -85,13 +84,12 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
 
   case Output:
     // TODO: compatible type highlighting
-//    if (currentCable &&
-//        currentCable->needInput() &&
-//        currentCable->getOutput()->property->getType() == property->getType())
-//    {
-//      painter->setBrush(Qt::white);
-//    } else
-    if(parent->isCurrentItem() && !currentCable) {
+    if (currentCable &&
+        currentCable->needInput() &&
+        parent->bench->areCompatible(this, currentCable->getOutput()))
+    {
+      painter->setBrush(Qt::white);
+    } else if(parent->isCurrentItem() && !currentCable) {
       painter->setBrush(Qt::white);
     } else if (currentCable && currentCable->getInput() == this) {
       painter->setBrush(Qt::white);

@@ -21,15 +21,17 @@
 #include "WorkflowWorker.h"
 #include <stack>
 
+#include "Workbench.h"
+
 namespace gapputils {
 
-class Workbench;
 class ToolItem;
 class CableItem;
+class ToolConnection;
 
 namespace workflow {
 
-class Workflow : public QObject, public Node
+class Workflow : public QObject, public Node, public CompatibilityChecker
 {
   Q_OBJECT
 
@@ -40,6 +42,8 @@ class Workflow : public QObject, public Node
   Property(Nodes, std::vector<Node*>*)
   Property(InputsPosition, std::vector<int>)
   Property(OutputsPosition, std::vector<int>)
+  Property(ViewportScale, double)
+  Property(ViewportPosition, std::vector<double>)
 
 private:
   Workbench* workbench;
@@ -60,6 +64,8 @@ public:
   void newItem(Node* node);
   void newCable(Edge* edge);
   void resumeFromModel();
+  void resumeViewport();
+
   /// The workflow loses ownership of the widget when calling this method
   QWidget* dispenseWidget();
   //TiXmlElement* getXml(bool addEmptyModule = true) const;
@@ -89,6 +95,14 @@ public:
   Edge* getEdge(CableItem* cable);
   Edge* getEdge(CableItem* cable, unsigned& pos);
 
+  const Node* getNode(ToolItem* item) const;
+  const Node* getNode(ToolItem* item, unsigned& pos) const;
+
+  const Edge* getEdge(CableItem* cable) const;
+  const Edge* getEdge(CableItem* cable, unsigned& pos) const;
+
+  virtual bool areCompatibleConnections(const ToolConnection* output, const ToolConnection* input) const;
+
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
@@ -108,6 +122,7 @@ private Q_SLOTS:
   void showWorkflow(workflow::Workflow* workflow);
   void showWorkflow(ToolItem* item);
   void delegateDeleteCalled(workflow::Workflow* workflow);
+  void handleViewportChanged();
 
 Q_SIGNALS:
   void updateFinished(workflow::Node* node);
