@@ -24,7 +24,11 @@ SOURCES = main.cpp \
 		  DefaultInterface.cpp \
 		  WorkflowWorker.cpp \
 		  GenericViewer.cpp \
-		  WorkflowItem.cpp
+		  WorkflowItem.cpp \
+		  MakeGlobalDialog.cpp \
+		  GlobalProperty.cpp \
+		  PopUpList.cpp \
+		  GlobalEdge.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -39,7 +43,9 @@ HEADERS = MainWindow.h \
           Workflow.h \
           WorkflowWorker.h \
           WorkflowItem.h \
-          GenericViewer.h
+          GenericViewer.h \
+          MakeGlobalDialog.h \
+          PopUpList.h
           
 CONFIG += no_keywords debug console
 QMAKE_CXXFLAGS += -std=c++0x

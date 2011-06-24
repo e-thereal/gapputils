@@ -76,7 +76,13 @@ bool Edge::areCompatible(const Node* outputNode, int outputId, const Node* input
   capputils::reflection::IClassProperty* inProp = inputNode->getModule()->getProperties()[inputId];
   capputils::reflection::IClassProperty* outProp = outputNode->getModule()->getProperties()[outputId];
 
-  return inProp->getType() == outProp->getType();
+  return Edge::areCompatible(outProp, inProp);
+}
+
+bool Edge::areCompatible(const capputils::reflection::IClassProperty* outProp,
+      const capputils::reflection::IClassProperty* inProp)
+{
+  return outProp->getType() == inProp->getType();
 }
 
 void Edge::changedHandler(capputils::ObservableClass*, int eventId) {
