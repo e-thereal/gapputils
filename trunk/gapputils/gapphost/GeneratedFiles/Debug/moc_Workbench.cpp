@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workbench.h'
 **
-** Created: Thu Jun 2 19:13:59 2011
+** Created: Thu Jun 23 19:06:33 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,20 +23,21 @@ static const uint qt_meta_data_gapputils__Workbench[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-       6,   14, // methods
+       7,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
-       6,       // signalCount
+       7,       // signalCount
 
  // signals: signature, parameters, type, tag, flags
       36,   22,   21,   21, 0x05,
       76,   71,   21,   21, 0x05,
-     100,   71,   21,   21, 0x05,
-     123,   71,   21,   21, 0x05,
-     152,  146,   21,   21, 0x05,
-     177,  146,   21,   21, 0x05,
+     107,   71,   21,   21, 0x05,
+     133,   71,   21,   21, 0x05,
+     162,  156,   21,   21, 0x05,
+     194,  156,   21,   21, 0x05,
+     224,   21,   21,   21, 0x05,
 
        0        // eod
 };
@@ -44,10 +45,12 @@ static const uint qt_meta_data_gapputils__Workbench[] = {
 static const char qt_meta_stringdata_gapputils__Workbench[] = {
     "gapputils::Workbench\0\0x,y,classname\0"
     "createItemRequest(int,int,QString)\0"
-    "item\0itemSelected(ToolItem*)\0"
-    "itemChanged(ToolItem*)\0itemDeleted(ToolItem*)\0"
-    "cable\0cableCreated(CableItem*)\0"
-    "cableDeleted(CableItem*)\0"
+    "item\0currentItemSelected(ToolItem*)\0"
+    "preItemDeleted(ToolItem*)\0"
+    "itemChanged(ToolItem*)\0cable\0"
+    "connectionCompleted(CableItem*)\0"
+    "connectionRemoved(CableItem*)\0"
+    "viewportChanged()\0"
 };
 
 const QMetaObject gapputils::Workbench::staticMetaObject = {
@@ -80,14 +83,15 @@ int gapputils::Workbench::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
         case 0: createItemRequest((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< QString(*)>(_a[3]))); break;
-        case 1: itemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 2: itemChanged((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 3: itemDeleted((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 4: cableCreated((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
-        case 5: cableDeleted((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 1: currentItemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 2: preItemDeleted((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 3: itemChanged((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 4: connectionCompleted((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 5: connectionRemoved((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 6: viewportChanged(); break;
         default: ;
         }
-        _id -= 6;
+        _id -= 7;
     }
     return _id;
 }
@@ -100,37 +104,43 @@ void gapputils::Workbench::createItemRequest(int _t1, int _t2, QString _t3)
 }
 
 // SIGNAL 1
-void gapputils::Workbench::itemSelected(ToolItem * _t1)
+void gapputils::Workbench::currentItemSelected(ToolItem * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }
 
 // SIGNAL 2
-void gapputils::Workbench::itemChanged(ToolItem * _t1)
+void gapputils::Workbench::preItemDeleted(ToolItem * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 2, _a);
 }
 
 // SIGNAL 3
-void gapputils::Workbench::itemDeleted(ToolItem * _t1)
+void gapputils::Workbench::itemChanged(ToolItem * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 3, _a);
 }
 
 // SIGNAL 4
-void gapputils::Workbench::cableCreated(CableItem * _t1)
+void gapputils::Workbench::connectionCompleted(CableItem * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 4, _a);
 }
 
 // SIGNAL 5
-void gapputils::Workbench::cableDeleted(CableItem * _t1)
+void gapputils::Workbench::connectionRemoved(CableItem * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 5, _a);
+}
+
+// SIGNAL 6
+void gapputils::Workbench::viewportChanged()
+{
+    QMetaObject::activate(this, &staticMetaObject, 6, 0);
 }
 QT_END_MOC_NAMESPACE

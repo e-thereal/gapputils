@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workflow.h'
 **
-** Created: Thu Jun 2 19:13:58 2011
+** Created: Fri Jun 24 10:41:48 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-      14,   14, // methods
+      22,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -38,15 +38,23 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
 
  // slots: signature, parameters, type, tag, flags
      197,  183,   30,   30, 0x08,
-     230,  225,   30,   30, 0x08,
-     254,  225,   30,   30, 0x08,
-     284,  225,   30,   30, 0x08,
-     312,  306,   30,   30, 0x08,
-     335,  306,   30,   30, 0x08,
-     358,   31,   30,   30, 0x08,
-     403,  396,   30,   30, 0x08,
-     437,   99,   30,   30, 0x08,
-     471,   99,   30,   30, 0x08,
+     232,  227,   30,   30, 0x08,
+     256,  227,   30,   30, 0x08,
+     285,  280,   30,   30, 0x08,
+     303,  227,   30,   30, 0x08,
+     339,  333,   30,   30, 0x08,
+     362,  333,   30,   30, 0x08,
+     385,   31,   30,   30, 0x08,
+     430,  423,   30,   30, 0x08,
+     464,   99,   30,   30, 0x08,
+     498,  227,   30,   30, 0x08,
+     522,   99,   30,   30, 0x08,
+     564,   30,   30,   30, 0x08,
+     588,   30,   30,   30, 0x08,
+     612,   30,   30,   30, 0x08,
+     633,   30,   30,   30, 0x08,
+     660,   30,   30,   30, 0x08,
+     678,   30,   30,   30, 0x08,
 
        0        // eod
 };
@@ -57,15 +65,20 @@ static const char qt_meta_stringdata_gapputils__workflow__Workflow[] = {
     "processModule(workflow::Node*)\0workflow\0"
     "showWorkflowRequest(workflow::Workflow*)\0"
     "deleteCalled(workflow::Workflow*)\0"
-    "x,y,classname\0createItem(int,int,QString)\0"
-    "item\0itemSelected(ToolItem*)\0"
-    "itemChangedHandler(ToolItem*)\0"
-    "deleteItem(ToolItem*)\0cable\0"
-    "createEdge(CableItem*)\0deleteEdge(CableItem*)\0"
+    "x,y,classname\0createModule(int,int,QString)\0"
+    "item\0deleteModule(ToolItem*)\0"
+    "itemSelected(ToolItem*)\0edge\0"
+    "removeEdge(Edge*)\0itemChangedHandler(ToolItem*)\0"
+    "cable\0createEdge(CableItem*)\0"
+    "deleteEdge(CableItem*)\0"
     "finalizeModuleUpdate(workflow::Node*)\0"
     "node,i\0showProgress(workflow::Node*,int)\0"
     "showWorkflow(workflow::Workflow*)\0"
+    "showWorkflow(ToolItem*)\0"
     "delegateDeleteCalled(workflow::Workflow*)\0"
+    "handleViewportChanged()\0showContextMenu(QPoint)\0"
+    "makePropertyGlobal()\0removePropertyFromGlobal()\0"
+    "connectProperty()\0disconnectProperty()\0"
 };
 
 const QMetaObject gapputils::workflow::Workflow::staticMetaObject = {
@@ -89,6 +102,8 @@ void *gapputils::workflow::Workflow::qt_metacast(const char *_clname)
         return static_cast<void*>(const_cast< Workflow*>(this));
     if (!strcmp(_clname, "Node"))
         return static_cast< Node*>(const_cast< Workflow*>(this));
+    if (!strcmp(_clname, "CompatibilityChecker"))
+        return static_cast< CompatibilityChecker*>(const_cast< Workflow*>(this));
     return QObject::qt_metacast(_clname);
 }
 
@@ -103,19 +118,27 @@ int gapputils::workflow::Workflow::qt_metacall(QMetaObject::Call _c, int _id, vo
         case 1: processModule((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
         case 2: showWorkflowRequest((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
         case 3: deleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 4: createItem((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< QString(*)>(_a[3]))); break;
-        case 5: itemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 6: itemChangedHandler((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 7: deleteItem((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 8: createEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
-        case 9: deleteEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
-        case 10: finalizeModuleUpdate((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
-        case 11: showProgress((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 12: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 13: delegateDeleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 4: createModule((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< QString(*)>(_a[3]))); break;
+        case 5: deleteModule((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 6: itemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 7: removeEdge((*reinterpret_cast< Edge*(*)>(_a[1]))); break;
+        case 8: itemChangedHandler((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 9: createEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 10: deleteEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 11: finalizeModuleUpdate((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
+        case 12: showProgress((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 13: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 14: showWorkflow((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 15: delegateDeleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 16: handleViewportChanged(); break;
+        case 17: showContextMenu((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
+        case 18: makePropertyGlobal(); break;
+        case 19: removePropertyFromGlobal(); break;
+        case 20: connectProperty(); break;
+        case 21: disconnectProperty(); break;
         default: ;
         }
-        _id -= 14;
+        _id -= 22;
     }
     return _id;
 }

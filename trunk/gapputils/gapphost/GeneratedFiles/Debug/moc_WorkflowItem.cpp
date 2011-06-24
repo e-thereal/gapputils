@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'WorkflowItem.h'
 **
-** Created: Thu Jun 2 00:05:06 2011
+** Created: Thu Jun 23 19:06:32 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -31,14 +31,14 @@ static const uint qt_meta_data_gapputils__WorkflowItem[] = {
        1,       // signalCount
 
  // signals: signature, parameters, type, tag, flags
-      34,   25,   24,   24, 0x05,
+      30,   25,   24,   24, 0x05,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_gapputils__WorkflowItem[] = {
-    "gapputils::WorkflowItem\0\0workflow\0"
-    "showWorkflowRequest(workflow::Workflow*)\0"
+    "gapputils::WorkflowItem\0\0item\0"
+    "showWorkflowRequest(ToolItem*)\0"
 };
 
 const QMetaObject gapputils::WorkflowItem::staticMetaObject = {
@@ -72,7 +72,7 @@ int gapputils::WorkflowItem::qt_metacall(QMetaObject::Call _c, int _id, void **_
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: showWorkflowRequest((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 0: showWorkflowRequest((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
         default: ;
         }
         _id -= 1;
@@ -81,7 +81,7 @@ int gapputils::WorkflowItem::qt_metacall(QMetaObject::Call _c, int _id, void **_
 }
 
 // SIGNAL 0
-void gapputils::WorkflowItem::showWorkflowRequest(workflow::Workflow * _t1)
+void gapputils::WorkflowItem::showWorkflowRequest(ToolItem * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);
