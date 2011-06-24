@@ -203,10 +203,18 @@ void Workflow::showContextMenu(const QPoint& point) {
   const PropertyReference& reference = varient.value<PropertyReference>();
 
   // check if global and check if connected and fill actions list accordingly
-  actions.append(makeGlobal);
-  actions.append(removeGlobal);
-  actions.append(connectToGlobal);
-  actions.append(disconnectFromGlobal);
+  GlobalProperty* gprop = getGlobalProperty(reference.getObject(), reference.getProperty());
+  if (gprop)
+    actions.append(removeGlobal);
+  else
+    actions.append(makeGlobal);
+  
+
+  GlobalEdge* edge = getGlobalEdge(reference.getObject(), reference.getProperty());
+  if (edge)
+    actions.append(disconnectFromGlobal);
+  else
+    actions.append(connectToGlobal);
 
   QMenu::exec(actions, propertyGrid->mapToGlobal(point));
 }
@@ -226,11 +234,11 @@ void Workflow::makePropertyGlobal() {
 
 void Workflow::removePropertyFromGlobal() {
   QModelIndex index = propertyGrid->currentIndex();
-  QStandardItemModel* model = (QStandardItemModel*)propertyGrid->model();
-  QStandardItem* item = model->invisibleRootItem()->child(index.row(), index.column());
-  QFont font = item->font();
-  font.setBold(false);
-  item->setFont(font);
+  PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
+
+  GlobalProperty* gprop = getGlobalProperty(reference.getObject(), reference.getProperty());
+  if (gprop)
+    removeGlobalProperty(gprop);
 }
 
 void Workflow::connectProperty() {
@@ -255,22 +263,15 @@ void Workflow::connectProperty() {
   if (list.exec() == QDialog::Accepted) {
     connectProperty(list.getList()->selectedItems()[0]->text().toAscii().data(), reference);
   }
-
-//  QModelIndex index = propertyGrid->currentIndex();
-//  QStandardItemModel* model = (QStandardItemModel*)propertyGrid->model();
-//  QStandardItem* item = model->invisibleRootItem()->child(index.row(), index.column());
-//  QFont font = item->font();
-//  font.setItalic(true);
-//  item->setFont(font);
 }
 
 void Workflow::disconnectProperty() {
   QModelIndex index = propertyGrid->currentIndex();
-  QStandardItemModel* model = (QStandardItemModel*)propertyGrid->model();
-  QStandardItem* item = model->invisibleRootItem()->child(index.row(), index.column());
-  QFont font = item->font();
-  font.setItalic(false);
-  item->setFont(font);
+  PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
+
+  GlobalEdge* edge = getGlobalEdge(reference.getObject(), reference.getProperty());
+  if (edge)
+    removeGlobalEdge(edge);
 }
 
 void Workflow::makePropertyGlobal(const std::string& name, const PropertyReference& propertyReference) {
@@ -328,7 +329,7 @@ void Workflow::activateGlobalEdge(GlobalEdge* edge) {
   Node* inputNode = getNode(edge->getInputNode());
 
   GlobalProperty* globalProp = getGlobalProperty(edge->getGlobalProperty());
-  globalProp->getEdges()->push_back(edge);
+  globalProp->addEdge(edge);
   if (!edge->activate(getNode(edge->getOutputNode()), inputNode)) {
     // TODO: should not happen but just in case, handle it right
     cout << "Error in line " << __LINE__ << endl;
@@ -342,6 +343,50 @@ void Workflow::activateGlobalEdge(GlobalEdge* edge) {
     item->setFont(font);
   } else {
     cout << "no such item" << endl;
+  }
+}
+
+void Workflow::removeGlobalProperty(GlobalProperty* gprop) {
+  QStandardItem* item = getItem(gprop->getNodePtr()->getModule(), gprop->getProperty());
+  assert(item);
+
+  // remove edges to that property first
+  while(gprop->getEdges()->size()) {
+    removeGlobalEdge((GlobalEdge*)gprop->getEdges()->at(0));
+  }
+
+  for (unsigned i = 0; i < _GlobalProperties->size(); ++i) {
+    if (_GlobalProperties->at(i) == gprop) {
+      _GlobalProperties->erase(_GlobalProperties->begin() + i);
+      break;
+    }
+  }
+  delete gprop;
+
+  QFont font = item->font();
+  font.setUnderline(false);
+  item->setFont(font);
+}
+
+void Workflow::removeGlobalEdge(GlobalEdge* edge) {
+  QStandardItem* item = getItem(edge->getInputNodePtr()->getModule(),
+    edge->getInputNodePtr()->getModule()->findProperty(edge->getInputProperty()));
+
+  GlobalProperty* gprop = getGlobalProperty(edge->getGlobalProperty());
+  assert(gprop);
+  gprop->removeEdge(edge);
+  for (unsigned i = 0; i < _GlobalEdges->size(); ++i) {
+    if (_GlobalEdges->at(i) == edge) {
+      _GlobalEdges->erase(_GlobalEdges->begin() + i);
+      break;
+    }
+  }
+  delete edge;
+
+  if (item) {
+    QFont font = item->font();
+    font.setItalic(false);
+    item->setFont(font);
   }
 }
 
@@ -634,7 +679,7 @@ void Workflow::itemChangedHandler(ToolItem* item) {
 }
 
 void Workflow::deleteModule(ToolItem* item) {
-  cout << "Deleting module: " << item->getLabel() << endl;
+  //cout << "Deleting module: " << item->getLabel() << endl;
 
   unsigned i = 0;
   Node* node = getNode(item, i);
@@ -642,6 +687,24 @@ void Workflow::deleteModule(ToolItem* item) {
   if (!node) {
     cout << "Node not found!" << endl;
     return;
+  }
+
+  // delete global edges connected to the node
+  vector<GlobalEdge*>* gedges = getGlobalEdges();
+  for (int j = (int)gedges->size() - 1; j >= 0; --j) {
+    GlobalEdge* edge = gedges->at(j);
+    if (edge->getInputNodePtr() == node) {
+      removeGlobalEdge(edge);
+    }
+  }
+
+  // delete global properties of the node
+  vector<GlobalProperty*>* gprops = getGlobalProperties();
+  for (int j = (int)gprops->size() - 1; j >= 0; --j) {
+    GlobalProperty* gprop = gprops->at(j);
+    if (gprop->getNodePtr() == node) {
+      removeGlobalProperty(gprop);
+    }
   }
 
   // delete edges connected to the node
@@ -1012,6 +1075,9 @@ QStandardItem* Workflow::getItem(capputils::reflection::ReflectableClass* object
       capputils::reflection::IClassProperty* property)
 {
   Node* node = getNode(object);
+  if (!node)
+    return 0;
+
   QStandardItemModel* model = node->getModel();
   QStandardItem* root = model->invisibleRootItem();
 
@@ -1035,6 +1101,31 @@ GlobalProperty* Workflow::getGlobalProperty(const std::string& name) {
     property = _GlobalProperties->at(pos);
     if (property->getName().compare(name) == 0)
       return property;
+  }
+  return 0;
+}
+
+GlobalProperty* Workflow::getGlobalProperty(capputils::reflection::ReflectableClass* object,
+  capputils::reflection::IClassProperty* prop)
+{
+  GlobalProperty* gprop = 0;
+
+  for(unsigned pos = 0; pos < _GlobalProperties->size(); ++pos) {
+    gprop = _GlobalProperties->at(pos);
+    if (gprop->getNodePtr()->getModule() == object && gprop->getProperty() == prop)
+      return gprop;
+  }
+  return 0;
+}
+
+GlobalEdge* Workflow::getGlobalEdge(capputils::reflection::ReflectableClass* object,
+  capputils::reflection::IClassProperty* prop)
+{
+  GlobalEdge* edge = 0;
+  for(unsigned pos = 0; pos < _GlobalEdges->size(); ++pos) {
+    edge = _GlobalEdges->at(pos);
+    if (edge->getInputNodePtr()->getModule() == object && edge->getInputProperty().compare(prop->getName()) == 0)
+      return edge;
   }
   return 0;
 }

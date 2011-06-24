@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef WORKFLOW_H_
-#define WORKFLOW_H_
+#ifndef GAPPHOST_WORKFLOW_H_
+#define GAPPHOST_WORKFLOW_H_
 
 #include <capputils/ObservableClass.h>
 
@@ -113,6 +113,10 @@ public:
   const Edge* getEdge(CableItem* cable, unsigned& pos) const;
 
   GlobalProperty* getGlobalProperty(const std::string& name);
+  GlobalProperty* getGlobalProperty(capputils::reflection::ReflectableClass* object,
+    capputils::reflection::IClassProperty* property);
+  GlobalEdge* getGlobalEdge(capputils::reflection::ReflectableClass* object,
+      capputils::reflection::IClassProperty* property);
 
   QStandardItem* getItem(capputils::reflection::ReflectableClass*,
       capputils::reflection::IClassProperty* property);
@@ -121,6 +125,8 @@ public:
 
   void makePropertyGlobal(const std::string& name, const PropertyReference& propertyReference);
   void connectProperty(const std::string& name, const PropertyReference& propertyReference);
+  void removeGlobalEdge(GlobalEdge* edge);
+  void removeGlobalProperty(GlobalProperty* gprop);
 
   // This method activates a global property. I.e. it fills the runtime values of the
   // property object and updates the graphical appearance
@@ -170,4 +176,4 @@ Q_SIGNALS:
 
 }
 
-#endif /* WORKFLOW_H_ */
+#endif /* GAPPHOST_WORKFLOW_H_ */

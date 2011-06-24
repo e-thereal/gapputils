@@ -3,7 +3,9 @@
 
 // TODO: do the cuda, cublas and cula initialization stuff only if requested
 #include <cublas.h>
+#ifdef GAPPHOST_CULA_SUPPORT
 #include <cula.h>
+#endif
 
 #include <capputils/Xmlizer.h>
 #include <capputils/ArgumentsParser.h>
@@ -26,12 +28,14 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   cublasInit();
+#ifdef GAPPHOST_CULA_SUPPORT
   culaStatus status;
 
   if ((status = culaInitialize()) != culaNoError) {
     std::cout << "Could not initialize CULA: " << culaGetStatusString(status) << std::endl;
     return 1;
   }
+#endif
 
   int ret = 0;
   QApplication a(argc, argv);
@@ -57,7 +61,9 @@ int main(int argc, char *argv[])
     ArgumentsParser::PrintUsage("Workflow switches:", wfModule);
 
     cublasShutdown();
+#ifdef GAPPHOST_CULA_SUPPORT
     culaShutdown();
+#endif
     return 0;
   }
 
@@ -77,6 +83,8 @@ int main(int argc, char *argv[])
   delete model.getMainWorkflow();
 
   cublasShutdown();
+#ifdef GAPPHOST_CULA_SUPPORT
   culaShutdown();
+#endif
   return ret;
 }

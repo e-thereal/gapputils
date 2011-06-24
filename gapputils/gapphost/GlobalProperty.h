@@ -33,6 +33,8 @@ public:
   virtual ~GlobalProperty();
 
   capputils::reflection::IClassProperty* getProperty();
+  void addEdge(Edge* edge);
+  void removeEdge(Edge* edge);
 };
 
 }

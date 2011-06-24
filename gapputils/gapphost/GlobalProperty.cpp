@@ -45,6 +45,19 @@ capputils::reflection::IClassProperty* GlobalProperty::getProperty() {
   return 0;
 }
 
+void GlobalProperty::addEdge(Edge* edge) {
+  _Edges->push_back(edge);
+}
+
+void GlobalProperty::removeEdge(Edge* edge) {
+  for (unsigned i = 0; i < _Edges->size(); ++i) {
+    if (_Edges->at(i) == edge) {
+      _Edges->erase(_Edges->begin() + i);
+      return;
+    }
+  }
+}
+
 }
 
 }
