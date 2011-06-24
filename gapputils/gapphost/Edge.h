@@ -52,6 +52,8 @@ public:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
   static bool areCompatible(const Node* outputNode, int outputId, const Node* inputNode, int inputId);
+  static bool areCompatible(const capputils::reflection::IClassProperty* outputProperty,
+      const capputils::reflection::IClassProperty* inputProperty);
 };
 
 }

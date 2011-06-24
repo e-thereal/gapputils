@@ -12,13 +12,17 @@
 
 #include <qobject.h>
 #include <qwidget.h>
+#include <qaction.h>
 #include <vector>
 #include <qtreeview.h>
 #include <tinyxml/tinyxml.h>
 #include <set>
 #include "Edge.h"
 #include "Node.h"
+#include "GlobalProperty.h"
+#include "GlobalEdge.h"
 #include "WorkflowWorker.h"
+#include "PropertyReference.h"
 #include <stack>
 
 #include "Workbench.h"
@@ -40,6 +44,9 @@ class Workflow : public QObject, public Node, public CompatibilityChecker
   Property(Libraries, std::vector<std::string>*)
   Property(Edges, std::vector<Edge*>*)
   Property(Nodes, std::vector<Node*>*)
+  Property(GlobalProperties, std::vector<GlobalProperty*>*)
+  Property(GlobalEdges, std::vector<GlobalEdge*>*)
+
   Property(InputsPosition, std::vector<int>)
   Property(OutputsPosition, std::vector<int>)
   Property(ViewportScale, double)
@@ -56,6 +63,7 @@ private:
   std::stack<Node*> nodeStack;
   std::stack<Node*> processedStack;
   static int librariesId;
+  QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal;
 
 public:
   Workflow();
@@ -91,6 +99,9 @@ public:
 
   Node* getNode(ToolItem* item);
   Node* getNode(ToolItem* item, unsigned& pos);
+  Node* getNode(capputils::reflection::ReflectableClass* object);
+  Node* getNode(capputils::reflection::ReflectableClass* object, unsigned& pos);
+  Node* getNode(const std::string& uuid);
 
   Edge* getEdge(CableItem* cable);
   Edge* getEdge(CableItem* cable, unsigned& pos);
@@ -101,7 +112,25 @@ public:
   const Edge* getEdge(CableItem* cable) const;
   const Edge* getEdge(CableItem* cable, unsigned& pos) const;
 
+  GlobalProperty* getGlobalProperty(const std::string& name);
+
+  QStandardItem* getItem(capputils::reflection::ReflectableClass*,
+      capputils::reflection::IClassProperty* property);
+
   virtual bool areCompatibleConnections(const ToolConnection* output, const ToolConnection* input) const;
+
+  void makePropertyGlobal(const std::string& name, const PropertyReference& propertyReference);
+  void connectProperty(const std::string& name, const PropertyReference& propertyReference);
+
+  // This method activates a global property. I.e. it fills the runtime values of the
+  // property object and updates the graphical appearance
+  void activateGlobalProperty(GlobalProperty* prop);
+
+  // This method deactivates a global property. I.e. it updates the graphical
+  // appearance in the property grid to reflect that a property is no longer global.
+  void deactivateGlobalProperty(GlobalProperty* prop);
+
+  void activateGlobalEdge(GlobalEdge* edge);
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
@@ -123,6 +152,12 @@ private Q_SLOTS:
   void showWorkflow(ToolItem* item);
   void delegateDeleteCalled(workflow::Workflow* workflow);
   void handleViewportChanged();
+
+  void showContextMenu(const QPoint &);
+  void makePropertyGlobal();
+  void removePropertyFromGlobal();
+  void connectProperty();
+  void disconnectProperty();
 
 Q_SIGNALS:
   void updateFinished(workflow::Node* node);

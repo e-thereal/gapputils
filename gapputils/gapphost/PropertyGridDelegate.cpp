@@ -23,7 +23,9 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
      const QStyleOptionViewItem & option ,
      const QModelIndex & index ) const
 {
-  const QVariant& varient = index.model()->data(index, Qt::UserRole);
+  // Old:
+  //const QVariant& varient = index.model()->data(index, Qt::UserRole);
+  const QVariant& varient = index.data(Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
     IClassProperty* property = reference.getProperty();
@@ -72,7 +74,7 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
 void PropertyGridDelegate::setEditorData(QWidget *editor,
                                      const QModelIndex &index) const
 {
-  const QVariant& varient = index.model()->data(index, Qt::UserRole);
+  const QVariant& varient = index.data(Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
     IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
@@ -108,7 +110,7 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
 void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
                                     const QModelIndex &index) const
 {
-  const QVariant& varient = index.model()->data(index, Qt::UserRole);
+  const QVariant& varient = index.data(Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
     IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
