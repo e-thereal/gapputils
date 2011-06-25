@@ -3,6 +3,7 @@
 #include <capputils/OutputAttribute.h>
 #include <gapputils/LabelAttribute.h>
 
+#include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
 #include <capputils/ObserveAttribute.h>
 #include <capputils/VolatileAttribute.h>
@@ -17,8 +18,8 @@ using namespace attributes;
 BeginPropertyDefinitions(ImageLoader)
 
   DefineProperty(Label, Label(), Observe(PROPERTY_ID))
-  DefineProperty(ImageName, Observe(PROPERTY_ID), Filename())
-  DefineProperty(ImagePtr, Output(), Observe(PROPERTY_ID), Hide(), Volatile())
+  DefineProperty(ImageName, Observe(PROPERTY_ID), Filename(), FileExists())
+  DefineProperty(ImagePtr, Output("Img"), Observe(PROPERTY_ID), Hide(), Volatile())
 
 EndPropertyDefinitions
 

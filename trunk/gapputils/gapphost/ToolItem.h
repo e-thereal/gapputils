@@ -78,7 +78,9 @@ public:
   int getHeight() const;
 };
 
-class ToolItem : public QGraphicsItem {
+class ToolItem : public QObject, public QGraphicsItem {
+  Q_OBJECT
+
   friend class ToolConnection;
   friend class MultiConnection;
 
@@ -134,6 +136,9 @@ public:
   QPainterPath shape() const;
   virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
   bool isCurrentItem() const;
+
+Q_SIGNALS:
+  void showDialogRequested(ToolItem* item);
 };
 
 }

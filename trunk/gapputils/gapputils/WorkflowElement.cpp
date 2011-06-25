@@ -21,9 +21,11 @@ namespace gapputils {
 
 namespace workflow {
 
+int WorkflowElement::labelId;
+
 BeginAbstractPropertyDefinitions(WorkflowElement)
 
-  DefineProperty(Label, Label(), Observe(PROPERTY_ID))
+  DefineProperty(Label, Label(), Observe(labelId = PROPERTY_ID))
   DefineProperty(SetOnCompilation, TimeStamp(PROPERTY_ID), Hide(), Volatile())
 
 EndPropertyDefinitions

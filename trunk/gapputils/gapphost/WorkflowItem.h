@@ -14,7 +14,7 @@
 
 namespace gapputils {
 
-class WorkflowItem : public QObject, public ToolItem {
+class WorkflowItem : public ToolItem {
   Q_OBJECT
 
 public:

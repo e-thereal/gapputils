@@ -28,12 +28,18 @@
     <ClCompile Include="ToRgb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FromRgb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ToRgb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gapputils.cv_global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FromRgb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

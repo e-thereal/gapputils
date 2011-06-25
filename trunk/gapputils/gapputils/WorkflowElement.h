@@ -31,10 +31,21 @@ class WorkflowElement : public capputils::reflection::ReflectableClass,
   Property(SetOnCompilation, int)
 
 public:
+  static int labelId;
+
+public:
   WorkflowElement();
 
   virtual void execute(IProgressMonitor* monitor) const = 0;
   virtual void writeResults() = 0;
+
+  /**
+   * \brief Called when an item is double clicked
+   * 
+   * Overload it to handle double clicks. This is supposed to be used to show
+   * additional dialogs. Be creative. ;)
+   */
+  virtual void show() { }
 };
 
 }
