@@ -236,7 +236,7 @@ int MultiConnection::getHeight() const {
 }
 
 ToolItem::ToolItem(const std::string& label, Workbench *bench)
- : label(label), bench(bench), width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
+ : QObject(), label(label), bench(bench), width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
    labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), deletable(true),
    progress(Neutral)
 {
@@ -405,6 +405,8 @@ void ToolItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
 }
 
 void ToolItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
+  Q_EMIT showDialogRequested(this);
+
   QGraphicsItem::mouseDoubleClickEvent(event);
 }
 

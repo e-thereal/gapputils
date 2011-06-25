@@ -5,6 +5,8 @@
 
 #include <qimage.h>
 
+#include <culib/ICudaImage.h>
+
 namespace gapputils {
 
 namespace cv {
@@ -15,9 +17,9 @@ class ToRgb : public workflow::WorkflowElement
 InitReflectableClass(ToRgb)
 
 Property(ImagePtr, QImage*)
-Property(Red, double*)
-Property(Green, double*)
-Property(Blue, double*)
+Property(Red, culib::ICudaImage*)
+Property(Green, culib::ICudaImage*)
+Property(Blue, culib::ICudaImage*)
 
 private:
   mutable ToRgb* data;

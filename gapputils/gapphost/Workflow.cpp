@@ -506,6 +506,7 @@ void Workflow::newItem(Node* node) {
     item = customToolItem->createToolItem(label);
   } else {
     item = new ToolItem(label);
+    connect(item, SIGNAL(showDialogRequested(ToolItem*)), this, SLOT(showModuleDialog(ToolItem*)));
 
     for (unsigned i = 0; i < properties.size(); ++i) {
       IClassProperty* prop = properties[i];
@@ -905,6 +906,13 @@ void Workflow::showWorkflow(ToolItem* item) {
   Workflow* workflow = dynamic_cast<Workflow*>(node);
   if (workflow)
     Q_EMIT showWorkflowRequest(workflow);
+}
+
+void Workflow::showModuleDialog(ToolItem* item) {
+  Node* node = getNode(item);
+  WorkflowElement* element = dynamic_cast<WorkflowElement*>(node->getModule());
+  if (element)
+    element->show();
 }
 
 bool Workflow::isUpToDate() const {

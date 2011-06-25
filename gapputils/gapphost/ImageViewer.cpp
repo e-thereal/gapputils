@@ -7,6 +7,7 @@
 #include <capputils/ObserveAttribute.h>
 #include <gapputils/HideAttribute.h>
 #include <capputils/VolatileAttribute.h>
+#include <capputils/EventHandler.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -15,18 +16,22 @@ namespace gapputils {
 
 using namespace attributes;
 
-BeginPropertyDefinitions(ImageViewer, CustomToolItem<ImageViewerItem>())
+int ImageViewer::imageId;
 
-DefineProperty(Label, Label(), Observe(PROPERTY_ID))
-DefineProperty(ImagePtr, Input(), Observe(PROPERTY_ID), Hide(), Volatile())
+BeginPropertyDefinitions(ImageViewer)
+
+  ReflectableBase(workflow::WorkflowElement)
+  DefineProperty(ImagePtr, Input("Img"), Observe(imageId = PROPERTY_ID), Hide(), Volatile())
 
 EndPropertyDefinitions
 
-ImageViewer::ImageViewer(void) : changeHandler(this), _Label("Viewer"), _ImagePtr(0)
+ImageViewer::ImageViewer(void) : _ImagePtr(0)
 {
+  setLabel("Viewer");
+
   dialog = new ShowImageDialog();
   dialog->setWindowTitle(QString("Image Viewer: ") + getLabel().c_str());
-  Changed.connect(changeHandler);
+  Changed.connect(capputils::EventHandler<ImageViewer>(this, &ImageViewer::changeHandler));
 }
 
 ImageViewer::~ImageViewer(void)
@@ -34,7 +39,24 @@ ImageViewer::~ImageViewer(void)
   delete dialog;
 }
 
-void ImageViewer::showImage() {
+void ImageViewer::execute(workflow::IProgressMonitor* monitor) const {
+}
+
+void ImageViewer::writeResults() { }
+
+void ImageViewer::changeHandler(capputils::ObservableClass* sender, int eventId) {
+  if (eventId == labelId)
+    dialog->setWindowTitle(QString("Image Viewer: ") + getLabel().c_str());
+   
+  if (eventId == imageId) {
+    QImage* image = getImagePtr();
+    if (image) {
+      dialog->setImage(image);
+    }
+  }
+}
+
+void ImageViewer::show() {
   QImage* image = getImagePtr();
   if (image)
     dialog->setImage(image);

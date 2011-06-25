@@ -12,7 +12,7 @@
 namespace gapputils {
 
 WorkflowItem::WorkflowItem(const std::string& label, Workbench *bench)
- : QObject(), ToolItem(label, bench)
+ : ToolItem(label, bench)
 {
 }
 

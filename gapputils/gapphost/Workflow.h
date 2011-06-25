@@ -156,6 +156,7 @@ private Q_SLOTS:
   void showProgress(workflow::Node* node, int i);
   void showWorkflow(workflow::Workflow* workflow);
   void showWorkflow(ToolItem* item);
+  void showModuleDialog(ToolItem* item);
   void delegateDeleteCalled(workflow::Workflow* workflow);
   void handleViewportChanged();
 
