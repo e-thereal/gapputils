@@ -44,6 +44,8 @@ class ImageLoader : public gapputils::workflow::WorkflowElement
   Property(Label, std::string)
   Property(ImageName, std::string)
   Property(ImagePtr, QImage*)
+  Property(Width, int)
+  Property(Height, int)
 
 private:
   QImage* image;

@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workflow.h'
 **
-** Created: Fri Jun 24 10:41:48 2011
+** Created: Fri Jun 24 16:08:16 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-      22,   14, // methods
+      23,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -48,13 +48,14 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
      430,  423,   30,   30, 0x08,
      464,   99,   30,   30, 0x08,
      498,  227,   30,   30, 0x08,
-     522,   99,   30,   30, 0x08,
-     564,   30,   30,   30, 0x08,
-     588,   30,   30,   30, 0x08,
-     612,   30,   30,   30, 0x08,
-     633,   30,   30,   30, 0x08,
-     660,   30,   30,   30, 0x08,
-     678,   30,   30,   30, 0x08,
+     522,  227,   30,   30, 0x08,
+     550,   99,   30,   30, 0x08,
+     592,   30,   30,   30, 0x08,
+     616,   30,   30,   30, 0x08,
+     640,   30,   30,   30, 0x08,
+     661,   30,   30,   30, 0x08,
+     688,   30,   30,   30, 0x08,
+     706,   30,   30,   30, 0x08,
 
        0        // eod
 };
@@ -75,6 +76,7 @@ static const char qt_meta_stringdata_gapputils__workflow__Workflow[] = {
     "node,i\0showProgress(workflow::Node*,int)\0"
     "showWorkflow(workflow::Workflow*)\0"
     "showWorkflow(ToolItem*)\0"
+    "showModuleDialog(ToolItem*)\0"
     "delegateDeleteCalled(workflow::Workflow*)\0"
     "handleViewportChanged()\0showContextMenu(QPoint)\0"
     "makePropertyGlobal()\0removePropertyFromGlobal()\0"
@@ -129,16 +131,17 @@ int gapputils::workflow::Workflow::qt_metacall(QMetaObject::Call _c, int _id, vo
         case 12: showProgress((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
         case 13: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
         case 14: showWorkflow((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 15: delegateDeleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 16: handleViewportChanged(); break;
-        case 17: showContextMenu((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
-        case 18: makePropertyGlobal(); break;
-        case 19: removePropertyFromGlobal(); break;
-        case 20: connectProperty(); break;
-        case 21: disconnectProperty(); break;
+        case 15: showModuleDialog((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 16: delegateDeleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 17: handleViewportChanged(); break;
+        case 18: showContextMenu((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
+        case 19: makePropertyGlobal(); break;
+        case 20: removePropertyFromGlobal(); break;
+        case 21: connectProperty(); break;
+        case 22: disconnectProperty(); break;
         default: ;
         }
-        _id -= 22;
+        _id -= 23;
     }
     return _id;
 }

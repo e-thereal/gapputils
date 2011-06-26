@@ -20,6 +20,8 @@ BeginPropertyDefinitions(ImageLoader)
   DefineProperty(Label, Label(), Observe(PROPERTY_ID))
   DefineProperty(ImageName, Observe(PROPERTY_ID), Filename(), FileExists())
   DefineProperty(ImagePtr, Output("Img"), Observe(PROPERTY_ID), Hide(), Volatile())
+  DefineProperty(Width, Observe(PROPERTY_ID))
+  DefineProperty(Height, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
@@ -38,8 +40,11 @@ ImageLoader::~ImageLoader(void)
 void ImageLoader::loadImage() {
   if (!image)
     image = new QImage();
-  if (image->load(getImageName().c_str()))
+  if (image->load(getImageName().c_str())) {
     setImagePtr(image);
+    setWidth(image->width());
+    setHeight(image->height());
+  }
 }
 
 }
