@@ -179,6 +179,7 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
 void Workbench::mouseReleaseEvent(QMouseEvent* event) {
   if (!modifiable) {
     QGraphicsView::mouseReleaseEvent(event);
+    setDragMode(NoDrag);
     return;
   }
 

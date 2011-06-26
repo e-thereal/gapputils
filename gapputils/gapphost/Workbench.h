@@ -64,7 +64,6 @@ Q_SIGNALS:
   void connectionRemoved(CableItem* cable);
   void viewportChanged();
 
-
 protected:
   void mousePressEvent(QMouseEvent* event);
   void mouseReleaseEvent(QMouseEvent* event);
