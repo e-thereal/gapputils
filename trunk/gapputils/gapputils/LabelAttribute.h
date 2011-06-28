@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef LABELATTRIBUTE_H_
-#define LABELATTRIBUTE_H_
+#ifndef GAPPUTILS_LABELATTRIBUTE_H_
+#define GAPPUTILS_LABELATTRIBUTE_H_
 
 #include "gapputils.h"
 #include <capputils/IAttribute.h>
@@ -27,4 +27,4 @@ capputils::attributes::AttributeWrapper* Label();
 
 }
 
-#endif /* LABELATTRIBUTE_H_ */
+#endif /* GAPPUTILS_LABELATTRIBUTE_H_ */

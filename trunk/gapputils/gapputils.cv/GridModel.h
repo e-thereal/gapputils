@@ -20,8 +20,8 @@ class GridModel : public capputils::reflection::ReflectableClass,
   Property(ColumnCount, int)
   Property(Points, std::vector<GridPoint*>*)
 
-private:
-  static int rowCountId, columnCountId;
+public:
+  static int rowCountId, columnCountId, pointsId;
 
 public:
   GridModel(void);

@@ -13,6 +13,7 @@
 #include <capputils/TimeStampAttribute.h>
 
 #include <gapputils/HideAttribute.h>
+#include <gapputils/ReadOnlyAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -33,9 +34,10 @@ BeginPropertyDefinitions(Grid)
   DefineProperty(RowCount, Observe(rowCountId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, Observe(columnCountId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   ReflectableProperty(Model, Output("Grid"), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BackgroundImage, Input("BG"), Hide(), Volatile(), Observe(backgroundId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(BackgroundImage, ReadOnly(), Volatile(), Observe(backgroundId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Width, Observe(widthId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Height, Observe(heightId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(GridName, Input("Name"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
@@ -80,7 +82,6 @@ void Grid::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   if (!capputils::Verifier::Valid(*this))
     return;
-
 }
 
 void Grid::writeResults() {

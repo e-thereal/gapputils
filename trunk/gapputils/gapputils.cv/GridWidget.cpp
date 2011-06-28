@@ -48,7 +48,7 @@ void GridWidget::resumeFromModel() {
   for (int y = 0, i = 0; y < rowCount; ++y) {
     for (int x = 0; x < columnCount; ++x, ++i) {
       GridPoint* point = points->at(i);
-      GridPointItem* item = new GridPointItem(point);
+      GridPointItem* item = new GridPointItem(point, model);
       scene()->addItem(item);
 
       if (west)
@@ -85,7 +85,7 @@ void GridWidget::renewGrid(int rowCount, int columnCount) {
       GridPoint* point = points->at(i);
       point->setX(x * scene()->width() / (columnCount - 1));
       point->setY(y * scene()->height() / (rowCount - 1));
-      GridPointItem* item = new GridPointItem(point);
+      GridPointItem* item = new GridPointItem(point, model);
       scene()->addItem(item);
 
       if (west)

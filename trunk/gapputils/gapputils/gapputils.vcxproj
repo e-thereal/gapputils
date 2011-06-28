@@ -81,6 +81,7 @@
     <ClCompile Include="HideAttribute.cpp" />
     <ClCompile Include="IProgressMonitor.cpp" />
     <ClCompile Include="LabelAttribute.cpp" />
+    <ClCompile Include="ReadOnlyAttribute.cpp" />
     <ClCompile Include="WorkflowElement.cpp" />
     <ClCompile Include="WorkflowInterface.cpp" />
   </ItemGroup>
@@ -91,6 +92,7 @@
     <ClInclude Include="HideAttribute.h" />
     <ClInclude Include="IProgressMonitor.h" />
     <ClInclude Include="LabelAttribute.h" />
+    <ClInclude Include="ReadOnlyAttribute.h" />
     <ClInclude Include="WorkflowElement.h" />
     <ClInclude Include="WorkflowInterface.h" />
   </ItemGroup>

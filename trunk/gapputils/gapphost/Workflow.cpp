@@ -253,6 +253,10 @@ void Workflow::connectProperty() {
   for (unsigned i = 0; i < globals->size(); ++i) {
     if (Edge::areCompatible(globals->at(i)->getProperty(), reference.getProperty())) {
       list.getList()->addItem(globals->at(i)->getName().c_str());
+    } else {
+      GlobalProperty* gprop = globals->at(i);
+      cout << gprop->getName() << " is not compatible." << endl;
+      cout << gprop->getProperty()->getType().name() << " != " << reference.getProperty()->getType().name() << endl;
     }
   }
   if (list.getList()->count() == 0) {

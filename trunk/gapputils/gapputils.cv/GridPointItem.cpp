@@ -2,11 +2,13 @@
 
 #include <QPainter>
 
+#include "GridModel.h"
+
 namespace gapputils {
 
 namespace cv {
 
-GridPointItem::GridPointItem(GridPoint* point) : radius(5), adjust(2), point(point)
+GridPointItem::GridPointItem(GridPoint* point, GridModel* model) : radius(4), adjust(2), point(point), model(model)
 {
   setFlag(ItemIsMovable);
   setFlag(ItemIsSelectable);
@@ -28,6 +30,7 @@ QVariant GridPointItem::itemChange(GraphicsItemChange change, const QVariant &va
     updateLines();
     point->setX(x());
     point->setY(y());
+    model->fireChangeEvent(GridModel::pointsId);
     break;
   default:
     break;
@@ -54,8 +57,8 @@ void GridPointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
   //painter->drawEllipse(0, 0, radius/2, radius/2);
   QPainterPath path;
   path.addEllipse(-radius, -radius, 2 * radius, 2 * radius);
-  painter->fillPath(path, Qt::black);
-  //painter->drawPath(path);
+  painter->fillPath(path, Qt::white);
+  painter->drawPath(path);
 }
 
 void GridPointItem::addLine(GridLine* line) {

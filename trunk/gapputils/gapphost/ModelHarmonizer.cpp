@@ -16,6 +16,7 @@
 #include <gapputils/LabelAttribute.h>
 #include <gapputils/HideAttribute.h>
 #include <capputils/ShortNameAttribute.h>
+#include <gapputils/ReadOnlyAttribute.h>
 
 #include "PropertyReference.h"
 
@@ -55,6 +56,10 @@ void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
       QFont font = key->font();
       font.setBold(true);
       key->setFont(font);
+    }
+
+    if (properties[i]->getAttribute<ReadOnlyAttribute>()) {
+      value->setEditable(false);
     }
 
     IReflectableAttribute* reflectable = properties[i]->getAttribute<IReflectableAttribute>();

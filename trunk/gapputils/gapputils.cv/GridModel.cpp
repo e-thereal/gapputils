@@ -10,13 +10,14 @@ namespace cv {
 
 int GridModel::rowCountId;
 int GridModel::columnCountId;
+int GridModel::pointsId;
 
 BeginPropertyDefinitions(GridModel)
   using namespace capputils::attributes;
 
   DefineProperty(RowCount, Observe(rowCountId = PROPERTY_ID))
   DefineProperty(ColumnCount, Observe(columnCountId = PROPERTY_ID))
-  DefineProperty(Points, Enumerable<std::vector<GridPoint*>*, true>())
+  DefineProperty(Points, Enumerable<std::vector<GridPoint*>*, true>(), Observe(pointsId = PROPERTY_ID))
 
 EndPropertyDefinitions
 
