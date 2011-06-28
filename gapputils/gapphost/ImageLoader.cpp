@@ -8,6 +8,8 @@
 #include <capputils/ObserveAttribute.h>
 #include <capputils/VolatileAttribute.h>
 #include <gapputils/HideAttribute.h>
+#include <gapputils/ReadOnlyAttribute.h>
+#include <capputils/InputAttribute.h>
 
 using namespace capputils::attributes;
 
@@ -18,14 +20,14 @@ using namespace attributes;
 BeginPropertyDefinitions(ImageLoader)
 
   DefineProperty(Label, Label(), Observe(PROPERTY_ID))
-  DefineProperty(ImageName, Observe(PROPERTY_ID), Filename(), FileExists())
-  DefineProperty(ImagePtr, Output("Img"), Observe(PROPERTY_ID), Hide(), Volatile())
+  DefineProperty(ImageName, Input("Name"), Observe(PROPERTY_ID), Filename(), FileExists())
+  DefineProperty(ImagePtr, Output("Img"), Observe(PROPERTY_ID), ReadOnly(), Volatile())
   DefineProperty(Width, Observe(PROPERTY_ID))
   DefineProperty(Height, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-ImageLoader::ImageLoader(void) : changeHandler(this), _Label("Image"), _ImagePtr(0), image(0)
+ImageLoader::ImageLoader(void) : changeHandler(this), _Label("Image"), _ImagePtr(0), _Width(0), _Height(0), image(0)
 {
   Changed.connect(changeHandler);
 }

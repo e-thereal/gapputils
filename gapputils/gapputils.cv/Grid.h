@@ -23,6 +23,7 @@ class Grid : public workflow::WorkflowElement
   Property(BackgroundImage, QImage*)
   Property(Width, int)
   Property(Height, int)
+  Property(GridName, std::string)
 
 private:
   mutable Grid* data;

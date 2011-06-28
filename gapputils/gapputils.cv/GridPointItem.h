@@ -13,15 +13,18 @@ namespace gapputils {
 
 namespace cv {
 
+class GridModel;
+
 class GridPointItem : public QGraphicsItem
 {
 private:
   int radius, adjust;
   std::vector<GridLine*> lines;
   GridPoint* point;
+  GridModel* model;
 
 public:
-  GridPointItem(GridPoint* point);
+  GridPointItem(GridPoint* point, GridModel* model);
   virtual ~GridPointItem(void);
 
   virtual QRectF boundingRect() const;
