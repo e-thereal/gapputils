@@ -20,6 +20,7 @@ class Grid : public workflow::WorkflowElement
   Property(RowCount, int)
   Property(ColumnCount, int)
   Property(Model, boost::shared_ptr<GridModel>)
+  Property(Grid, boost::shared_ptr<GridModel>)
   Property(BackgroundImage, boost::shared_ptr<QImage>)
   Property(Width, int)
   Property(Height, int)

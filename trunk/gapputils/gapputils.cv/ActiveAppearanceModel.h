@@ -36,10 +36,14 @@ public:
   ActiveAppearanceModel();
   virtual ~ActiveAppearanceModel();
 
-  void featuresFromGrid(std::vector<float>* features, GridModel* grid);
-  static void featuresFromImage(std::vector<float>* features, culib::ICudaImage* image);
-  static void gridFromFeatures(GridModel* grid, std::vector<float>* features);
-  static void imageFromFeatures(culib::ICudaImage* image, std::vector<float>* features);
+  boost::shared_ptr<GridModel> createMeanGrid();
+  boost::shared_ptr<culib::ICudaImage> createMeanImage();
+
+  void setMeanGrid(boost::shared_ptr<GridModel> grid);
+  void setMeanImage(boost::shared_ptr<culib::ICudaImage> image);
+
+  static boost::shared_ptr<std::vector<float> > toFeatures(boost::shared_ptr<GridModel> grid);
+  static boost::shared_ptr<std::vector<float> > toFeatures(boost::shared_ptr<culib::ICudaImage> image);
 };
 
 }

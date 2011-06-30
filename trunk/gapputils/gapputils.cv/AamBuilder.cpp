@@ -24,6 +24,7 @@
 #include "ImageWarp.h"
 
 #include <culib/CudaImage.h>
+#include <culib/pca.h>
 
 #include <iostream>
 
@@ -40,10 +41,10 @@ BeginPropertyDefinitions(AamBuilder)
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Grids, Input(), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Images, Input(), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ActiveAppearanceModel, Output("AAM"), Hide(), Reflectable<boost::shared_ptr<ActiveAppearanceModel> >(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ActiveAppearanceModel, Output("AAM"), Hide(), Volatile(), Reflectable<boost::shared_ptr<ActiveAppearanceModel> >(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 //  DefineProperty(MeanGrid, Output("MG"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-//  DefineProperty(MeanImage, Output("MI"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(MeanImage, Output("MI"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
@@ -83,16 +84,20 @@ void AamBuilder::writeResults() {
 
   setActiveAppearanceModel(data->getActiveAppearanceModel());
 //  setMeanGrid(getActiveAppearanceModel()->getMeanGrid());
-//  setMeanImage(getActiveAppearanceModel()->getMeanImage());
+  setMeanImage(getActiveAppearanceModel()->createMeanImage());
 }
 
 void AamBuilder::calculateGrids() const {
+  boost::shared_ptr<ActiveAppearanceModel> model = data->getActiveAppearanceModel();
+
   std::vector<boost::shared_ptr<GridModel> >* grids = getGrids().get();
   if (!grids || grids->size() == 0)
     return;
 
   const int rowCount = grids->at(0)->getRowCount();
   const int columnCount = grids->at(0)->getColumnCount();
+  const int count = rowCount * columnCount;
+  const int gridCount = grids->size();
 
   for (unsigned i = 1; i < grids->size(); ++i) {
     if (grids->at(i)->getRowCount() != rowCount ||
@@ -117,13 +122,31 @@ void AamBuilder::calculateGrids() const {
     meanPoints->at(i)->setY(meanY / grids->size());
   }
 
-  //data->getActiveAppearanceModel()->setMeanGrid(meanGrid);
+  model->setMeanGrid(meanGrid);
 
   // Flatten grid points into one large vector
   // Put all vectors together into one large matrix
+  // Subtract the mean grid from each grid
+
+  vector<float>* meanFeatures = model->getMeanGrid().get();
+  vector<float> featureMatrix(2 * count * gridCount);
+  for (int i = 0, k = 0; i < gridCount; ++i) {
+    boost::shared_ptr<std::vector<float> > features = ActiveAppearanceModel::toFeatures(grids->at(i));
+    for (int j = 0; j < 2 * count; ++j, ++k) {
+      featureMatrix[k] = features->at(j) - meanFeatures->at(j);
+    }
+  }
+
   // Calculate principal components of that matrix
+
+  boost::shared_ptr<vector<float> > principalGrids(new vector<float> (4 * count * count));
+  culib::getPcs(&(*principalGrids)[0], &featureMatrix[0], 2 * count, gridCount);
+
   // The result are the principal grids.
+  model->setPrincipalGrids(principalGrids);
 }
+
+#define TRACE std::cout << __LINE__ << std::endl;
 
 void AamBuilder::calculateImages() const {
   if (getImages()->size() != getGrids()->size())
@@ -137,14 +160,17 @@ void AamBuilder::calculateImages() const {
   if (getImages()->size() == 0)
     return;
 
-  int width = getImages()->at(0)->getSize().x;
-  int height = getImages()->at(0)->getSize().y;
+  const unsigned width = getImages()->at(0)->getSize().x;
+  const unsigned height = getImages()->at(0)->getSize().y;
+  const int count = width * height;
+  const int imageCount = getImages()->size();
 
   // Warp all images into reference frame and calculate mean image afterwards
   std::vector<boost::shared_ptr<culib::ICudaImage> > warpedImages;
+  boost::shared_ptr<GridModel> meanGrid = model->createMeanGrid();
 
   ImageWarp warp;
-  for (unsigned i = 0; i < getImages()->size(); ++i) {
+  for (int i = 0; i < imageCount; ++i) {
     if (width != getImages()->at(i)->getSize().x ||
         height != getImages()->at(i)->getSize().y)
     {
@@ -152,7 +178,7 @@ void AamBuilder::calculateImages() const {
     }
     warp.setBaseGrid(getGrids()->at(i));
 
-    //warp.setWarpedGrid(model->getMeanGrid());
+    warp.setWarpedGrid(meanGrid);
     warp.setInputImage(getImages()->at(i));
     warp.execute(0);
     warp.writeResults();
@@ -162,15 +188,38 @@ void AamBuilder::calculateImages() const {
   boost::shared_ptr<culib::ICudaImage> meanImage(new culib::CudaImage(dim3(width, height)));
 
   float* buffer = meanImage->getOriginalImage();
-  for (int i = 0; i < width * height; ++i) {
+  for (unsigned i = 0; i < width * height; ++i) {
     float value = 0;
-    for (int j = 0; j < warpedImages.size(); ++j) {
+    for (unsigned j = 0; j < warpedImages.size(); ++j) {
       value += warpedImages[j]->getWorkingCopy()[i];
     }
     buffer[i] = value / warpedImages.size();
   }
   meanImage->resetWorkingCopy();
-  //model->setMeanImage(meanImage);
+  model->setMeanImage(meanImage);
+
+  return;
+
+  // Flatten pixels into one large vector
+  // Put all vectors together into one large matrix
+  // Subtract the mean image from each image
+
+  vector<float>* meanFeatures = model->getMeanImage().get();
+  vector<float> featureMatrix(count * imageCount);
+  for (int i = 0, k = 0; i < imageCount; ++i) {
+    boost::shared_ptr<std::vector<float> > features = ActiveAppearanceModel::toFeatures(warpedImages.at(i));
+    for (int j = 0; j < count; ++j, ++k) {
+      featureMatrix[k] = features->at(j) - meanFeatures->at(j);
+    }
+  }
+
+  // Calculate principal components of that matrix
+
+  boost::shared_ptr<vector<float> > principalImages(new vector<float> (count * count));
+  culib::getPcs(&(*principalImages)[0], &featureMatrix[0], count, imageCount);
+
+  // The result are the principal images.
+  model->setPrincipalImages(principalImages);
 }
 
 }

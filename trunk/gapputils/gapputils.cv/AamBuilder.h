@@ -27,8 +27,8 @@ class AamBuilder : public gapputils::workflow::WorkflowElement {
   Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
 
-  //Property(MeanGrid, boost::shared_ptr<GridModel>)
-  //Property(MeanImage, boost::shared_ptr<culib::ICudaImage>)
+//  Property(MeanGrid, boost::shared_ptr<GridModel>)
+  Property(MeanImage, boost::shared_ptr<culib::ICudaImage>)
 
 private:
   mutable AamBuilder* data;
