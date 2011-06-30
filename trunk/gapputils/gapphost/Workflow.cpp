@@ -842,6 +842,7 @@ void Workflow::processStack() {
 
     // Update the node, if it needs update or if it is the last one
     if (nodeStack.empty() || !node->isUpToDate()) {
+//      cout << "Updating " << node->getToolItem()->getLabel() << "..." << endl;
       node->getToolItem()->setProgress(-2);
       Workflow* workflow = dynamic_cast<Workflow*>(node);
       if (workflow) {

@@ -59,6 +59,7 @@ INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/cmif
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/utilities
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/ctrace
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/carray
+DEFINES += GAPPHOST_CULA_SUPPORT
 LIBS += -Wl,-E
 LIBS += -L/home/tombr/Projects/tinyxml/Debug
 LIBS += -L"/home/tombr/Projects/capputils/Debug Shared"
