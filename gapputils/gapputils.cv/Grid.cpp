@@ -38,8 +38,9 @@ BeginPropertyDefinitions(Grid)
 
   DefineProperty(RowCount, Observe(rowCountId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, Observe(columnCountId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Model, Output("Grid"), Hide(), Observe(modelId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BackgroundImage, ReadOnly(), Volatile(), Observe(backgroundId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  ReflectableProperty(Model, Hide(), Observe(modelId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Grid, Output("Grid"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(BackgroundImage, ReadOnly(), Volatile(), Observe(backgroundId = PROPERTY_ID))
   DefineProperty(Width, Observe(widthId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Height, Observe(heightId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(GridName, Input("Name"), Volatile(), Observe(nameId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
@@ -69,7 +70,6 @@ void Grid::changedEventHandler(capputils::ObservableClass* sender, int eventId) 
   {
     if (dialog) {
       dialog->renewGrid(getRowCount(), getColumnCount());
-      cout << "new grid: " << __LINE__ << endl;
     }
     oldRowCount = getRowCount();
     oldColumnCount = getColumnCount();
@@ -80,7 +80,6 @@ void Grid::changedEventHandler(capputils::ObservableClass* sender, int eventId) 
   {
     if (dialog) {
       dialog->updateSize(getWidth(), getHeight());
-      cout << "new grid: " << __LINE__ << endl;
     }
     oldWidth = getWidth();
     oldHeight = getHeight();
@@ -95,8 +94,13 @@ void Grid::changedEventHandler(capputils::ObservableClass* sender, int eventId) 
     if (dialog) {
       capputils::Xmlizer::FromXml(*this, getGridName());
       dialog->resumeFromModel(getModel());
-      cout << "grid loaded: " << __LINE__ << endl;
     }
+  }
+
+  if (eventId == modelId) {
+    // update time stamp
+    // TODO: update time stamp automatically (use observer instead of executable property)
+    this->setTime(modelId, std::time(0));
   }
 }
 
@@ -124,7 +128,6 @@ void Grid::writeResults() {
   if (!dialog) {
     if (FileExistsAttribute::exists(getGridName())) {
       capputils::Xmlizer::FromXml(*this, getGridName());
-      cout << "grid loaded: " << __LINE__ << endl;
       newModel = false;
     }
     dialog = new GridDialog(getModel(), getWidth(), getHeight());
@@ -133,15 +136,13 @@ void Grid::writeResults() {
 
   if (newModel) {
     dialog->renewGrid(getRowCount(), getColumnCount());
-    cout << "new grid: " << __LINE__ << endl;
   }
 
   // Make a copy of the grid so that is will not be changed later
   TiXmlNode* modelNode = capputils::Xmlizer::CreateXml(*getModel());
   boost::shared_ptr<GridModel> modelCopy((GridModel*)capputils::Xmlizer::CreateReflectableClass(*modelNode));
-  setModel(modelCopy);
+  setGrid(modelCopy);
   delete modelNode;
-  cout << "model set: " << __LINE__ << endl;
 }
 
 void Grid::show() {
