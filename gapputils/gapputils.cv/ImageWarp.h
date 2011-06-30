@@ -16,10 +16,10 @@ class ImageWarp : public workflow::WorkflowElement
 
 InitReflectableClass(ImageWarp)
 
-  Property(InputImage, culib::ICudaImage*)
-  Property(OutputImage, culib::ICudaImage*)
-  Property(BaseGrid, GridModel*)
-  Property(WarpedGrid, GridModel*)
+  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(BaseGrid, boost::shared_ptr<GridModel>)
+  Property(WarpedGrid, boost::shared_ptr<GridModel>)
 
 private:
   mutable ImageWarp* data;

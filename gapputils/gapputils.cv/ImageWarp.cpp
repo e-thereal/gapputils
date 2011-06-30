@@ -30,14 +30,14 @@ namespace cv {
 BeginPropertyDefinitions(ImageWarp)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(InputImage, Input("Img"), NotEqual<culib::ICudaImage*>(0), Hide(), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage, Input("Img"), Hide(), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BaseGrid, Input("Base"), NotEqual<GridModel*>(0), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(WarpedGrid, Input("Warped"), NotEqual<GridModel*>(0), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(BaseGrid, Input("Base"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(WarpedGrid, Input("Warped"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-ImageWarp::ImageWarp(void) : _InputImage(0), _OutputImage(0), _BaseGrid(0), _WarpedGrid(0), data(0)
+ImageWarp::ImageWarp(void) : data(0)
 {
   setLabel("ImageWarp");
   Changed.connect(capputils::EventHandler<ImageWarp>(this, &ImageWarp::changedEventHandler));
@@ -47,9 +47,6 @@ ImageWarp::~ImageWarp(void)
 {
   if (data)
     delete data;
-
-  if (getOutputImage())
-    delete getOutputImage();
 }
 
 void ImageWarp::changedEventHandler(capputils::ObservableClass* sender, int eventId) {
@@ -93,6 +90,9 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
+  if (!getInputImage() || !getBaseGrid() || !getWarpedGrid())
+    return;
+
   // For every point in the target frame get point in reference frame
   // - find triangle were points lies within
   // - calculate barycentric coordinates with respect to that triangle
@@ -100,8 +100,8 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   // - nearest neighbor interpolation
   // 
 
-  GridModel* baseGrid = getBaseGrid();
-  GridModel* warpedGrid = getWarpedGrid();
+  boost::shared_ptr<GridModel> baseGrid = getBaseGrid();
+  boost::shared_ptr<GridModel> warpedGrid = getWarpedGrid();
 
   const int rowCount = baseGrid->getRowCount();
   const int columnCount = baseGrid->getColumnCount();
@@ -112,11 +112,11 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (warpedGrid->getRowCount() != rowCount || warpedGrid->getColumnCount() != columnCount)
     return;
 
-  ICudaImage* inputImage = getInputImage();
+  ICudaImage* inputImage = getInputImage().get();
   const int width = inputImage->getSize().x;
   const int height = inputImage->getSize().y;
 
-  ICudaImage* warpedImage = new CudaImage(inputImage->getSize(), inputImage->getVoxelSize());
+  boost::shared_ptr<ICudaImage> warpedImage(new CudaImage(inputImage->getSize(), inputImage->getVoxelSize()));
   inputImage->saveDeviceToWorkingCopy();
   float* inputBuffer = inputImage->getWorkingCopy();
   float* warpedBuffer = warpedImage->getWorkingCopy();
@@ -177,28 +177,23 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       if (!foundTriangle) {
         //std::cout << "No triangle found for (" << x << ", " << y << ")" << std::endl;
         warpedBuffer[i] = 0;
+      } else {
+        int inX = inP.x;
+        int inY = inP.y;
+        warpedBuffer[i] = inputBuffer[inX + inY * width];
       }
-
-      int inX = inP.x;
-      int inY = inP.y;
-      warpedBuffer[i] = inputBuffer[inX + inY * width];
     }
-    monitor->reportProgress(y * 100 / height);
+    if (monitor)
+      monitor->reportProgress(y * 100 / height);
   }
 
-  if (data->getOutputImage())
-    delete data->getOutputImage();
   data->setOutputImage(warpedImage);
 }
 
 void ImageWarp::writeResults() {
   if (!data)
     return;
-
-  if (getOutputImage())
-    delete getOutputImage();
   setOutputImage(data->getOutputImage());
-  data->setOutputImage(0);
 }
 
 }

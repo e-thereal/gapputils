@@ -6,6 +6,7 @@
 
 #include <qimage.h>
 #include <gapputils/WorkflowElement.h>
+#include <boost/shared_ptr.hpp>
 
 namespace capputils {
 
@@ -43,7 +44,7 @@ class ImageLoader : public gapputils::workflow::WorkflowElement
 
   Property(Label, std::string)
   Property(ImageName, std::string)
-  Property(ImagePtr, QImage*)
+  Property(ImagePtr, boost::shared_ptr<QImage>)
   Property(Width, int)
   Property(Height, int)
 

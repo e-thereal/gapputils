@@ -13,13 +13,14 @@ class GridList : public gapputils::workflow::CombinerInterface {
   InitReflectableClass(GridList)
 
   Property(ImageNames, std::vector<std::string>)
-  Property(Models, std::vector<GridModel*>*)
+  Property(Models, boost::shared_ptr<std::vector<boost::shared_ptr<GridModel> > >)
+  Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
   Property(ImageName, std::string)
-  Property(Model, GridModel*)
-  Property(Image, culib::ICudaImage*)
+  Property(Model, boost::shared_ptr<GridModel>)
+  Property(Image, boost::shared_ptr<culib::ICudaImage>)
 
 private:
-  static int namesId, modelsId;
+  static int namesId, modelsId, imagesId;
 
 public:
   GridList();

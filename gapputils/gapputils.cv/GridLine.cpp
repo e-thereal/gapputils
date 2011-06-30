@@ -3,12 +3,14 @@
 #include <QPainter>
 
 #include "GridPointItem.h"
+#include "GridWidget.h"
 
 namespace gapputils {
 
 namespace cv {
 
-GridLine::GridLine(GridPointItem* fromItem, GridPointItem* toItem) : fromItem(fromItem), toItem(toItem)
+GridLine::GridLine(GridPointItem* fromItem, GridPointItem* toItem, GridWidget* parent)
+ : fromItem(fromItem), toItem(toItem), parent(parent)
 {
   fromItem->addLine(this);
   toItem->addLine(this);
@@ -34,9 +36,10 @@ QRectF GridLine::boundingRect() const {
 }
 
 void GridLine::paint(QPainter *painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/) {
-  painter->setPen(QPen(Qt::black, 2));
+  qreal scale = parent->getViewScale();
+  painter->setPen(QPen(Qt::black, 2. / scale));
   painter->drawLine(sourcePoint, destPoint);
-  painter->setPen(QPen(Qt::white, 1));
+  painter->setPen(QPen(Qt::white, 1. / scale));
   painter->drawLine(sourcePoint, destPoint);
 }
 

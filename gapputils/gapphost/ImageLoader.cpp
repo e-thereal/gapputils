@@ -27,7 +27,7 @@ BeginPropertyDefinitions(ImageLoader)
 
 EndPropertyDefinitions
 
-ImageLoader::ImageLoader(void) : changeHandler(this), _Label("Image"), _ImagePtr(0), _Width(0), _Height(0), image(0)
+ImageLoader::ImageLoader(void) : changeHandler(this), _Label("Image"), _Width(0), _Height(0)
 {
   Changed.connect(changeHandler);
 }
@@ -35,17 +35,17 @@ ImageLoader::ImageLoader(void) : changeHandler(this), _Label("Image"), _ImagePtr
 
 ImageLoader::~ImageLoader(void)
 {
-  if (image)
-    delete image;
 }
 
 void ImageLoader::loadImage() {
-  if (!image)
-    image = new QImage();
+  QImage* image = new QImage();
   if (image->load(getImageName().c_str())) {
-    setImagePtr(image);
+    boost::shared_ptr<QImage> smartPtr(image);
+    setImagePtr(smartPtr);
     setWidth(image->width());
     setHeight(image->height());
+  } else {
+    delete image;
   }
 }
 

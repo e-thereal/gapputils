@@ -25,7 +25,7 @@ BeginPropertyDefinitions(ImageViewer)
 
 EndPropertyDefinitions
 
-ImageViewer::ImageViewer(void) : _ImagePtr(0)
+ImageViewer::ImageViewer(void)
 {
   setLabel("Viewer");
 
@@ -49,17 +49,15 @@ void ImageViewer::changeHandler(capputils::ObservableClass* sender, int eventId)
     dialog->setWindowTitle(QString("Image Viewer: ") + getLabel().c_str());
    
   if (eventId == imageId) {
-    QImage* image = getImagePtr();
-    if (image) {
-      dialog->setImage(image);
+    if (getImagePtr()) {
+      dialog->setImage(getImagePtr().get());
     }
   }
 }
 
 void ImageViewer::show() {
-  QImage* image = getImagePtr();
-  if (image)
-    dialog->setImage(image);
+  if (getImagePtr())
+    dialog->setImage(getImagePtr().get());
   dialog->show();
 }
 

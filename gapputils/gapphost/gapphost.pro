@@ -28,7 +28,8 @@ SOURCES = main.cpp \
 		  MakeGlobalDialog.cpp \
 		  GlobalProperty.cpp \
 		  PopUpList.cpp \
-		  GlobalEdge.cpp
+		  GlobalEdge.cpp \
+		  trace.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -45,7 +46,8 @@ HEADERS = MainWindow.h \
           WorkflowItem.h \
           GenericViewer.h \
           MakeGlobalDialog.h \
-          PopUpList.h
+          PopUpList.h \
+          ToolItem.h
           
 CONFIG += no_keywords debug console
 QMAKE_CXXFLAGS += -std=c++0x
@@ -53,9 +55,16 @@ INCLUDEPATH += /home/tombr/Projects
 INCLUDEPATH += /home/tombr/include
 INCLUDEPATH += /home/tombr/Programs/cuda/include
 INCLUDEPATH += /home/tombr/Programs/cula/include
+INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/cmif
+INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/utilities
+INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/ctrace
+INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/carray
+LIBS += -Wl,-E
 LIBS += -L/home/tombr/Projects/tinyxml/Debug
 LIBS += -L"/home/tombr/Projects/capputils/Debug Shared"
 LIBS += -L"/home/tombr/Projects/gapputils/Debug Shared"
 LIBS += -L"/home/tombr/Programs/cuda/lib"
 LIBS += -L"/home/tombr/Programs/cula/lib"
+LIBS += -L/home/tombr/lib
 LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -lcudart -lcula -lcublas
+LIBS += -lcmif_v5_3 -lutilities_v3_2 -lz

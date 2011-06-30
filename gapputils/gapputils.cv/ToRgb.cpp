@@ -30,14 +30,14 @@ namespace cv {
 BeginPropertyDefinitions(ToRgb)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(ImagePtr, Input("Img"), Volatile(), Hide(), NotEqual<QImage*>(0), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImagePtr, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Red, Output("R"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Green, Output("G"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Blue, Output("B"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-ToRgb::ToRgb(void) : _ImagePtr(0), _Red(0), _Green(0), _Blue(0), data(0)
+ToRgb::ToRgb(void) : data(0)
 {
   setLabel("ToRgb");
   Changed.connect(capputils::EventHandler<ToRgb>(this, &ToRgb::changedEventHandler));
@@ -47,13 +47,6 @@ ToRgb::~ToRgb(void)
 {
   if (data)
     delete data;
-
-  if (_Red)
-    delete _Red;
-  if (_Green)
-    delete _Green;
-  if(_Blue)
-    _Blue;
 }
 
 void ToRgb::changedEventHandler(capputils::ObservableClass* sender, int eventId) {
@@ -69,13 +62,16 @@ void ToRgb::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  QImage* image = getImagePtr();
+  if (!getImagePtr())
+    return;
+
+  boost::shared_ptr<QImage> image = getImagePtr();
   const int width = image->width();
   const int height = image->height();
  
-  CudaImage* redImage = new CudaImage(dim3(width, height));
-  CudaImage* greenImage = new CudaImage(dim3(width, height));
-  CudaImage* blueImage = new CudaImage(dim3(width, height));
+  boost::shared_ptr<CudaImage> redImage(new CudaImage(dim3(width, height)));
+  boost::shared_ptr<CudaImage> greenImage(new CudaImage(dim3(width, height)));
+  boost::shared_ptr<CudaImage> blueImage(new CudaImage(dim3(width, height)));
   float* redBuffer = redImage->getOriginalImage();
   float* greenBuffer = greenImage->getOriginalImage();
   float* blueBuffer = blueImage->getOriginalImage();
@@ -92,16 +88,8 @@ void ToRgb::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   greenImage->resetWorkingCopy();
   blueImage->resetWorkingCopy();
 
-  if (data->getRed())
-    delete data->getRed();
   data->setRed(redImage);
-
-  if (data->getGreen())
-    delete data->getGreen();
   data->setGreen(greenImage);
-
-  if (data->getBlue())
-    delete data->getBlue();
   data->setBlue(blueImage);
 }
 
@@ -109,20 +97,9 @@ void ToRgb::writeResults() {
   if (!data)
     return;
 
-  if (getRed())
-    delete getRed();
   setRed(data->getRed());
-  data->setRed(0);
-
-  if (getGreen())
-    delete getGreen();
   setGreen(data->getGreen());
-  data->setGreen(0);
-
-  if (getBlue())
-    delete getBlue();
   setBlue(data->getBlue());
-  data->setBlue(0);
 }
 
 }
