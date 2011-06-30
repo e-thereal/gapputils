@@ -10,15 +10,17 @@ namespace gapputils {
 namespace cv {
 
 class GridPointItem;
+class GridWidget;
 
 class GridLine : public QGraphicsItem
 {
 private:
   GridPointItem *fromItem, *toItem;
   QPointF sourcePoint, destPoint;
+  GridWidget* parent;
 
 public:
-  GridLine(GridPointItem* fromItem, GridPointItem* toItem);
+  GridLine(GridPointItem* fromItem, GridPointItem* toItem, GridWidget* parent);
   virtual ~GridLine(void);
 
   void adjust();

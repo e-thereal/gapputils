@@ -17,10 +17,10 @@ class FromRgb : public workflow::WorkflowElement
 
   InitReflectableClass(FromRgb)
 
-  Property(ImagePtr, QImage*)
-  Property(Red, culib::ICudaImage*)
-  Property(Green, culib::ICudaImage*)
-  Property(Blue, culib::ICudaImage*)
+  Property(ImagePtr, boost::shared_ptr<QImage>)
+  Property(Red, boost::shared_ptr<culib::ICudaImage>)
+  Property(Green, boost::shared_ptr<culib::ICudaImage>)
+  Property(Blue, boost::shared_ptr<culib::ICudaImage>)
 
 private:
   mutable FromRgb* data;

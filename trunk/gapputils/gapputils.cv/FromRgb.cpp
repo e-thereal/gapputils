@@ -38,7 +38,7 @@ BeginPropertyDefinitions(FromRgb)
 
 EndPropertyDefinitions
 
-FromRgb::FromRgb(void) : _ImagePtr(0), _Red(0), _Green(0), _Blue(0), data(0)
+FromRgb::FromRgb(void) : data(0)
 {
   setLabel("FromRgb");
   Changed.connect(capputils::EventHandler<FromRgb>(this, &FromRgb::changedEventHandler));
@@ -48,9 +48,6 @@ FromRgb::~FromRgb(void)
 {
   if (data)
     delete data;
-
-  if (_ImagePtr)
-    delete _ImagePtr;
 }
 
 void FromRgb::changedEventHandler(capputils::ObservableClass* sender, int eventId) {
@@ -68,9 +65,9 @@ void FromRgb::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  ICudaImage* red = getRed();
-  ICudaImage* green = getGreen();
-  ICudaImage* blue = getBlue();
+  ICudaImage* red = getRed().get();
+  ICudaImage* green = getGreen().get();
+  ICudaImage* blue = getBlue().get();
 
   if (red)
     red->saveDeviceToWorkingCopy();
@@ -106,7 +103,7 @@ void FromRgb::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   }
 
   
-  QImage* image = new QImage(width, height, QImage::Format_ARGB32);
+  boost::shared_ptr<QImage> image(new QImage(width, height, QImage::Format_ARGB32));
   float* redBuffer = (red ? red->getWorkingCopy() : 0);
   float* greenBuffer = (green ? green->getWorkingCopy() : 0);
   float* blueBuffer = (blue ? blue->getWorkingCopy() : 0);
@@ -120,8 +117,6 @@ void FromRgb::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     }
   }
 
-  if (data->getImagePtr())
-    delete data->getImagePtr();
   data->setImagePtr(image);
 }
 
@@ -129,10 +124,7 @@ void FromRgb::writeResults() {
   if (!data)
     return;
 
-  if (getImagePtr())
-    delete getImagePtr();
   setImagePtr(data->getImagePtr());
-  data->setImagePtr(0);
 }
 
 }

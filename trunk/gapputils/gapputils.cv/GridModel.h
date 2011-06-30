@@ -26,10 +26,10 @@ public:
 public:
   GridModel(void);
   virtual ~GridModel(void);
+  void clearGrid();
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
-  void freeGrid();
 
 };
 

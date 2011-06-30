@@ -4,17 +4,22 @@
 #include "GridLine.h"
 #include "GridModel.h"
 
+#include <cmath>
+
 #include <QWheelEvent>
 #include <QMouseEvent>
 
+#include <capputils/Xmlizer.h>
+
 #include <vector>
+#include <iostream>
 
 namespace gapputils {
 
 namespace cv {
 
-GridWidget::GridWidget(GridModel* model, int width, int height, QWidget* parent) : QGraphicsView(parent),
-    model(model), backgroundImage(0), viewScale(1.0)
+GridWidget::GridWidget(boost::shared_ptr<GridModel> model, int width, int height, QWidget* parent) : QGraphicsView(parent),
+    model(model), backgroundImage((QImage*)0), viewScale(1.0)
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -25,7 +30,7 @@ GridWidget::GridWidget(GridModel* model, int width, int height, QWidget* parent)
   setTransformationAnchor(AnchorUnderMouse);
   scale(qreal(1), qreal(1));
 
-  resumeFromModel();
+  resumeFromModel(model);
 }
 
 
@@ -33,7 +38,10 @@ GridWidget::~GridWidget(void)
 {
 }
 
-void GridWidget::resumeFromModel() {
+void GridWidget::resumeFromModel(boost::shared_ptr<GridModel> model) {
+  using namespace std;
+  this->model = model;
+
   const int rowCount = model->getRowCount();
   const int columnCount = model->getColumnCount();
   std::vector<GridPoint*>* points = model->getPoints();
@@ -48,13 +56,13 @@ void GridWidget::resumeFromModel() {
   for (int y = 0, i = 0; y < rowCount; ++y) {
     for (int x = 0; x < columnCount; ++x, ++i) {
       GridPoint* point = points->at(i);
-      GridPointItem* item = new GridPointItem(point, model);
+      GridPointItem* item = new GridPointItem(point, model.get(), this);
       scene()->addItem(item);
 
       if (west)
-        scene()->addItem(new GridLine(west, item));
+        scene()->addItem(new GridLine(west, item, this));
       if (north[x])
-        scene()->addItem(new GridLine(north[x], item));
+        scene()->addItem(new GridLine(north[x], item, this));
 
       west = item;
       north[x] = item;
@@ -85,13 +93,13 @@ void GridWidget::renewGrid(int rowCount, int columnCount) {
       GridPoint* point = points->at(i);
       point->setX(x * scene()->width() / (columnCount - 1));
       point->setY(y * scene()->height() / (rowCount - 1));
-      GridPointItem* item = new GridPointItem(point, model);
+      GridPointItem* item = new GridPointItem(point, model.get(), this);
       scene()->addItem(item);
 
       if (west)
-        scene()->addItem(new GridLine(west, item));
+        scene()->addItem(new GridLine(west, item, this));
       if (north[x])
-        scene()->addItem(new GridLine(north[x], item));
+        scene()->addItem(new GridLine(north[x], item, this));
 
       west = item;
       north[x] = item;
@@ -100,7 +108,7 @@ void GridWidget::renewGrid(int rowCount, int columnCount) {
   }
 }
 
-void GridWidget::setBackgroundImage(QImage* image) {
+void GridWidget::setBackgroundImage(boost::shared_ptr<QImage> image) {
   backgroundImage = image;
   setCacheMode(CacheNone);
   update();
@@ -109,7 +117,7 @@ void GridWidget::setBackgroundImage(QImage* image) {
 
 void GridWidget::drawBackground(QPainter *painter, const QRectF &rect) {
   // Shadow
-  QRectF& sceneRect = this->sceneRect();
+  const QRectF& sceneRect = this->sceneRect();
 
   if (backgroundImage) {
     painter->drawImage(0, 0, *backgroundImage);
@@ -155,7 +163,11 @@ void GridWidget::mouseReleaseEvent(QMouseEvent* event) {
 
 void GridWidget::wheelEvent(QWheelEvent *event)
 {
-  scaleView(pow((double)1.3, -event->delta() / 240.0));
+  scaleView(pow((double)1.3, event->delta() / 240.0));
+}
+
+qreal GridWidget::getViewScale() {
+  return viewScale;
 }
 
 }

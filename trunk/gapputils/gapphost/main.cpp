@@ -19,6 +19,8 @@
 #include "Workflow.h"
 #include "DefaultInterface.h"
 
+#include <CProcessInfo.hpp>
+
 using namespace gapputils::host;
 using namespace gapputils::workflow;
 using namespace gapputils;
@@ -36,6 +38,8 @@ int main(int argc, char *argv[])
     return 1;
   }
 #endif
+
+  MSMRI::CProcessInfo::getInstance().getCommandLine(argc, argv);
 
   int ret = 0;
   QApplication a(argc, argv);
@@ -69,14 +73,19 @@ int main(int argc, char *argv[])
 
   model.getMainWorkflow()->resumeFromModel();
 
-  MainWindow w;
-  if (model.getNoGui()) {
-    // TODO: wait until update has finished.
-    model.getMainWorkflow()->updateOutputs();
-  } else {
-    w.show();
-    model.getMainWorkflow()->resumeViewport();
-    ret = a.exec();
+  try {
+    MainWindow w;
+    if (model.getNoGui()) {
+      // TODO: wait until update has finished.
+      model.getMainWorkflow()->updateOutputs();
+    } else {
+      w.show();
+      model.getMainWorkflow()->resumeViewport();
+      ret = a.exec();
+    }
+  } catch (char const* error) {
+    cout << error << endl;
+    return 1;
   }
 
   model.saveToFile("gapphost.conf.xml");

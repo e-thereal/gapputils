@@ -3,12 +3,14 @@
 #include <QPainter>
 
 #include "GridModel.h"
+#include "GridWidget.h"
 
 namespace gapputils {
 
 namespace cv {
 
-GridPointItem::GridPointItem(GridPoint* point, GridModel* model) : radius(4), adjust(2), point(point), model(model)
+GridPointItem::GridPointItem(GridPoint* point, GridModel* model, GridWidget* parent)
+ : radius(4), adjust(2), point(point), model(model), parent(parent)
 {
   setFlag(ItemIsMovable);
   setFlag(ItemIsSelectable);
@@ -41,22 +43,25 @@ QVariant GridPointItem::itemChange(GraphicsItemChange change, const QVariant &va
 
 QRectF GridPointItem::boundingRect() const
 {
-  return QRectF(-adjust - radius, -adjust - radius, 2 * radius + 2 * adjust, 2 * radius + 2 * adjust);
+  qreal scale = parent->getViewScale();
+  return QRectF(-adjust - radius / scale, -adjust - radius / scale, 2 * radius / scale + 2 * adjust, 2 * radius / scale + 2 * adjust);
 }
 
 QPainterPath GridPointItem::shape() const {
   QPainterPath path;
-  path.addEllipse(-radius, -radius, 2 * radius, 2 * radius);
+  qreal scale = parent->getViewScale();
+  path.addEllipse(-radius / scale, -radius / scale, 2 * radius / scale, 2 * radius / scale);
   return path;
 }
 
 void GridPointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
+  qreal scale = parent->getViewScale();
   Q_UNUSED(option)
 
   //painter->drawEllipse(0, 0, radius/2, radius/2);
   QPainterPath path;
-  path.addEllipse(-radius, -radius, 2 * radius, 2 * radius);
+  path.addEllipse(-radius / scale, -radius / scale, 2 * radius / scale, 2 * radius / scale);
   painter->fillPath(path, Qt::white);
   painter->drawPath(path);
 }

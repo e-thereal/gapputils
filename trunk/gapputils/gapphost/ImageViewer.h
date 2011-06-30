@@ -17,7 +17,7 @@ class ImageViewer : public gapputils::workflow::WorkflowElement
 private:
   InitReflectableClass(ImageViewer);
 
-  Property(ImagePtr, QImage*)
+  Property(ImagePtr, boost::shared_ptr<QImage>)
 
 private:
   ShowImageDialog* dialog;

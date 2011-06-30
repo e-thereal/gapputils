@@ -19,8 +19,8 @@ class Grid : public workflow::WorkflowElement
 
   Property(RowCount, int)
   Property(ColumnCount, int)
-  Property(Model, GridModel*)
-  Property(BackgroundImage, QImage*)
+  Property(Model, boost::shared_ptr<GridModel>)
+  Property(BackgroundImage, boost::shared_ptr<QImage>)
   Property(Width, int)
   Property(Height, int)
   Property(GridName, std::string)
@@ -28,7 +28,8 @@ class Grid : public workflow::WorkflowElement
 private:
   mutable Grid* data;
   GridDialog* dialog;
-  static int rowCountId, columnCountId, widthId, heightId, backgroundId;
+  int oldWidth, oldHeight, oldRowCount, oldColumnCount;
+  static int rowCountId, columnCountId, widthId, heightId, backgroundId, nameId, modelId;
 
 public:
   Grid(void);

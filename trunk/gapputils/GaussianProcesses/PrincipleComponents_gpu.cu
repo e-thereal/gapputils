@@ -38,7 +38,6 @@ void getPcs(double* pc, double* data, int m, int n) {
   }
 
   thrust::copy(d_U.begin(), d_U.end(), pc);
-  //thrust::copy(data, data + count, pc);
 
   delete f_data;
 }

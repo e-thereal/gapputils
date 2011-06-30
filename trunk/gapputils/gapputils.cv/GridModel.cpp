@@ -30,21 +30,19 @@ GridModel::GridModel(void) : _RowCount(0), _ColumnCount(0)
 
 GridModel::~GridModel(void)
 {
-  freeGrid();
+  clearGrid();
+  delete _Points;
 }
 
-void GridModel::freeGrid() {
+void GridModel::clearGrid() {
   for (unsigned i = 0; i < _Points->size(); ++i)
     delete _Points->at(i);
-  delete _Points;
-  _Points = 0;
+  _Points->clear();
 }
 
 void GridModel::changedHandler(capputils::ObservableClass* sender, int eventId) {
   if (eventId == rowCountId || eventId == columnCountId) {
-    for (unsigned i = 0; i < _Points->size(); ++i)
-      delete _Points->at(i);
-    _Points->clear();
+    clearGrid();
     for (unsigned i = 0; i < getRowCount() * getColumnCount(); ++i)
       _Points->push_back(new GridPoint());
   }

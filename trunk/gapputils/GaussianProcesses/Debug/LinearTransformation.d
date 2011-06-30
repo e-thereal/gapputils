@@ -7,6 +7,7 @@ LinearTransformation.d LinearTransformation.o:  \
   /home/tombr/Projects/capputils/IAttribute.h \
   /home/tombr/Projects/capputils/ClassProperty.h \
   /home/tombr/Projects/capputils/IClassProperty.h \
+  /home/tombr/Projects/capputils/ReflectionException.h \
   /home/tombr/Projects/capputils/AttributeExecuter.h \
   /home/tombr/Projects/capputils/ReflectableClass.h \
   /home/tombr/Projects/capputils/ReflectableAttribute.h \
@@ -49,6 +50,8 @@ LinearTransformation.d LinearTransformation.o:  \
 /home/tombr/Projects/capputils/ClassProperty.h:
 
 /home/tombr/Projects/capputils/IClassProperty.h:
+
+/home/tombr/Projects/capputils/ReflectionException.h:
 
 /home/tombr/Projects/capputils/AttributeExecuter.h:
 
