@@ -66,6 +66,10 @@ boost::shared_ptr<GridModel> ActiveAppearanceModel::createMeanGrid() {
 }
 
 boost::shared_ptr<culib::ICudaImage> ActiveAppearanceModel::createMeanImage() {
+  if (!getMeanImage()) {
+    boost::shared_ptr<culib::ICudaImage> image((culib::ICudaImage*)0);
+    return image;
+  }
   boost::shared_ptr<culib::ICudaImage> image(new culib::CudaImage(dim3(getWidth(), getHeight())));
 
   float* buffer = image->getOriginalImage();
