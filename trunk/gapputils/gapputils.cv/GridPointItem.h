@@ -19,11 +19,12 @@ class GridWidget;
 class GridPointItem : public QGraphicsItem
 {
 private:
-  int radius, adjust;
-  std::vector<GridLine*> lines;
+  int radius, adjust, smallRadius;
+  GridLine *northLine, *southLine, *westLine, *eastLine;
   GridPoint* point;
   GridModel* model;
   GridWidget* parent;
+  QPointF newPos;
 
 public:
   GridPointItem(GridPoint* point, GridModel* model, GridWidget* parent);
@@ -35,6 +36,17 @@ public:
   virtual QPainterPath shape() const;
 
   void addLine(GridLine* line);
+  GridPointItem* getNorth() const;
+  GridPointItem* getSouth() const;
+  GridPointItem* getWest() const;
+  GridPointItem* getEast() const;
+
+  void calculateForces();
+  bool advance();
+
+protected:
+  virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
+  virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
 
 private:
   void updateLines();

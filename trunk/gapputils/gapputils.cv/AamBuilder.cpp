@@ -25,6 +25,7 @@
 
 #include <culib/CudaImage.h>
 #include <culib/pca.h>
+#include <cublas.h>
 
 #include <iostream>
 
@@ -206,6 +207,12 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   // - collect them into a matrix
   // - calculate PCs of that matrix
   // - done
+
+  //char transa = 't';
+  //char transb = 'n';
+
+
+  //cublasSgemm(trans, 
 }
 
 void AamBuilder::writeResults() {

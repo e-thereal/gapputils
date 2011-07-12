@@ -4,6 +4,7 @@
 
 #include <QGraphicsView>
 #include <QImage>
+#include <qtimer.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -21,6 +22,8 @@ private:
   boost::shared_ptr<GridModel> model;
   boost::shared_ptr<QImage> backgroundImage;
   qreal viewScale;
+  int timerId;
+  bool isActivated;
 
 public:
   GridWidget(boost::shared_ptr<GridModel> model, int width, int height, QWidget* parent = 0);
@@ -34,12 +37,15 @@ public:
   void scaleView(qreal scaleFactor);
 
   qreal getViewScale();
+  void startGridAdjustments();
 
 protected:
   void mousePressEvent(QMouseEvent* event);
   void mouseReleaseEvent(QMouseEvent* event);
   void drawBackground(QPainter *painter, const QRectF &rect);
   void wheelEvent(QWheelEvent *event);
+
+  void timerEvent(QTimerEvent *event);
 };
 
 }

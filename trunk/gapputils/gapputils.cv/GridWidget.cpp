@@ -19,7 +19,7 @@ namespace gapputils {
 namespace cv {
 
 GridWidget::GridWidget(boost::shared_ptr<GridModel> model, int width, int height, QWidget* parent) : QGraphicsView(parent),
-    model(model), backgroundImage((QImage*)0), viewScale(1.0)
+    model(model), backgroundImage((QImage*)0), viewScale(1.0), timerId(0), isActivated(false)
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -42,6 +42,8 @@ void GridWidget::resumeFromModel(boost::shared_ptr<GridModel> model) {
   using namespace std;
   this->model = model;
 
+  isActivated = false;
+
   const int rowCount = model->getRowCount();
   const int columnCount = model->getColumnCount();
   std::vector<GridPoint*>* points = model->getPoints();
@@ -60,15 +62,16 @@ void GridWidget::resumeFromModel(boost::shared_ptr<GridModel> model) {
       scene()->addItem(item);
 
       if (west)
-        scene()->addItem(new GridLine(west, item, this));
+        scene()->addItem(new GridLine(west, item, GridLine::Horizontal, this));
       if (north[x])
-        scene()->addItem(new GridLine(north[x], item, this));
+        scene()->addItem(new GridLine(north[x], item, GridLine::Vertical, this));
 
       west = item;
       north[x] = item;
     }
     west = 0;
   }
+  isActivated = true;
 }
 
 void GridWidget::updateSize(int width, int height) {
@@ -77,6 +80,8 @@ void GridWidget::updateSize(int width, int height) {
 }
 
 void GridWidget::renewGrid(int rowCount, int columnCount) {
+  isActivated = false;
+
   model->setRowCount(rowCount);
   model->setColumnCount(columnCount);
   scene()->clear();
@@ -93,19 +98,21 @@ void GridWidget::renewGrid(int rowCount, int columnCount) {
       GridPoint* point = points->at(i);
       point->setX(x * scene()->width() / (columnCount - 1));
       point->setY(y * scene()->height() / (rowCount - 1));
+      point->setFixed((y == 0 || y == rowCount - 1) && (x == 0 || x == columnCount - 1));
       GridPointItem* item = new GridPointItem(point, model.get(), this);
       scene()->addItem(item);
 
       if (west)
-        scene()->addItem(new GridLine(west, item, this));
+        scene()->addItem(new GridLine(west, item, GridLine::Horizontal, this));
       if (north[x])
-        scene()->addItem(new GridLine(north[x], item, this));
+        scene()->addItem(new GridLine(north[x], item, GridLine::Vertical, this));
 
       west = item;
       north[x] = item;
     }
     west = 0;
   }
+  isActivated = true;
 }
 
 void GridWidget::setBackgroundImage(boost::shared_ptr<QImage> image) {
@@ -168,6 +175,33 @@ void GridWidget::wheelEvent(QWheelEvent *event)
 
 qreal GridWidget::getViewScale() {
   return viewScale;
+}
+
+void GridWidget::startGridAdjustments() {
+  if (!timerId && isActivated)
+    timerId = startTimer(1000. / 25);
+}
+
+void GridWidget::timerEvent(QTimerEvent *event) {
+  QList<GridPointItem*> nodes;
+  Q_FOREACH (QGraphicsItem *item, scene()->items()) {
+    if (GridPointItem *node = dynamic_cast<GridPointItem*>(item))
+      nodes << node;
+  }
+
+  Q_FOREACH (GridPointItem *node, nodes)
+    node->calculateForces();
+
+  bool itemsMoved = false;
+  Q_FOREACH (GridPointItem *node, nodes) {
+    if (node->advance())
+      itemsMoved = true;
+  }
+
+  if (!itemsMoved) {
+    killTimer(timerId);
+    timerId = 0;
+  }
 }
 
 }
