@@ -19,13 +19,17 @@
 #include "Workflow.h"
 #include "DefaultInterface.h"
 
+#ifdef GAPPHOST_MIF_SUPPORT
 #include <CProcessInfo.hpp>
+#endif
 
 using namespace gapputils::host;
 using namespace gapputils::workflow;
 using namespace gapputils;
 using namespace capputils;
 using namespace std;
+
+#include <culib/lintrans.h>
 
 int main(int argc, char *argv[])
 {
@@ -39,7 +43,28 @@ int main(int argc, char *argv[])
   }
 #endif
 
+#ifdef GAPPHOST_MIF_SUPPORT
   MSMRI::CProcessInfo::getInstance().getCommandLine(argc, argv);
+#endif
+
+  float transform[] = {1, 2, 3,
+                       4, 5, 6};
+
+  float data[] = {7, 8,
+                 10, 11,
+                 13, 14,
+                 16, 17};
+  float output[3*4];
+
+  const int m = 2, n = 4, k = 3;
+  culib::lintrans(output, transform, data, m, n, k, false);
+  for (int j = 0, l = 0; j < n; ++j) {
+    for (int i = 0; i < k; ++i, ++l) {
+      cout << output[l] << " ";
+    }
+    cout << endl;
+  }
+  return 0;
 
   int ret = 0;
   QApplication a(argc, argv);

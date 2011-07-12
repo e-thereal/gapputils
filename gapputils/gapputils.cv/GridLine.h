@@ -14,18 +14,26 @@ class GridWidget;
 
 class GridLine : public QGraphicsItem
 {
+public:
+  enum Orientation {Horizontal, Vertical};
+
 private:
-  GridPointItem *fromItem, *toItem;
+  GridPointItem *northWest, *southEast;
   QPointF sourcePoint, destPoint;
+  Orientation orientation;
   GridWidget* parent;
 
 public:
-  GridLine(GridPointItem* fromItem, GridPointItem* toItem, GridWidget* parent);
+  GridLine(GridPointItem* northWest, GridPointItem* southEast, Orientation orientation, GridWidget* parent);
   virtual ~GridLine(void);
 
   void adjust();
   QRectF boundingRect() const;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
+  GridPointItem* getNorthWest() const;
+  GridPointItem* getSouthEast() const;
+  Orientation getOrientation() const;
 };
 
 }

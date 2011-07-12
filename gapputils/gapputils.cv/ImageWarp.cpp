@@ -15,6 +15,11 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
+#include <qimage.h>
+#include <qpainter.h>
+#include <qpainterpath.h>
+#include <qcolor.h>
+
 #include <culib/CudaImage.h>
 #include <culib/math3d.h>
 
@@ -34,6 +39,7 @@ BeginPropertyDefinitions(ImageWarp)
   DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(BaseGrid, Input("Base"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(WarpedGrid, Input("Warped"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Map, Output(), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
@@ -121,6 +127,103 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   float* inputBuffer = inputImage->getWorkingCopy();
   float* warpedBuffer = warpedImage->getWorkingCopy();
 
+  // Build the map first
+  std::vector<float2> wp0s, wp1s, wp2s, bp0s, bp1s, bp2s;
+  boost::shared_ptr<QImage> triangleMap(new QImage(width, height, QImage::Format_ARGB32));
+  QPainter painter(triangleMap.get());
+  painter.fillRect(0, 0, width, height, Qt::black);
+
+  for (int iRow = 1, i = 0; iRow < rowCount; ++iRow) {
+    for (int iCol = 1; iCol < columnCount; ++iCol) {
+      // check all 4 triangles
+      GridPoint* wgp1 = warpedGridPoints->at(iCol + iRow * columnCount);
+      GridPoint* wgp2 = warpedGridPoints->at(iCol + (iRow - 1) * columnCount);
+      GridPoint* wgp3 = warpedGridPoints->at((iCol - 1) + (iRow - 1) * columnCount);
+      GridPoint* wgp4 = warpedGridPoints->at((iCol - 1) + iRow * columnCount);
+
+      float2 wp1 = make_float2(wgp1->getX(), wgp1->getY());
+      float2 wp2 = make_float2(wgp2->getX(), wgp2->getY());
+      float2 wp3 = make_float2(wgp3->getX(), wgp3->getY());
+      float2 wp4 = make_float2(wgp4->getX(), wgp4->getY());
+      float2 wmid = 0.25 * wp1 + 0.25 * wp2 + 0.25 * wp3 + 0.25 * wp4;
+
+      GridPoint* bgp1 = baseGridPoints->at(iCol + iRow * columnCount);
+      GridPoint* bgp2 = baseGridPoints->at(iCol + (iRow - 1) * columnCount);
+      GridPoint* bgp3 = baseGridPoints->at((iCol - 1) + (iRow - 1) * columnCount);
+      GridPoint* bgp4 = baseGridPoints->at((iCol - 1) + iRow * columnCount);
+
+      float2 bp1 = make_float2(bgp1->getX(), bgp1->getY());
+      float2 bp2 = make_float2(bgp2->getX(), bgp2->getY());
+      float2 bp3 = make_float2(bgp3->getX(), bgp3->getY());
+      float2 bp4 = make_float2(bgp4->getX(), bgp4->getY());
+      float2 bmid = 0.25 * bp1 + 0.25 * bp2 + 0.25 * bp3 + 0.25 * bp4;
+
+      { // upper triangle
+        QPainterPath path;
+        QPolygonF polygon;
+        polygon.append(QPointF(wp2.x, wp2.y));
+        polygon.append(QPointF(wp3.x, wp3.y));
+        polygon.append(QPointF(wmid.x, wmid.y));
+        path.addPolygon(polygon);
+        painter.fillPath(path, QBrush(QColor(QRgb(++i))));
+        wp0s.push_back(wp2);
+        wp1s.push_back(wp3);
+        wp2s.push_back(wmid);
+        bp0s.push_back(bp2);
+        bp1s.push_back(bp3);
+        bp2s.push_back(bmid);
+      }
+
+      { // left triangle
+        QPainterPath path;
+        QPolygonF polygon;
+        polygon.append(QPointF(wp3.x, wp3.y));
+        polygon.append(QPointF(wp4.x, wp4.y));
+        polygon.append(QPointF(wmid.x, wmid.y));
+        path.addPolygon(polygon);
+        painter.fillPath(path, QBrush(QColor(QRgb(++i))));
+        wp0s.push_back(wp3);
+        wp1s.push_back(wp4);
+        wp2s.push_back(wmid);
+        bp0s.push_back(bp3);
+        bp1s.push_back(bp4);
+        bp2s.push_back(bmid);
+      }
+
+      { // lower triangle
+        QPainterPath path;
+        QPolygonF polygon;
+        polygon.append(QPointF(wp4.x, wp4.y));
+        polygon.append(QPointF(wp1.x, wp1.y));
+        polygon.append(QPointF(wmid.x, wmid.y));
+        path.addPolygon(polygon);
+        painter.fillPath(path, QBrush(QColor(QRgb(++i))));
+        wp0s.push_back(wp4);
+        wp1s.push_back(wp1);
+        wp2s.push_back(wmid);
+        bp0s.push_back(bp4);
+        bp1s.push_back(bp1);
+        bp2s.push_back(bmid);
+      }
+
+      { // right triangle
+        QPainterPath path;
+        QPolygonF polygon;
+        polygon.append(QPointF(wp1.x, wp1.y));
+        polygon.append(QPointF(wp2.x, wp2.y));
+        polygon.append(QPointF(wmid.x, wmid.y));
+        path.addPolygon(polygon);
+        painter.fillPath(path, QBrush(QColor(QRgb(++i))));
+        wp0s.push_back(wp1);
+        wp1s.push_back(wp2);
+        wp2s.push_back(wmid);
+        bp0s.push_back(bp1);
+        bp1s.push_back(bp2);
+        bp2s.push_back(bmid);
+      }
+    }
+  }
+
   for (int y = 0, i = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x, ++i) {
 
@@ -128,54 +231,16 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       float2 inP;
       bool foundTriangle = false;
 
-      // find triangle
-      for (int iRow = 1; iRow < rowCount && !foundTriangle; ++iRow) {
-        for (int iCol = 1; iCol < columnCount && !foundTriangle; ++iCol) {
-          // check all 4 triangles
-          GridPoint* wgp1 = warpedGridPoints->at(iCol + iRow * columnCount);
-          GridPoint* wgp2 = warpedGridPoints->at(iCol + (iRow - 1) * columnCount);
-          GridPoint* wgp3 = warpedGridPoints->at((iCol - 1) + (iRow - 1) * columnCount);
-          GridPoint* wgp4 = warpedGridPoints->at((iCol - 1) + iRow * columnCount);
-
-          float2 wp1 = make_float2(wgp1->getX(), wgp1->getY());
-          float2 wp2 = make_float2(wgp2->getX(), wgp2->getY());
-          float2 wp3 = make_float2(wgp3->getX(), wgp3->getY());
-          float2 wp4 = make_float2(wgp4->getX(), wgp4->getY());
-          float2 wmid = 0.25 * wp1 + 0.25 * wp2 + 0.25 * wp3 + 0.25 * wp4;
-
-          GridPoint* bgp1 = baseGridPoints->at(iCol + iRow * columnCount);
-          GridPoint* bgp2 = baseGridPoints->at(iCol + (iRow - 1) * columnCount);
-          GridPoint* bgp3 = baseGridPoints->at((iCol - 1) + (iRow - 1) * columnCount);
-          GridPoint* bgp4 = baseGridPoints->at((iCol - 1) + iRow * columnCount);
-
-          float2 bp1 = make_float2(bgp1->getX(), bgp1->getY());
-          float2 bp2 = make_float2(bgp2->getX(), bgp2->getY());
-          float2 bp3 = make_float2(bgp3->getX(), bgp3->getY());
-          float2 bp4 = make_float2(bgp4->getX(), bgp4->getY());
-          float2 bmid = 0.25 * bp1 + 0.25 * bp2 + 0.25 * bp3 + 0.25 * bp4;
-
-
-          if (withinTriangle(p, wp2, wp3, wmid)) {                  // upper triangle
-            float3 barys = toBarycentric(p, wp2, wp3, wmid);
-            inP = toCartesian(barys, bp2, bp3, bmid);
-            foundTriangle = true;
-          } else if (withinTriangle(p, wp3, wp4, wmid)) {            // left triangle
-            float3 barys = toBarycentric(p, wp3, wp4, wmid);
-            inP = toCartesian(barys, bp3, bp4, bmid);
-            foundTriangle = true;
-          } else if (withinTriangle(p, wp4, wp1, wmid)) {            // lower triangle
-            float3 barys = toBarycentric(p, wp4, wp1, wmid);
-            inP = toCartesian(barys, bp4, bp1, bmid);
-            foundTriangle = true;
-          } else if (withinTriangle(p, wp1, wp2, wmid)) {            // right triangle
-            float3 barys = toBarycentric(p, wp1, wp2, wmid);
-            inP = toCartesian(barys, bp1, bp2, bmid);
-            foundTriangle = true;
-          }
-        }
+      QColor color = triangleMap->pixel(x, y);
+      unsigned index = color.rgb() & 0xFFFFFF;
+      if (index && index <= wp0s.size()) {
+        float3 barys = toBarycentric(p, wp0s[index - 1], wp1s[index - 1], wp2s[index - 1]);
+        inP = toCartesian(barys, bp0s[index - 1], bp1s[index - 1], bp2s[index - 1]);
+        foundTriangle = true;
       }
+      
       if (!foundTriangle) {
-        //std::cout << "No triangle found for (" << x << ", " << y << ")" << std::endl;
+        //std::cout << "No triangle found for (" << x << ", " << y << "). Index = " << index << std::endl;
         warpedBuffer[i] = 0;
       } else {
         int inX = inP.x;
@@ -187,6 +252,7 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       monitor->reportProgress(y * 100 / height);
   }
 
+  data->setMap(triangleMap);
   data->setOutputImage(warpedImage);
 }
 
@@ -194,6 +260,7 @@ void ImageWarp::writeResults() {
   if (!data)
     return;
   setOutputImage(data->getOutputImage());
+  setMap(data->getMap());
 }
 
 }

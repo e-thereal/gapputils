@@ -80,6 +80,12 @@
     <ClCompile Include="GridList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AamBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ActiveAppearanceModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ToRgb.h">
@@ -110,6 +116,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GridList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AamBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ActiveAppearanceModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
