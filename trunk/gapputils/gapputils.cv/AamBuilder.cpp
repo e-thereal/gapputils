@@ -25,6 +25,7 @@
 
 #include <culib/CudaImage.h>
 #include <culib/pca.h>
+#include <culib/lintrans.h>
 #include <cublas.h>
 
 #include <iostream>
@@ -78,6 +79,9 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     return;
 
   boost::shared_ptr<ActiveAppearanceModel> model(new ActiveAppearanceModel());
+  model->setShapeParameterCount(getShapeParameterCount());
+  model->setTextureParameterCount(getTextureParameterCount());
+  model->setModelParameterCount(getModelParameterCount());
   data->setActiveAppearanceModel(model);
 
   std::vector<boost::shared_ptr<GridModel> >* grids = getGrids().get();
@@ -208,11 +212,30 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   // - calculate PCs of that matrix
   // - done
 
-  //char transa = 't';
-  //char transb = 'n';
+  const int spCount = getShapeParameterCount();
+  const int tpCount = getTextureParameterCount();
+  const int mpCount = getModelParameterCount();
 
+  vector<float> shapeParameterMatrix(gridCount * spCount);
+  vector<float> textureParameterMatrix(imageCount * tpCount);
+  vector<float> modelFeatureMatrix((spCount + tpCount) * gridCount);
 
-  //cublasSgemm(trans, 
+  culib::lintrans(&shapeParameterMatrix[0], &(*principalGrids)[0], &gridFeatureMatrix[0], 2 * pointCount, gridCount, spCount, true);
+  culib::lintrans(&textureParameterMatrix[0], &(*principalImages)[0], &imageFeatureMatrix[0], pixelCount, imageCount, tpCount, true);
+  
+  // Build concatenated model feature matrix
+  for (int iModel = 0, iShape = 0, iTexture = 0, i = 0; i < gridCount; ++i) {
+    for (int j = 0; j < spCount; ++j, ++iModel, ++iShape)
+      modelFeatureMatrix[iModel] = shapeParameterMatrix[iShape];
+    for (int j = 0; j < tpCount; ++j, ++iModel, ++iTexture)
+      modelFeatureMatrix[iModel] = textureParameterMatrix[iTexture];
+  }
+
+  const int pcmodelrows = min(spCount + tpCount, gridCount);
+  boost::shared_ptr<vector<float> > principalParameters(new vector<float> ((spCount + tpCount) * pcmodelrows));
+  culib::getPcs(&(*principalParameters)[0], &modelFeatureMatrix[0], spCount + tpCount, gridCount);
+
+  model->setPrincipalParameters(principalParameters);
 }
 
 void AamBuilder::writeResults() {

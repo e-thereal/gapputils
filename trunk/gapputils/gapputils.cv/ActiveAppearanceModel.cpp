@@ -35,6 +35,9 @@ BeginPropertyDefinitions(ActiveAppearanceModel)
   DefineProperty(ColumnCount)
   DefineProperty(Width)
   DefineProperty(Height)
+  DefineProperty(ShapeParameterCount)
+  DefineProperty(TextureParameterCount)
+  DefineProperty(ModelParameterCount)
 
 EndPropertyDefinitions
 
@@ -51,11 +54,14 @@ ActiveAppearanceModel::~ActiveAppearanceModel() {
 }
 
 boost::shared_ptr<GridModel> ActiveAppearanceModel::createMeanGrid() {
+  return createGrid(getMeanGrid().get());
+}
+
+boost::shared_ptr<GridModel> ActiveAppearanceModel::createGrid(std::vector<float>* features) {
   boost::shared_ptr<GridModel> grid(new GridModel());
   grid->setRowCount(getRowCount());
   grid->setColumnCount(getColumnCount());
-
-  vector<float>* features = getMeanGrid().get();
+  
   assert(2 * grid->getPoints()->size() == features->size());
   for (unsigned i = 0; i < grid->getPoints()->size(); ++i) {
     grid->getPoints()->at(i)->setX(features->at(2*i));
@@ -66,14 +72,18 @@ boost::shared_ptr<GridModel> ActiveAppearanceModel::createMeanGrid() {
 }
 
 boost::shared_ptr<culib::ICudaImage> ActiveAppearanceModel::createMeanImage() {
-  if (!getMeanImage()) {
+  return createImage(getMeanImage().get());
+}
+
+boost::shared_ptr<culib::ICudaImage> ActiveAppearanceModel::createImage(std::vector<float>* features) {
+  if (!features) {
     boost::shared_ptr<culib::ICudaImage> image((culib::ICudaImage*)0);
     return image;
   }
   boost::shared_ptr<culib::ICudaImage> image(new culib::CudaImage(dim3(getWidth(), getHeight())));
 
   float* buffer = image->getOriginalImage();
-  copy(getMeanImage()->begin(), getMeanImage()->end(), buffer);
+  copy(features->begin(), features->end(), buffer);
   image->resetWorkingCopy();
 
   return image;
