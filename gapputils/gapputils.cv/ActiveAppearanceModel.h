@@ -31,6 +31,9 @@ class ActiveAppearanceModel : public capputils::reflection::ReflectableClass {
   Property(ColumnCount, int)
   Property(Width, int)
   Property(Height, int)
+  Property(ShapeParameterCount, int)
+  Property(TextureParameterCount, int)
+  Property(ModelParameterCount, int)
 
 public:
   ActiveAppearanceModel();
@@ -38,6 +41,8 @@ public:
 
   boost::shared_ptr<GridModel> createMeanGrid();
   boost::shared_ptr<culib::ICudaImage> createMeanImage();
+  boost::shared_ptr<GridModel> createGrid(std::vector<float>* features);
+  boost::shared_ptr<culib::ICudaImage> createImage(std::vector<float>* features);
 
   void setMeanGrid(boost::shared_ptr<GridModel> grid);
   void setMeanImage(boost::shared_ptr<culib::ICudaImage> image);

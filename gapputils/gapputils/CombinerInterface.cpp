@@ -107,7 +107,7 @@ bool CombinerInterface::advanceCombinations() {
   // falsely tagged as up to date if it is changed multiply times within one second.
   // Therefore, the process waits for one second before the next iteration starts.
 #ifdef _WIN32
-  _sleep(1);
+  _sleep(1000);
 #else
   sleep(1);
 #endif

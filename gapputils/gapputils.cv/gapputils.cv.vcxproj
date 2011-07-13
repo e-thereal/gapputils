@@ -58,7 +58,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).dll</OutputFile>
       <AdditionalLibraryDirectories>$(CULA_LIB_PATH_32);$(CUDA_LIB_PATH);$(BOOST_LIB_PATH);$(OutDir);$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cula.lib;cudart.lib;qtmaind.lib;QtCored4.lib;QtGuid4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cublas.lib;cula.lib;cudart.lib;qtmaind.lib;QtCored4.lib;QtGuid4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AamBuilder.cpp" />
+    <ClCompile Include="AamTester.cpp" />
     <ClCompile Include="ActiveAppearanceModel.cpp" />
     <ClCompile Include="FromRgb.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_GridDialog.cpp">
@@ -107,6 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AamBuilder.h" />
+    <ClInclude Include="AamTester.h" />
     <ClInclude Include="ActiveAppearanceModel.h" />
     <ClInclude Include="FromRgb.h" />
     <ClInclude Include="gapputils.cv_global.h" />
