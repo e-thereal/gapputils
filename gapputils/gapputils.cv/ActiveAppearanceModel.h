@@ -26,6 +26,7 @@ class ActiveAppearanceModel : public capputils::reflection::ReflectableClass {
   Property(PrincipalGrids, boost::shared_ptr<std::vector<float> >)
   Property(PrincipalImages, boost::shared_ptr<std::vector<float> >)
   Property(PrincipalParameters, boost::shared_ptr<std::vector<float> >)
+  Property(GradientMatrix, boost::shared_ptr<std::vector<float> >) ///< The gradient matrix is spCount x pixelCount
 
   Property(RowCount, int)
   Property(ColumnCount, int)

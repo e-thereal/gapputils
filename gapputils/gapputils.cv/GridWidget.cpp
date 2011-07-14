@@ -19,7 +19,7 @@ namespace gapputils {
 namespace cv {
 
 GridWidget::GridWidget(boost::shared_ptr<GridModel> model, int width, int height, QWidget* parent) : QGraphicsView(parent),
-    model(model), backgroundImage((QImage*)0), viewScale(1.0), timerId(0), isActivated(false)
+    model(model), viewScale(1.0), timerId(0), isActivated(false)
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);

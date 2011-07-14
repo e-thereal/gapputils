@@ -12,7 +12,13 @@ SOURCES = FromRgb.cpp \
           AamBuilder.cpp \
           trace.cpp \
           SliceFromMif.cpp \
-          ActiveAppearanceModel.cpp
+          ActiveAppearanceModel.cpp \
+          AamTester.cpp \
+          RectangleModel.cpp \
+          Rectangle.cpp \
+          RectangleDialog.cpp \
+          RectangleWidget.cpp \
+          RectangleItem.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \
@@ -24,7 +30,9 @@ HEADERS = FromRgb.h \
           GridPointItem.h \
           GridWidget.h \
           ImageWarp.h \
-          ToRgb.h
+          ToRgb.h \
+          RectangleDialog.h \
+          RectangleWidget.h
           
 TEMPLATE = lib          
 CONFIG += no_keywords debug dll
@@ -46,5 +54,5 @@ LIBS += -L"/home/tombr/Projects/culib/Debug"
 LIBS += -L"/home/tombr/Programs/cuda/lib"
 LIBS += -L"/home/tombr/Programs/cula/lib"
 LIBS += -L/home/tombr/lib
-LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -lculib -lcudart -lcula -lcublas
+LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -lculib -lcudart -lcublas
 LIBS += -lcmif_v5_3 -lutilities_v3_2 -lz
