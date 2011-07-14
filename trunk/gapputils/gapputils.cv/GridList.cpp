@@ -28,7 +28,7 @@ int GridList::imagesId;
 BeginPropertyDefinitions(GridList)
   ReflectableBase(workflow::CombinerInterface)
 
-  DefineProperty(ImageNames, Input("Names"), Filename("All (*)", true), FileExists(), Enumerable<std::vector<std::string>, false>(), Observe(namesId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImageNames, Input("Names"), Filename("All (*);;MIFs (*.MIF);;Images (*.jpg *.png *.jpeg)", true), FileExists(), Enumerable<std::vector<std::string>, false>(), Observe(namesId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Models, Output(), Enumerable<boost::shared_ptr<std::vector<boost::shared_ptr<GridModel> > >, true>(), ReadOnly(), Observe(modelsId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Images, Output(), Enumerable<boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >, false>(), ReadOnly(), Volatile(), Observe(imagesId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
 

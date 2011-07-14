@@ -78,11 +78,9 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  boost::shared_ptr<ActiveAppearanceModel> model(new ActiveAppearanceModel());
-  model->setShapeParameterCount(getShapeParameterCount());
-  model->setTextureParameterCount(getTextureParameterCount());
-  model->setModelParameterCount(getModelParameterCount());
-  data->setActiveAppearanceModel(model);
+  const int spCount = getShapeParameterCount();
+  const int tpCount = getTextureParameterCount();
+  const int mpCount = getModelParameterCount();
 
   std::vector<boost::shared_ptr<GridModel> >* grids = getGrids().get();
   if (!grids || grids->size() == 0)
@@ -100,6 +98,29 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       return;
     }
   }
+
+  if (!getImages() || getImages()->size() != getGrids()->size())
+    return;
+
+  if (getImages()->size() == 0)
+    return;
+
+  const unsigned width = getImages()->at(0)->getSize().x;
+  const unsigned height = getImages()->at(0)->getSize().y;
+  const int pixelCount = width * height;
+  const int imageCount = getImages()->size();
+
+  if (gridCount != imageCount || spCount > gridCount || tpCount > gridCount ||
+      mpCount > gridCount)
+  {
+    return;
+  }
+
+  boost::shared_ptr<ActiveAppearanceModel> model(new ActiveAppearanceModel());
+  model->setShapeParameterCount(getShapeParameterCount());
+  model->setTextureParameterCount(getTextureParameterCount());
+  model->setModelParameterCount(getModelParameterCount());
+  data->setActiveAppearanceModel(model);
 
   boost::shared_ptr<GridModel> meanGrid(new GridModel());
   meanGrid->setRowCount(rowCount);
@@ -139,17 +160,6 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   // The result are the principal grids.
   model->setPrincipalGrids(principalGrids);
-
-  if (!getImages() || getImages()->size() != getGrids()->size())
-    return;
-
-  if (getImages()->size() == 0)
-    return;
-
-  const unsigned width = getImages()->at(0)->getSize().x;
-  const unsigned height = getImages()->at(0)->getSize().y;
-  const int pixelCount = width * height;
-  const int imageCount = getImages()->size();
 
   // Warp all images into reference frame and calculate mean image afterwards
   std::vector<boost::shared_ptr<culib::ICudaImage> > warpedImages;
@@ -212,10 +222,6 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   // - calculate PCs of that matrix
   // - done
 
-  const int spCount = getShapeParameterCount();
-  const int tpCount = getTextureParameterCount();
-  const int mpCount = getModelParameterCount();
-
   vector<float> shapeParameterMatrix(gridCount * spCount);
   vector<float> textureParameterMatrix(imageCount * tpCount);
   vector<float> modelFeatureMatrix((spCount + tpCount) * gridCount);
@@ -236,6 +242,19 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   culib::getPcs(&(*principalParameters)[0], &modelFeatureMatrix[0], spCount + tpCount, gridCount);
 
   model->setPrincipalParameters(principalParameters);
+
+  // Calculate the gradient matrix
+  // - Build the matrix X of texture differences in reference frame
+  // - Build the matrix Y of according gradients
+  // - For every image grid pair
+  //   * change the shape parameters slightly
+  //   * this gives the shape gradient y_i
+  //   * calculate texture in reference frame as it would appear using the model
+  //     and using the modified shape parameters
+  //   * The difference from the texture and the image in reference frame gives
+  //     the regression variable x_i
+  // - Calculate the gradient matrix R = (X'X)^-1X'Y
+  // - The gradient is then g = R'x
 }
 
 void AamBuilder::writeResults() {
@@ -244,7 +263,8 @@ void AamBuilder::writeResults() {
 
   setActiveAppearanceModel(data->getActiveAppearanceModel());
 //  setMeanGrid(getActiveAppearanceModel()->getMeanGrid());
-  setMeanImage(getActiveAppearanceModel()->createMeanImage());
+  if (getActiveAppearanceModel())
+    setMeanImage(getActiveAppearanceModel()->createMeanImage());
 }
 
 }

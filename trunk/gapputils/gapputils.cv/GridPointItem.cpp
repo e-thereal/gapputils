@@ -166,7 +166,7 @@ void GridPointItem::calculateForces() {
   xvel = -target.x / weight;
   yvel = -target.y / weight;
 
-  if (abs(xvel) < 0.01 && abs(yvel) < 0.01) {
+  if (fabs(xvel) < 0.01 && fabs(yvel) < 0.01) {
     xvel = 0;
     yvel = 0;
   }

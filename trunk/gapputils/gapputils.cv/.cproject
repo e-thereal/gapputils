@@ -34,6 +34,9 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1549463018" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects/cmif_v5_3/cmif"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include/QtCore"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include/QtGui"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1412844880" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -43,6 +46,7 @@
 								<option id="gnu.c.compiler.option.include.paths.1871326597" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects/cmif_v5_3/cmif"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2107939416" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -60,6 +64,7 @@
 								<option id="gnu.both.asm.option.include.paths.1635697903" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects/cmif_v5_3/cmif"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1788455306" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -517,6 +522,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.914800847" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects/cmif_v5_3/cmif"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.887701332" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -526,6 +532,7 @@
 								<option id="gnu.c.compiler.option.include.paths.1078513157" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects/cmif_v5_3/cmif"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2141567281" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -543,6 +550,7 @@
 								<option id="gnu.both.asm.option.include.paths.2127889630" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects/cmif_v5_3/cmif"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1947567474" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
