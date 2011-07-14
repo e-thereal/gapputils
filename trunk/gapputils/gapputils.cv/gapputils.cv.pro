@@ -18,7 +18,12 @@ SOURCES = FromRgb.cpp \
           Rectangle.cpp \
           RectangleDialog.cpp \
           RectangleWidget.cpp \
-          RectangleItem.cpp
+          RectangleItem.cpp \
+          Cropper.cpp \
+          AamFitter.cpp \
+          AamGenerator.cpp \
+          AamWriter.cpp \
+          AamReader.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \

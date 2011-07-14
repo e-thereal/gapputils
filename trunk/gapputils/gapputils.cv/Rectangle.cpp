@@ -17,6 +17,7 @@
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
+#include <capputils/Xmlizer.h>
 
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
@@ -35,6 +36,8 @@ int Rectangle::heightId;
 int Rectangle::rectWidthId;
 int Rectangle::rectHeightId;
 int Rectangle::backgroundId;
+int Rectangle::modelId;
+int Rectangle::nameId;
 
 BeginPropertyDefinitions(Rectangle)
 
@@ -44,10 +47,10 @@ BeginPropertyDefinitions(Rectangle)
   DefineProperty(Height, Observe(heightId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(RectangleWidth, Observe(rectWidthId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(RectangleHeight, Observe(rectHeightId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Model, Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  ReflectableProperty(Model, Hide(), Observe(modelId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Rectangle, Output("Rect"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(BackgroundImage, Volatile(), ReadOnly(), Observe(backgroundId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RectangleName, Input("Name"), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(RectangleName, Input("Name"), Volatile(), Observe(nameId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
@@ -89,6 +92,16 @@ void Rectangle::changedHandler(capputils::ObservableClass* sender, int eventId) 
   } else if (eventId == rectHeightId) {
     getModel()->setHeight(getRectangleHeight());
   }
+
+  if (eventId == modelId) {
+    this->setTime(modelId, std::time(0));
+    if (getRectangleName().size())
+      capputils::Xmlizer::ToXml(getRectangleName(), *getModel());
+  }
+
+  if (eventId == nameId && FileExistsAttribute::exists(getRectangleName())) {
+    capputils::Xmlizer::FromXml(*getModel(), getRectangleName());
+  }
 }
 
 void Rectangle::execute(gapputils::workflow::IProgressMonitor* monitor) const {
@@ -102,6 +115,12 @@ void Rectangle::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 void Rectangle::writeResults() {
   if (!data)
     return;
+
+  // Make a copy of the rectangle so that is will not be changed later
+  TiXmlNode* modelNode = capputils::Xmlizer::CreateXml(*getModel());
+  boost::shared_ptr<RectangleModel> modelCopy((RectangleModel*)capputils::Xmlizer::CreateReflectableClass(*modelNode));
+  setRectangle(modelCopy);
+  delete modelNode;
 }
 
 void Rectangle::show() {
