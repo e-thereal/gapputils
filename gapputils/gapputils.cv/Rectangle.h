@@ -37,7 +37,8 @@ class Rectangle : public gapputils::workflow::WorkflowElement {
 private:
   mutable Rectangle* data;
   RectangleDialog* dialog;
-  static int widthId, heightId, rectWidthId, rectHeightId, backgroundId;
+  static int widthId, heightId, rectWidthId, rectHeightId, backgroundId,
+             modelId, nameId;
 
 public:
   Rectangle();

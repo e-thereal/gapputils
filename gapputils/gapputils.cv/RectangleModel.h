@@ -25,7 +25,7 @@ class RectangleModel : public capputils::reflection::ReflectableClass,
   Property(Width, float)
   Property(Height, float)
 public:
-  static int widthId, heightId;
+  static int leftId, topId, widthId, heightId;
 
 public:
   RectangleModel();

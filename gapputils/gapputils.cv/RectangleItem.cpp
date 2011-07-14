@@ -36,6 +36,10 @@ RectangleItem::~RectangleItem() {
 }
 
 void RectangleItem::changedHandler(capputils::ObservableClass* sender, int eventId) {
+  if (eventId == RectangleModel::leftId)
+    setX(model->getLeft());
+  else if (eventId == RectangleModel::topId)
+    setY(model->getTop());
   prepareGeometryChange();
 }
 

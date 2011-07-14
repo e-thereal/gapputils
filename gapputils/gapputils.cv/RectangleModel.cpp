@@ -13,14 +13,16 @@ namespace gapputils {
 
 namespace cv {
 
+int RectangleModel::leftId;
+int RectangleModel::topId;
 int RectangleModel::widthId;
 int RectangleModel::heightId;
 
 BeginPropertyDefinitions(RectangleModel)
   using namespace capputils::attributes;
 
-  DefineProperty(Left, Observe(PROPERTY_ID))
-  DefineProperty(Top, Observe(PROPERTY_ID))
+  DefineProperty(Left, Observe(leftId = PROPERTY_ID))
+  DefineProperty(Top, Observe(topId = PROPERTY_ID))
   DefineProperty(Width, Observe(widthId = PROPERTY_ID))
   DefineProperty(Height, Observe(heightId = PROPERTY_ID))
 
