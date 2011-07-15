@@ -20,6 +20,10 @@
 
 #include <gapputils/HideAttribute.h>
 
+#include <optlib/DownhillSimplexOptimizer.h>
+
+#include "AamMatchFunction.h"
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -59,7 +63,16 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
+  // Test something in here
+  // Use generator to generate images from the model
+  // evaluate model fit using altered parameter vectors
+  // Try to find optimal parameters using different optimization algorithms
+  // compare with known solution
 
+  AamMatchFunction objective(getInputImage(), getActiveAppearanceModel());
+  optlib::DownhillSimplexOptimizer optimizer;
+  std::vector<double> parameters(getActiveAppearanceModel()->getModelParameterCount());
+  optimizer.minimize(parameters, objective);
 }
 
 void AamFitter::writeResults() {
