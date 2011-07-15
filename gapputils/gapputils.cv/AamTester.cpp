@@ -45,7 +45,6 @@ AamTester::AamTester(void) : _FirstMode(0), _SecondMode(0), data(0)
   Changed.connect(capputils::EventHandler<AamTester>(this, &AamTester::changedHandler));
 }
 
-
 AamTester::~AamTester(void)
 {
   if (data)
