@@ -18,14 +18,23 @@
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
 
+#include <culib/lintrans.h>
+
 #include <gapputils/HideAttribute.h>
 
 #include <optlib/DownhillSimplexOptimizer.h>
 
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+
 #include "AamMatchFunction.h"
+#include "AamGenerator.h"
+#include "ImageWarp.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
+using namespace std;
 
 namespace gapputils {
 
@@ -63,22 +72,70 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  // Test something in here
-  // Use generator to generate images from the model
-  // evaluate model fit using altered parameter vectors
-  // Try to find optimal parameters using different optimization algorithms
-  // compare with known solution
+  boost::shared_ptr<ActiveAppearanceModel> model = getActiveAppearanceModel();
+  boost::shared_ptr<culib::ICudaImage> image = getInputImage();
 
-  AamMatchFunction objective(getInputImage(), getActiveAppearanceModel());
+  if (!model || !image)
+    return;
+
+  AamMatchFunction objective(getInputImage(), model);
+
   optlib::DownhillSimplexOptimizer optimizer;
-  std::vector<double> parameters(getActiveAppearanceModel()->getModelParameterCount());
-  optimizer.minimize(parameters, objective);
+  std::vector<double> parameter(getActiveAppearanceModel()->getShapeParameterCount());
+  optimizer.maximize(parameter, objective);
+
+  // Get model parameters for shape parameters
+  // - warp image to reference frame using current shape parameters
+  // - get texture parameters for best match
+  // - calculate possible model parameters
+  const int mpCount = model->getModelParameterCount();
+  const int spCount = model->getShapeParameterCount();
+  const int tpCount = model->getTextureParameterCount();
+
+  const int pixelCount = model->getWidth() * model->getHeight();
+  const int pointCount = model->getColumnCount() * model->getRowCount();
+
+  vector<float> shapeParameters(spCount);
+  vector<float> textureParameters(tpCount);
+  vector<float> modelParameters(mpCount);
+
+  vector<float> modelFeatures(spCount + tpCount);
+  vector<float> shapeFeatures(2 * pointCount);
+  vector<float> textureFeatures(pixelCount);
+
+  ImageWarp warp;
+  warp.setWarpedGrid(model->createMeanGrid());
+  warp.setInputImage(image);
+
+  copy(parameter.begin(), parameter.end(), shapeParameters.begin());
+  culib::lintrans(&shapeFeatures[0], &(*model->getPrincipalGrids())[0], &shapeParameters[0], spCount, 1, 2 * pointCount, false);
+  boost::shared_ptr<vector<float> > meanGrid = model->getMeanGrid();
+  for (int i = 0; i < 2 * pointCount; ++i)
+    shapeFeatures[i] = shapeFeatures[i] + meanGrid->at(i);
+  warp.setBaseGrid(model->createGrid(&shapeFeatures));
+  warp.execute(0);
+  warp.writeResults();
+
+  boost::shared_ptr<vector<float> > imageFeatures = model->toFeatures(warp.getOutputImage());
+  boost::shared_ptr<vector<float> > meanImageFeatures = model->getMeanImage();
+  for (int i = 0; i < pixelCount; ++i)
+    (*imageFeatures)[i] = imageFeatures->at(i) - meanImageFeatures->at(i);
+  culib::lintrans(&textureParameters[0], &(*model->getPrincipalImages())[0], &(*imageFeatures)[0], pixelCount, 1, tpCount, true);
+
+  copy(shapeParameters.begin(), shapeParameters.end(), modelFeatures.begin());
+  copy(textureParameters.begin(), textureParameters.end(), modelFeatures.begin() + spCount);
+  culib::lintrans(&modelParameters[0], &(*model->getPrincipalParameters())[0], &modelFeatures[0], spCount + tpCount, 1, mpCount, true);
+
+  boost::shared_ptr<vector<float> > pv(new vector<float>(mpCount));
+  copy(modelParameters.begin(), modelParameters.end(), pv->begin());
+  data->setParameterVector(pv);
 }
 
 void AamFitter::writeResults() {
   if (!data)
     return;
 
+  setParameterVector(data->getParameterVector());
 }
 
 }

@@ -23,7 +23,8 @@ SOURCES = FromRgb.cpp \
           AamFitter.cpp \
           AamGenerator.cpp \
           AamWriter.cpp \
-          AamReader.cpp
+          AamReader.cpp \
+          AamMatchFunction.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \
@@ -56,8 +57,9 @@ LIBS += -L/home/tombr/Projects/tinyxml/Debug
 LIBS += -L"/home/tombr/Projects/capputils/Debug Shared"
 LIBS += -L"/home/tombr/Projects/gapputils/Debug Shared"
 LIBS += -L"/home/tombr/Projects/culib/Debug"
+LIBS += -L"/home/tombr/Projects/optlib/Debug"
 LIBS += -L"/home/tombr/Programs/cuda/lib"
 LIBS += -L"/home/tombr/Programs/cula/lib"
 LIBS += -L/home/tombr/lib
-LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -lculib -lcudart -lcublas
+LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -loptlib -lculib -lcudart -lcublas
 LIBS += -lcmif_v5_3 -lutilities_v3_2 -lz
