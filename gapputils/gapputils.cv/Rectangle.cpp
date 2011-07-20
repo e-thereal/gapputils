@@ -75,16 +75,17 @@ Rectangle::~Rectangle() {
 }
 
 void Rectangle::changedHandler(capputils::ObservableClass* sender, int eventId) {
-  if (!dialog)
-    return;
-
   if (eventId == widthId || eventId == heightId) {
-    RectangleWidget* widget = (RectangleWidget*)dialog->getWidget();
-    widget->updateSize(getWidth(), getHeight());
+    if (dialog) {
+      RectangleWidget* widget = (RectangleWidget*)dialog->getWidget();
+      widget->updateSize(getWidth(), getHeight());
+    }
   }
   if (eventId == backgroundId) {
-    RectangleWidget* widget = (RectangleWidget*)dialog->getWidget();
-    widget->setBackgroundImage(getBackgroundImage());
+    if (dialog) {
+      RectangleWidget* widget = (RectangleWidget*)dialog->getWidget();
+      widget->setBackgroundImage(getBackgroundImage());
+    }
   }
 
   if (eventId == rectWidthId) {
