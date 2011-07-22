@@ -46,7 +46,7 @@ BeginPropertyDefinitions(AamBuilder)
   DefineProperty(ActiveAppearanceModel, Output("AAM"), Hide(), Volatile(), Reflectable<boost::shared_ptr<ActiveAppearanceModel> >(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ShapeParameterCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(TextureParameterCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ModelParameterCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(AppearanceParameterCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 //  DefineProperty(MeanGrid, Output("MG"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(MeanImage, Output("MI"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
@@ -55,7 +55,7 @@ EndPropertyDefinitions
 
 #define TRACE std::cout << __LINE__ << std::endl;
 
-AamBuilder::AamBuilder() : _ShapeParameterCount(10), _TextureParameterCount(20), _ModelParameterCount(10), data(0) {
+AamBuilder::AamBuilder() : _ShapeParameterCount(10), _TextureParameterCount(20), _AppearanceParameterCount(10), data(0) {
   WfeUpdateTimestamp
   setLabel("AamBuilder");
 
@@ -80,7 +80,7 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   const int spCount = getShapeParameterCount();
   const int tpCount = getTextureParameterCount();
-  const int mpCount = getModelParameterCount();
+  const int apCount = getAppearanceParameterCount();
 
   std::vector<boost::shared_ptr<GridModel> >* grids = getGrids().get();
   if (!grids || grids->size() == 0)
@@ -110,8 +110,7 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   const int pixelCount = width * height;
   const int imageCount = getImages()->size();
 
-  if (gridCount != imageCount || spCount > gridCount || tpCount > gridCount ||
-      mpCount > gridCount)
+  if (gridCount != imageCount)
   {
     return;
   }
@@ -119,7 +118,7 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   boost::shared_ptr<ActiveAppearanceModel> model(new ActiveAppearanceModel());
   model->setShapeParameterCount(getShapeParameterCount());
   model->setTextureParameterCount(getTextureParameterCount());
-  model->setModelParameterCount(getModelParameterCount());
+  model->setAppearanceParameterCount(getAppearanceParameterCount());
   data->setActiveAppearanceModel(model);
 
   boost::shared_ptr<GridModel> meanGrid(new GridModel());
@@ -137,13 +136,13 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     meanPoints->at(i)->setY(meanY / grids->size());
   }
 
-  model->setMeanGrid(meanGrid);
+  model->setMeanShape(meanGrid);
 
   // Flatten grid points into one large vector
   // Put all vectors together into one large matrix
   // Subtract the mean grid from each grid
 
-  vector<float>* meanGridFeatures = model->getMeanGrid().get();
+  vector<float>* meanGridFeatures = model->getMeanShape().get();
   vector<float> gridFeatureMatrix(2 * pointCount * gridCount);
   for (int i = 0, k = 0; i < gridCount; ++i) {
     boost::shared_ptr<std::vector<float> > features = ActiveAppearanceModel::toFeatures(grids->at(i));
@@ -154,12 +153,12 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   // Calculate principal components of that matrix
 
-  const int pccols = min(2 * pointCount, gridCount);
-  boost::shared_ptr<vector<float> > principalGrids(new vector<float> (2 * pointCount * pccols));
-  culib::getPcs(&(*principalGrids)[0], &gridFeatureMatrix[0], 2 * pointCount, gridCount);
+  //const int pccols = min(2 * pointCount, gridCount);
+  boost::shared_ptr<vector<float> > shapeMatrix(new vector<float> (2 * pointCount * spCount));
+  culib::getPcs(&(*shapeMatrix)[0], &gridFeatureMatrix[0], 2 * pointCount, gridCount, spCount);
 
   // The result are the principal grids.
-  model->setPrincipalGrids(principalGrids);
+  model->setShapeMatrix(shapeMatrix);
 
   // Warp all images into reference frame and calculate mean image afterwards
   std::vector<boost::shared_ptr<culib::ICudaImage> > warpedImages;
@@ -180,9 +179,9 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     warpedImages.push_back(warp.getOutputImage());
   }
 
-  boost::shared_ptr<culib::ICudaImage> meanImage(new culib::CudaImage(dim3(width, height)));
+  boost::shared_ptr<culib::ICudaImage> meanTexture(new culib::CudaImage(dim3(width, height)));
 
-  float* buffer = meanImage->getOriginalImage();
+  float* buffer = meanTexture->getOriginalImage();
   for (unsigned i = 0; i < width * height; ++i) {
     float value = 0;
     for (unsigned j = 0; j < warpedImages.size(); ++j) {
@@ -190,14 +189,14 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     }
     buffer[i] = value / warpedImages.size();
   }
-  meanImage->resetWorkingCopy();
-  model->setMeanImage(meanImage);
+  meanTexture->resetWorkingCopy();
+  model->setMeanTexture(meanTexture);
 
   // Flatten pixels into one large vector
   // Put all vectors together into one large matrix
   // Subtract the mean image from each image
 
-  vector<float>* meanImageFeatures = model->getMeanImage().get();
+  vector<float>* meanImageFeatures = model->getMeanTexture().get();
   vector<float> imageFeatureMatrix(pixelCount * imageCount);
   for (int i = 0, k = 0; i < imageCount; ++i) {
     boost::shared_ptr<std::vector<float> > features = ActiveAppearanceModel::toFeatures(warpedImages.at(i));
@@ -208,12 +207,12 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   // Calculate principal components of that matrix
 
-  const int pcrows = min(pixelCount, imageCount);
-  boost::shared_ptr<vector<float> > principalImages(new vector<float> (pcrows * pixelCount));
-  culib::getPcs(&(*principalImages)[0], &imageFeatureMatrix[0], pixelCount, imageCount);
+  //const int pcrows = min(pixelCount, imageCount);
+  boost::shared_ptr<vector<float> > textureMatrix(new vector<float> (tpCount * pixelCount));
+  culib::getPcs(&(*textureMatrix)[0], &imageFeatureMatrix[0], pixelCount, imageCount, tpCount);
 
   // The result are the principal images.
-  model->setPrincipalImages(principalImages);
+  model->setTextureMatrix(textureMatrix);
 
   // calculate shape and texture parameter matrix
   // for each warpedimage/grid
@@ -226,8 +225,8 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   vector<float> textureParameterMatrix(imageCount * tpCount);
   vector<float> modelFeatureMatrix((spCount + tpCount) * gridCount);
 
-  culib::lintrans(&shapeParameterMatrix[0], &(*principalGrids)[0], &gridFeatureMatrix[0], 2 * pointCount, gridCount, spCount, true);
-  culib::lintrans(&textureParameterMatrix[0], &(*principalImages)[0], &imageFeatureMatrix[0], pixelCount, imageCount, tpCount, true);
+  culib::lintrans(&shapeParameterMatrix[0], &(*shapeMatrix)[0], &gridFeatureMatrix[0], 2 * pointCount, gridCount, spCount, true);
+  culib::lintrans(&textureParameterMatrix[0], &(*textureMatrix)[0], &imageFeatureMatrix[0], pixelCount, imageCount, tpCount, true);
   
   // Build concatenated model feature matrix
   for (int iModel = 0, iShape = 0, iTexture = 0, i = 0; i < gridCount; ++i) {
@@ -237,11 +236,11 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       modelFeatureMatrix[iModel] = textureParameterMatrix[iTexture];
   }
 
-  const int pcmodelrows = min(spCount + tpCount, gridCount);
-  boost::shared_ptr<vector<float> > principalParameters(new vector<float> ((spCount + tpCount) * pcmodelrows));
-  culib::getPcs(&(*principalParameters)[0], &modelFeatureMatrix[0], spCount + tpCount, gridCount);
+  //const int pcmodelrows = min(spCount + tpCount, gridCount);
+  boost::shared_ptr<vector<float> > appearanceMatrix(new vector<float> ((spCount + tpCount) * apCount));
+  culib::getPcs(&(*appearanceMatrix)[0], &modelFeatureMatrix[0], spCount + tpCount, gridCount, apCount);
 
-  model->setPrincipalParameters(principalParameters);
+  model->setAppearanceMatrix(appearanceMatrix);
 
   // Calculate the gradient matrix
   // - Build the matrix X of texture differences in reference frame
@@ -264,7 +263,7 @@ void AamBuilder::writeResults() {
   setActiveAppearanceModel(data->getActiveAppearanceModel());
 //  setMeanGrid(getActiveAppearanceModel()->getMeanGrid());
   if (getActiveAppearanceModel())
-    setMeanImage(getActiveAppearanceModel()->createMeanImage());
+    setMeanImage(getActiveAppearanceModel()->createMeanTexture());
 }
 
 }

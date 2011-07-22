@@ -29,7 +29,7 @@ class AamBuilder : public gapputils::workflow::WorkflowElement {
 
   Property(ShapeParameterCount, int)
   Property(TextureParameterCount, int)
-  Property(ModelParameterCount, int)
+  Property(AppearanceParameterCount, int)
 
 //  Property(MeanGrid, boost::shared_ptr<GridModel>)
   Property(MeanImage, boost::shared_ptr<culib::ICudaImage>)
