@@ -64,7 +64,7 @@ void AamTester::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   boost::shared_ptr<ActiveAppearanceModel> model = getActiveAppearanceModel();
 
-  const int mpCount = model->getModelParameterCount();
+  const int mpCount = model->getAppearanceParameterCount();
 
   boost::shared_ptr<vector<float> >parameters(new vector<float>(mpCount));
   for (int i = 0; i < mpCount; ++i)

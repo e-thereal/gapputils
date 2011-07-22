@@ -46,7 +46,7 @@ BeginPropertyDefinitions(AamFitter)
   DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(InputImage, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ParameterVector, Output("PV"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-
+  DefineProperty(SSD, Output(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 EndPropertyDefinitions
 
 AamFitter::AamFitter() : data(0) {
@@ -88,7 +88,7 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   // - warp image to reference frame using current shape parameters
   // - get texture parameters for best match
   // - calculate possible model parameters
-  const int mpCount = model->getModelParameterCount();
+  const int apCount = model->getAppearanceParameterCount();
   const int spCount = model->getShapeParameterCount();
   const int tpCount = model->getTextureParameterCount();
 
@@ -97,38 +97,39 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   vector<float> shapeParameters(spCount);
   vector<float> textureParameters(tpCount);
-  vector<float> modelParameters(mpCount);
+  vector<float> modelParameters(apCount);
 
   vector<float> modelFeatures(spCount + tpCount);
   vector<float> shapeFeatures(2 * pointCount);
   vector<float> textureFeatures(pixelCount);
 
   ImageWarp warp;
-  warp.setWarpedGrid(model->createMeanGrid());
+  warp.setWarpedGrid(model->createMeanShape());
   warp.setInputImage(image);
 
   copy(parameter.begin(), parameter.end(), shapeParameters.begin());
-  culib::lintrans(&shapeFeatures[0], &(*model->getPrincipalGrids())[0], &shapeParameters[0], spCount, 1, 2 * pointCount, false);
-  boost::shared_ptr<vector<float> > meanGrid = model->getMeanGrid();
+  culib::lintrans(&shapeFeatures[0], &(*model->getShapeMatrix())[0], &shapeParameters[0], spCount, 1, 2 * pointCount, false);
+  boost::shared_ptr<vector<float> > meanGrid = model->getMeanShape();
   for (int i = 0; i < 2 * pointCount; ++i)
     shapeFeatures[i] = shapeFeatures[i] + meanGrid->at(i);
-  warp.setBaseGrid(model->createGrid(&shapeFeatures));
+  warp.setBaseGrid(model->createShape(&shapeFeatures));
   warp.execute(0);
   warp.writeResults();
 
   boost::shared_ptr<vector<float> > imageFeatures = model->toFeatures(warp.getOutputImage());
-  boost::shared_ptr<vector<float> > meanImageFeatures = model->getMeanImage();
+  boost::shared_ptr<vector<float> > meanImageFeatures = model->getMeanTexture();
   for (int i = 0; i < pixelCount; ++i)
     (*imageFeatures)[i] = imageFeatures->at(i) - meanImageFeatures->at(i);
-  culib::lintrans(&textureParameters[0], &(*model->getPrincipalImages())[0], &(*imageFeatures)[0], pixelCount, 1, tpCount, true);
+  culib::lintrans(&textureParameters[0], &(*model->getTextureMatrix())[0], &(*imageFeatures)[0], pixelCount, 1, tpCount, true);
 
   copy(shapeParameters.begin(), shapeParameters.end(), modelFeatures.begin());
   copy(textureParameters.begin(), textureParameters.end(), modelFeatures.begin() + spCount);
-  culib::lintrans(&modelParameters[0], &(*model->getPrincipalParameters())[0], &modelFeatures[0], spCount + tpCount, 1, mpCount, true);
+  culib::lintrans(&modelParameters[0], &(*model->getAppearanceMatrix())[0], &modelFeatures[0], spCount + tpCount, 1, apCount, true);
 
-  boost::shared_ptr<vector<float> > pv(new vector<float>(mpCount));
+  boost::shared_ptr<vector<float> > pv(new vector<float>(apCount));
   copy(modelParameters.begin(), modelParameters.end(), pv->begin());
   data->setParameterVector(pv);
+  data->setSSD(-objective.eval(parameter));
 }
 
 void AamFitter::writeResults() {
@@ -136,6 +137,7 @@ void AamFitter::writeResults() {
     return;
 
   setParameterVector(data->getParameterVector());
+  setSSD(data->getSSD());
 }
 
 }

@@ -37,6 +37,7 @@ BeginPropertyDefinitions(ImageWarp)
 
   DefineProperty(InputImage, Input("Img"), Hide(), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(BackgroundImage, Input("BG"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(BaseGrid, Input("Base"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(WarpedGrid, Input("Warped"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Map, Output(), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
@@ -119,13 +120,16 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     return;
 
   ICudaImage* inputImage = getInputImage().get();
+  boost::shared_ptr<ICudaImage> bgImage = getBackgroundImage();
   const int width = inputImage->getSize().x;
   const int height = inputImage->getSize().y;
 
   boost::shared_ptr<ICudaImage> warpedImage(new CudaImage(inputImage->getSize(), inputImage->getVoxelSize()));
   inputImage->saveDeviceToWorkingCopy();
+  if (bgImage) bgImage->saveDeviceToWorkingCopy();
   float* inputBuffer = inputImage->getWorkingCopy();
   float* warpedBuffer = warpedImage->getWorkingCopy();
+  float* bgBuffer = (bgImage ? bgImage->getWorkingCopy() : 0);
 
   // Build the map first
   std::vector<float2> wp0s, wp1s, wp2s, bp0s, bp1s, bp2s;
@@ -241,7 +245,7 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       
       if (!foundTriangle) {
         //std::cout << "No triangle found for (" << x << ", " << y << "). Index = " << index << std::endl;
-        warpedBuffer[i] = 0;
+        warpedBuffer[i] = (bgBuffer ? bgBuffer[i] : 0);
       } else {
         int inX = inP.x;
         int inY = inP.y;

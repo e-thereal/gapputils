@@ -24,7 +24,10 @@ SOURCES = FromRgb.cpp \
           AamGenerator.cpp \
           AamWriter.cpp \
           AamReader.cpp \
-          AamMatchFunction.cpp
+          AamMatchFunction.cpp \
+          AamBuilder2.cpp \
+          AamEcdnll.cpp \
+          ImageCombiner.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \
@@ -40,7 +43,8 @@ HEADERS = FromRgb.h \
           RectangleDialog.h \
           RectangleWidget.h
           
-TEMPLATE = lib          
+TEMPLATE = lib
+TARGET = gapputils.cv          
 CONFIG += no_keywords debug dll
 QMAKE_CXXFLAGS += -std=c++0x
 INCLUDEPATH += /home/tombr/Projects
@@ -61,5 +65,5 @@ LIBS += -L"/home/tombr/Projects/optlib/Debug"
 LIBS += -L"/home/tombr/Programs/cuda/lib"
 LIBS += -L"/home/tombr/Programs/cula/lib"
 LIBS += -L/home/tombr/lib
-LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -loptlib -lculib -lcudart -lcublas
+LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -loptlib -lculib -lcudart -lcublas -lcufft
 LIBS += -lcmif_v5_3 -lutilities_v3_2 -lz

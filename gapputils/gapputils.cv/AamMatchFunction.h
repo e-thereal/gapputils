@@ -6,6 +6,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <culib/ICudaImage.h>
+#include <culib/similarity.h>
 
 #include "ActiveAppearanceModel.h"
 
@@ -18,6 +19,7 @@ class AamMatchFunction : public virtual optlib::IFunction<optlib::IMultiDimensio
 private:
   boost::shared_ptr<culib::ICudaImage> image;
   boost::shared_ptr<ActiveAppearanceModel> model;
+  //culib::SimilarityConfig config;
 
 public:
   AamMatchFunction(boost::shared_ptr<culib::ICudaImage> image,

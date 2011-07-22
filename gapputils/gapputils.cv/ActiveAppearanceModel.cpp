@@ -26,38 +26,30 @@ namespace cv {
 
 BeginPropertyDefinitions(ActiveAppearanceModel)
 
-  DefineProperty(MeanGrid, Volatile())
-  DefineProperty(MeanImage, Volatile())
-  DefineProperty(PrincipalGrids, Volatile())
-  DefineProperty(PrincipalImages, Volatile())
-  DefineProperty(PrincipalParameters, Volatile())
+  DefineProperty(MeanShape, Volatile())
+  DefineProperty(MeanTexture, Volatile())
+  DefineProperty(ShapeMatrix, Volatile())
+  DefineProperty(TextureMatrix, Volatile())
+  DefineProperty(AppearanceMatrix, Volatile())
   DefineProperty(RowCount)
   DefineProperty(ColumnCount)
   DefineProperty(Width)
   DefineProperty(Height)
   DefineProperty(ShapeParameterCount)
   DefineProperty(TextureParameterCount)
-  DefineProperty(ModelParameterCount)
+  DefineProperty(AppearanceParameterCount)
 
 EndPropertyDefinitions
 
-ActiveAppearanceModel::ActiveAppearanceModel()
- : _MeanGrid((std::vector<float>*)0),
-   _MeanImage((std::vector<float>*)0),
-   _PrincipalGrids((std::vector<float>*)0),
-   _PrincipalImages((std::vector<float>*)0),
-   _PrincipalParameters((std::vector<float>*)0)
-{
+ActiveAppearanceModel::ActiveAppearanceModel() { }
+
+ActiveAppearanceModel::~ActiveAppearanceModel() { }
+
+boost::shared_ptr<GridModel> ActiveAppearanceModel::createMeanShape() {
+  return createShape(getMeanShape().get());
 }
 
-ActiveAppearanceModel::~ActiveAppearanceModel() {
-}
-
-boost::shared_ptr<GridModel> ActiveAppearanceModel::createMeanGrid() {
-  return createGrid(getMeanGrid().get());
-}
-
-boost::shared_ptr<GridModel> ActiveAppearanceModel::createGrid(std::vector<float>* features) {
+boost::shared_ptr<GridModel> ActiveAppearanceModel::createShape(std::vector<float>* features) {
   boost::shared_ptr<GridModel> grid(new GridModel());
   grid->setRowCount(getRowCount());
   grid->setColumnCount(getColumnCount());
@@ -71,11 +63,11 @@ boost::shared_ptr<GridModel> ActiveAppearanceModel::createGrid(std::vector<float
   return grid;
 }
 
-boost::shared_ptr<culib::ICudaImage> ActiveAppearanceModel::createMeanImage() {
-  return createImage(getMeanImage().get());
+boost::shared_ptr<culib::ICudaImage> ActiveAppearanceModel::createMeanTexture() {
+  return createTexture(getMeanTexture().get());
 }
 
-boost::shared_ptr<culib::ICudaImage> ActiveAppearanceModel::createImage(std::vector<float>* features) {
+boost::shared_ptr<culib::ICudaImage> ActiveAppearanceModel::createTexture(std::vector<float>* features) {
   if (!features) {
     boost::shared_ptr<culib::ICudaImage> image((culib::ICudaImage*)0);
     return image;
@@ -89,18 +81,18 @@ boost::shared_ptr<culib::ICudaImage> ActiveAppearanceModel::createImage(std::vec
   return image;
 }
 
-void ActiveAppearanceModel::setMeanGrid(boost::shared_ptr<GridModel> grid) {
+void ActiveAppearanceModel::setMeanShape(boost::shared_ptr<GridModel> grid) {
   setRowCount(grid->getRowCount());
   setColumnCount(grid->getColumnCount());
 
-  setMeanGrid(toFeatures(grid));
+  setMeanShape(toFeatures(grid));
 }
 
-void ActiveAppearanceModel::setMeanImage(boost::shared_ptr<culib::ICudaImage> image) {
+void ActiveAppearanceModel::setMeanTexture(boost::shared_ptr<culib::ICudaImage> image) {
   setWidth(image->getSize().x);
   setHeight(image->getSize().y);
 
-  setMeanImage(toFeatures(image));
+  setMeanTexture(toFeatures(image));
 }
 
 boost::shared_ptr<vector<float> > ActiveAppearanceModel::toFeatures(boost::shared_ptr<GridModel> grid) {

@@ -63,7 +63,7 @@ void AamReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   boost::shared_ptr<ActiveAppearanceModel> model(new ActiveAppearanceModel());
 
-  int rowCount, columnCount, width, height, spCount, tpCount, mpCount;
+  int rowCount, columnCount, width, height, spCount, tpCount, apCount;
   int meanGridSize, meanImageSize, pgSize, piSize, ppSize;
 
   FILE* infile = fopen(getFilename().c_str(), "rb");
@@ -76,7 +76,7 @@ void AamReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   assert(fread(&height, sizeof(int), 1, infile) == 1);
   assert(fread(&spCount, sizeof(int), 1, infile) == 1);
   assert(fread(&tpCount, sizeof(int), 1, infile) == 1);
-  assert(fread(&mpCount, sizeof(int), 1, infile) == 1);
+  assert(fread(&apCount, sizeof(int), 1, infile) == 1);
 
   model->setRowCount(rowCount);
   model->setColumnCount(columnCount);
@@ -84,32 +84,32 @@ void AamReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   model->setHeight(height);
   model->setShapeParameterCount(spCount);
   model->setTextureParameterCount(tpCount);
-  model->setModelParameterCount(mpCount);
+  model->setAppearanceParameterCount(apCount);
 
   assert(fread(&meanGridSize, sizeof(int), 1, infile) == 1);
   boost::shared_ptr<std::vector<float> > meanGrid(new std::vector<float>(meanGridSize));
   assert((int)fread(&(*meanGrid.get())[0], sizeof(float), meanGridSize, infile) == meanGridSize);
-  model->setMeanGrid(meanGrid);
+  model->setMeanShape(meanGrid);
 
   assert(fread(&meanImageSize, sizeof(int), 1, infile) == 1);
   boost::shared_ptr<std::vector<float> > meanImage(new std::vector<float>(meanImageSize));
   assert((int)fread(&(*meanImage.get())[0], sizeof(float), meanImageSize, infile) == meanImageSize);
-  model->setMeanImage(meanImage);
+  model->setMeanTexture(meanImage);
 
   assert(fread(&pgSize, sizeof(int), 1, infile) == 1);
   boost::shared_ptr<std::vector<float> > pg(new std::vector<float>(pgSize));
   assert((int)fread(&(*pg.get())[0], sizeof(float), pgSize, infile) == pgSize);
-  model->setPrincipalGrids(pg);
+  model->setShapeMatrix(pg);
 
   assert(fread(&piSize, sizeof(int), 1, infile) == 1);
   boost::shared_ptr<std::vector<float> > pi(new std::vector<float>(piSize));
   assert((int)fread(&(*pi.get())[0], sizeof(float), piSize, infile) == piSize);
-  model->setPrincipalImages(pi);
+  model->setTextureMatrix(pi);
 
   assert(fread(&ppSize, sizeof(int), 1, infile) == 1);
   boost::shared_ptr<std::vector<float> > pp(new std::vector<float>(ppSize));
   assert((int)fread(&(*pp.get())[0], sizeof(float), ppSize, infile) == ppSize);
-  model->setPrincipalParameters(pp);
+  model->setAppearanceMatrix(pp);
 
   fclose(infile);
 
