@@ -31,6 +31,11 @@ BeginPropertyDefinitions(ActiveAppearanceModel)
   DefineProperty(ShapeMatrix, Volatile())
   DefineProperty(TextureMatrix, Volatile())
   DefineProperty(AppearanceMatrix, Volatile())
+
+  DefineProperty(SingularShapeParameters, Volatile())
+  DefineProperty(SingularTextureParameters, Volatile())
+  DefineProperty(SingularAppearanceParameters, Volatile())
+
   DefineProperty(RowCount)
   DefineProperty(ColumnCount)
   DefineProperty(Width)
@@ -85,17 +90,17 @@ void ActiveAppearanceModel::setMeanShape(boost::shared_ptr<GridModel> grid) {
   setRowCount(grid->getRowCount());
   setColumnCount(grid->getColumnCount());
 
-  setMeanShape(toFeatures(grid));
+  setMeanShape(toFeatures(grid.get()));
 }
 
 void ActiveAppearanceModel::setMeanTexture(boost::shared_ptr<culib::ICudaImage> image) {
   setWidth(image->getSize().x);
   setHeight(image->getSize().y);
 
-  setMeanTexture(toFeatures(image));
+  setMeanTexture(toFeatures(image.get()));
 }
 
-boost::shared_ptr<vector<float> > ActiveAppearanceModel::toFeatures(boost::shared_ptr<GridModel> grid) {
+boost::shared_ptr<vector<float> > ActiveAppearanceModel::toFeatures(GridModel* grid) {
   boost::shared_ptr<vector<float> > features(new vector<float>());
   assert(grid->getColumnCount() * grid->getRowCount() == (int)grid->getPoints()->size());
 
@@ -108,7 +113,7 @@ boost::shared_ptr<vector<float> > ActiveAppearanceModel::toFeatures(boost::share
   return features;
 }
 
-boost::shared_ptr<vector<float> > ActiveAppearanceModel::toFeatures(boost::shared_ptr<culib::ICudaImage> image) {
+boost::shared_ptr<vector<float> > ActiveAppearanceModel::toFeatures(culib::ICudaImage* image) {
   boost::shared_ptr<vector<float> > features(new vector<float>());
   unsigned width = image->getSize().x;
   unsigned height = image->getSize().y;

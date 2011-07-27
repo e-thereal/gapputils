@@ -82,7 +82,7 @@ double AamEcdnll::eval(const DomainType& parameter) {
     fitter.setInputImage(trainingSet->at(i));
     fitter.execute(0);
     fitter.writeResults();
-    ecdnll += fitter.getSSD();
+    ecdnll -= fitter.getSimilarity();
     // TODO: Calculate parameter penalization term.
     ++showProgress;
   }

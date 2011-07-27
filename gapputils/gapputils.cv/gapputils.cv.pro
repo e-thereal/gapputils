@@ -27,7 +27,11 @@ SOURCES = FromRgb.cpp \
           AamMatchFunction.cpp \
           AamBuilder2.cpp \
           AamEcdnll.cpp \
-          ImageCombiner.cpp
+          ImageCombiner.cpp \
+          AamTester2.cpp \
+          AamUtils.cpp \
+          AamAnalyser.cpp \
+          GridImagePair.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \

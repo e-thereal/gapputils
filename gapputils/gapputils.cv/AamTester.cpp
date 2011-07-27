@@ -63,14 +63,15 @@ void AamTester::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     return;
 
   boost::shared_ptr<ActiveAppearanceModel> model = getActiveAppearanceModel();
+  boost::shared_ptr<vector<float> > sap = model->getSingularAppearanceParameters();
 
   const int mpCount = model->getAppearanceParameterCount();
 
   boost::shared_ptr<vector<float> >parameters(new vector<float>(mpCount));
   for (int i = 0; i < mpCount; ++i)
     (*parameters)[i] = 0;
-  (*parameters)[0] = getFirstMode();
-  (*parameters)[1] = getSecondMode();
+  (*parameters)[0] = getFirstMode() * sap->at(0);
+  (*parameters)[1] = getSecondMode() * sap->at(1);
 
   AamGenerator gen;
   gen.setActiveAppearanceModel(model);

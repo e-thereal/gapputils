@@ -145,7 +145,7 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   vector<float>* meanGridFeatures = model->getMeanShape().get();
   vector<float> gridFeatureMatrix(2 * pointCount * gridCount);
   for (int i = 0, k = 0; i < gridCount; ++i) {
-    boost::shared_ptr<std::vector<float> > features = ActiveAppearanceModel::toFeatures(grids->at(i));
+    boost::shared_ptr<std::vector<float> > features = ActiveAppearanceModel::toFeatures(grids->at(i).get());
     for (int j = 0; j < 2 * pointCount; ++j, ++k) {
       gridFeatureMatrix[k] = features->at(j) - meanGridFeatures->at(j);
     }
@@ -155,10 +155,12 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   //const int pccols = min(2 * pointCount, gridCount);
   boost::shared_ptr<vector<float> > shapeMatrix(new vector<float> (2 * pointCount * spCount));
-  culib::getPcs(&(*shapeMatrix)[0], &gridFeatureMatrix[0], 2 * pointCount, gridCount, spCount);
+  boost::shared_ptr<vector<float> > singularShapeParameters(new vector<float>(spCount));
+  culib::getPcs(&(*shapeMatrix)[0], &(*singularShapeParameters)[0], &gridFeatureMatrix[0], 2 * pointCount, gridCount, spCount);
 
   // The result are the principal grids.
   model->setShapeMatrix(shapeMatrix);
+  model->setSingularShapeParameters(singularShapeParameters);
 
   // Warp all images into reference frame and calculate mean image afterwards
   std::vector<boost::shared_ptr<culib::ICudaImage> > warpedImages;
@@ -199,7 +201,7 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   vector<float>* meanImageFeatures = model->getMeanTexture().get();
   vector<float> imageFeatureMatrix(pixelCount * imageCount);
   for (int i = 0, k = 0; i < imageCount; ++i) {
-    boost::shared_ptr<std::vector<float> > features = ActiveAppearanceModel::toFeatures(warpedImages.at(i));
+    boost::shared_ptr<std::vector<float> > features = ActiveAppearanceModel::toFeatures(warpedImages.at(i).get());
     for (int j = 0; j < pixelCount; ++j, ++k) {
       imageFeatureMatrix[k] = features->at(j) - meanImageFeatures->at(j);
     }
@@ -209,10 +211,12 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   //const int pcrows = min(pixelCount, imageCount);
   boost::shared_ptr<vector<float> > textureMatrix(new vector<float> (tpCount * pixelCount));
-  culib::getPcs(&(*textureMatrix)[0], &imageFeatureMatrix[0], pixelCount, imageCount, tpCount);
+  boost::shared_ptr<vector<float> > singularTextureParameters(new vector<float>(tpCount));
+  culib::getPcs(&(*textureMatrix)[0], &(*singularTextureParameters)[0], &imageFeatureMatrix[0], pixelCount, imageCount, tpCount);
 
   // The result are the principal images.
   model->setTextureMatrix(textureMatrix);
+  model->setSingularTextureParameters(singularTextureParameters);
 
   // calculate shape and texture parameter matrix
   // for each warpedimage/grid
@@ -238,9 +242,11 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   //const int pcmodelrows = min(spCount + tpCount, gridCount);
   boost::shared_ptr<vector<float> > appearanceMatrix(new vector<float> ((spCount + tpCount) * apCount));
-  culib::getPcs(&(*appearanceMatrix)[0], &modelFeatureMatrix[0], spCount + tpCount, gridCount, apCount);
+  boost::shared_ptr<vector<float> > singularAppearanceParameters(new vector<float> (apCount));
+  culib::getPcs(&(*appearanceMatrix)[0], &(*singularAppearanceParameters)[0], &modelFeatureMatrix[0], spCount + tpCount, gridCount, apCount);
 
   model->setAppearanceMatrix(appearanceMatrix);
+  model->setSingularAppearanceParameters(singularAppearanceParameters);
 
   // Calculate the gradient matrix
   // - Build the matrix X of texture differences in reference frame

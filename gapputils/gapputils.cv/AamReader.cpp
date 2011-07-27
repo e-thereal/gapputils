@@ -111,6 +111,18 @@ void AamReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   assert((int)fread(&(*pp.get())[0], sizeof(float), ppSize, infile) == ppSize);
   model->setAppearanceMatrix(pp);
 
+  boost::shared_ptr<std::vector<float> > ssp(new std::vector<float>(spCount));
+  assert((int)fread(&(*ssp.get())[0], sizeof(float), spCount, infile) == spCount);
+  model->setSingularShapeParameters(ssp);
+
+  boost::shared_ptr<std::vector<float> > stp(new std::vector<float>(tpCount));
+  assert((int)fread(&(*stp.get())[0], sizeof(float), tpCount, infile) == tpCount);
+  model->setSingularTextureParameters(stp);
+
+  boost::shared_ptr<std::vector<float> > sap(new std::vector<float>(apCount));
+  assert((int)fread(&(*sap.get())[0], sizeof(float), apCount, infile) == apCount);
+  model->setSingularAppearanceParameters(sap);
+
   fclose(infile);
 
   data->setActiveAppearanceModel(model);
