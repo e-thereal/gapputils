@@ -69,7 +69,9 @@ void AamWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   ActiveAppearanceModel* model = getActiveAppearanceModel().get();
 
   if (!model->getMeanShape() || !model->getMeanTexture() || !model->getShapeMatrix() ||
-      !model->getTextureMatrix() || !model->getAppearanceMatrix())
+      !model->getTextureMatrix() || !model->getAppearanceMatrix() ||
+      !model->getSingularTextureParameters() || !model->getSingularAppearanceParameters() ||
+      !model->getSingularShapeParameters())
   {
     return;
   }
@@ -88,6 +90,10 @@ void AamWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   int pgSize = model->getShapeMatrix()->size();
   int piSize = model->getTextureMatrix()->size();
   int ppSize = model->getAppearanceMatrix()->size();
+
+  assert((int)model->getSingularShapeParameters()->size() == spCount);
+  assert((int)model->getSingularTextureParameters()->size() == tpCount);
+  assert((int)model->getSingularAppearanceParameters()->size() == apCount);
 
   if (!outfile)
     return;
@@ -114,6 +120,10 @@ void AamWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   fwrite(&ppSize, sizeof(int), 1, outfile);
   fwrite(&(*model->getAppearanceMatrix().get())[0], sizeof(float), ppSize, outfile);
+
+  fwrite(&(*model->getSingularShapeParameters())[0], sizeof(float), spCount, outfile);
+  fwrite(&(*model->getSingularTextureParameters())[0], sizeof(float), tpCount, outfile);
+  fwrite(&(*model->getSingularAppearanceParameters())[0], sizeof(float), apCount, outfile);
 
   fclose(outfile);
 

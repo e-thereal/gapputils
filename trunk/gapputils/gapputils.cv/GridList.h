@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef GAPPUTILSCV_GRIDLIST_H_
+#define GAPPUTILSCV_GRIDLIST_H_
+
 #include <gapputils/CombinerInterface.h>
 #include <culib/ICudaImage.h>
 
@@ -32,3 +35,5 @@ public:
 }
 
 }
+
+#endif /* GAPPUTILSCV_GRIDLIST_H_ */

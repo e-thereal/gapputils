@@ -23,7 +23,7 @@ class AamFitter : public gapputils::workflow::WorkflowElement {
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
   Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
   Property(ParameterVector, boost::shared_ptr<std::vector<float> >)
-  Property(SSD, double)
+  Property(Similarity, double)
 
 private:
   mutable AamFitter* data;

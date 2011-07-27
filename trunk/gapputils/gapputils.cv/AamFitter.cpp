@@ -23,6 +23,8 @@
 #include <gapputils/HideAttribute.h>
 
 #include <optlib/DownhillSimplexOptimizer.h>
+#include <optlib/SimplifiedPowellOptimizer.h>
+#include <optlib/SteepestDescentOptimizer.h>
 
 #include <algorithm>
 #include <cassert>
@@ -46,7 +48,7 @@ BeginPropertyDefinitions(AamFitter)
   DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(InputImage, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ParameterVector, Output("PV"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SSD, Output(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Similarity, Output("Sim"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 EndPropertyDefinitions
 
 AamFitter::AamFitter() : data(0) {
@@ -78,9 +80,10 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!model || !image)
     return;
 
-  AamMatchFunction objective(getInputImage(), model);
+  AamMatchFunction objective(getInputImage(), model, true, AamMatchFunction::SSD);
 
-  optlib::DownhillSimplexOptimizer optimizer;
+  //optlib::DownhillSimplexOptimizer optimizer;
+  optlib::SimplifiedPowellOptimizer optimizer;
   std::vector<double> parameter(getActiveAppearanceModel()->getShapeParameterCount());
   optimizer.maximize(parameter, objective);
 
@@ -116,7 +119,7 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   warp.execute(0);
   warp.writeResults();
 
-  boost::shared_ptr<vector<float> > imageFeatures = model->toFeatures(warp.getOutputImage());
+  boost::shared_ptr<vector<float> > imageFeatures = model->toFeatures(warp.getOutputImage().get());
   boost::shared_ptr<vector<float> > meanImageFeatures = model->getMeanTexture();
   for (int i = 0; i < pixelCount; ++i)
     (*imageFeatures)[i] = imageFeatures->at(i) - meanImageFeatures->at(i);
@@ -129,7 +132,7 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   boost::shared_ptr<vector<float> > pv(new vector<float>(apCount));
   copy(modelParameters.begin(), modelParameters.end(), pv->begin());
   data->setParameterVector(pv);
-  data->setSSD(-objective.eval(parameter));
+  data->setSimilarity(objective.eval(parameter));
 }
 
 void AamFitter::writeResults() {
@@ -137,7 +140,7 @@ void AamFitter::writeResults() {
     return;
 
   setParameterVector(data->getParameterVector());
-  setSSD(data->getSSD());
+  setSimilarity(data->getSimilarity());
 }
 
 }
