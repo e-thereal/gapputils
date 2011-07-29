@@ -23,10 +23,17 @@ class GridModel : public capputils::reflection::ReflectableClass,
 public:
   static int rowCountId, columnCountId, pointsId;
 
+private:
+  mutable float* d_features;
+
 public:
   GridModel(void);
   virtual ~GridModel(void);
   void clearGrid();
+
+  float* getDeviceFeatures() const;
+
+  void freeCaches();
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);

@@ -32,6 +32,10 @@
 								<option id="gnu.cpp.compiler.so.debug.option.optimization.level.737759994" name="Optimization Level" superClass="gnu.cpp.compiler.so.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.so.debug.option.debugging.level.1773664475" name="Debug Level" superClass="gnu.cpp.compiler.so.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1549463018" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/optlib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects/cmif_v5_3/cmif"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include"/>
@@ -44,6 +48,10 @@
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.so.debug.option.optimization.level.1589435967" name="Optimization Level" superClass="gnu.c.compiler.so.debug.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.so.debug.option.debugging.level.2031897473" name="Debug Level" superClass="gnu.c.compiler.so.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1871326597" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/optlib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects/cmif_v5_3/cmif"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include"/>
@@ -55,6 +63,20 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.so.debug.2035053499" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.debug">
 								<option defaultValue="true" id="gnu.cpp.link.so.debug.option.shared.80907975" name="Shared (-shared)" superClass="gnu.cpp.link.so.debug.option.shared" valueType="boolean"/>
+								<option id="gnu.cpp.link.option.paths.1688471249" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/optlib/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
+								</option>
+								<option id="gnu.cpp.link.option.libs.841683847" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="optlib"/>
+									<listOptionValue builtIn="false" value="gapputils"/>
+									<listOptionValue builtIn="false" value="culib"/>
+									<listOptionValue builtIn="false" value="capputils"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.586532288" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -62,6 +84,10 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.so.debug.303036284" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.so.debug">
 								<option id="gnu.both.asm.option.include.paths.1635697903" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/optlib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects/cmif_v5_3/cmif"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include"/>
@@ -487,7 +513,38 @@
 					</profile>
 				</scannerConfigBuildInfo>
 			</storageModule>
-			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings">
+				<externalSettings containerId="capputils;" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/capputils"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/capputils/Debug"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/capputils/Debug Shared"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="capputils"/>
+					</externalSetting>
+				</externalSettings>
+				<externalSettings containerId="culib;" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/culib"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/culib/Debug"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="culib"/>
+					</externalSetting>
+				</externalSettings>
+				<externalSettings containerId="gapputils;" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils/Debug"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils/Debug Shared"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gapputils"/>
+					</externalSetting>
+				</externalSettings>
+				<externalSettings containerId="optlib;" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/optlib"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/optlib/Debug"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="optlib"/>
+					</externalSetting>
+				</externalSettings>
+			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 		</cconfiguration>
