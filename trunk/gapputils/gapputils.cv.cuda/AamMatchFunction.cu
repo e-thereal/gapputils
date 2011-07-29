@@ -61,12 +61,6 @@ double aamMatchFunction(const vector<double>& parameter, int spCount, int tpCoun
   for (int i = 0; i < 2 * pointCount; ++i)
     shapeFeatures[i] = shapeFeatures[i] + meanShape[i];
 
-  //warp.setInputImage(image);
-  //warp.setBaseGrid(model->createShape(&shapeFeatures));
-  //warp.setWarpedGrid(model->createMeanShape());
-  //warp.execute(0);
-  //warp.writeResults();
-
   thrust::device_vector<float> d_baseGrid(shapeFeatures.begin(), shapeFeatures.end());
   thrust::device_vector<float> d_meanShape(meanShape, meanShape + (2 * pointCount));
 
@@ -93,7 +87,7 @@ double aamMatchFunction(const vector<double>& parameter, int spCount, int tpCoun
   // Calculate match quality
   // - calculate texture using texture parameters + add mean texture
   // - warp texture to the shape frame
-  // - compare both images (SSD)
+  // - compare both images (SSD or MI)
   culib::lintrans(&textureFeatures[0], textureMatrix, &textureParameters[0], tpCount, 1, pixelCount, false);
   for (int i = 0; i < pixelCount; ++i)
     textureFeatures[i] = textureFeatures[i] + meanTexture[i];
@@ -103,12 +97,6 @@ double aamMatchFunction(const vector<double>& parameter, int spCount, int tpCoun
     shapeFeatures[i] = shapeFeatures[i] + meanShape[i];
 
   if (inReferenceFrame) {
-    //warp.setInputImage(image);
-    //warp.setBaseGrid(model->createShape(&shapeFeatures));
-    //warp.setWarpedGrid(model->createMeanShape());
-    //warp.execute(0);
-    //warp.writeResults();
-
     thrust::copy(shapeFeatures.begin(), shapeFeatures.end(), d_baseGrid.begin());
     culib::warpImage(warpedImage->getDevicePointer(), inputImage->getCudaArray(), inputImage->getSize(),
         (float2*)d_baseGrid.data().get(), (float2*)d_meanShape.data().get(),
@@ -121,11 +109,6 @@ double aamMatchFunction(const vector<double>& parameter, int spCount, int tpCoun
     else
       sim = culib::getSimilarity(config, warpedImage->getDevicePointer(), d_textureFeatures.data().get(), inputImage->getSize());
   } else {
-    //warp.setInputImage(model->createTexture(&textureFeatures));
-    //warp.setBaseGrid(model->createMeanShape());
-    //warp.setWarpedGrid(model->createShape(&shapeFeatures));
-    //warp.execute(0);
-    //warp.writeResults();
     culib::CudaImage textureImage(inputImage->getSize(), inputImage->getVoxelSize(), &textureFeatures[0]);
     thrust::copy(shapeFeatures.begin(), shapeFeatures.end(), d_baseGrid.begin());
     culib::warpImage(warpedImage->getDevicePointer(), textureImage.getCudaArray(), inputImage->getSize(),
@@ -136,22 +119,6 @@ double aamMatchFunction(const vector<double>& parameter, int spCount, int tpCoun
       sim = culib::calculateNegativeSSD(inputImage->getDevicePointer(), warpedImage->getDevicePointer(), inputImage->getSize());
     else
       sim = culib::getSimilarity(config, inputImage->getDevicePointer(), warpedImage->getDevicePointer(), inputImage->getSize());
-//    static int iEval = 0;
-//    static int iFilename = 0;
-//
-//    if (iEval % 100 == 0) {
-//      std::stringstream filename;
-//      filename << "match_" << iFilename++ << " (" << sim << ").jpg";
-//
-//      FromRgb fromRgb;
-//      fromRgb.setRed(matchImage);
-//      fromRgb.setGreen(matchImage);
-//      fromRgb.setBlue(matchImage);
-//      fromRgb.execute(0);
-//      fromRgb.writeResults();
-//      fromRgb.getImagePtr()->save(filename.str().c_str(), "jpg");
-//    }
-    //  assert(0);
   }
   return sim;
 }
