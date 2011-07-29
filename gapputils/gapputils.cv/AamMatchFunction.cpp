@@ -14,6 +14,7 @@
 #include <cmath>
 
 #include "FromRgb.h"
+#include <gapputils.cv.cuda/AamMatchFunction.h>
 
 using namespace std;
 using namespace culib;
@@ -80,13 +81,13 @@ double AamMatchFunction::eval(const DomainType& parameter) {
   culib::lintrans(&textureParameters[0], &(*model->getTextureMatrix())[0], &(*imageFeatures)[0], pixelCount, 1, tpCount, true);
 
   // TODO: use appearance matrix. Not used here for debugging purpose
-  //copy(shapeParameters.begin(), shapeParameters.end(), modelFeatures.begin());
-  //copy(textureParameters.begin(), textureParameters.end(), modelFeatures.begin() + spCount);
-  //culib::lintrans(&modelParameters[0], &(*model->getAppearanceMatrix())[0], &modelFeatures[0], spCount + tpCount, 1, apCount, true);
+  copy(shapeParameters.begin(), shapeParameters.end(), modelFeatures.begin());
+  copy(textureParameters.begin(), textureParameters.end(), modelFeatures.begin() + spCount);
+  culib::lintrans(&modelParameters[0], &(*model->getAppearanceMatrix())[0], &modelFeatures[0], spCount + tpCount, 1, apCount, true);
 
-  //culib::lintrans(&modelFeatures[0], &(*model->getAppearanceMatrix())[0], &modelParameters[0], apCount, 1, spCount + tpCount, false);
-  //copy(modelFeatures.begin(), modelFeatures.begin() + spCount, shapeParameters.begin());
-  //copy(modelFeatures.begin() + spCount, modelFeatures.end(), textureParameters.begin());
+  culib::lintrans(&modelFeatures[0], &(*model->getAppearanceMatrix())[0], &modelParameters[0], apCount, 1, spCount + tpCount, false);
+  copy(modelFeatures.begin(), modelFeatures.begin() + spCount, shapeParameters.begin());
+  copy(modelFeatures.begin() + spCount, modelFeatures.end(), textureParameters.begin());
 
   // Calculate match quality
   // - calculate texture using texture parameters + add mean texture
@@ -151,14 +152,28 @@ double AamMatchFunction::eval(const DomainType& parameter) {
     //  assert(0);
   }
 
-  boost::shared_ptr<std::vector<float> > ssp = model->getSingularShapeParameters();
+//  boost::shared_ptr<std::vector<float> > ssp = model->getSingularShapeParameters();
+//
+//  // penalize large shape variants
+//  double pen = 1.0;
+//  for (int i = 0; i < spCount; ++i)
+//    pen += fabs(parameter[i]) / ssp->at(i);
+//
+//  return sim - pen;
 
-  // penalize large shape variants
-  double pen = 1.0;
-  for (int i = 0; i < spCount; ++i)
-    pen += fabs(parameter[i]) / ssp->at(i);
+  boost::shared_ptr<vector<float> > shapeMatrix = model->getShapeMatrix();
+  boost::shared_ptr<vector<float> > textureMatrix = model->getTextureMatrix();
+  boost::shared_ptr<vector<float> > appearanceMatrix = model->getAppearanceMatrix();
 
-  return sim - pen;
+  CudaImage warpedImage(image->getSize(), image->getVoxelSize());
+
+  double sim2 = cuda::aamMatchFunction(parameter, spCount, tpCount, apCount,
+      model->getWidth(), model->getHeight(), model->getColumnCount(), model->getRowCount(),
+      &(*shapeMatrix)[0], &(*textureMatrix)[0], &(*appearanceMatrix)[0],
+      &(*model->getMeanShape())[0], &(*model->getMeanTexture())[0],
+      image.get(), &warpedImage, inReferenceFrame, config, (measure == MI));
+  assert(sim == sim2);
+  return sim;
 }
 
 }

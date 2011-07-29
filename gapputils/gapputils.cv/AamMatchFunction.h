@@ -14,8 +14,6 @@ namespace gapputils {
 
 namespace cv {
 
-
-
 class AamMatchFunction : public virtual optlib::IFunction<optlib::IMultiDimensionOptimizer::DomainType>
 {
 public:

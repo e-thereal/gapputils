@@ -4,6 +4,9 @@
 #include <capputils/ObserveAttribute.h>
 #include <capputils/EventHandler.h>
 
+#include <cuda_runtime.h>
+#include <cutil.h>
+
 namespace gapputils {
 
 namespace cv {
@@ -21,7 +24,7 @@ BeginPropertyDefinitions(GridModel)
 
 EndPropertyDefinitions
 
-GridModel::GridModel(void) : _RowCount(0), _ColumnCount(0)
+GridModel::GridModel(void) : _RowCount(0), _ColumnCount(0), d_features(0)
 {
   _Points = new std::vector<GridPoint*>();
   Changed.connect(capputils::EventHandler<GridModel>(this, &GridModel::changedHandler));
@@ -30,6 +33,7 @@ GridModel::GridModel(void) : _RowCount(0), _ColumnCount(0)
 
 GridModel::~GridModel(void)
 {
+  freeCaches();
   clearGrid();
   delete _Points;
 }
@@ -38,6 +42,28 @@ void GridModel::clearGrid() {
   for (unsigned i = 0; i < _Points->size(); ++i)
     delete _Points->at(i);
   _Points->clear();
+}
+
+float* GridModel::getDeviceFeatures() const {
+  if (!d_features) {
+    std::vector<float> features;
+
+    const unsigned count = getPoints()->size();
+    for (unsigned i = 0; i < count; ++i) {
+      features.push_back(getPoints()->at(i)->getX());
+      features.push_back(getPoints()->at(i)->getY());
+    }
+    const size_t size = 2 *count * sizeof(float);
+    CUDA_SAFE_CALL(cudaMalloc((void**)&d_features, size));
+    CUDA_SAFE_CALL(cudaMemcpy(d_features, &features[0], size, cudaMemcpyHostToDevice));
+  }
+  return d_features;
+}
+
+void GridModel::freeCaches() {
+  if (d_features)
+    CUDA_SAFE_CALL(cudaFree(d_features));
+  d_features = 0;
 }
 
 void GridModel::changedHandler(capputils::ObservableClass* sender, int eventId) {

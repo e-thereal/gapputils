@@ -94,21 +94,10 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   ICudaImage* inputImage = getInputImage().get();
   boost::shared_ptr<ICudaImage> bgImage = getBackgroundImage();
-  const int width = inputImage->getSize().x;
-  const int height = inputImage->getSize().y;
-
   boost::shared_ptr<ICudaImage> warpedImage((bgImage ? new CudaImage(*bgImage) : new CudaImage(inputImage->getSize(), inputImage->getVoxelSize())));
-  inputImage->saveDeviceToWorkingCopy();
-  float* inputBuffer = inputImage->getWorkingCopy();
-  float* warpedBuffer = warpedImage->getWorkingCopy();
-
-  boost::shared_ptr<std::vector<float> > warpedGridFeatures = ActiveAppearanceModel::toFeatures(warpedGrid.get());
-  boost::shared_ptr<std::vector<float> > baseGridFeatures = ActiveAppearanceModel::toFeatures(baseGrid.get());
-
-  if (!bgImage)
-    std::fill(warpedBuffer, warpedBuffer + (width * height), 0.0f);
-
-  culib::warpImage(warpedBuffer, inputBuffer, dim3(width, height), (float2*)&(*baseGridFeatures)[0], (float2*)&(*warpedGridFeatures)[0], dim3(columnCount, rowCount));
+  warpImage(warpedImage->getDevicePointer(), inputImage->getCudaArray(), inputImage->getSize(),
+      (float2*)baseGrid->getDeviceFeatures(), (float2*)warpedGrid->getDeviceFeatures(),
+      dim3(columnCount, rowCount));
 
   data->setOutputImage(warpedImage);
 }

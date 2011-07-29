@@ -121,6 +121,7 @@ boost::shared_ptr<vector<float> > ActiveAppearanceModel::toFeatures(culib::ICuda
   const unsigned count = width * height;
   features->resize(count);
 
+  image->saveDeviceToWorkingCopy();
   float* buffer = image->getWorkingCopy();
   copy(buffer, buffer + count, features->begin());
 
