@@ -22,7 +22,6 @@ InitReflectableClass(ImageWarp)
   Property(BackgroundImage, boost::shared_ptr<culib::ICudaImage>)
   Property(BaseGrid, boost::shared_ptr<GridModel>)
   Property(WarpedGrid, boost::shared_ptr<GridModel>)
-  Property(Map, boost::shared_ptr<QImage>)
 
 private:
   mutable ImageWarp* data;
