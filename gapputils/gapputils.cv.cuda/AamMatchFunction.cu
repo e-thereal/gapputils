@@ -8,6 +8,8 @@
 #include "AamMatchFunction.h"
 
 #include <cassert>
+
+#include <iostream>
 #include <vector>
 
 #include <culib/ICudaImage.h>
@@ -17,7 +19,10 @@
 #include <culib/transform.h>
 
 #include <thrust/copy.h>
+#include <thrust/fill.h>
+#include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
+#include <thrust/functional.h>
 #include <thrust/transform.h>
 
 using namespace std;
@@ -28,9 +33,18 @@ namespace cv {
 
 namespace cuda {
 
+#define cout << __LINE__ << endl;
+
+AamMatchStatus::AamMatchStatus(int spCount, int tpCount, int apCount,
+    int sfCount, int tfCount, int afCount)
+ : shapeParameters(spCount), d_shapeParameters(spCount), d_textureParameters(tpCount), d_appearanceParameters(apCount),
+   d_shapeFeatures(sfCount), d_textureFeatures(tfCount), d_appearanceFeatures(afCount)
+{ }
+
 double aamMatchFunction(const vector<double>& parameter, int spCount, int tpCount, int apCount, int width, int height,
-    int columnCount, int rowCount, float* shapeMatrix, float* textureMatrix, float* appearanceMatrix,
-    float* meanShape, float* meanTexture,
+    int columnCount, int rowCount, float* d_shapeMatrix, float* d_textureMatrix, float* d_appearanceMatrix,
+    float* d_meanShape, float* d_meanTexture,
+    AamMatchStatus& status,
     culib::ICudaImage* inputImage, culib::ICudaImage* warpedImage,
     bool inReferenceFrame, culib::SimilarityConfig& config, bool useMi)
 {
@@ -45,74 +59,74 @@ double aamMatchFunction(const vector<double>& parameter, int spCount, int tpCoun
   const int pixelCount = width * height;
   const int pointCount = columnCount * rowCount;
 
-  vector<float> shapeParameters(spCount);
-  vector<float> textureParameters(tpCount);
-  vector<float> modelParameters(apCount);
+  vector<float>& shapeParameters = status.shapeParameters;
+  copy(parameter.begin(), parameter.end(), shapeParameters.begin());
 
-  vector<float> modelFeatures(spCount + tpCount);
-  vector<float> shapeFeatures(2 * pointCount);
-  vector<float> textureFeatures(pixelCount);
+  thrust::device_vector<float>& d_shapeParameters = status.d_shapeParameters;
+  thrust::copy(shapeParameters.begin(), shapeParameters.end(), d_shapeParameters.begin());
+  thrust::device_vector<float>& d_textureParameters = status.d_textureParameters;
+  thrust::device_vector<float>& d_modelParameters = status.d_appearanceParameters;
+
+  thrust::device_vector<float>& d_modelFeatures = status.d_appearanceFeatures;
+  thrust::device_vector<float>& d_shapeFeatures = status.d_shapeFeatures;
+  thrust::device_vector<float>& d_textureFeatures = status.d_textureFeatures;
 
   double sim = 0.0;
 
-  copy(parameter.begin(), parameter.end(), shapeParameters.begin());
-
-  culib::lintrans(&shapeFeatures[0], shapeMatrix, &shapeParameters[0], spCount, 1, 2 * pointCount, false);
-  for (int i = 0; i < 2 * pointCount; ++i)
-    shapeFeatures[i] = shapeFeatures[i] + meanShape[i];
-
-  thrust::device_vector<float> d_baseGrid(shapeFeatures.begin(), shapeFeatures.end());
-  thrust::device_vector<float> d_meanShape(meanShape, meanShape + (2 * pointCount));
+  culib::lintransDevice(d_shapeFeatures.data().get(), d_shapeMatrix, d_shapeParameters.data().get(), spCount, 1, 2 * pointCount, false);
+  thrust::transform(d_shapeFeatures.begin(), d_shapeFeatures.end(), thrust::device_ptr<float>(d_meanShape), d_shapeFeatures.begin(), thrust::plus<float>());
 
   culib::warpImage(warpedImage->getDevicePointer(), inputImage->getCudaArray(), inputImage->getSize(),
-        (float2*)d_baseGrid.data().get(), (float2*)d_meanShape.data().get(),
+        (float2*)d_shapeFeatures.data().get(), (float2*)d_meanShape,
         dim3(columnCount, rowCount));
 
-  warpedImage->saveDeviceToWorkingCopy();
-
-  float* imageFeatures = warpedImage->getWorkingCopy();
-  for (int i = 0; i < pixelCount; ++i)
-    imageFeatures[i] = imageFeatures[i] - meanTexture[i];
-  culib::lintrans(&textureParameters[0], textureMatrix, imageFeatures, pixelCount, 1, tpCount, true);
+  thrust::device_ptr<float> d_imageFeatures(warpedImage->getDevicePointer());
+  thrust::transform(d_imageFeatures, d_imageFeatures + pixelCount, thrust::device_ptr<float>(d_meanTexture), d_imageFeatures, thrust::minus<float>());
+  culib::lintransDevice(d_textureParameters.data().get(), d_textureMatrix, d_imageFeatures.get(), pixelCount, 1, tpCount, true);
 
   // TODO: use appearance matrix. Not used here for debugging purpose
-  copy(shapeParameters.begin(), shapeParameters.end(), modelFeatures.begin());
-  copy(textureParameters.begin(), textureParameters.end(), modelFeatures.begin() + spCount);
-  culib::lintrans(&modelParameters[0], appearanceMatrix, &modelFeatures[0], spCount + tpCount, 1, apCount, true);
+  thrust::copy(d_shapeParameters.begin(), d_shapeParameters.end(), d_modelFeatures.begin());
+  thrust::copy(d_textureParameters.begin(), d_textureParameters.end(), d_modelFeatures.begin() + spCount);
+  culib::lintransDevice(d_modelParameters.data().get(), d_appearanceMatrix, d_modelFeatures.data().get(), spCount + tpCount, 1, apCount, true);
 
-  culib::lintrans(&modelFeatures[0], appearanceMatrix, &modelParameters[0], apCount, 1, spCount + tpCount, false);
-  copy(modelFeatures.begin(), modelFeatures.begin() + spCount, shapeParameters.begin());
-  copy(modelFeatures.begin() + spCount, modelFeatures.end(), textureParameters.begin());
+  culib::lintransDevice(d_modelFeatures.data().get(), d_appearanceMatrix, d_modelParameters.data().get(), apCount, 1, spCount + tpCount, false);
+  thrust::copy(d_modelFeatures.begin(), d_modelFeatures.begin() + spCount, d_shapeParameters.begin());
+  thrust::copy(d_modelFeatures.begin() + spCount, d_modelFeatures.end(), d_textureParameters.begin());
 
   // Calculate match quality
   // - calculate texture using texture parameters + add mean texture
   // - warp texture to the shape frame
   // - compare both images (SSD or MI)
-  culib::lintrans(&textureFeatures[0], textureMatrix, &textureParameters[0], tpCount, 1, pixelCount, false);
-  for (int i = 0; i < pixelCount; ++i)
-    textureFeatures[i] = textureFeatures[i] + meanTexture[i];
+  culib::lintransDevice(d_textureFeatures.data().get(), d_textureMatrix, d_textureParameters.data().get(), tpCount, 1, pixelCount, false);
+  thrust::transform(d_textureFeatures.begin(), d_textureFeatures.end(), thrust::device_ptr<float>(d_meanTexture), d_textureFeatures.begin(), thrust::plus<float>());
 
-  culib::lintrans(&shapeFeatures[0], shapeMatrix, &shapeParameters[0], spCount, 1, 2 * pointCount, false);
-  for (int i = 0; i < 2 * pointCount; ++i)
-    shapeFeatures[i] = shapeFeatures[i] + meanShape[i];
+  culib::lintransDevice(d_shapeFeatures.data().get(), d_shapeMatrix, d_shapeParameters.data().get(), spCount, 1, 2 * pointCount, false);
+  thrust::transform(d_shapeFeatures.begin(), d_shapeFeatures.end(), thrust::device_ptr<float>(d_meanShape), d_shapeFeatures.begin(), thrust::plus<float>());
 
   if (inReferenceFrame) {
-    thrust::copy(shapeFeatures.begin(), shapeFeatures.end(), d_baseGrid.begin());
-    culib::warpImage(warpedImage->getDevicePointer(), inputImage->getCudaArray(), inputImage->getSize(),
-        (float2*)d_baseGrid.data().get(), (float2*)d_meanShape.data().get(),
-        dim3(columnCount, rowCount));
+    // TODO: Need fast method to clear an image
+    warpedImage->resetWorkingCopy();
 
-    thrust::device_vector<float> d_textureFeatures(textureFeatures.begin(), textureFeatures.end());
+    culib::warpImage(warpedImage->getDevicePointer(), inputImage->getCudaArray(), inputImage->getSize(),
+        (float2*)d_shapeFeatures.data().get(), (float2*)d_meanShape,
+        dim3(columnCount, rowCount));
 
     if (!useMi)
       sim = culib::calculateNegativeSSD(warpedImage->getDevicePointer(), d_textureFeatures.data().get(), inputImage->getSize());
     else
       sim = culib::getSimilarity(config, warpedImage->getDevicePointer(), d_textureFeatures.data().get(), inputImage->getSize());
   } else {
+
+    // TODO: Need fast method to clear an image
+    warpedImage->resetWorkingCopy();
+
+    // TODO: Need a method to create a CUDA Array from a device pointer
+    vector<float> textureFeatures(pixelCount);
+    thrust::copy(d_textureFeatures.begin(), d_textureFeatures.end(), textureFeatures.begin());
     culib::CudaImage textureImage(inputImage->getSize(), inputImage->getVoxelSize(), &textureFeatures[0]);
-    thrust::copy(shapeFeatures.begin(), shapeFeatures.end(), d_baseGrid.begin());
+
     culib::warpImage(warpedImage->getDevicePointer(), textureImage.getCudaArray(), inputImage->getSize(),
-        (float2*)d_meanShape.data().get(), (float2*)d_baseGrid.data().get(),
+        (float2*)d_meanShape, (float2*)d_shapeFeatures.data().get(),
         dim3(columnCount, rowCount));
 
     if (!useMi)
@@ -120,6 +134,7 @@ double aamMatchFunction(const vector<double>& parameter, int spCount, int tpCoun
     else
       sim = culib::getSimilarity(config, inputImage->getDevicePointer(), warpedImage->getDevicePointer(), inputImage->getSize());
   }
+
   return sim;
 }
 
