@@ -99,6 +99,12 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       (float2*)baseGrid->getDeviceFeatures(), (float2*)warpedGrid->getDeviceFeatures(),
       dim3(columnCount, rowCount));
 
+  warpedImage->saveDeviceToWorkingCopy();
+  warpedImage->freeCaches();
+  inputImage->freeCaches();
+  baseGrid->freeCaches();
+  warpedGrid->freeCaches();
+
   data->setOutputImage(warpedImage);
 }
 

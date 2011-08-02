@@ -8,6 +8,10 @@
 #include <culib/ICudaImage.h>
 #include <culib/similarity.h>
 
+#include <gapputils.cv.cuda/AamMatchFunction.h>
+
+#include <thrust/device_vector.h>
+
 #include "ActiveAppearanceModel.h"
 
 namespace gapputils {
@@ -25,6 +29,15 @@ private:
   culib::SimilarityConfig config;
   bool inReferenceFrame;
   SimilarityMeasure measure;
+  int pointCount, pixelCount, spCount, tpCount, apCount;
+  cuda::AamMatchStatus status;
+
+  boost::shared_ptr<culib::ICudaImage> warpedImage;
+  thrust::device_vector<float> d_shapeMatrix;
+  thrust::device_vector<float> d_textureMatrix;
+  thrust::device_vector<float> d_appearanceMatrix;
+  thrust::device_vector<float> d_meanShape;
+  thrust::device_vector<float> d_meanTexture;
 
 public:
   AamMatchFunction(boost::shared_ptr<culib::ICudaImage> image,

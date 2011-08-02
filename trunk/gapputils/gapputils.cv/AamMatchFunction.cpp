@@ -5,16 +5,20 @@
 #include <algorithm>
 #include <cassert>
 #include <sstream>
+#include <iostream>
 
 #include <culib/lintrans.h>
 #include <culib/similarity.h>
 #include <culib/CudaImage.h>
 #include <culib/filter.h>
 
+#include <thrust/device_vector.h>
+#include <thrust/copy.h>
+#include <thrust/device_ptr.h>
+
 #include <cmath>
 
 #include "FromRgb.h"
-#include <gapputils.cv.cuda/AamMatchFunction.h>
 
 using namespace std;
 using namespace culib;
@@ -26,7 +30,19 @@ namespace cv {
 AamMatchFunction::AamMatchFunction(boost::shared_ptr<ICudaImage> image,
     boost::shared_ptr<ActiveAppearanceModel> model, bool inReferenceFrame,
     SimilarityMeasure measure)
- : image(image), model(model), inReferenceFrame(inReferenceFrame), measure(measure)
+ : image(image), model(model), inReferenceFrame(inReferenceFrame), measure(measure),
+   pointCount(model->getRowCount() * model->getColumnCount()),
+   pixelCount(model->getWidth() * model->getHeight()),
+   spCount(model->getShapeParameterCount()),
+   tpCount(model->getTextureParameterCount()),
+   apCount(model->getAppearanceParameterCount()),
+   status(spCount, tpCount, apCount, 2 * pointCount, pixelCount, spCount + tpCount),
+   warpedImage(new culib::CudaImage(image->getSize(), image->getVoxelSize())),
+   d_shapeMatrix(model->getShapeMatrix()->begin(), model->getShapeMatrix()->end()),
+   d_textureMatrix(model->getTextureMatrix()->begin(), model->getTextureMatrix()->end()),
+   d_appearanceMatrix(model->getAppearanceMatrix()->begin(), model->getAppearanceMatrix()->end()),
+   d_meanShape(model->getMeanShape()->begin(), model->getMeanShape()->end()),
+   d_meanTexture(model->getMeanTexture()->begin(), model->getMeanTexture()->end())
 {
   setupSimilarityConfig(config, dim3(64, 64), make_float2(1.f/64.f, 1.f/64.f));
 }
@@ -35,6 +51,18 @@ AamMatchFunction::~AamMatchFunction(void)
 {
   cleanupSimilarityConfig(config);
 }
+
+void saveCudaImage(const std::string& filename, boost::shared_ptr<culib::ICudaImage> image) {
+  FromRgb fromRgb;
+  fromRgb.setRed(image);
+  fromRgb.setGreen(image);
+  fromRgb.setBlue(image);
+  fromRgb.execute(0);
+  fromRgb.writeResults();
+  fromRgb.getImagePtr()->save(filename.c_str(), "jpg");
+}
+
+//#define OLD_METHOD
 
 double AamMatchFunction::eval(const DomainType& parameter) {
   // Get possible shape and texture parameters for current shape parameters
@@ -48,6 +76,8 @@ double AamMatchFunction::eval(const DomainType& parameter) {
 
   assert((int)parameter.size() == spCount);
 
+#ifdef OLD_METHOD
+  double sim = 0.0;
   const int pixelCount = model->getWidth() * model->getHeight();
   const int pointCount = model->getColumnCount() * model->getRowCount();
 
@@ -58,8 +88,6 @@ double AamMatchFunction::eval(const DomainType& parameter) {
   vector<float> modelFeatures(spCount + tpCount);
   vector<float> shapeFeatures(2 * pointCount);
   vector<float> textureFeatures(pixelCount);
-
-  double sim = 0.0;
 
   ImageWarp warp;
   copy(parameter.begin(), parameter.end(), shapeParameters.begin());
@@ -101,6 +129,10 @@ double AamMatchFunction::eval(const DomainType& parameter) {
   for (int i = 0; i < 2 * pointCount; ++i)
     shapeFeatures[i] = shapeFeatures[i] + meanGrid->at(i);
 
+  boost::shared_ptr<culib::ICudaImage> matchImage;
+  boost::shared_ptr<culib::ICudaImage> inputTexture;
+  boost::shared_ptr<culib::ICudaImage> matchTexture;
+
   if (inReferenceFrame) {
     warp.setInputImage(image);
     warp.setBaseGrid(model->createShape(&shapeFeatures));
@@ -108,8 +140,8 @@ double AamMatchFunction::eval(const DomainType& parameter) {
     //warp.setBackgroundImage(background);
     warp.execute(0);
     warp.writeResults();
-    boost::shared_ptr<culib::ICudaImage> inputTexture = warp.getOutputImage();
-    boost::shared_ptr<culib::ICudaImage> matchTexture = model->createTexture(&textureFeatures);
+    inputTexture = warp.getOutputImage();
+    matchTexture = model->createTexture(&textureFeatures);
 
     if (measure == SSD)
       sim = culib::calculateNegativeSSD(inputTexture->getDevicePointer(), matchTexture->getDevicePointer(), inputTexture->getSize());
@@ -127,7 +159,7 @@ double AamMatchFunction::eval(const DomainType& parameter) {
     //warp.setBackgroundImage(background);
     warp.execute(0);
     warp.writeResults();
-    boost::shared_ptr<culib::ICudaImage> matchImage = warp.getOutputImage();
+    matchImage = warp.getOutputImage();
 
     if (measure == SSD)
       sim = culib::calculateNegativeSSD(image->getDevicePointer(), matchImage->getDevicePointer(), image->getSize());
@@ -141,16 +173,11 @@ double AamMatchFunction::eval(const DomainType& parameter) {
 //      std::stringstream filename;
 //      filename << "match_" << iFilename++ << " (" << sim << ").jpg";
 //
-//      FromRgb fromRgb;
-//      fromRgb.setRed(matchImage);
-//      fromRgb.setGreen(matchImage);
-//      fromRgb.setBlue(matchImage);
-//      fromRgb.execute(0);
-//      fromRgb.writeResults();
-//      fromRgb.getImagePtr()->save(filename.str().c_str(), "jpg");
+//
 //    }
     //  assert(0);
   }
+#endif
 
 //  boost::shared_ptr<std::vector<float> > ssp = model->getSingularShapeParameters();
 //
@@ -161,19 +188,38 @@ double AamMatchFunction::eval(const DomainType& parameter) {
 //
 //  return sim - pen;
 
-  boost::shared_ptr<vector<float> > shapeMatrix = model->getShapeMatrix();
-  boost::shared_ptr<vector<float> > textureMatrix = model->getTextureMatrix();
-  boost::shared_ptr<vector<float> > appearanceMatrix = model->getAppearanceMatrix();
-
-  CudaImage warpedImage(image->getSize(), image->getVoxelSize());
+  // TODO: Need fast method to clear an image
+  warpedImage->resetWorkingCopy();
 
   double sim2 = cuda::aamMatchFunction(parameter, spCount, tpCount, apCount,
       model->getWidth(), model->getHeight(), model->getColumnCount(), model->getRowCount(),
-      &(*shapeMatrix)[0], &(*textureMatrix)[0], &(*appearanceMatrix)[0],
-      &(*model->getMeanShape())[0], &(*model->getMeanTexture())[0],
-      image.get(), &warpedImage, inReferenceFrame, config, (measure == MI));
-  assert(sim == sim2);
-  return sim;
+      d_shapeMatrix.data().get(), d_textureMatrix.data().get(), d_appearanceMatrix.data().get(),
+      d_meanShape.data().get(), d_meanTexture.data().get(), status,
+      image.get(), warpedImage.get(), inReferenceFrame, config, (measure == MI));
+#ifdef OLD_METHOD
+  if(sim != sim2) {
+    cout.setf(ios::boolalpha);
+    cout << "In reference frame: " << inReferenceFrame << endl;
+    cout << "Measure: " << (measure == MI ? "MI" : "SSD") << endl;
+    cout << sim << " != " << sim2 << endl;
+
+    if (inputTexture) {
+      cout << "Warped Images: " << culib::calculateNegativeSSD(inputTexture->getDevicePointer(), warpedImage->getDevicePointer(), image->getSize()) << endl;
+      saveCudaImage("match1.jpg", inputTexture);
+    }
+
+    if (matchTexture) {
+      cout << "Textures: " << culib::calculateNegativeSSD(matchTexture->getDevicePointer(), status.d_textureFeatures.data().get(), image->getSize()) << endl;
+      saveCudaImage("match2.jpg", matchTexture);
+    }
+
+    saveCudaImage("match4.jpg", warpedImage);
+    thrust::copy(status.d_textureFeatures.begin(), status.d_textureFeatures.end(), thrust::device_ptr<float>(warpedImage->getDevicePointer()));
+    saveCudaImage("match3.jpg", warpedImage);
+    assert(0);
+  }
+#endif
+  return sim2;
 }
 
 }
