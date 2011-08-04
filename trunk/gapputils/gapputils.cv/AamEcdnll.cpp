@@ -10,9 +10,11 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <sstream>
 
 #include "AamFitter.h"
 #include "AamMatchFunction.h"
+#include "AamWriter.h"
 
 #include <boost/progress.hpp>
 
@@ -56,6 +58,8 @@ AamEcdnll::~AamEcdnll() {
 
 double AamEcdnll::eval(const DomainType& parameter) {
 
+  static int iterationCounter = 0;
+
   // The parameter vector contains the new shape model (mean shape and shape matrix)
   // Create AAM with new shape model and old texture model
   const int shapeFeatureCount = newModel->getColumnCount() * newModel->getRowCount() * 2;
@@ -73,6 +77,9 @@ double AamEcdnll::eval(const DomainType& parameter) {
 
   AamFitter fitter;
   fitter.setActiveAppearanceModel(newModel);
+  fitter.setInReferenceFrame(false);
+  fitter.setMeasure(SimilarityMeasure::MI);
+  fitter.setUseAppearanceMatrix(false);
 
   double ecdnll = 0.0;
   std::cout << "Calculating ecdnll" << std::endl;
@@ -85,6 +92,17 @@ double AamEcdnll::eval(const DomainType& parameter) {
     ecdnll -= fitter.getSimilarity();
     // TODO: Calculate parameter penalization term.
     ++showProgress;
+  }
+  if ((iterationCounter++ % 120) == (int)parameter.size()) {
+    std::cout << "Saving model..." << std::flush;
+    AamWriter writer;
+    std::stringstream filename;
+    filename << "AAMs/temp_" << (iterationCounter / 120) << "(" << ecdnll << ").amm";
+    writer.setFilename(filename.str());
+    writer.setActiveAppearanceModel(newModel);
+    writer.execute(0);
+    writer.writeResults();
+    std::cout << " done!" << std::endl;
   }
 
   return ecdnll;

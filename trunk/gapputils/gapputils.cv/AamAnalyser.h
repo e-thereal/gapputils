@@ -25,12 +25,20 @@ class AamAnalyser : public gapputils::workflow::WorkflowElement {
 
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
   Property(Image, boost::shared_ptr<culib::ICudaImage>)
-  Property(ParameterVector, boost::shared_ptr<std::vector<float> >)
-  Property(PlotDirection, std::vector<double>)
+  Property(FocalShapeParameters, boost::shared_ptr<std::vector<float> >)
+  Property(StartShapeParameters, boost::shared_ptr<std::vector<float> >)
+  Property(TargetShapeParameters, boost::shared_ptr<std::vector<float> >)
+
+  //Property(PlotDirection, std::vector<double>)
   Property(From, double)
   Property(To, double)
   Property(StepCount, int)
   Property(XmlName, std::string)
+  Property(UseAppearanceMatrix, bool)
+  Property(SsdRef, bool)
+  Property(MiRef, bool)
+  Property(SsdImg, bool)
+  Property(MiImg, bool)
 
 private:
   mutable AamAnalyser* data;
@@ -45,7 +53,8 @@ public:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
 private:
-  TiXmlNode* createPlot(bool inReferenceFrame, AamMatchFunction::SimilarityMeasure measure) const;
+  TiXmlNode* createPlot(bool inReferenceFrame, SimilarityMeasure measure) const;
+  TiXmlNode* createPlot3D(bool inReferenceFrame, SimilarityMeasure measure) const;
 };
 
 }

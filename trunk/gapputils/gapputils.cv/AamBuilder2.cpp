@@ -84,13 +84,13 @@ void AamBuilder2::execute(gapputils::workflow::IProgressMonitor* monitor) const 
         parameter.begin() + shapeFeatureCount);
 
     optlib::DownhillSimplexOptimizer optimizer;
+    //optimizer.
     optimizer.minimize(parameter, ecdnll);
 
     // Minimize ecdnll -> get new shape model
     // use new shape model and old texture model to find best grids
     // Use grids and training set to update the shape and texture model
   }
-
 }
 
 void AamBuilder2::writeResults() {

@@ -36,7 +36,8 @@ BeginPropertyDefinitions(AamTester2)
   DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Grid, Input(), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Image, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ParameterVector, Output("PV"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(AppearanceParameters, Output("AP"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ShapeParameters, Output("SP"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Similarity, Output("Sim"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
@@ -71,22 +72,27 @@ void AamTester2::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   boost::shared_ptr<std::vector<float> > parameters(new std::vector<float>(model->getAppearanceParameterCount()));
   std::vector<double> dshape(model->getShapeParameterCount());
-  std::vector<float> fshape(model->getShapeParameterCount());
+  boost::shared_ptr<std::vector<float> > fshape(new std::vector<float>(model->getShapeParameterCount()));
 
   AamUtils::getAppearanceParameters(parameters.get(), model.get(), getGrid().get(), getImage().get());
-  data->setParameterVector(parameters);
+  data->setAppearanceParameters(parameters);
 
-  AamMatchFunction objective(getImage(), model, true, AamMatchFunction::SSD);
-  AamUtils::getShapeParameters(&fshape, model.get(), parameters.get());
-  copy(fshape.begin(), fshape.end(), dshape.begin());
+  AamMatchFunction objective(getImage(), model, true, SimilarityMeasure::SSD, true);
+  AamUtils::getShapeParameters(fshape.get(), model.get(), parameters.get());
+  copy(fshape->begin(), fshape->end(), dshape.begin());
   data->setSimilarity(objective.eval(dshape));
+  data->setShapeParameters(fshape);
+
+  getGrid()->freeCaches();
+  getImage()->freeCaches();
 }
 
 void AamTester2::writeResults() {
   if (!data)
     return;
 
-  setParameterVector(data->getParameterVector());
+  setAppearanceParameters(data->getAppearanceParameters());
+  setShapeParameters(data->getShapeParameters());
   setSimilarity(data->getSimilarity());
 }
 
