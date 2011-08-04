@@ -31,7 +31,8 @@ SOURCES = FromRgb.cpp \
           AamTester2.cpp \
           AamUtils.cpp \
           AamAnalyser.cpp \
-          GridImagePair.cpp
+          GridImagePair.cpp \
+          Vector.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \

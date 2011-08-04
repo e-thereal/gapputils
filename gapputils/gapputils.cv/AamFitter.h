@@ -11,6 +11,7 @@
 #include <gapputils/WorkflowElement.h>
 
 #include "ActiveAppearanceModel.h"
+#include "AamMatchFunction.h"
 
 namespace gapputils {
 
@@ -22,7 +23,11 @@ class AamFitter : public gapputils::workflow::WorkflowElement {
 
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
   Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
-  Property(ParameterVector, boost::shared_ptr<std::vector<float> >)
+  Property(Measure, SimilarityMeasure)
+  Property(InReferenceFrame, bool)
+  Property(UseAppearanceMatrix, bool)
+  Property(AppearanceParameters, boost::shared_ptr<std::vector<float> >)
+  Property(ShapeParameters, boost::shared_ptr<std::vector<float> >)
   Property(Similarity, double)
 
 private:

@@ -47,11 +47,15 @@ BeginPropertyDefinitions(AamFitter)
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(InputImage, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ParameterVector, Output("PV"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  ReflectableProperty(Measure, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InReferenceFrame, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(UseAppearanceMatrix, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(AppearanceParameters, Output("AP"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ShapeParameters, Output("SP"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Similarity, Output("Sim"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 EndPropertyDefinitions
 
-AamFitter::AamFitter() : data(0) {
+AamFitter::AamFitter() : _InReferenceFrame(true), _UseAppearanceMatrix(true), data(0) {
   WfeUpdateTimestamp
   setLabel("AamFitter");
 
@@ -80,10 +84,11 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!model || !image)
     return;
 
-  AamMatchFunction objective(getInputImage(), model, true, AamMatchFunction::SSD);
+  AamMatchFunction objective(getInputImage(), model, getInReferenceFrame(),
+      getMeasure(), getUseAppearanceMatrix());
 
-  //optlib::DownhillSimplexOptimizer optimizer;
-  optlib::SimplifiedPowellOptimizer optimizer;
+  optlib::DownhillSimplexOptimizer optimizer;
+  //optlib::SimplifiedPowellOptimizer optimizer;
   std::vector<double> parameter(getActiveAppearanceModel()->getShapeParameterCount());
   optimizer.maximize(parameter, objective);
 
@@ -98,9 +103,9 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   const int pixelCount = model->getWidth() * model->getHeight();
   const int pointCount = model->getColumnCount() * model->getRowCount();
 
-  vector<float> shapeParameters(spCount);
+  boost::shared_ptr<vector<float> > shapeParameters(new vector<float>(spCount));
   vector<float> textureParameters(tpCount);
-  vector<float> modelParameters(apCount);
+  boost::shared_ptr<vector<float> > appearanceParameters(new vector<float>(apCount));
 
   vector<float> modelFeatures(spCount + tpCount);
   vector<float> shapeFeatures(2 * pointCount);
@@ -110,8 +115,8 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   warp.setWarpedGrid(model->createMeanShape());
   warp.setInputImage(image);
 
-  copy(parameter.begin(), parameter.end(), shapeParameters.begin());
-  culib::lintrans(&shapeFeatures[0], &(*model->getShapeMatrix())[0], &shapeParameters[0], spCount, 1, 2 * pointCount, false);
+  copy(parameter.begin(), parameter.end(), shapeParameters->begin());
+  culib::lintrans(&shapeFeatures[0], &(*model->getShapeMatrix())[0], &(*shapeParameters)[0], spCount, 1, 2 * pointCount, false);
   boost::shared_ptr<vector<float> > meanGrid = model->getMeanShape();
   for (int i = 0; i < 2 * pointCount; ++i)
     shapeFeatures[i] = shapeFeatures[i] + meanGrid->at(i);
@@ -125,21 +130,23 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     (*imageFeatures)[i] = imageFeatures->at(i) - meanImageFeatures->at(i);
   culib::lintrans(&textureParameters[0], &(*model->getTextureMatrix())[0], &(*imageFeatures)[0], pixelCount, 1, tpCount, true);
 
-  copy(shapeParameters.begin(), shapeParameters.end(), modelFeatures.begin());
+  copy(shapeParameters->begin(), shapeParameters->end(), modelFeatures.begin());
   copy(textureParameters.begin(), textureParameters.end(), modelFeatures.begin() + spCount);
-  culib::lintrans(&modelParameters[0], &(*model->getAppearanceMatrix())[0], &modelFeatures[0], spCount + tpCount, 1, apCount, true);
+  culib::lintrans(&(*appearanceParameters)[0], &(*model->getAppearanceMatrix())[0], &modelFeatures[0], spCount + tpCount, 1, apCount, true);
 
-  boost::shared_ptr<vector<float> > pv(new vector<float>(apCount));
-  copy(modelParameters.begin(), modelParameters.end(), pv->begin());
-  data->setParameterVector(pv);
+  data->setAppearanceParameters(appearanceParameters);
+  data->setShapeParameters(shapeParameters);
   data->setSimilarity(objective.eval(parameter));
+
+  image->freeCaches();
 }
 
 void AamFitter::writeResults() {
   if (!data)
     return;
 
-  setParameterVector(data->getParameterVector());
+  setAppearanceParameters(data->getAppearanceParameters());
+  setShapeParameters(data->getShapeParameters());
   setSimilarity(data->getSimilarity());
 }
 

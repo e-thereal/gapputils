@@ -27,10 +27,12 @@ namespace gapputils {
 
 namespace cv {
 
+DefineEnum(SimilarityMeasure)
+
 AamMatchFunction::AamMatchFunction(boost::shared_ptr<ICudaImage> image,
     boost::shared_ptr<ActiveAppearanceModel> model, bool inReferenceFrame,
-    SimilarityMeasure measure)
- : image(image), model(model), inReferenceFrame(inReferenceFrame), measure(measure),
+    SimilarityMeasure measure, bool useAm)
+ : image(image), model(model), inReferenceFrame(inReferenceFrame), measure(measure), useAm(useAm),
    pointCount(model->getRowCount() * model->getColumnCount()),
    pixelCount(model->getWidth() * model->getHeight()),
    spCount(model->getShapeParameterCount()),
@@ -74,7 +76,11 @@ double AamMatchFunction::eval(const DomainType& parameter) {
   const int spCount = model->getShapeParameterCount();
   const int tpCount = model->getTextureParameterCount();
 
-  assert((int)parameter.size() == spCount);
+  if ((int)parameter.size() != spCount) {
+    cout << "parameter.size() = " << parameter.size() << endl;
+    cout << "spCount = " << spCount << endl;
+    assert((int)parameter.size() == spCount);
+  }
 
 #ifdef OLD_METHOD
   double sim = 0.0;
@@ -195,7 +201,7 @@ double AamMatchFunction::eval(const DomainType& parameter) {
       model->getWidth(), model->getHeight(), model->getColumnCount(), model->getRowCount(),
       d_shapeMatrix.data().get(), d_textureMatrix.data().get(), d_appearanceMatrix.data().get(),
       d_meanShape.data().get(), d_meanTexture.data().get(), status,
-      image.get(), warpedImage.get(), inReferenceFrame, config, (measure == MI));
+      image.get(), warpedImage.get(), inReferenceFrame, config, (measure == SimilarityMeasure::MI), useAm);
 #ifdef OLD_METHOD
   if(sim != sim2) {
     cout.setf(ios::boolalpha);

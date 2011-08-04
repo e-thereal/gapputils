@@ -137,6 +137,8 @@ void AamGenerator::execute(gapputils::workflow::IProgressMonitor* monitor) const
   warp.writeResults();
 
   data->setOutputImage(warp.getOutputImage());
+  grid->freeCaches();
+  image->freeCaches();
 }
 
 void AamGenerator::writeResults() {
