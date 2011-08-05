@@ -46,7 +46,7 @@ double aamMatchFunction(const vector<double>& parameter, int spCount, int tpCoun
     float* d_meanShape, float* d_meanTexture,
     AamMatchStatus& status,
     culib::ICudaImage* inputImage, culib::ICudaImage* warpedImage,
-    bool inReferenceFrame, culib::SimilarityConfig& config, bool useMi)
+    bool inReferenceFrame, culib::SimilarityConfig& config, bool useMi, bool useAm)
 {
   // Get possible shape and texture parameters for current shape parameters
   // - warp image to reference frame using current shape parameters
@@ -84,14 +84,15 @@ double aamMatchFunction(const vector<double>& parameter, int spCount, int tpCoun
   thrust::transform(d_imageFeatures, d_imageFeatures + pixelCount, thrust::device_ptr<float>(d_meanTexture), d_imageFeatures, thrust::minus<float>());
   culib::lintransDevice(d_textureParameters.data().get(), d_textureMatrix, d_imageFeatures.get(), pixelCount, 1, tpCount, true);
 
-  // TODO: use appearance matrix. Not used here for debugging purpose
-  thrust::copy(d_shapeParameters.begin(), d_shapeParameters.end(), d_modelFeatures.begin());
-  thrust::copy(d_textureParameters.begin(), d_textureParameters.end(), d_modelFeatures.begin() + spCount);
-  culib::lintransDevice(d_modelParameters.data().get(), d_appearanceMatrix, d_modelFeatures.data().get(), spCount + tpCount, 1, apCount, true);
+  if (useAm) {
+    thrust::copy(d_shapeParameters.begin(), d_shapeParameters.end(), d_modelFeatures.begin());
+    thrust::copy(d_textureParameters.begin(), d_textureParameters.end(), d_modelFeatures.begin() + spCount);
+    culib::lintransDevice(d_modelParameters.data().get(), d_appearanceMatrix, d_modelFeatures.data().get(), spCount + tpCount, 1, apCount, true);
 
-  culib::lintransDevice(d_modelFeatures.data().get(), d_appearanceMatrix, d_modelParameters.data().get(), apCount, 1, spCount + tpCount, false);
-  thrust::copy(d_modelFeatures.begin(), d_modelFeatures.begin() + spCount, d_shapeParameters.begin());
-  thrust::copy(d_modelFeatures.begin() + spCount, d_modelFeatures.end(), d_textureParameters.begin());
+    culib::lintransDevice(d_modelFeatures.data().get(), d_appearanceMatrix, d_modelParameters.data().get(), apCount, 1, spCount + tpCount, false);
+    thrust::copy(d_modelFeatures.begin(), d_modelFeatures.begin() + spCount, d_shapeParameters.begin());
+    thrust::copy(d_modelFeatures.begin() + spCount, d_modelFeatures.end(), d_textureParameters.begin());
+  }
 
   // Calculate match quality
   // - calculate texture using texture parameters + add mean texture

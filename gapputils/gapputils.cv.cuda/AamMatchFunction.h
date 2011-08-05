@@ -37,7 +37,7 @@ double aamMatchFunction(const std::vector<double>& parameter, int spCount, int t
     float* d_meanShape, float* d_meanTexture,
     AamMatchStatus& status,
     culib::ICudaImage* inputImage, culib::ICudaImage* warpedImage,
-    bool inReferenceFrame, culib::SimilarityConfig& config, bool useMi);
+    bool inReferenceFrame, culib::SimilarityConfig& config, bool useMi, bool useAm);
 
 }
 
