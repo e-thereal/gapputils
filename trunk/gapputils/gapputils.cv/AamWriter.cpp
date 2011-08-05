@@ -127,10 +127,10 @@ void AamWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   fclose(outfile);
 
-  AamReader reader;
-  reader.setFilename(getFilename());
-  reader.execute(0);
-  reader.writeResults();
+//  AamReader reader;
+//  reader.setFilename(getFilename());
+//  reader.execute(0);
+//  reader.writeResults();
 
 //  ActiveAppearanceModel* model2 = reader.getActiveAppearanceModel().get();
 //  assert(model->getRowCount() == model2->getRowCount());
