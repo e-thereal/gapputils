@@ -51,6 +51,11 @@ AamEcdnll::AamEcdnll(boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICud
   }
   //newModel->setAppearanceMatrix(appearanceMatrix);
   newModel->setAppearanceMatrix(oldModel->getAppearanceMatrix());
+
+  // TODO: How to estimate singular values?
+  newModel->setSingularShapeParameters(oldModel->getSingularShapeParameters());
+  newModel->setSingularTextureParameters(oldModel->getSingularTextureParameters());
+  newModel->setSingularAppearanceParameters(oldModel->getSingularAppearanceParameters());
 }
 
 AamEcdnll::~AamEcdnll() {
@@ -93,11 +98,11 @@ double AamEcdnll::eval(const DomainType& parameter) {
     // TODO: Calculate parameter penalization term.
     ++showProgress;
   }
-  if ((iterationCounter++ % 120) == (int)parameter.size()) {
+  if ((iterationCounter++ % parameter.size()) == 0) {
     std::cout << "Saving model..." << std::flush;
     AamWriter writer;
     std::stringstream filename;
-    filename << "AAMs/temp_" << (iterationCounter / 120) << "(" << ecdnll << ").amm";
+    filename << "AAMs/temp_" << (iterationCounter / parameter.size()) << "(" << ecdnll << ").amm";
     writer.setFilename(filename.str());
     writer.setActiveAppearanceModel(newModel);
     writer.execute(0);
