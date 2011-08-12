@@ -61,12 +61,7 @@ AamEcdnll::AamEcdnll(boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICud
 AamEcdnll::~AamEcdnll() {
 }
 
-double AamEcdnll::eval(const DomainType& parameter) {
-
-  static int iterationCounter = 0;
-
-  // The parameter vector contains the new shape model (mean shape and shape matrix)
-  // Create AAM with new shape model and old texture model
+boost::shared_ptr<ActiveAppearanceModel> AamEcdnll::updateModel(const DomainType& parameter) {
   const int shapeFeatureCount = newModel->getColumnCount() * newModel->getRowCount() * 2;
   const int shapeMatrixSize = shapeFeatureCount * newModel->getShapeParameterCount();
 
@@ -79,6 +74,17 @@ double AamEcdnll::eval(const DomainType& parameter) {
   std::copy(parameter.begin() + shapeFeatureCount, parameter.end(), shapeMatrix->begin());
   newModel->setMeanShape(meanShape);
   newModel->setShapeMatrix(shapeMatrix);
+
+  return newModel;
+}
+
+double AamEcdnll::eval(const DomainType& parameter) {
+
+  static int iterationCounter = 0;
+
+  // The parameter vector contains the new shape model (mean shape and shape matrix)
+  // Create AAM with new shape model and old texture model
+  updateModel(parameter);
 
   AamFitter fitter;
   fitter.setActiveAppearanceModel(newModel);

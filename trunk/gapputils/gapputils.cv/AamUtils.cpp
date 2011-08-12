@@ -10,6 +10,7 @@
 #include <cassert>
 
 #include <culib/lintrans.h>
+#include <cassert>
 #include "ImageWarp.h"
 
 using namespace std;
@@ -66,6 +67,16 @@ void AamUtils::getShapeParameters(std::vector<float>* shapeParameters,
   vector<float> appearanceFeatures(spCount + tpCount);
   culib::lintrans(&appearanceFeatures[0], &(*model->getAppearanceMatrix())[0], &(*appearanceParameters)[0], apCount, 1, spCount + tpCount, false);
   copy(appearanceFeatures.begin(), appearanceFeatures.begin() + spCount, shapeParameters->begin());
+}
+
+void AamUtils::getShapeFeatures(std::vector<float>* shapeFeatures,
+      ActiveAppearanceModel* model, std::vector<float>* shapeParameters)
+{
+  assert(shapeFeatures->size() == model->getMeanShape()->size());
+  culib::lintrans(&(*shapeFeatures)[0], &(*model->getShapeMatrix())[0], &(*shapeParameters)[0], model->getShapeParameterCount(), 1, shapeFeatures->size(), false);
+  boost::shared_ptr<vector<float> > meanGrid = model->getMeanShape();
+  for (unsigned i = 0; i < shapeFeatures->size(); ++i)
+    (*shapeFeatures)[i] = (*shapeFeatures)[i] + meanGrid->at(i);
 }
 
 }
