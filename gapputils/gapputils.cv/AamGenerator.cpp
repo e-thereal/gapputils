@@ -42,6 +42,7 @@ BeginPropertyDefinitions(AamGenerator)
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ParameterVector, Input("PV"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(BackgroundImage, Input("BG"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   ReflectableProperty(Mode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
@@ -132,6 +133,7 @@ void AamGenerator::execute(gapputils::workflow::IProgressMonitor* monitor) const
   ImageWarp warp;
   warp.setBaseGrid(model->createMeanShape());
   warp.setWarpedGrid(grid);
+  warp.setBackgroundImage(getBackgroundImage());
   warp.setInputImage(image);
   warp.execute(0);
   warp.writeResults();

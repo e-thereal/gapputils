@@ -36,6 +36,8 @@ public:
   virtual ~AamEcdnll();
 
   virtual double eval(const DomainType& parameter);
+
+  boost::shared_ptr<ActiveAppearanceModel> updateModel(const DomainType& parameter);
 };
 
 }

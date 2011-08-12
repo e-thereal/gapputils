@@ -21,6 +21,8 @@ public:
       ActiveAppearanceModel* model, GridModel* grid, culib::ICudaImage* image);
   static void getShapeParameters(std::vector<float>* shapeParameters,
       ActiveAppearanceModel* model, std::vector<float>* appearanceParameters);
+  static void getShapeFeatures(std::vector<float>* shapeFeatures,
+      ActiveAppearanceModel* model, std::vector<float>* shapeParameters);
 };
 
 }
