@@ -29,7 +29,8 @@ SOURCES = main.cpp \
 		  GlobalProperty.cpp \
 		  PopUpList.cpp \
 		  GlobalEdge.cpp \
-		  trace.cpp
+		  trace.cpp \
+		  XslTransformation.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \

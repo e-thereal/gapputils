@@ -88,8 +88,8 @@ double AamEcdnll::eval(const DomainType& parameter) {
 
   AamFitter fitter;
   fitter.setActiveAppearanceModel(newModel);
-  fitter.setInReferenceFrame(false);
-  fitter.setMeasure(SimilarityMeasure::MI);
+  fitter.setInReferenceFrame(true);
+  fitter.setMeasure(SimilarityMeasure::SSD);
   fitter.setUseAppearanceMatrix(false);
 
   double ecdnll = 0.0;

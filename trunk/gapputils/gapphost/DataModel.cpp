@@ -43,7 +43,7 @@ DataModel& DataModel::getInstance() {
   return *instance;
 }
 
-void DataModel::saveToFile(const char* filename) {
+void DataModel::save() {
   //TiXmlElement* modelElement = Xmlizer::CreateXml(*this);
   //TiXmlElement* mainWorkflowElement = new TiXmlElement("MainWorkflow");
   //TiXmlElement* workflowElement = getMainWorkflow()->getXml(false);
@@ -53,7 +53,8 @@ void DataModel::saveToFile(const char* filename) {
   //modelElement->LinkEndChild(mainWorkflowElement);
 
   //Xmlizer::ToFile(filename, modelElement);
-  Xmlizer::ToXml(filename, *this);
+
+  Xmlizer::ToXml(".gapphost/config.xml", *this);
 }
   
 }

@@ -18,6 +18,8 @@
 #include <qbrush.h>
 #include <gapputils/WorkflowElement.h>
 
+#include <iostream>
+
 using namespace std;
 using namespace capputils;
 
@@ -138,6 +140,11 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   fileMenu->addAction("Quit", this, SLOT(quit()));
   fileMenu->insertSeparator(fileMenu->actions().last());
 
+  editMenu = menuBar()->addMenu("&Edit");
+  changeInterfaceAction = editMenu->addAction("Change Workflow Interface", this, SLOT(editCurrentInterface()), QKeySequence(Qt::Key_F4));
+  changeInterfaceAction->setEnabled(false);
+  connect(editMenu, SIGNAL(aboutToShow()), this, SLOT(updateEditMenuStatus()));
+
   runMenu = menuBar()->addMenu("&Run");
   runMenu->addAction("Update", this, SLOT(updateCurrentModule()), QKeySequence(Qt::Key_F5));
   runMenu->addAction("Update All", this, SLOT(updateWorkflow()), QKeySequence(Qt::Key_F9));
@@ -157,6 +164,7 @@ MainWindow::~MainWindow()
 {
   delete fileMenu;
   delete runMenu;
+  delete editMenu;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
@@ -281,6 +289,7 @@ void MainWindow::checkLibraryUpdates() {
 
 void MainWindow::setGuiEnabled(bool enabled) {
   fileMenu->setEnabled(enabled);
+  editMenu->setEnabled(enabled);
   toolBox->setEnabled(enabled);
   //for (int i = 0; i < tabWidget->count(); ++i)
   //  tabWidget->widget(i)->setEnabled(enabled);
@@ -316,7 +325,7 @@ void MainWindow::updateFinished(Node* node) {
 }
 
 void MainWindow::save() {
-  DataModel::getInstance().saveToFile("gapphost.conf.xml");
+  DataModel::getInstance().save();
 }
 
 void MainWindow::showWorkflow(workflow::Workflow* workflow) {
@@ -355,6 +364,18 @@ void MainWindow::closeWorkflow(int tabIndex) {
     return;
   tabWidget->removeTab(tabIndex);
   openWorkflows.erase(openWorkflows.begin() + tabIndex);
+}
+
+void MainWindow::updateEditMenuStatus() {
+  changeInterfaceAction->setEnabled(openWorkflows[tabWidget->currentIndex()]->getCurrentWorkflow());
+}
+
+void MainWindow::editCurrentInterface() {
+  Workflow* currentWorkflow = openWorkflows[tabWidget->currentIndex()]->getCurrentWorkflow();
+  if (!currentWorkflow)
+    return;
+
+  // If no current interface -> create interface, compile interface, load library, load interface class
 }
 
 }

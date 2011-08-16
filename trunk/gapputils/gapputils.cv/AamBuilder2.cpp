@@ -78,7 +78,7 @@ void AamBuilder2::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  const int maxIter = 15;
+  const int maxIter = 8;
   float variance = 1.0f, lambda = 1.0f;
   vector<float> sigma;
 
@@ -116,8 +116,8 @@ void AamBuilder2::execute(gapputils::workflow::IProgressMonitor* monitor) const 
     // Fit every image with the current model and build grids according to the best fit
     AamFitter fitter;
     fitter.setActiveAppearanceModel(result);
-    fitter.setInReferenceFrame(false);
-    fitter.setMeasure(SimilarityMeasure::MI);
+    fitter.setInReferenceFrame(true);
+    fitter.setMeasure(SimilarityMeasure::SSD);
     fitter.setUseAppearanceMatrix(false);
     vector<float> shapeFeatures(shapeFeatureCount);
 

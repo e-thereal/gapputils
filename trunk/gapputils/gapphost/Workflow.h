@@ -27,6 +27,8 @@
 
 #include "Workbench.h"
 
+#include <gapputils/InterfaceDescription.h>
+
 namespace gapputils {
 
 class ToolItem;
@@ -52,6 +54,8 @@ class Workflow : public QObject, public Node, public CompatibilityChecker
   Property(ViewportScale, double)
   Property(ViewportPosition, std::vector<double>)
 
+  Property(Interface, boost::shared_ptr<gapputils::InterfaceDescription>)
+
 private:
   Workbench* workbench;
   QTreeView* propertyGrid;
@@ -62,7 +66,7 @@ private:
   WorkflowWorker* worker;
   std::stack<Node*> nodeStack;
   std::stack<Node*> processedStack;
-  static int librariesId;
+  static int librariesId, interfaceId;
   QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal;
 
 public:
@@ -121,6 +125,9 @@ public:
   QStandardItem* getItem(capputils::reflection::ReflectableClass*,
       capputils::reflection::IClassProperty* property);
 
+  // Returns null if current item is not a workflow
+  Workflow* getCurrentWorkflow();
+
   virtual bool areCompatibleConnections(const ToolConnection* output, const ToolConnection* input) const;
 
   void makePropertyGlobal(const std::string& name, const PropertyReference& propertyReference);
@@ -140,6 +147,9 @@ public:
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
+  void createAndLoadAdhocModule();
+  std::string getPrefix();
+  std::string getLibraryName();
 
 private Q_SLOTS:
   void createModule(int x, int y, QString classname);
