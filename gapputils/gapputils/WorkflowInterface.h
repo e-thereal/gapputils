@@ -14,6 +14,8 @@
 #include <capputils/ObservableClass.h>
 #include <capputils/TimedClass.h>
 
+#include "InterfaceDescription.h"
+
 namespace gapputils {
 
 namespace workflow {

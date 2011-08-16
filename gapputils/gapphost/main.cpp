@@ -30,10 +30,13 @@ using namespace capputils;
 using namespace std;
 
 #include <culib/lintrans.h>
+#include <boost/filesystem.hpp>
 
 int main(int argc, char *argv[])
 {
   cublasInit();
+
+  boost::filesystem::create_directories(".gapphost");
 #ifdef GAPPHOST_CULA_SUPPORT
   culaStatus status;
 
@@ -51,7 +54,8 @@ int main(int argc, char *argv[])
   QApplication a(argc, argv);
   DataModel& model = DataModel::getInstance();
   try {
-  Xmlizer::FromXml(model, "gapphost.conf.xml");
+    Xmlizer::FromXml(model, "gapphost.conf.xml"); // compatibility to old versions
+    Xmlizer::FromXml(model, ".gapphost/config.xml");
   } catch (capputils::exceptions::FactoryException ex) {
     cout << ex.what() << endl;
     return 1;
@@ -95,7 +99,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  model.saveToFile("gapphost.conf.xml");
+  model.save();
   delete model.getMainWorkflow();
 
   cublasShutdown();

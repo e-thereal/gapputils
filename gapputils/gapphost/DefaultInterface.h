@@ -2,13 +2,13 @@
 #ifndef _GAPPUTILS_DEFAULTINTERFACE_H_
 #define _GAPPUTILS_DEFAULTINTERFACE_H_
 
-#include <gapputils/DefaultWorkflowElement.h>
+#include <gapputils/WorkflowInterface.h>
 
 namespace gapputils {
 
 namespace host {
 
-class DefaultInterface : public gapputils::workflow::DefaultWorkflowElement
+class DefaultInterface : public gapputils::workflow::WorkflowInterface
 {
   InitReflectableClass(DefaultInterface)
 

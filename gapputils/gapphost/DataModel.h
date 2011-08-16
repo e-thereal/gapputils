@@ -36,7 +36,7 @@ public:
 
   static DataModel& getInstance();
 
-  void saveToFile(const char* filename);
+  void save();
 };
 
 }

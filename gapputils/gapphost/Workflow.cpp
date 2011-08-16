@@ -26,6 +26,7 @@
 #include <capputils/Verifier.h>
 #include <capputils/EnumerableAttribute.h>
 #include <capputils/ShortNameAttribute.h>
+#include <capputils/Executer.h>
 
 #include <gapputils/CombinerInterface.h>
 #include <gapputils/HideAttribute.h>
@@ -43,6 +44,7 @@
 #include "PropertyReference.h"
 #include "MakeGlobalDialog.h"
 #include "PopUpList.h"
+#include "XslTransformation.h"
 
 using namespace capputils;
 using namespace capputils::reflection;
@@ -56,11 +58,16 @@ using namespace attributes;
 namespace workflow {
 
 int Workflow::librariesId;
+int Workflow::interfaceId;
 
 BeginPropertyDefinitions(Workflow)
 
 // Libraries must be the first property since libraries must be loaded before all other modules
 DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Observe(librariesId = PROPERTY_ID))
+
+// Same is true for interfaces, since interfaces are used to build libraries that must be loaded before
+// all other modules
+ReflectableProperty(Interface, Observe(interfaceId = PROPERTY_ID))
 
 // Add Properties of node after libraries (module could be an object of a class of one of the libraries)
 ReflectableBase(Node)
@@ -177,12 +184,17 @@ Workflow::~Workflow() {
 
   // Don't delete module before setting it to zero
   // The module property is observed and reflectable. Thus, when resetting
-  // the module, and event listener is disconnected from the old module.
+  // the module, the event listener is disconnected from the old module.
   // This will cause the application to crash when the module has already been
   // deleted.
   ReflectableClass* module = getModule();
   setModule(0);
   delete module;
+
+  // Unload interface library
+  if (getInterface()) {
+    loader.freeLibrary(getLibraryName());
+  }
 
   // Unload libraries
   for (unsigned i = 0; i < _Libraries->size(); ++i)
@@ -585,7 +597,70 @@ void Workflow::resumeViewport() {
   handleViewportChanged();
 }
 
+string replaceAll(const string& context, const string& from, const string& to)
+{
+  string str = context;
+  size_t lookHere = 0;
+  size_t foundHere;
+  while((foundHere = str.find(from, lookHere)) != string::npos)
+  {
+    str.replace(foundHere, from.size(), to);
+        lookHere = foundHere + to.size();
+  }
+  return str;
+}
+
+std::string Workflow::getPrefix() {
+  if (getInterface())
+    return string(".gapphost/") + getInterface()->getName();
+  return string(".gapphost/") + getUuid();
+}
+
+std::string Workflow::getLibraryName() {
+  return getPrefix() + ".so";
+}
+
+void Workflow::createAndLoadAdhocModule() {
+  using namespace gapputils::host::internal;
+
+  string prefix = getPrefix();
+  //string className = string("Interface_") + replaceAll(getUuid(), "-", "");
+
+  //getInterface()->setName(className);
+
+  Xmlizer::ToXml(prefix + ".xml", *getInterface());
+  XslTransformation transform;
+  transform.setInputName(prefix + ".xml");
+  transform.setOutputName(prefix + ".cpp");
+  transform.setXsltName("/home/tombr/.gapphost/module.xslt");
+  transform.execute(0);
+  transform.writeResults();
+  cout << transform.getCommandOutput() << endl;
+
+  capputils::Executer build;
+  build.getCommand() << "gcc -shared -I\"/home/tombr/Projects\" -I\"/home/tombr/include\" -std=c++0x "
+                        << prefix << ".cpp" << " -o " << getLibraryName();
+  if (build.execute()) {
+    // TODO: report error
+    cout << "compilation failed: " << build.getOutput() << endl;
+    return;
+  }
+
+  LibraryLoader::getInstance().loadLibrary(getLibraryName());
+  ReflectableClass* module = getModule();
+  setModule(ReflectableClassFactory::getInstance().newInstance(string("gapputils::host::internal::") + getInterface()->getName()));
+  delete module;
+}
+
 void Workflow::resumeFromModel() {
+  // TODO: Create adhoc module from interface description if description is available and
+  // no module has been loaded. Last assert is not active for debugging purpose. Throw an
+  // error if no module is loaded and no interface description is available.
+
+  /*if (getInterface()) {
+    createAndLoadAdhocModule();
+  }*/
+
   if (!hasIONodes) {
     hasIONodes = true;
     inputsNode.setModule(getModule());
@@ -654,6 +729,8 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
     {
       loader.freeLibrary(*pos);
     }
+  } else if (eventId == interfaceId && getInterface()) {
+    createAndLoadAdhocModule();
   }
 }
 
@@ -813,6 +890,10 @@ void Workflow::updateCurrentModule() {
     buildStack(node);
     processStack();
   }
+}
+
+Workflow* Workflow::getCurrentWorkflow() {
+  return dynamic_cast<Workflow*>(getNode(workbench->getCurrentItem()));
 }
 
 void Workflow::updateOutputs() {

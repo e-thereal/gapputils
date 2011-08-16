@@ -23,6 +23,7 @@ class MainWindow : public QMainWindow
 
 private:
   QMenu* fileMenu;
+  QMenu* editMenu;
   QMenu* runMenu;
   NewObjectDialog* newObjectDialog;
   QTabWidget* tabWidget;
@@ -30,6 +31,7 @@ private:
   QTimer reloadTimer;
   bool libsChanged;
   std::vector<workflow::Workflow*> openWorkflows;
+  QAction* changeInterfaceAction;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
@@ -52,6 +54,8 @@ private Q_SLOTS:
   void updateCurrentModule();
   void updateWorkflow();
   void terminateUpdate();
+  void editCurrentInterface();
+  void updateEditMenuStatus();
   void updateFinished(workflow::Node* node);
   void showWorkflow(workflow::Workflow* workflow);
   void closeWorkflow(workflow::Workflow* workflow);
