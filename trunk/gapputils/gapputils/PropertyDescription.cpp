@@ -17,10 +17,12 @@ BeginPropertyDefinitions(PropertyDescription)
   DefineProperty(Name)
   DefineProperty(Type)
   DefineProperty(DefaultValue)
-  DefineProperty(PropertyAttributes, Enumerable<std::vector<std::string>, false>())
+  DefineProperty(PropertyAttributes, Enumerable<boost::shared_ptr<std::vector<std::string> >, false>())
 EndPropertyDefinitions
 
-PropertyDescription::PropertyDescription() {
+PropertyDescription::PropertyDescription()
+  : _PropertyAttributes(new std::vector<std::string>())
+{
 }
 
 PropertyDescription::~PropertyDescription() {

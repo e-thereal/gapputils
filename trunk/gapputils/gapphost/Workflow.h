@@ -24,6 +24,7 @@
 #include "WorkflowWorker.h"
 #include "PropertyReference.h"
 #include <stack>
+#include <capputils/TimedClass.h>
 
 #include "Workbench.h"
 
@@ -37,7 +38,7 @@ class ToolConnection;
 
 namespace workflow {
 
-class Workflow : public QObject, public Node, public CompatibilityChecker
+class Workflow : public QObject, public Node, public CompatibilityChecker, public capputils::TimedClass
 {
   Q_OBJECT
 
@@ -145,11 +146,15 @@ public:
 
   void activateGlobalEdge(GlobalEdge* edge);
 
+  std::string getPrefix();
+  std::string getLibraryName();
+  std::string getInterfaceName();
+  void updateInterfaceTimeStamp();
+
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
   void createAndLoadAdhocModule();
-  std::string getPrefix();
-  std::string getLibraryName();
+
 
 private Q_SLOTS:
   void createModule(int x, int y, QString classname);

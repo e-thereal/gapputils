@@ -83,7 +83,7 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   const int apCount = getAppearanceParameterCount();
 
   std::vector<boost::shared_ptr<GridModel> >* grids = getGrids().get();
-  if (!grids || grids->size() == 0)
+  if (!grids || grids->empty())
     return;
 
   const int rowCount = grids->at(0)->getRowCount();

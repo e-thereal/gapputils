@@ -122,7 +122,7 @@ void GPTest::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   gp(&mu[0], cov, &x[0], &y[0], &xstar[0], x.size(), 1, xstar.size(), sigmaF,
       sigmaN, &length);
 
-  for (int i = 0; i < xstar.size(); ++i)
+  for (int i = 0; i < (int)xstar.size(); ++i)
     ci[i] = 2 * sqrt(cov[i + i * xstar.size()]);
 
   NLML nlml(&x[0], &y[0], x.size(), 1);

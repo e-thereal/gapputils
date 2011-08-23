@@ -5,10 +5,13 @@
  *      Author: tombr
  */
 
-#ifndef WORKBENCH_H_
-#define WORKBENCH_H_
+#ifndef GAPPHOST_WORKBENCH_H_
+#define GAPPHOST_WORKBENCH_H_
 
 #include <QGraphicsView>
+#include <QGraphicsRectItem>
+
+#include <set>
 
 namespace gapputils {
 
@@ -30,6 +33,8 @@ private:
   CompatibilityChecker* checker;
   bool modifiable;
   qreal viewScale;
+  QGraphicsRectItem* shadowRect;
+  std::set<QGraphicsItem*> dependentItems;
 
 public:
   Workbench(QWidget *parent = 0);
@@ -52,6 +57,7 @@ public:
   void scaleView(qreal scaleFactor);
   qreal getViewScale();
   bool areCompatible(const ToolConnection* output, const ToolConnection* input) const;
+  bool isDependent(QGraphicsItem* item);
 
 Q_SIGNALS:
   void createItemRequest(int x, int y, QString classname);

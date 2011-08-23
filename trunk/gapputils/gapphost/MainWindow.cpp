@@ -14,6 +14,7 @@
 #include "DataModel.h"
 #include "Controller.h"
 #include "ToolItem.h"
+#include "EditInterfaceDialog.h"
 #include <capputils/ReflectableClassFactory.h>
 #include <qbrush.h>
 #include <gapputils/WorkflowElement.h>
@@ -78,7 +79,7 @@ void updateToolBox(QTreeWidget* toolBox) {
 #endif
 
     int pos = name.find_last_of(":");
-    if (pos != string::npos) {
+    if (pos != (int)string::npos) {
       currentGroupString = name.substr(0, pos-1);
     } else {
       pos = -1;
@@ -142,8 +143,9 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   editMenu = menuBar()->addMenu("&Edit");
   changeInterfaceAction = editMenu->addAction("Change Workflow Interface", this, SLOT(editCurrentInterface()), QKeySequence(Qt::Key_F4));
-  changeInterfaceAction->setEnabled(false);
+  changeInterfaceAction->setEnabled(true);
   connect(editMenu, SIGNAL(aboutToShow()), this, SLOT(updateEditMenuStatus()));
+  connect(editMenu, SIGNAL(aboutToHide()), this, SLOT(enableEditMenuItems()));
 
   runMenu = menuBar()->addMenu("&Run");
   runMenu->addAction("Update", this, SLOT(updateCurrentModule()), QKeySequence(Qt::Key_F5));
@@ -197,27 +199,10 @@ void MainWindow::itemDoubleClickedHandler(QTreeWidgetItem *item, int) {
 
 void MainWindow::loadWorkflow() {
   QFileDialog fileDialog(this);
-  DataModel& model = DataModel::getInstance();
 
   if (fileDialog.exec() == QDialog::Accepted) {
     QStringList filenames = fileDialog.selectedFiles();
     if (filenames.size()) {
-      /*Workflow* workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(filenames[0].toUtf8().data()));
-      if (workflow) {
-        workflow->resumeFromModel();
-
-        Workflow* oldWorkflow = model.getMainWorkflow();
-        delete oldWorkflow;
-        //tabWidget->removeTab(0); (delete will automatically remove the tab)
-        model.setMainWorkflow(workflow);
-        tabWidget->addTab(workflow->dispenseWidget(), "Main");
-        openWorkflows.push_back(workflow);
-
-        connect(workflow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
-        connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
-        connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
-        updateToolBox(toolBox);
-      }*/
       openWorkflows[tabWidget->currentIndex()]->load(filenames[0].toUtf8().data());
     }
   }
@@ -370,12 +355,24 @@ void MainWindow::updateEditMenuStatus() {
   changeInterfaceAction->setEnabled(openWorkflows[tabWidget->currentIndex()]->getCurrentWorkflow());
 }
 
+void MainWindow::enableEditMenuItems() {
+  changeInterfaceAction->setEnabled(true);
+}
+
 void MainWindow::editCurrentInterface() {
   Workflow* currentWorkflow = openWorkflows[tabWidget->currentIndex()]->getCurrentWorkflow();
   if (!currentWorkflow)
     return;
 
   // If no current interface -> create interface, compile interface, load library, load interface class
+  if(!currentWorkflow->getInterface()) {
+    boost::shared_ptr<InterfaceDescription> interface(new InterfaceDescription());
+    interface->setName(currentWorkflow->getInterfaceName());
+    currentWorkflow->setInterface(interface);
+  }
+  EditInterfaceDialog dialog(currentWorkflow->getInterface().get(), this);
+  dialog.exec();
+  currentWorkflow->updateInterfaceTimeStamp();
 }
 
 }
