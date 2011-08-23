@@ -123,7 +123,7 @@ void trainGP(float& sigmaF, float& sigmaN, float* length, float* x, float* y, in
   NLML nlml(x, y, n, d);
 
   vector<double> params(2 + d);
-  for (int i = 0; i < params.size(); ++i)
+  for (unsigned i = 0; i < params.size(); ++i)
     params[i] = 0;
 
   GridParameter gridParams;

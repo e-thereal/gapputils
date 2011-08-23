@@ -27,12 +27,15 @@
 #include <capputils/EnumerableAttribute.h>
 #include <capputils/ShortNameAttribute.h>
 #include <capputils/Executer.h>
+#include <capputils/TimeStampAttribute.h>
 
 #include <gapputils/CombinerInterface.h>
 #include <gapputils/HideAttribute.h>
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/WorkflowInterface.h>
 #include <gapputils/LabelAttribute.h>
+
+#include <boost/filesystem.hpp>
 
 #include "PropertyGridDelegate.h"
 #include "CustomToolItemAttribute.h"
@@ -67,7 +70,7 @@ DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Observe(lib
 
 // Same is true for interfaces, since interfaces are used to build libraries that must be loaded before
 // all other modules
-ReflectableProperty(Interface, Observe(interfaceId = PROPERTY_ID))
+ReflectableProperty(Interface, Observe(interfaceId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 // Add Properties of node after libraries (module could be an object of a class of one of the libraries)
 ReflectableBase(Node)
@@ -620,35 +623,42 @@ std::string Workflow::getLibraryName() {
   return getPrefix() + ".so";
 }
 
+std::string Workflow::getInterfaceName() {
+  return string("Interface_") + replaceAll(getUuid(), "-", "");
+}
+
 void Workflow::createAndLoadAdhocModule() {
   using namespace gapputils::host::internal;
+  time_t libTime, interfaceTime;
 
-  string prefix = getPrefix();
-  //string className = string("Interface_") + replaceAll(getUuid(), "-", "");
+  if (!boost::filesystem::exists(getLibraryName().c_str()) ||
+      ((libTime = boost::filesystem::last_write_time(getLibraryName().c_str())) < (interfaceTime = getTime(interfaceId))))
+  {
+    string prefix = getPrefix();
+    Xmlizer::ToXml(prefix + ".xml", *getInterface());
+    XslTransformation transform;
+    transform.setInputName(prefix + ".xml");
+    transform.setOutputName(prefix + ".cpp");
+    transform.setXsltName("/home/tombr/.gapphost/module.xslt");
+    transform.execute(0);
+    transform.writeResults();
+    cout << transform.getCommandOutput() << endl;
 
-  //getInterface()->setName(className);
-
-  Xmlizer::ToXml(prefix + ".xml", *getInterface());
-  XslTransformation transform;
-  transform.setInputName(prefix + ".xml");
-  transform.setOutputName(prefix + ".cpp");
-  transform.setXsltName("/home/tombr/.gapphost/module.xslt");
-  transform.execute(0);
-  transform.writeResults();
-  cout << transform.getCommandOutput() << endl;
-
-  capputils::Executer build;
-  build.getCommand() << "gcc -shared -I\"/home/tombr/Projects\" -I\"/home/tombr/include\" -std=c++0x "
-                        << prefix << ".cpp" << " -o " << getLibraryName();
-  if (build.execute()) {
-    // TODO: report error
-    cout << "compilation failed: " << build.getOutput() << endl;
-    return;
+    capputils::Executer build;
+    build.getCommand() << "gcc -shared -I\"/home/tombr/Projects\" -I\"/home/tombr/include\" -I\"/home/tombr/Programs/cuda/include\" -I\"/home/tombr/Programs/Qt-4.7.3/include\" -I\"/home/tombr/Programs/Qt-4.7.3/include/QtCore\" -I\"/home/tombr/Programs/Qt-4.7.3/include/QtGui\" -std=c++0x "
+                          << prefix << ".cpp" << " -o " << getLibraryName();
+    if (build.execute()) {
+      // TODO: report error
+      cout << "compilation failed: " << build.getOutput() << endl;
+      return;
+    }
   }
 
   LibraryLoader::getInstance().loadLibrary(getLibraryName());
   ReflectableClass* module = getModule();
   setModule(ReflectableClassFactory::getInstance().newInstance(string("gapputils::host::internal::") + getInterface()->getName()));
+  inputsNode.setModule(getModule());
+  outputsNode.setModule(getModule());
   delete module;
 }
 
@@ -732,6 +742,10 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
   } else if (eventId == interfaceId && getInterface()) {
     createAndLoadAdhocModule();
   }
+}
+
+void Workflow::updateInterfaceTimeStamp() {
+  setCurrentTime(interfaceId);
 }
 
 void Workflow::itemSelected(ToolItem* item) {
@@ -893,7 +907,10 @@ void Workflow::updateCurrentModule() {
 }
 
 Workflow* Workflow::getCurrentWorkflow() {
-  return dynamic_cast<Workflow*>(getNode(workbench->getCurrentItem()));
+  Node* node = getNode(workbench->getCurrentItem());
+  if (node == &inputsNode || node == &outputsNode)
+    return this;
+  return dynamic_cast<Workflow*>(node);
 }
 
 void Workflow::updateOutputs() {

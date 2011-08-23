@@ -438,6 +438,8 @@ void ToolItem::drawBox(QPainter* painter) {
 
   bool selected = bench->scene()->selectedItems().contains(this);
 
+  qreal opacity = 1.0;
+
   if (bench && isCurrentItem()) {
     gradient.setColorAt(0, Qt::white);
     switch(progress) {
@@ -452,7 +454,7 @@ void ToolItem::drawBox(QPainter* painter) {
     }
     progressGradient.setColorAt(0, Qt::white);
     progressGradient.setColorAt(1, Qt::green);
-    setZValue(4);
+    setZValue(7);
   } else {
     gradient.setColorAt(0, Qt::lightGray);
     switch(progress) {
@@ -467,7 +469,12 @@ void ToolItem::drawBox(QPainter* painter) {
     }
     progressGradient.setColorAt(0, Qt::lightGray);
     progressGradient.setColorAt(1, Qt::green);
-    setZValue(2);
+    if (bench->isDependent(this)) {
+      setZValue(5);
+    } else {
+      setZValue(2);
+      painter->setOpacity(opacity = 0.5);
+    }
   }
 
   painter->save();
@@ -475,16 +482,16 @@ void ToolItem::drawBox(QPainter* painter) {
  
   if (selected) {
     const int offset = 2;
-    painter->setOpacity(0.1);
+    painter->setOpacity(0.1 * opacity);
     painter->setPen(QPen(Qt::black, 14));
     painter->drawRoundedRect(0, offset, width, height, 4, 4);
-    painter->setOpacity(0.2);
+    painter->setOpacity(0.2 * opacity);
     painter->setPen(QPen(Qt::black, 9));
     painter->drawRoundedRect(0, offset, width, height, 4, 4);
-    painter->setOpacity(0.25);
+    painter->setOpacity(0.25 * opacity);
     painter->setPen(QPen(Qt::black, 5.5));
     painter->drawRoundedRect(0, offset, width, height, 4, 4);
-    painter->setOpacity(0.3);
+    painter->setOpacity(0.3 * opacity);
     painter->setPen(QPen(Qt::black, 2.5));
     painter->drawRoundedRect(0, offset, width, height, 4, 4);
   } else {
@@ -502,7 +509,7 @@ void ToolItem::drawBox(QPainter* painter) {
     painter->setPen(QPen(Qt::black, 1.5));
     painter->drawRoundedRect(0, offset, width, height, 4, 4);*/
   }
-  painter->setOpacity(0.9);
+  painter->setOpacity(0.9 * opacity);
   painter->setBrush(gradient);
   painter->setPen(QPen(Qt::black, 0));
   painter->drawRoundedRect(0, 0, width, height, 4, 4);

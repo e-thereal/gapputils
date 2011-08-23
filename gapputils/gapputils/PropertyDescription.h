@@ -18,7 +18,7 @@ class PropertyDescription : public capputils::reflection::ReflectableClass {
   Property(Name, std::string)
   Property(Type, std::string)
   Property(DefaultValue, std::string)
-  Property(PropertyAttributes, std::vector<std::string>)
+  Property(PropertyAttributes, boost::shared_ptr<std::vector<std::string> >)
 
 public:
   PropertyDescription();

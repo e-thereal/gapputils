@@ -56,6 +56,7 @@ private Q_SLOTS:
   void terminateUpdate();
   void editCurrentInterface();
   void updateEditMenuStatus();
+  void enableEditMenuItems();
   void updateFinished(workflow::Node* node);
   void showWorkflow(workflow::Workflow* workflow);
   void closeWorkflow(workflow::Workflow* workflow);

@@ -30,7 +30,8 @@ SOURCES = main.cpp \
 		  PopUpList.cpp \
 		  GlobalEdge.cpp \
 		  trace.cpp \
-		  XslTransformation.cpp
+		  XslTransformation.cpp \
+		  EditInterfaceDialog.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -48,7 +49,8 @@ HEADERS = MainWindow.h \
           GenericViewer.h \
           MakeGlobalDialog.h \
           PopUpList.h \
-          ToolItem.h
+          ToolItem.h \
+          EditInterfaceDialog.h
           
 CONFIG += no_keywords debug console
 QMAKE_CXXFLAGS += -std=c++0x

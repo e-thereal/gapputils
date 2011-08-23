@@ -110,15 +110,22 @@ void CableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem* /*optio
   }
 
   if (isCurrentCable || (bench->getCurrentCables().size() == 0  && input && input->parent->isCurrentItem()) || (bench->getCurrentCables().size() == 0  && output && output->parent->isCurrentItem())) {
-    setZValue(3);
+    setZValue(6);
     painter->setPen(QPen(Qt::darkGray, 4.5));
     painter->drawPath(path);
     painter->setPen(QPen(Qt::white, 2.5));
     painter->drawPath(path);
   } else {
-    setZValue(1);
-    painter->setPen(QPen(Qt::black, 2.5));
-    painter->drawPath(path);
+    if (bench->isDependent(this)) {
+      setZValue(4);
+      painter->setPen(QPen(Qt::black, 2.5));
+      painter->drawPath(path);
+    } else {
+      setZValue(1);
+      painter->setOpacity(0.25);
+      painter->setPen(QPen(Qt::black, 2.5));
+      painter->drawPath(path);
+    }
   }
 }
 

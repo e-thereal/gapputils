@@ -33,6 +33,11 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setAcceptDrops(true);
+
+  //shadowRect = new QGraphicsRectItem(0, 0, 2000, 1300);
+  //shadowRect->setBrush(QBrush(QColor(0, 0, 0, 0)));
+  //shadowRect->setZValue(3);
+  //scene->addItem(shadowRect);
 }
 
 Workbench::~Workbench() {
@@ -82,8 +87,43 @@ void Workbench::removeCableItem(CableItem* cable) {
   delete cable;
 }
 
+bool Workbench::isDependent(QGraphicsItem* item) {
+  return dependentItems.find(item) != dependentItems.end();
+}
+
+void addAllInputs(set<QGraphicsItem*>& items, ToolItem* item) {
+  vector<ToolConnection*>& inputs = item->getInputs();
+  for(unsigned i = 0; i < inputs.size(); ++i) {
+    if (inputs[i]->cable) {
+      items.insert(inputs[i]->cable);
+      if (inputs[i]->cable->getInput()) {
+        items.insert(inputs[i]->cable->getInput()->parent);
+        addAllInputs(items, inputs[i]->cable->getInput()->parent);
+      }
+    }
+  }
+}
+
+void addAllOutputs(set<QGraphicsItem*>& items, ToolItem* item) {
+  vector<ToolConnection*> outputs;
+  item->getOutputs(outputs);
+  for(unsigned i = 0; i < outputs.size(); ++i) {
+    if (outputs[i]->cable) {
+      items.insert(outputs[i]->cable);
+      if (outputs[i]->cable->getOutput()) {
+        items.insert(outputs[i]->cable->getOutput()->parent);
+        addAllOutputs(items, outputs[i]->cable->getOutput()->parent);
+      }
+    }
+  }
+}
+
 void Workbench::setCurrentItem(ToolItem* item) {
   selectedItem = item;
+
+  dependentItems.clear();
+  addAllInputs(dependentItems, item);
+  addAllOutputs(dependentItems, item);
 
   Q_FOREACH (QGraphicsItem *item, scene()->items()) {
     item->update();

@@ -8,6 +8,7 @@
 class ShowImageDialog : public QDialog
 {
   Q_OBJECT
+
 private:
   QLabel* label;
 
