@@ -19,7 +19,7 @@ namespace gapputils {
 
 namespace cv {
 
-ReflectableEnum(AamGeneratorMode, Image, Segmentation);
+ReflectableEnum(AamGeneratorMode, Image, Segmentation, TextureWarp);
 
 class AamGenerator : public gapputils::workflow::WorkflowElement {
 
@@ -28,6 +28,7 @@ class AamGenerator : public gapputils::workflow::WorkflowElement {
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
   Property(ParameterVector, boost::shared_ptr<std::vector<float> >)
   Property(BackgroundImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(TextureImage, boost::shared_ptr<culib::ICudaImage>)
   Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
   Property(Mode, AamGeneratorMode)
 

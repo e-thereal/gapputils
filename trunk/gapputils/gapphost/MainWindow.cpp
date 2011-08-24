@@ -364,15 +364,20 @@ void MainWindow::editCurrentInterface() {
   if (!currentWorkflow)
     return;
 
+  bool newInterface = false;
+
   // If no current interface -> create interface, compile interface, load library, load interface class
   if(!currentWorkflow->getInterface()) {
     boost::shared_ptr<InterfaceDescription> interface(new InterfaceDescription());
     interface->setName(currentWorkflow->getInterfaceName());
     currentWorkflow->setInterface(interface);
+    newInterface = true;
   }
   EditInterfaceDialog dialog(currentWorkflow->getInterface().get(), this);
   dialog.exec();
   currentWorkflow->updateInterfaceTimeStamp();
+  if (newInterface)
+    reload();
 }
 
 }
