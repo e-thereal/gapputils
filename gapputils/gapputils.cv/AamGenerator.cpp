@@ -43,6 +43,7 @@ BeginPropertyDefinitions(AamGenerator)
   DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ParameterVector, Input("PV"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(BackgroundImage, Input("BG"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(TextureImage, Input("Tex"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   ReflectableProperty(Mode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
@@ -82,6 +83,9 @@ void AamGenerator::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   if (!getActiveAppearanceModel() || !getParameterVector())
       return;
+
+  if ((getMode() == AamGeneratorMode::TextureWarp) && !getTextureImage())
+    return;
 
   boost::shared_ptr<ActiveAppearanceModel> model = getActiveAppearanceModel();
 
@@ -127,6 +131,10 @@ void AamGenerator::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   case AamGeneratorMode::Segmentation:
     image = createWhiteTexture(dim3(model->getWidth(), model->getHeight()));
+    break;
+
+  case AamGeneratorMode::TextureWarp:
+    image = getTextureImage();
     break;
   }
 
