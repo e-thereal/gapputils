@@ -595,7 +595,7 @@ void Workflow::newCable(Edge* edge) {
 
 void Workflow::resumeViewport() {
   vector<double> pos = getViewportPosition();
-  workbench->scaleView(getViewportScale());
+  workbench->setViewScale(getViewportScale());
   workbench->centerOn(pos[0], pos[1]);
   handleViewportChanged();
 }
