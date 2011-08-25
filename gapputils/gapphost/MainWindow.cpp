@@ -252,7 +252,7 @@ void MainWindow::reload() {
   model.setMainWorkflow(workflow);
   workflow->resumeFromModel();
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
-  workflow->resumeViewport();
+  workflow->resumeViewport(); // resume after the layout stuff is done.
   openWorkflows.push_back(workflow);
   connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
   connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
@@ -328,6 +328,7 @@ void MainWindow::showWorkflow(workflow::Workflow* workflow) {
     int currentIndex = tabWidget->count();
 
     tabWidget->addTab(workflow->dispenseWidget(), workflow->getToolItem()->getLabel().c_str());
+    workflow->resumeViewport();
     openWorkflows.push_back(workflow);
     tabWidget->setCurrentIndex(currentIndex);
   }

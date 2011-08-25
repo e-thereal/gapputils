@@ -400,13 +400,18 @@ qreal Workbench::getViewScale() {
   return viewScale;
 }
 
+void Workbench::setViewScale(qreal scale) {
+  scaleView(scale / viewScale);
+}
+
 void Workbench::scaleView(qreal scaleFactor)
  {
-   viewScale *= scaleFactor;
+
    qreal factor = transform().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
    if (factor < 0.07 || factor > 100)
        return;
 
+   viewScale *= scaleFactor;
    scale(scaleFactor, scaleFactor);
    Q_EMIT viewportChanged();
  }

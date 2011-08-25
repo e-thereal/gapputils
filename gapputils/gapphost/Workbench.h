@@ -55,6 +55,7 @@ public:
 
   void setModifiable(bool modifiable);
   void scaleView(qreal scaleFactor);
+  void setViewScale(qreal scale);
   qreal getViewScale();
   bool areCompatible(const ToolConnection* output, const ToolConnection* input) const;
   bool isDependent(QGraphicsItem* item);

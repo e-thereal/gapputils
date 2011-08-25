@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
       model.getMainWorkflow()->updateOutputs();
     } else {
       w.show();
-      model.getMainWorkflow()->resumeViewport();
+      model.getMainWorkflow()->resumeViewport();  // Resume after the layout stuff is done.
       ret = a.exec();
     }
   } catch (char const* error) {
