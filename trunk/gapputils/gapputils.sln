@@ -46,6 +46,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gapputils.cv", "gapputils.c
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "culib", "culib\culib.vcxproj", "{A57AB493-FF6A-4E7A-963A-963171AD7A1C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gapputils.cv.cuda", "gapputils.cv.cuda\gapputils.cv.cuda.vcxproj", "{DD1105E7-D90A-4799-8C65-6C4F65DFC8B9}"
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
@@ -126,6 +128,12 @@ Global
 		{A57AB493-FF6A-4E7A-963A-963171AD7A1C}.Release|Win32.Build.0 = Release|Win32
 		{A57AB493-FF6A-4E7A-963A-963171AD7A1C}.Release|x64.ActiveCfg = Release|x64
 		{A57AB493-FF6A-4E7A-963A-963171AD7A1C}.Release|x64.Build.0 = Release|x64
+		{DD1105E7-D90A-4799-8C65-6C4F65DFC8B9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DD1105E7-D90A-4799-8C65-6C4F65DFC8B9}.Debug|Win32.Build.0 = Debug|Win32
+		{DD1105E7-D90A-4799-8C65-6C4F65DFC8B9}.Debug|x64.ActiveCfg = Debug|Win32
+		{DD1105E7-D90A-4799-8C65-6C4F65DFC8B9}.Release|Win32.ActiveCfg = Release|Win32
+		{DD1105E7-D90A-4799-8C65-6C4F65DFC8B9}.Release|Win32.Build.0 = Release|Win32
+		{DD1105E7-D90A-4799-8C65-6C4F65DFC8B9}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

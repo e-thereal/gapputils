@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'MainWindow.h'
 **
-** Created: Mon Jul 4 12:18:49 2011
+** Created: Tue Aug 23 17:23:16 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-      16,   14, // methods
+      19,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -43,10 +43,13 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
      218,   28,   28,   28, 0x08,
      240,   28,   28,   28, 0x08,
      257,   28,   28,   28, 0x08,
-     280,  275,   28,   28, 0x08,
-     321,  312,   28,   28, 0x08,
-     355,  312,   28,   28, 0x08,
-     399,  390,   28,   28, 0x08,
+     275,   28,   28,   28, 0x08,
+     298,   28,   28,   28, 0x08,
+     321,   28,   28,   28, 0x08,
+     348,  343,   28,   28, 0x08,
+     389,  380,   28,   28, 0x08,
+     423,  380,   28,   28, 0x08,
+     467,  458,   28,   28, 0x08,
 
        0        // eod
 };
@@ -58,8 +61,9 @@ static const char qt_meta_stringdata_gapputils__host__MainWindow[] = {
     "item,column\0itemDoubleClickedHandler(QTreeWidgetItem*,int)\0"
     "itemClickedHandler(QTreeWidgetItem*,int)\0"
     "updateCurrentModule()\0updateWorkflow()\0"
-    "terminateUpdate()\0node\0"
-    "updateFinished(workflow::Node*)\0"
+    "terminateUpdate()\0editCurrentInterface()\0"
+    "updateEditMenuStatus()\0enableEditMenuItems()\0"
+    "node\0updateFinished(workflow::Node*)\0"
     "workflow\0showWorkflow(workflow::Workflow*)\0"
     "closeWorkflow(workflow::Workflow*)\0"
     "tabIndex\0closeWorkflow(int)\0"
@@ -106,13 +110,16 @@ int gapputils::host::MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void
         case 9: updateCurrentModule(); break;
         case 10: updateWorkflow(); break;
         case 11: terminateUpdate(); break;
-        case 12: updateFinished((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
-        case 13: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 14: closeWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 15: closeWorkflow((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 12: editCurrentInterface(); break;
+        case 13: updateEditMenuStatus(); break;
+        case 14: enableEditMenuItems(); break;
+        case 15: updateFinished((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
+        case 16: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 17: closeWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 18: closeWorkflow((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
-        _id -= 16;
+        _id -= 19;
     }
     return _id;
 }

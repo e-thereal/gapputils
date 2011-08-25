@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workflow.h'
 **
-** Created: Mon Jul 4 12:18:52 2011
+** Created: Tue Aug 23 17:23:18 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -106,6 +106,8 @@ void *gapputils::workflow::Workflow::qt_metacast(const char *_clname)
         return static_cast< Node*>(const_cast< Workflow*>(this));
     if (!strcmp(_clname, "CompatibilityChecker"))
         return static_cast< CompatibilityChecker*>(const_cast< Workflow*>(this));
+    if (!strcmp(_clname, "capputils::TimedClass"))
+        return static_cast< capputils::TimedClass*>(const_cast< Workflow*>(this));
     return QObject::qt_metacast(_clname);
 }
 
