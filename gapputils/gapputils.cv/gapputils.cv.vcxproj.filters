@@ -80,27 +80,6 @@
     <ClCompile Include="GridList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AamBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ActiveAppearanceModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AamTester.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AamFitter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AamGenerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AamReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AamWriter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Cropper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -131,7 +110,10 @@
     <ClCompile Include="GeneratedFiles\Release\moc_RectangleWidget.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="AamMatchFunction.cpp">
+    <ClCompile Include="ToHsv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FromHsv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -200,6 +182,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AamMatchFunction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ToHsv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FromHsv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

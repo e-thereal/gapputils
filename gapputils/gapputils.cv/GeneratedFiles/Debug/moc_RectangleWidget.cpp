@@ -1,15 +1,15 @@
 /****************************************************************************
-** Meta object code from reading C++ file 'GridWidget.h'
+** Meta object code from reading C++ file 'RectangleWidget.h'
 **
-** Created: Mon Aug 22 13:57:33 2011
+** Created: Mon Aug 22 13:57:34 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#include "../../GridWidget.h"
+#include "../../RectangleWidget.h"
 #if !defined(Q_MOC_OUTPUT_REVISION)
-#error "The header file 'GridWidget.h' doesn't include <QObject>."
+#error "The header file 'RectangleWidget.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 62
 #error "This file was generated using the moc from 4.7.2. It"
 #error "cannot be used with the include files from this version of Qt."
@@ -17,7 +17,7 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
-static const uint qt_meta_data_gapputils__cv__GridWidget[] = {
+static const uint qt_meta_data_gapputils__cv__RectangleWidget[] = {
 
  // content:
        5,       // revision
@@ -33,33 +33,33 @@ static const uint qt_meta_data_gapputils__cv__GridWidget[] = {
        0        // eod
 };
 
-static const char qt_meta_stringdata_gapputils__cv__GridWidget[] = {
-    "gapputils::cv::GridWidget\0"
+static const char qt_meta_stringdata_gapputils__cv__RectangleWidget[] = {
+    "gapputils::cv::RectangleWidget\0"
 };
 
-const QMetaObject gapputils::cv::GridWidget::staticMetaObject = {
-    { &QGraphicsView::staticMetaObject, qt_meta_stringdata_gapputils__cv__GridWidget,
-      qt_meta_data_gapputils__cv__GridWidget, 0 }
+const QMetaObject gapputils::cv::RectangleWidget::staticMetaObject = {
+    { &QGraphicsView::staticMetaObject, qt_meta_stringdata_gapputils__cv__RectangleWidget,
+      qt_meta_data_gapputils__cv__RectangleWidget, 0 }
 };
 
 #ifdef Q_NO_DATA_RELOCATION
-const QMetaObject &gapputils::cv::GridWidget::getStaticMetaObject() { return staticMetaObject; }
+const QMetaObject &gapputils::cv::RectangleWidget::getStaticMetaObject() { return staticMetaObject; }
 #endif //Q_NO_DATA_RELOCATION
 
-const QMetaObject *gapputils::cv::GridWidget::metaObject() const
+const QMetaObject *gapputils::cv::RectangleWidget::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->metaObject : &staticMetaObject;
 }
 
-void *gapputils::cv::GridWidget::qt_metacast(const char *_clname)
+void *gapputils::cv::RectangleWidget::qt_metacast(const char *_clname)
 {
     if (!_clname) return 0;
-    if (!strcmp(_clname, qt_meta_stringdata_gapputils__cv__GridWidget))
-        return static_cast<void*>(const_cast< GridWidget*>(this));
+    if (!strcmp(_clname, qt_meta_stringdata_gapputils__cv__RectangleWidget))
+        return static_cast<void*>(const_cast< RectangleWidget*>(this));
     return QGraphicsView::qt_metacast(_clname);
 }
 
-int gapputils::cv::GridWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int gapputils::cv::RectangleWidget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QGraphicsView::qt_metacall(_c, _id, _a);
     if (_id < 0)

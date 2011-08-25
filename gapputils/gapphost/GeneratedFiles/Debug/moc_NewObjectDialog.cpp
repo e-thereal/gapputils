@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'NewObjectDialog.h'
 **
-** Created: Mon Jul 4 12:18:53 2011
+** Created: Mon Aug 22 13:57:38 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!

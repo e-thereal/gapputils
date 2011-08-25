@@ -1,6 +1,5 @@
 #include "FromRgb.h"
 
-
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>

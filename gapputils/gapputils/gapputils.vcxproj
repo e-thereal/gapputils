@@ -79,8 +79,10 @@
     <ClCompile Include="CombinerInterface.cpp" />
     <ClCompile Include="DefaultWorkflowElement.cpp" />
     <ClCompile Include="HideAttribute.cpp" />
+    <ClCompile Include="InterfaceDescription.cpp" />
     <ClCompile Include="IProgressMonitor.cpp" />
     <ClCompile Include="LabelAttribute.cpp" />
+    <ClCompile Include="PropertyDescription.cpp" />
     <ClCompile Include="ReadOnlyAttribute.cpp" />
     <ClCompile Include="WorkflowElement.cpp" />
     <ClCompile Include="WorkflowInterface.cpp" />
@@ -90,8 +92,10 @@
     <ClInclude Include="DefaultWorkflowElement.h" />
     <ClInclude Include="gapputils.h" />
     <ClInclude Include="HideAttribute.h" />
+    <ClInclude Include="InterfaceDescription.h" />
     <ClInclude Include="IProgressMonitor.h" />
     <ClInclude Include="LabelAttribute.h" />
+    <ClInclude Include="PropertyDescription.h" />
     <ClInclude Include="ReadOnlyAttribute.h" />
     <ClInclude Include="WorkflowElement.h" />
     <ClInclude Include="WorkflowInterface.h" />

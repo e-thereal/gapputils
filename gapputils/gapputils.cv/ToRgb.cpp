@@ -1,7 +1,5 @@
 #include "ToRgb.h"
 
-
-
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -68,10 +66,9 @@ void ToRgb::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   boost::shared_ptr<QImage> image = getImagePtr();
   const int width = image->width();
   const int height = image->height();
- 
-  boost::shared_ptr<CudaImage> redImage(new CudaImage(dim3(width, height)));
-  boost::shared_ptr<CudaImage> greenImage(new CudaImage(dim3(width, height)));
-  boost::shared_ptr<CudaImage> blueImage(new CudaImage(dim3(width, height)));
+  boost::shared_ptr<ICudaImage> redImage(new CudaImage(dim3(width, height)));
+  boost::shared_ptr<ICudaImage> greenImage(new CudaImage(dim3(width, height)));
+  boost::shared_ptr<ICudaImage> blueImage(new CudaImage(dim3(width, height)));
   float* redBuffer = redImage->getOriginalImage();
   float* greenBuffer = greenImage->getOriginalImage();
   float* blueBuffer = blueImage->getOriginalImage();
