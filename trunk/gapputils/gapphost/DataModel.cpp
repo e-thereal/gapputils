@@ -5,6 +5,7 @@
 #include <capputils/FlagAttribute.h>
 #include <tinyxml/tinyxml.h>
 #include <capputils/Xmlizer.h>
+#include <capputils/EnumerableAttribute.h>
 
 using namespace capputils;
 using namespace capputils::attributes;
@@ -24,12 +25,15 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(WindowWidth)
   DefineProperty(WindowHeight)
   ReflectableProperty(MainWorkflow)
+  DefineProperty(OpenWorkflows, Enumerable<boost::shared_ptr<std::vector<std::string> >, false>())
+  DefineProperty(CurrentWorkflow)
 EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;
 
 DataModel::DataModel(void) : _NoGui(false), _Help(false), _AutoReload(false),
-    _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600), _MainWorkflow(0)
+    _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600), _MainWorkflow(0),
+    _OpenWorkflows(new std::vector<std::string>()), _WorkflowMap(new std::map<std::string, workflow::Workflow*>)
 {
 }
 

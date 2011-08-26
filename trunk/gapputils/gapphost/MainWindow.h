@@ -39,6 +39,7 @@ public:
 
   virtual void closeEvent(QCloseEvent *event);
   void setGuiEnabled(bool enabled);
+  void resume();
 
 private Q_SLOTS:
   void quit();
@@ -58,9 +59,10 @@ private Q_SLOTS:
   void updateEditMenuStatus();
   void enableEditMenuItems();
   void updateFinished(workflow::Node* node);
-  void showWorkflow(workflow::Workflow* workflow);
+  void showWorkflow(workflow::Workflow* workflow, bool addUuid = true);
   void closeWorkflow(workflow::Workflow* workflow);
   void closeWorkflow(int tabIndex);
+  void currentTabChanged(int index);
 };
 
 }
