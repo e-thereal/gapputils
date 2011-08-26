@@ -49,6 +49,8 @@
 #include "PopUpList.h"
 #include "XslTransformation.h"
 
+#include "DataModel.h"
+
 using namespace capputils;
 using namespace capputils::reflection;
 using namespace capputils::attributes;
@@ -203,6 +205,10 @@ Workflow::~Workflow() {
   for (unsigned i = 0; i < _Libraries->size(); ++i)
     loader.freeLibrary(_Libraries->at(i));
   delete _Libraries;
+
+  map<string, Workflow*>* workflowMap = host::DataModel::getInstance().getWorkflowMap().get();
+  assert(workflowMap->find(getUuid()) != workflowMap->end());
+  workflowMap->erase(getUuid());
 }
 
 void Workflow::showContextMenu(const QPoint& point) {
@@ -663,13 +669,9 @@ void Workflow::createAndLoadAdhocModule() {
 }
 
 void Workflow::resumeFromModel() {
-  // TODO: Create adhoc module from interface description if description is available and
-  // no module has been loaded. Last assert is not active for debugging purpose. Throw an
-  // error if no module is loaded and no interface description is available.
-
-  /*if (getInterface()) {
-    createAndLoadAdhocModule();
-  }*/
+  map<string, Workflow*>* workflowMap = host::DataModel::getInstance().getWorkflowMap().get();
+  assert(workflowMap->find(getUuid()) == workflowMap->end());
+  workflowMap->insert(pair<string, Workflow*>(getUuid(), this));
 
   if (!hasIONodes) {
     hasIONodes = true;

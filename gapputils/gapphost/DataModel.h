@@ -5,6 +5,8 @@
 
 #include <capputils/ReflectableClass.h>
 
+#include <map>
+
 #include "Workflow.h"
 
 namespace gapputils {
@@ -13,7 +15,6 @@ namespace host {
 
 class DataModel : public capputils::reflection::ReflectableClass
 {
-
   InitReflectableClass(DataModel)
 
   Property(NoGui, bool)
@@ -24,6 +25,9 @@ class DataModel : public capputils::reflection::ReflectableClass
   Property(WindowWidth, int)
   Property(WindowHeight, int)
   Property(MainWorkflow, workflow::Workflow*)
+  Property(OpenWorkflows, boost::shared_ptr<std::vector<std::string> >)
+  Property(CurrentWorkflow, std::string)
+  Property(WorkflowMap, boost::shared_ptr<std::map<std::string CAPPUTILS_COMMA() workflow::Workflow*> >)     ///< Getter and setters only. No DefineProperty in the cpp file
 
 private:
   static DataModel* instance;

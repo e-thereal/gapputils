@@ -82,16 +82,15 @@ int main(int argc, char *argv[])
     return 0;
   }
 
-  model.getMainWorkflow()->resumeFromModel();
-
   try {
     MainWindow w;
     if (model.getNoGui()) {
       // TODO: wait until update has finished.
+      model.getMainWorkflow()->resumeFromModel();
       model.getMainWorkflow()->updateOutputs();
     } else {
       w.show();
-      model.getMainWorkflow()->resumeViewport();  // Resume after the layout stuff is done.
+      w.resume();
       ret = a.exec();
     }
   } catch (char const* error) {

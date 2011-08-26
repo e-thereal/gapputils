@@ -100,7 +100,6 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
     : QMainWindow(parent, flags), libsChanged(false)
 {
   DataModel& model = DataModel::getInstance();
-  Workflow* workflow = model.getMainWorkflow();
 
   setWindowTitle("Application Host");
   this->setGeometry(model.getWindowX(), model.getWindowY(), model.getWindowWidth(), model.getWindowHeight());
@@ -109,12 +108,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   tabWidget = new QTabWidget();
   tabWidget->setTabsClosable(true);
-  tabWidget->addTab(workflow->dispenseWidget(), "Main");
-  openWorkflows.push_back(workflow);
-
   connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeWorkflow(int)));
-  connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
-  connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
+  connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 
   toolBox = new QTreeWidget();
   toolBox->setDragEnabled(true);
@@ -179,6 +174,27 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   QMainWindow::closeEvent(event);
 }
 
+void MainWindow::resume() {
+  DataModel& model = DataModel::getInstance();
+  Workflow* workflow = model.getMainWorkflow();
+  string currentUuid = model.getCurrentWorkflow();
+
+  workflow->resumeFromModel();
+  openWorkflows.push_back(workflow);
+  tabWidget->addTab(workflow->dispenseWidget(), "Main");
+  workflow->resumeViewport(); // resume after the layout stuff is done.
+  connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
+  connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
+
+  for (unsigned i = 0; i < model.getOpenWorkflows()->size(); ++i) {
+    string uuid = model.getOpenWorkflows()->at(i);
+    assert(model.getWorkflowMap()->find(uuid) != model.getWorkflowMap()->end());
+    showWorkflow(model.getWorkflowMap()->at(uuid), false);
+  }
+  assert(model.getWorkflowMap()->find(currentUuid) != model.getWorkflowMap()->end());
+  showWorkflow(model.getWorkflowMap()->at(currentUuid));
+}
+
 void MainWindow::quit() {
   this->close();
 }
@@ -238,24 +254,14 @@ void MainWindow::reload() {
   DataModel& model = DataModel::getInstance();
   Workflow* workflow = model.getMainWorkflow();
 
-  //TiXmlElement* workflowElement = workflow->getXml(false);
-  //Xmlizer::ToXml(*workflowElement, *workflow);
-  TiXmlElement* workflowElement = Xmlizer::CreateXml(*workflow);
+  TiXmlElement* modelElement = Xmlizer::CreateXml(model);
   delete workflow;
   workflow = 0;
-  tabWidget->removeTab(0); // First tab is never automatically removed
   openWorkflows.clear();    // All tabs should now be closed. Either because they were closed due to delete or because they were removed manually
+  tabWidget->removeTab(0);  // First tab is never automatically removed
 
-  workflow = dynamic_cast<Workflow*>(Xmlizer::CreateReflectableClass(*workflowElement));
-  if (!workflow)
-    throw "could not reload workflow";
-  model.setMainWorkflow(workflow);
-  workflow->resumeFromModel();
-  tabWidget->addTab(workflow->dispenseWidget(), "Main");
-  workflow->resumeViewport(); // resume after the layout stuff is done.
-  openWorkflows.push_back(workflow);
-  connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
-  connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
+  Xmlizer::FromXml(model, *modelElement);
+  resume();
   updateToolBox(toolBox);
 }
 
@@ -313,7 +319,7 @@ void MainWindow::save() {
   DataModel::getInstance().save();
 }
 
-void MainWindow::showWorkflow(workflow::Workflow* workflow) {
+void MainWindow::showWorkflow(workflow::Workflow* workflow, bool addUuid) {
   assert((int)openWorkflows.size() == tabWidget->count());
 
   unsigned pos = 0;
@@ -326,10 +332,11 @@ void MainWindow::showWorkflow(workflow::Workflow* workflow) {
     tabWidget->setCurrentIndex(pos);
   } else {
     int currentIndex = tabWidget->count();
-
+    openWorkflows.push_back(workflow);
     tabWidget->addTab(workflow->dispenseWidget(), workflow->getToolItem()->getLabel().c_str());
     workflow->resumeViewport();
-    openWorkflows.push_back(workflow);
+    if (addUuid)
+      DataModel::getInstance().getOpenWorkflows()->push_back(workflow->getUuid());
     tabWidget->setCurrentIndex(currentIndex);
   }
 }
@@ -346,10 +353,18 @@ void MainWindow::closeWorkflow(workflow::Workflow* workflow) {
 }
 
 void MainWindow::closeWorkflow(int tabIndex) {
+  vector<string>* openWorkflowUuids = DataModel::getInstance().getOpenWorkflows().get();
+  assert(openWorkflows.size() == openWorkflowUuids->size() + 1);
   if (tabIndex == 0)
     return;
   tabWidget->removeTab(tabIndex);
   openWorkflows.erase(openWorkflows.begin() + tabIndex);
+  openWorkflowUuids->erase(openWorkflowUuids->begin() + (tabIndex - 1));
+}
+
+void MainWindow::currentTabChanged(int index) {
+  if (index >= 0 && index < (int)openWorkflows.size())
+    DataModel::getInstance().setCurrentWorkflow(openWorkflows[index]->getUuid());
 }
 
 void MainWindow::updateEditMenuStatus() {
@@ -377,8 +392,7 @@ void MainWindow::editCurrentInterface() {
   EditInterfaceDialog dialog(currentWorkflow->getInterface().get(), this);
   dialog.exec();
   currentWorkflow->updateInterfaceTimeStamp();
-  if (newInterface)
-    reload();
+  reload();
 }
 
 }
