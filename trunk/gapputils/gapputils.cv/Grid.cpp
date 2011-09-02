@@ -32,6 +32,7 @@ int Grid::heightId;
 int Grid::backgroundId;
 int Grid::nameId;
 int Grid::modelId;
+int Grid::inputGridId;
 
 BeginPropertyDefinitions(Grid)
   ReflectableBase(workflow::WorkflowElement)
@@ -39,7 +40,8 @@ BeginPropertyDefinitions(Grid)
   DefineProperty(RowCount, Observe(rowCountId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, Observe(columnCountId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   ReflectableProperty(Model, Hide(), Observe(modelId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Grid, Output("Grid"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Grid, Output("Out"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputGrid, Input("In"), Hide(), Volatile(), Observe(inputGridId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(BackgroundImage, ReadOnly(), Volatile(), Observe(backgroundId = PROPERTY_ID))
   DefineProperty(Width, Observe(widthId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Height, Observe(heightId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
@@ -93,6 +95,15 @@ void Grid::changedEventHandler(capputils::ObservableClass* sender, int eventId) 
   if (eventId == nameId && FileExistsAttribute::exists(getGridName())) {
     if (dialog) {
       capputils::Xmlizer::FromXml(*this, getGridName());
+      dialog->resumeFromModel(getModel());
+    }
+  }
+
+  if (eventId == inputGridId && getInputGrid()) {
+    setColumnCount(getInputGrid()->getColumnCount());
+    setRowCount(getInputGrid()->getRowCount());
+    setModel(getInputGrid());
+    if (dialog) {
       dialog->resumeFromModel(getModel());
     }
   }

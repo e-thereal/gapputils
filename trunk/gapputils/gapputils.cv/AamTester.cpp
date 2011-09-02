@@ -32,7 +32,8 @@ BeginPropertyDefinitions(AamTester)
   ReflectableBase(gapputils::workflow::WorkflowElement)
   
   DefineProperty(ActiveAppearanceModel, Input("AAM"), Hide(), Volatile(), Reflectable<boost::shared_ptr<ActiveAppearanceModel> >(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SampleImage, Output("Img"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(SampleImage, Output("Img"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(SampleGrid, Output("Grid"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(FirstMode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(SecondMode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 EndPropertyDefinitions
@@ -80,6 +81,7 @@ void AamTester::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   gen.writeResults();
 
   data->setSampleImage(gen.getOutputImage());
+  data->setSampleGrid(gen.getOutputGrid());
 }
 
 void AamTester::writeResults() {
@@ -87,6 +89,7 @@ void AamTester::writeResults() {
     return;
 
   setSampleImage(data->getSampleImage());
+  setSampleGrid(data->getSampleGrid());
 }
 
 }

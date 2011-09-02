@@ -10,6 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
+#include <capputils/Enumerators.h>
 #include <culib/ICudaImage.h>
 
 #include "ActiveAppearanceModel.h"
@@ -18,12 +19,17 @@ namespace gapputils {
 
 namespace cv {
 
+ReflectableEnum(AamBuilderMode, Build, Evaluate);
+
 class AamBuilder2 : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(AamBuilder2)
 
   Property(TrainingSet, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
   Property(InitialModel, boost::shared_ptr<ActiveAppearanceModel>)
+  Property(Mode, AamBuilderMode)
+  Property(ModelQuality, double)
+  Property(IterationCount, int)
 
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
 

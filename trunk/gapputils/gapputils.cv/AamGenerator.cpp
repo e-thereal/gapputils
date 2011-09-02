@@ -45,6 +45,7 @@ BeginPropertyDefinitions(AamGenerator)
   DefineProperty(BackgroundImage, Input("BG"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(TextureImage, Input("Tex"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(OutputGrid, Output("Grid"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   ReflectableProperty(Mode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
@@ -147,6 +148,7 @@ void AamGenerator::execute(gapputils::workflow::IProgressMonitor* monitor) const
   warp.writeResults();
 
   data->setOutputImage(warp.getOutputImage());
+  data->setOutputGrid(grid);
   grid->freeCaches();
   image->freeCaches();
 }
@@ -156,6 +158,7 @@ void AamGenerator::writeResults() {
     return;
 
   setOutputImage(data->getOutputImage());
+  setOutputGrid(data->getOutputGrid());
 }
 
 }
