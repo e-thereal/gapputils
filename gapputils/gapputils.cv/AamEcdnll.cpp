@@ -50,6 +50,7 @@ AamEcdnll::AamEcdnll(boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICud
       appearanceMatrix->at(k) = (float)(i == j);
   }
   //newModel->setAppearanceMatrix(appearanceMatrix);
+  // TODO: why not using the identity?
   newModel->setAppearanceMatrix(oldModel->getAppearanceMatrix());
 
   // TODO: How to estimate singular values?
@@ -93,7 +94,7 @@ double AamEcdnll::eval(const DomainType& parameter) {
   fitter.setUseAppearanceMatrix(false);
 
   double ecdnll = 0.0;
-  std::cout << "Calculating ecdnll" << std::endl;
+  std::cout << "Calculating ecdnll (" << iterationCounter << ")" << std::endl;
   boost::progress_display showProgress(trainingSet->size());
   for (unsigned i = 0; i < trainingSet->size(); ++i) {
     // Fit current image of the training set with the model

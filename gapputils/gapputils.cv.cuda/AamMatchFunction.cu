@@ -33,8 +33,6 @@ namespace cv {
 
 namespace cuda {
 
-#define cout << __LINE__ << endl;
-
 AamMatchStatus::AamMatchStatus(int spCount, int tpCount, int apCount,
     int sfCount, int tfCount, int afCount)
  : shapeParameters(spCount), d_shapeParameters(spCount), d_textureParameters(tpCount), d_appearanceParameters(apCount),

@@ -14,6 +14,7 @@
 #include <capputils/Enumerators.h>
 
 #include "ActiveAppearanceModel.h"
+#include "GridModel.h"
 
 namespace gapputils {
 
@@ -30,6 +31,7 @@ class AamGenerator : public gapputils::workflow::WorkflowElement {
   Property(BackgroundImage, boost::shared_ptr<culib::ICudaImage>)
   Property(TextureImage, boost::shared_ptr<culib::ICudaImage>)
   Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(OutputGrid, boost::shared_ptr<GridModel>)
   Property(Mode, AamGeneratorMode)
 
 private:

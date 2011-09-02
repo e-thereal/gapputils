@@ -33,7 +33,12 @@ SOURCES = FromRgb.cpp \
           AamAnalyser.cpp \
           GridImagePair.cpp \
           Vector.cpp \
-          ImageSaver.cpp
+          ImageSaver.cpp \
+          FromHsv.cpp \
+          ToHsv.cpp \
+          AamCreator.cpp \
+          Resample.cpp \
+          AamResample.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \
@@ -50,9 +55,10 @@ HEADERS = FromRgb.h \
           RectangleWidget.h
           
 TEMPLATE = lib
-TARGET = gapputils.cv          
+TARGET = gapputils.cv
 CONFIG += no_keywords debug dll
-QMAKE_CXXFLAGS += -std=c++0x
+QMAKE_CXXFLAGS += -std=c++0x -pg
+QMAKE_LFLAGS += -pg
 INCLUDEPATH += /home/tombr/Projects
 INCLUDEPATH += /home/tombr/include
 INCLUDEPATH += /home/tombr/Programs/cuda/include
@@ -62,7 +68,7 @@ INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/cmif
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/utilities
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/ctrace
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/carray
-LIBS += -Wl,-E
+LIBS += -Wl,-E -pg
 LIBS += -L/home/tombr/Projects/tinyxml/Debug
 LIBS += -L"/home/tombr/Projects/capputils/Debug Shared"
 LIBS += -L"/home/tombr/Projects/gapputils/Debug Shared"

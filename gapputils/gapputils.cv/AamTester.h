@@ -7,6 +7,7 @@
 #include <culib/ICudaImage.h>
 
 #include "ActiveAppearanceModel.h"
+#include "GridModel.h"
 
 namespace gapputils {
 
@@ -18,6 +19,7 @@ class AamTester : public gapputils::workflow::WorkflowElement
 
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
   Property(SampleImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(SampleGrid, boost::shared_ptr<GridModel>)
   Property(FirstMode, float)
   Property(SecondMode, float)
 

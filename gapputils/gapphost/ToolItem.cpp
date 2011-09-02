@@ -59,15 +59,18 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
 
   painter->save();
   painter->setPen(Qt::black);
+  QFont boldFont = painter->font();
+  boldFont.setBold(true);
   switch (direction) {
   case Input:
 
-    // TODO: compatible type highlighting
     if (currentCable &&
         currentCable->needOutput() &&
         parent->bench->areCompatible(currentCable->getInput(), this))
     {
       painter->setBrush(Qt::white);
+      painter->setOpacity(1.0);
+//      painter->setFont(boldFont);
     } else if(parent->isCurrentItem() && !currentCable) {
       painter->setBrush(Qt::white);
     } else if (currentCable && currentCable->getOutput() == this) {
@@ -83,12 +86,13 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
     break;
 
   case Output:
-    // TODO: compatible type highlighting
     if (currentCable &&
         currentCable->needInput() &&
         parent->bench->areCompatible(this, currentCable->getOutput()))
     {
       painter->setBrush(Qt::white);
+      painter->setOpacity(1.0);
+//      painter->setFont(boldFont);
     } else if(parent->isCurrentItem() && !currentCable) {
       painter->setBrush(Qt::white);
     } else if (currentCable && currentCable->getInput() == this) {

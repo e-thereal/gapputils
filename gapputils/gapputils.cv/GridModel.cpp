@@ -7,6 +7,8 @@
 #include <cuda_runtime.h>
 #include <cutil.h>
 
+#include <culib/CulibException.h>
+
 namespace gapputils {
 
 namespace cv {
@@ -54,22 +56,22 @@ float* GridModel::getDeviceFeatures() const {
       features.push_back(getPoints()->at(i)->getY());
     }
     const size_t size = 2 *count * sizeof(float);
-    CUDA_SAFE_CALL(cudaMalloc((void**)&d_features, size));
-    CUDA_SAFE_CALL(cudaMemcpy(d_features, &features[0], size, cudaMemcpyHostToDevice));
+    CULIB_SAFE_CALL(cudaMalloc((void**)&d_features, size));
+    CULIB_SAFE_CALL(cudaMemcpy(d_features, &features[0], size, cudaMemcpyHostToDevice));
   }
   return d_features;
 }
 
 void GridModel::freeCaches() {
   if (d_features)
-    CUDA_SAFE_CALL(cudaFree(d_features));
+    CULIB_SAFE_CALL(cudaFree(d_features));
   d_features = 0;
 }
 
-void GridModel::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void GridModel::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
   if (eventId == rowCountId || eventId == columnCountId) {
     clearGrid();
-    for (unsigned i = 0; i < getRowCount() * getColumnCount(); ++i)
+    for (int i = 0; i < getRowCount() * getColumnCount(); ++i)
       _Points->push_back(new GridPoint());
   }
 }

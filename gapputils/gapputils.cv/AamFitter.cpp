@@ -25,14 +25,17 @@
 #include <optlib/DownhillSimplexOptimizer.h>
 #include <optlib/SimplifiedPowellOptimizer.h>
 #include <optlib/SteepestDescentOptimizer.h>
+#include <optlib/OptimizerException.h>
 
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <sstream>
 
 #include "AamMatchFunction.h"
 #include "AamGenerator.h"
 #include "ImageWarp.h"
+#include "AamWriter.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -67,11 +70,11 @@ AamFitter::~AamFitter() {
     delete data;
 }
 
-void AamFitter::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void AamFitter::changedHandler(capputils::ObservableClass* /*sender*/, int /*eventId*/) {
 
 }
 
-void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+void AamFitter::execute(gapputils::workflow::IProgressMonitor* /*monitor*/) const {
   if (!data)
     data = new AamFitter();
 
@@ -87,10 +90,23 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   AamMatchFunction objective(getInputImage(), model, getInReferenceFrame(),
       getMeasure(), getUseAppearanceMatrix());
 
-  optlib::DownhillSimplexOptimizer optimizer;
+  //optlib::DownhillSimplexOptimizer optimizer;
   //optlib::SimplifiedPowellOptimizer optimizer;
+  optlib::SteepestDescentOptimizer optimizer;
   std::vector<double> parameter(getActiveAppearanceModel()->getShapeParameterCount());
-  optimizer.maximize(parameter, objective);
+  try {
+    optimizer.maximize(parameter, objective);
+  } catch (optlib::OptimizerException ex) {
+    static int exceptionCount = 0;
+    cout << "[AamFitter: " << __LINE__ << "] Exception caught: " << ex.what() << endl;
+    stringstream filename;
+    filename << "exception_" << exceptionCount++ << ".aam";
+    AamWriter writer;
+    writer.setActiveAppearanceModel(getActiveAppearanceModel());
+    writer.setFilename(filename.str());
+    writer.execute(0);
+    writer.writeResults();
+  }
 
   // Get model parameters for shape parameters
   // - warp image to reference frame using current shape parameters
