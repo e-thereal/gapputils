@@ -179,6 +179,11 @@ void MainWindow::resume() {
   Workflow* workflow = model.getMainWorkflow();
   string currentUuid = model.getCurrentWorkflow();
 
+  if (!currentUuid.size()) {
+    currentUuid = workflow->getUuid();
+    model.setCurrentWorkflow(currentUuid);
+  }
+
   workflow->resumeFromModel();
   openWorkflows.push_back(workflow);
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
