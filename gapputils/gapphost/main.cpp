@@ -62,8 +62,11 @@ int main(int argc, char *argv[])
   }
 
   // Initialize if necessary
-  if (!model.getMainWorkflow())
-    model.setMainWorkflow(new Workflow());
+  if (!model.getMainWorkflow()) {
+    Workflow* workflow = new Workflow();
+    model.setMainWorkflow(workflow);
+    //model.setCurrentWorkflow(workflow->getUuid());
+  }
   if (!model.getMainWorkflow()->getModule())
     model.getMainWorkflow()->setModule(new DefaultInterface());
 
