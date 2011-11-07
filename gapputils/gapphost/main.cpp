@@ -14,14 +14,9 @@
 #include <capputils/ReflectableClassFactory.h>
 #include <capputils/FactoryException.h>
 
-//#include "../GaussianProcesses/Paper.h"
 #include "DataModel.h"
 #include "Workflow.h"
 #include "DefaultInterface.h"
-
-#ifdef GAPPHOST_MIF_SUPPORT
-#include <CProcessInfo.hpp>
-#endif
 
 using namespace gapputils::host;
 using namespace gapputils::workflow;
@@ -31,6 +26,16 @@ using namespace std;
 
 #include <culib/lintrans.h>
 #include <boost/filesystem.hpp>
+
+#include <algorithm>
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/io.hpp>
+
+template<class T>
+void printIt(const T& x) {
+  std:: cout << x << " ";
+}
 
 int main(int argc, char *argv[])
 {
@@ -44,10 +49,6 @@ int main(int argc, char *argv[])
     std::cout << "Could not initialize CULA: " << culaGetStatusString(status) << std::endl;
     return 1;
   }
-#endif
-
-#ifdef GAPPHOST_MIF_SUPPORT
-  MSMRI::CProcessInfo::getInstance().getCommandLine(argc, argv);
 #endif
 
   int ret = 0;
