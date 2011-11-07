@@ -9,7 +9,12 @@
 #define GAPPUTILS_ML_RBMMODEL_H_
 
 #include <capputils/ReflectableClass.h>
+
 #include <boost/shared_ptr.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+
+#include <random>
 
 namespace gapputils {
 
@@ -21,44 +26,48 @@ namespace ml {
 float sigmoid(const float& x);
 
 /**
+ * \brief Samples from a Bernoulli distribution given the mean
+ */
+struct createBernoulliSample {
+  float operator()(const float& x) const;
+};
+
+/**
+ * \brief Sampling from a normal distribution with mean \c x and variance 1
+ */
+struct createNormalSample {
+  mutable std::ranlux64_base_01 eng;
+  mutable std::normal_distribution<float> normal;
+
+  float operator()(const float& x) const;
+};
+
+/**
  * \brief Contains bias terms and weight matrix of an RBM plus statistics for feature scaling
- *
- * Bias terms are absorbed into the weight matrix
- *
- * W' = / 0 cT \
- *      \ b W  /
- *
- * with b = visible bias, c = hidden bias and W = VxH weight matrix.
- *
- * Thus:
- *
- * E = -(xTWh + xTb + hTc) = -x'TW'h'
- *
- * with x' = (1 xT)T and h' = (1 hT)T
  */
 class RbmModel : public capputils::reflection::ReflectableClass {
 
   InitReflectableClass(RbmModel)
 
-  Property(VisibleCount, int)
-  Property(HiddenCount, int)
-  Property(WeightMatrix, boost::shared_ptr<std::vector<float> >)
-  Property(VisibleMeans, boost::shared_ptr<std::vector<float> >)  ///< used for feature scaling
-  Property(VisibleStds, boost::shared_ptr<std::vector<float> >)   ///< used for feature scaling
+  Property(VisibleBiases, boost::shared_ptr<boost::numeric::ublas::vector<float> >)
+  Property(HiddenBiases, boost::shared_ptr<boost::numeric::ublas::vector<float> >)
+  Property(WeightMatrix, boost::shared_ptr<boost::numeric::ublas::matrix<float> >)
+  Property(VisibleMeans, boost::shared_ptr<boost::numeric::ublas::vector<float> >)  ///< used for feature scaling
+  Property(VisibleStds, boost::shared_ptr<boost::numeric::ublas::vector<float> >)   ///< used for feature scaling
 
 public:
   RbmModel();
   virtual ~RbmModel();
 
   /**
-   * \brief Normalizes the data using the RBM statistics and adds ones before the first column vector
+   * \brief Normalizes the data using the RBM statistics
    */
-  boost::shared_ptr<std::vector<float> > encodeDesignMatrix(std::vector<float>* designMatrix) const;
+  boost::shared_ptr<boost::numeric::ublas::matrix<float> > encodeDesignMatrix(boost::numeric::ublas::matrix<float>& designMatrix, bool binary) const;
 
   /**
-   * \brief Scales the approximation using the RBM statistics and crops the first column vector
+   * \brief Scales the approximation using the RBM statistics
    */
-  boost::shared_ptr<std::vector<float> > decodeApproximation(std::vector<float>* approximation) const;
+  boost::shared_ptr<boost::numeric::ublas::matrix<float> > decodeApproximation(boost::numeric::ublas::matrix<float>& approximation) const;
 };
 
 }

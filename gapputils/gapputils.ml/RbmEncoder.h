@@ -39,8 +39,8 @@ class RbmEncoder : public gapputils::workflow::WorkflowElement {
   InitReflectableClass(RbmEncoder)
 
   Property(RbmModel, boost::shared_ptr<RbmModel>)
-  Property(VisibleVector, boost::shared_ptr<std::vector<float> >)
-  Property(HiddenVector, boost::shared_ptr<std::vector<float> >)
+  Property(VisibleVector, boost::shared_ptr<boost::numeric::ublas::matrix<float> >)
+  Property(HiddenVector, boost::shared_ptr<boost::numeric::ublas::matrix<float> >)
   Property(SampleHiddens, bool)
 
 private:
@@ -54,6 +54,9 @@ public:
   virtual void writeResults();
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
+
+//  static boost::shared_ptr<std::vector<float> > getExpectations(std::vector<float>* visibleVector, RbmModel* rbm);
+//  static boost::shared_ptr<std::vector<float> > sampleHiddens(std::vector<float>* means);
 };
 
 }
