@@ -26,6 +26,10 @@ class RbmTrainer : public gapputils::workflow::WorkflowElement {
   Property(VisibleCount, int)
   Property(HiddenCount, int)
   Property(SampleHiddens, bool)
+  Property(EpochCount, int)
+  Property(BatchSize, int)
+  Property(LearningRate, float)
+  Property(IsGaussian, bool)
 
 private:
   mutable RbmTrainer* data;

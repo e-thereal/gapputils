@@ -64,24 +64,13 @@ void RbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  if (!getRbmModel() || !getHiddenVector() || (getHiddenVector()->size() % (getRbmModel()->getHiddenCount() + 1)))
+  if (!getRbmModel() || !getHiddenVector())
       return;
 
-  const unsigned visibleCount = getRbmModel()->getVisibleCount();
-  const unsigned hiddenCount = getRbmModel()->getHiddenCount();
-
-  const unsigned sampleCount = getHiddenVector()->size() / (hiddenCount + 1);
-  boost::shared_ptr<std::vector<float> > visibleVector(new std::vector<float>(sampleCount * (visibleCount + 1)));
-
-  // visibleVector = sigm(WH')', since lintrans is column major, it automatically computes transposes
-  culib::lintrans(&visibleVector->at(0), &getRbmModel()->getWeightMatrix()->at(0), &getHiddenVector()->at(0),
-      hiddenCount + 1, sampleCount, visibleCount + 1, true);
-
-  if (!getGaussianModel())
-    std::transform(visibleVector->begin(), visibleVector->end(), visibleVector->begin(), sigmoid);
+  //boost::shared_ptr<std::vector<float> > visibleVector = getExpectations(getHiddenVector().get(), getRbmModel().get(), getGaussianModel());
 
   // Decode approximation (reconstruction)
-  data->setVisibleVector(getRbmModel()->decodeApproximation(visibleVector.get()));
+  //data->setVisibleVector(getRbmModel()->decodeApproximation(visibleVector.get()));
 }
 
 void RbmDecoder::writeResults() {
@@ -90,6 +79,39 @@ void RbmDecoder::writeResults() {
 
   setVisibleVector(data->getVisibleVector());
 }
+
+//boost::shared_ptr<std::vector<float> > RbmDecoder::getExpectations(std::vector<float>* hiddenVector, RbmModel* rbm, bool gaussianModel) {
+//  const unsigned visibleCount = rbm->getVisibleCount();
+//  const unsigned hiddenCount = rbm->getHiddenCount();
+//
+//  const unsigned sampleCount = hiddenVector->size() / (hiddenCount + 1);
+//  boost::shared_ptr<std::vector<float> > visibleVector(new std::vector<float>(sampleCount * (visibleCount + 1)));
+//
+//  // visibleVector = sigm(WH')', since lintrans is column major, it automatically computes transposes
+//  culib::lintrans(&visibleVector->at(0), &rbm->getWeightMatrix()->at(0), &hiddenVector->at(0),
+//      hiddenCount + 1, sampleCount, visibleCount + 1, true);
+//
+//  if (!gaussianModel)
+//    std::transform(visibleVector->begin(), visibleVector->end(), visibleVector->begin(), sigmoid);
+//
+//  return visibleVector;
+//}
+
+//boost::shared_ptr<std::vector<float> > RbmDecoder::sampleVisibles(std::vector<float>* means, bool gaussianModel) {
+//  boost::shared_ptr<std::vector<float> > visibleVector(new std::vector<float> (means->size()));
+//
+//  if (gaussianModel)
+//    std::transform(means->begin(), means->end(), visibleVector->begin(), createNormalSample());
+//  else
+//    std::transform(means->begin(), means->end(), visibleVector->begin(), createBernoulliSample());
+//
+//  return visibleVector;
+//}
+
+//boost::shared_ptr<std::vector<float> > RbmDecoder::sampleVisibles(std::vector<float>* hiddenVector, RbmModel* rbm, bool gaussianModel) {
+//  boost::shared_ptr<std::vector<float> > means = getExpectations(hiddenVector, rbm, gaussianModel);
+//  return sampleVisibles(means.get(), gaussianModel);
+//}
 
 }
 
