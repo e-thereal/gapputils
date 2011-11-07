@@ -70,7 +70,7 @@ BeginPropertyDefinitions(Workflow)
 // Libraries must be the first property since libraries must be loaded before all other modules
 DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Observe(librariesId = PROPERTY_ID))
 
-// Same is true for interfaces, since interfaces are used to build libraries that must be loaded before
+// Same is true for interfaces, since interfaces are used to build libraries which must be loaded before
 // all other modules
 ReflectableProperty(Interface, Observe(interfaceId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
@@ -642,6 +642,8 @@ void Workflow::createAndLoadAdhocModule() {
   {
     string prefix = getPrefix();
     Xmlizer::ToXml(prefix + ".xml", *getInterface());
+
+    // TODO: don't use XslTransformation because platform dependent parameters are set during compile time
     XslTransformation transform;
     transform.setInputName(prefix + ".xml");
     transform.setOutputName(prefix + ".cpp");
@@ -650,6 +652,8 @@ void Workflow::createAndLoadAdhocModule() {
     transform.writeResults();
     cout << transform.getCommandOutput() << endl;
 
+    // TODO: Compilation is platform dependent. Introduce necessary settings. These settings
+    //       are set in the global gapphost configuration (e.g. at ~/.gapphost/config.xml)
     capputils::Executer build;
     build.getCommand() << "gcc -shared -I\"/home/tombr/Projects\" -I\"/home/tombr/include\" -I\"/home/tombr/Programs/cuda/include\" -I\"/home/tombr/Programs/Qt-4.7.3/include\" -I\"/home/tombr/Programs/Qt-4.7.3/include/QtCore\" -I\"/home/tombr/Programs/Qt-4.7.3/include/QtGui\" -std=c++0x "
                           << prefix << ".cpp" << " -o " << getLibraryName();
