@@ -38,7 +38,9 @@ SOURCES = FromRgb.cpp \
           ToHsv.cpp \
           AamCreator.cpp \
           Resample.cpp \
-          AamResample.cpp
+          AamResample.cpp \
+          SliceToFeatures.cpp \
+          FeaturesToMif.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \
