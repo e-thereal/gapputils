@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'MainWindow.h'
 **
-** Created: Tue Aug 23 17:23:16 2011
+** Created: Mon Aug 29 08:14:08 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-      19,   14, // methods
+      21,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -47,9 +47,11 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
      298,   28,   28,   28, 0x08,
      321,   28,   28,   28, 0x08,
      348,  343,   28,   28, 0x08,
-     389,  380,   28,   28, 0x08,
-     423,  380,   28,   28, 0x08,
-     467,  458,   28,   28, 0x08,
+     397,  380,   28,   28, 0x08,
+     445,  436,   28,   28, 0x28,
+     479,  436,   28,   28, 0x08,
+     523,  514,   28,   28, 0x08,
+     548,  542,   28,   28, 0x08,
 
        0        // eod
 };
@@ -64,9 +66,12 @@ static const char qt_meta_stringdata_gapputils__host__MainWindow[] = {
     "terminateUpdate()\0editCurrentInterface()\0"
     "updateEditMenuStatus()\0enableEditMenuItems()\0"
     "node\0updateFinished(workflow::Node*)\0"
+    "workflow,addUuid\0"
+    "showWorkflow(workflow::Workflow*,bool)\0"
     "workflow\0showWorkflow(workflow::Workflow*)\0"
     "closeWorkflow(workflow::Workflow*)\0"
-    "tabIndex\0closeWorkflow(int)\0"
+    "tabIndex\0closeWorkflow(int)\0index\0"
+    "currentTabChanged(int)\0"
 };
 
 const QMetaObject gapputils::host::MainWindow::staticMetaObject = {
@@ -114,12 +119,14 @@ int gapputils::host::MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void
         case 13: updateEditMenuStatus(); break;
         case 14: enableEditMenuItems(); break;
         case 15: updateFinished((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
-        case 16: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 17: closeWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 18: closeWorkflow((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 16: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1])),(*reinterpret_cast< bool(*)>(_a[2]))); break;
+        case 17: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 18: closeWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 19: closeWorkflow((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 20: currentTabChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
-        _id -= 19;
+        _id -= 21;
     }
     return _id;
 }

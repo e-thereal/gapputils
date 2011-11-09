@@ -11,6 +11,7 @@
 #include <cmath>
 
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/io.hpp>
 #include <boost/lambda/lambda.hpp>
 
 namespace ublas = boost::numeric::ublas;
@@ -81,6 +82,8 @@ boost::shared_ptr<ublas::matrix<float> > RbmModel::decodeApproximation(ublas::ma
 //  }
 //
 //  return scaledSet;
+  boost::shared_ptr<ublas::matrix<float> > decoded;
+  return decoded;
 }
 
 }

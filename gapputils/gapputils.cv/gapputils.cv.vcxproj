@@ -114,6 +114,7 @@
     <ClCompile Include="GridPoint.cpp" />
     <ClCompile Include="GridPointItem.cpp" />
     <ClCompile Include="GridWidget.cpp" />
+    <ClCompile Include="HistogramEqualization.cpp" />
     <ClCompile Include="ImageWarp.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="RectangleDialog.cpp" />
@@ -162,6 +163,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DGAPPUTILS.CV_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I." "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I."</Command>
     </CustomBuild>
     <ClInclude Include="GridPointItem.h" />
+    <ClInclude Include="HistogramEqualization.h" />
     <ClInclude Include="ImageWarp.h" />
     <ClInclude Include="Rectangle.h" />
     <CustomBuild Include="RectangleDialog.h">
