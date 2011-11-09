@@ -196,8 +196,8 @@ void MainWindow::resume() {
     assert(model.getWorkflowMap()->find(uuid) != model.getWorkflowMap()->end());
     showWorkflow(model.getWorkflowMap()->at(uuid), false);
   }
-  assert(model.getWorkflowMap()->find(currentUuid) != model.getWorkflowMap()->end());
-  showWorkflow(model.getWorkflowMap()->at(currentUuid));
+  if(model.getWorkflowMap()->find(currentUuid) != model.getWorkflowMap()->end())
+    showWorkflow(model.getWorkflowMap()->at(currentUuid));
 }
 
 void MainWindow::quit() {
