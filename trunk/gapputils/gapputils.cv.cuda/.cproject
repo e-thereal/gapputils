@@ -35,8 +35,9 @@
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
-								<option id="cuda.toolchain.compiler.option.debugging.gprof.889312858" superClass="cuda.toolchain.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="cuda.toolchain.compiler.option.debugging.gprof.889312858" name="Generate gprof information (-pg)" superClass="cuda.toolchain.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cuda.toolchain.compiler.input.1051704669" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.755194832" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
@@ -46,8 +47,9 @@
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.debugging.gprof.1523464757" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.debugging.gprof.1523464757" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1858955895" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.196315618" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
@@ -58,7 +60,7 @@
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
-								<option id="gnu.c.compiler.option.debugging.gprof.1608165658" superClass="gnu.c.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="gnu.c.compiler.option.debugging.gprof.1608165658" name="Generate gprof information (-pg)" superClass="gnu.c.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.958246626" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.linker.2003852624" name="NVCC Linker" superClass="cuda.toolchain.gnu.cpp.linker"/>

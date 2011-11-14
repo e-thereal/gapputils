@@ -25,14 +25,6 @@ float sigmoid(const float& x) {
   return 1.f/ (1.f + exp(-x));
 }
 
-float createBernoulliSample::operator()(const float& x) const {
-  return (float)(((float)rand() / (float)RAND_MAX) < x);
-}
-
-float createNormalSample::operator()(const float& x) const {
-  return normal(eng) + x;
-}
-
 BeginPropertyDefinitions(RbmModel)
 
   DefineProperty(VisibleBiases)

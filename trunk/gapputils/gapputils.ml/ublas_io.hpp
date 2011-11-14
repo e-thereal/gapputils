@@ -13,6 +13,8 @@ bool check_magic(unsigned magic) {
   return false;
 }
 
+// FIXME: Implementation only once in a cpp file
+
 template<>
 bool check_magic<float>(unsigned magic) {
   return magic == 0x1;

@@ -14,8 +14,6 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 
-#include <random>
-
 namespace gapputils {
 
 namespace ml {
@@ -24,23 +22,6 @@ namespace ml {
  * \brief The logistic function or sigmoid function
  */
 float sigmoid(const float& x);
-
-/**
- * \brief Samples from a Bernoulli distribution given the mean
- */
-struct createBernoulliSample {
-  float operator()(const float& x) const;
-};
-
-/**
- * \brief Sampling from a normal distribution with mean \c x and variance 1
- */
-struct createNormalSample {
-  mutable std::ranlux64_base_01 eng;
-  mutable std::normal_distribution<float> normal;
-
-  float operator()(const float& x) const;
-};
 
 /**
  * \brief Contains bias terms and weight matrix of an RBM plus statistics for feature scaling

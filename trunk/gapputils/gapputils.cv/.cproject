@@ -41,6 +41,7 @@
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include/QtCore"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Programs/Qt-4.7.3/include/QtGui"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1412844880" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -65,11 +66,10 @@
 								<option defaultValue="true" id="gnu.cpp.link.so.debug.option.shared.80907975" name="Shared (-shared)" superClass="gnu.cpp.link.so.debug.option.shared" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.1688471249" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/optlib/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
+									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.841683847" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="optlib"/>

@@ -82,7 +82,7 @@ void PdfLatex::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   path outputName = getOutputName();
   string outputDir = outputName.branch_path().string();
   path inputName = getTexFilename();
-  string texFilename = inputName.leaf();
+  string texFilename = inputName.leaf().string();
   if (outputDir.size() == 0)
     outputDir = ".";
 //  command << getCommandName().c_str() << " -output-directory=\"" << outputDir << "\""

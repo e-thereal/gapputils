@@ -34,6 +34,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.423633321" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.982860874" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -45,6 +46,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.649748342" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -55,6 +57,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1515797954" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -111,6 +114,7 @@
 								<option id="gnu.cpp.compiler.lib.release.option.debugging.level.1997360856" name="Debug Level" superClass="gnu.cpp.compiler.lib.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.715369139" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.41083157" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -119,6 +123,7 @@
 								<option id="gnu.c.compiler.lib.release.option.debugging.level.878244595" name="Debug Level" superClass="gnu.c.compiler.lib.release.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.72291646" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1175994873" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -127,6 +132,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.release.1381583935" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.release">
 								<option id="gnu.both.asm.option.include.paths.1851698832" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.629712392" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -169,9 +175,10 @@
 								<option id="gnu.cpp.compiler.lib.debug.option.debugging.level.1327741402" name="Debug Level" superClass="gnu.cpp.compiler.lib.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1519642105" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.1939656149" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
-								<option id="gnu.cpp.compiler.option.debugging.gprof.2083011754" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.debugging.gprof.2083011754" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.245103770" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.373597819" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
@@ -179,8 +186,9 @@
 								<option id="gnu.c.compiler.lib.debug.option.debugging.level.1782344931" name="Debug Level" superClass="gnu.c.compiler.lib.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1468980067" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
-								<option id="gnu.c.compiler.option.debugging.gprof.1986757418" superClass="gnu.c.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="gnu.c.compiler.option.debugging.gprof.1986757418" name="Generate gprof information (-pg)" superClass="gnu.c.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.767903462" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.948317913" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
@@ -196,7 +204,7 @@
 									<listOptionValue builtIn="false" value="tinyxml"/>
 									<listOptionValue builtIn="false" value="capputils"/>
 								</option>
-								<option id="gnu.cpp.link.option.debugging.gprof.587178581" superClass="gnu.cpp.link.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.link.option.debugging.gprof.587178581" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.256259924" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -205,6 +213,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.debug.1868022830" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug">
 								<option id="gnu.both.asm.option.include.paths.1331222064" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1622173686" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
