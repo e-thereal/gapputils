@@ -31,6 +31,12 @@
 							<tool id="cuda.toolchain.compiler.exe.debug.1167095360" name="NVIDIA CUDA Compiler" superClass="cuda.toolchain.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="cuda.toolchain.compiler.option.optimization.level.1211069053" name="Optimization Level" superClass="cuda.toolchain.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="cuda.toolchain.compiler.option.debugging.level.1966762153" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.1153762761" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0" valueType="string"/>
+								<option id="cuda.toolchain.compiler.general.incpath.173093293" name="Include paths (-I)" superClass="cuda.toolchain.compiler.general.incpath" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/local/cuda/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
+								</option>
 								<inputType id="cuda.toolchain.compiler.input.1577130827" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.2093880077" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
@@ -40,10 +46,11 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.223800445" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.1652206224" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.other.other.1972753856" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1972753856" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1103655225" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.907590060" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
@@ -53,6 +60,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.600539587" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.780218172" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
@@ -60,6 +68,10 @@
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.linker.666070791" name="NVCC Linker" superClass="cuda.toolchain.gnu.cpp.linker">
 								<option defaultValue="true" id="gnu.cpp.link.option.shared.1922687467" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
+								<option id="gnu.cpp.link.option.paths.cuda.190396936" superClass="gnu.cpp.link.option.paths.cuda" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/usr/local/cuda/lib64"/>
+									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1251689944" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -91,6 +103,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1189547315" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -165,6 +178,7 @@
 								<option id="gnu.cpp.compiler.so.release.option.debugging.level.809067162" name="Debug Level" superClass="gnu.cpp.compiler.so.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.926268427" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.502182907" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -173,6 +187,7 @@
 								<option id="gnu.c.compiler.so.release.option.debugging.level.657705755" name="Debug Level" superClass="gnu.c.compiler.so.release.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.871591162" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.62097218" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -189,6 +204,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.assembler.so.release.1993160501" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.so.release">
 								<option id="gnu.both.asm.option.include.paths.1271911149" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
+									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1319990501" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
