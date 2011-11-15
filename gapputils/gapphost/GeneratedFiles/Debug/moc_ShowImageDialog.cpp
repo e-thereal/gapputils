@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'ShowImageDialog.h'
 **
-** Created: Tue Aug 23 17:23:18 2011
+** Created: Mon Nov 14 11:39:51 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!

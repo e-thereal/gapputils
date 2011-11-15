@@ -1,29 +1,20 @@
 #pragma once
-#ifndef GAPPUTILS_UBLAS_IO_
-#define GAPPUTILS_UBLAS_IO_
+#ifndef GAPPUTILS_TBBLAS_IO_
+#define GAPPUTILS_TBBLAS_IO_
 
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/shared_ptr.hpp>
+#include <tbblas/device_matrix.hpp>
+#include <thrust/copy.h>
 
 #include <cstdio>
 #include <algorithm>
 
-template<class T>
-bool check_magic(unsigned magic) {
-  return false;
-}
-
-template<>
-bool check_magic<float>(unsigned magic);
-
-template<>
-bool check_magic<double>(unsigned magic);
+#include "ublas_io.hpp"
 
 /**
  * \brief Column-major storage 
  */
 template<class T>
-bool read_matrix(FILE* file, boost::numeric::ublas::matrix<T, boost::numeric::ublas::column_major>& m) {
+bool read_matrix(FILE* file, tbblas::device_matrix<T>& m) {
   unsigned magic, rowCount, columnCount;
   if (fread(&magic, sizeof(unsigned), 1, file) != 1)
     return false;
@@ -37,18 +28,18 @@ bool read_matrix(FILE* file, boost::numeric::ublas::matrix<T, boost::numeric::ub
 
   const unsigned count = rowCount * columnCount;
   if (rowCount != m.size1() || columnCount != m.size2())
-    m.resize(rowCount, columnCount, false);
+    m.resize(rowCount, columnCount);
   T* buffer = new T[count];
   if (fread(buffer, sizeof(T), count, file) != count)
     return false;
 
-  std::copy(buffer, buffer + count, m.data().begin());
+  thrust::copy(buffer, buffer + count, m.data().begin());
 
   return true;
 }
 
 template<class T>
-bool read_vector(FILE* file, boost::numeric::ublas::vector<T>& v) {
+bool read_vector(FILE* file, tbblas::device_vector<T>& v) {
   unsigned magic, rowCount, columnCount;
   if (fread(&magic, sizeof(unsigned), 1, file) != 1)
     return false;
@@ -62,18 +53,18 @@ bool read_vector(FILE* file, boost::numeric::ublas::vector<T>& v) {
 
   const unsigned count = rowCount * columnCount;
   if (count != v.size())
-    v.resize(count, false);
+    v.resize(count);
   T* buffer = new T[count];
   if (fread(buffer, sizeof(T), count, file) != count)
     return false;
 
-  std::copy(buffer, buffer + count, v.begin());
+  thrust::copy(buffer, buffer + count, v.data().begin());
 
   return true;
 }
 
 template<class T>
-bool read_matrix(const std::string& filename, boost::numeric::ublas::matrix<T, boost::numeric::ublas::column_major>& m) {
+bool read_matrix(const std::string& filename, tbblas::device_matrix<T>& m) {
   FILE* file = fopen(filename.c_str(), "rb");
   if (!file)
     return false;
@@ -84,7 +75,7 @@ bool read_matrix(const std::string& filename, boost::numeric::ublas::matrix<T, b
 }
 
 template<class T>
-bool read_vector(const std::string& filename, boost::numeric::ublas::vector<T>& v) {
+bool read_vector(const std::string& filename, tbblas::device_vector<T>& v) {
   FILE* file = fopen(filename.c_str(), "rb");
   if (!file)
     return false;
@@ -94,4 +85,4 @@ bool read_vector(const std::string& filename, boost::numeric::ublas::vector<T>& 
   return res;
 }
 
-#endif
+#endif /* GAPPUTILS_TBBLAS_IO_ */
