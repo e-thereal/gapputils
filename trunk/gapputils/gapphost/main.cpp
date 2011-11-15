@@ -1,3 +1,5 @@
+#define BOOST_FILESYSTEM_VERSION 2
+
 #include "MainWindow.h"
 #include <QtGui/QApplication>
 

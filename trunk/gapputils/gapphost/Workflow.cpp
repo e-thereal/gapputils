@@ -5,6 +5,8 @@
  *      Author: tombr
  */
 
+#define BOOST_FILESYSTEM_VERSION 2
+
 #include "Workflow.h"
 
 #include <qtreeview.h>

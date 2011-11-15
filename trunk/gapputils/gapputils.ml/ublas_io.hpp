@@ -13,17 +13,11 @@ bool check_magic(unsigned magic) {
   return false;
 }
 
-// FIXME: Implementation only once in a cpp file
+template<>
+bool check_magic<float>(unsigned magic);
 
 template<>
-bool check_magic<float>(unsigned magic) {
-  return magic == 0x1;
-}
-
-template<>
-bool check_magic<double>(unsigned magic) {
-  return magic == 0x2;
-}
+bool check_magic<double>(unsigned magic);
 
 /**
  * \brief Column-major storage 

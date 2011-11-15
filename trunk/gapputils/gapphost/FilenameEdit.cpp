@@ -1,5 +1,7 @@
 #include "FilenameEdit.h"
 
+#define BOOST_FILESYSTEM_VERSION 2
+
 #include <qevent.h>
 #include <qfiledialog.h>
 #include <boost/filesystem.hpp>

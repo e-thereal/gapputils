@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'EditInterfaceDialog.h'
 **
-** Created: Thu Aug 25 00:25:58 2011
+** Created: Mon Nov 14 11:39:46 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
