@@ -1,11 +1,11 @@
 /*
- * RbmDecoder.cpp
+ * RbmWriter.cpp
  *
- *  Created on: Oct 25, 2011
+ *  Created on: Nov 17, 2011
  *      Author: tombr
  */
 
-#include "RbmDecoder.h"
+#include "RbmWriter.h"
 
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
@@ -28,38 +28,35 @@ namespace gapputils {
 
 namespace ml {
 
-BeginPropertyDefinitions(RbmDecoder)
+BeginPropertyDefinitions(RbmWriter)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-
   DefineProperty(RbmModel, Input("RBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(HiddenVector, Input("In"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VisibleVector, Output("Out"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(IsGaussian, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Filename, Output("File"), Filename("RBM Model (*.rbm)"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-RbmDecoder::RbmDecoder() : _IsGaussian(0), data(0) {
+RbmWriter::RbmWriter() : data(0) {
   WfeUpdateTimestamp
-  setLabel("RbmDecoder");
+  setLabel("RbmWriter");
 
-  Changed.connect(capputils::EventHandler<RbmDecoder>(this, &RbmDecoder::changedHandler));
+  Changed.connect(capputils::EventHandler<RbmWriter>(this, &RbmWriter::changedHandler));
 }
 
-RbmDecoder::~RbmDecoder() {
+RbmWriter::~RbmWriter() {
   if (data)
     delete data;
 }
 
-void RbmDecoder::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void RbmWriter::changedHandler(capputils::ObservableClass* sender, int eventId) {
 
 }
 
-void RbmDecoder::writeResults() {
+void RbmWriter::writeResults() {
   if (!data)
     return;
 
-  setVisibleVector(data->getVisibleVector());
+  setFilename(getFilename());
 }
 
 }

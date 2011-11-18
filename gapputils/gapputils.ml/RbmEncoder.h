@@ -11,6 +11,7 @@
 #include <gapputils/WorkflowElement.h>
 
 #include <boost/shared_ptr.hpp>
+#include <tbblas/device_matrix.hpp>
 
 #include "RbmModel.h"
 
@@ -39,9 +40,10 @@ class RbmEncoder : public gapputils::workflow::WorkflowElement {
   InitReflectableClass(RbmEncoder)
 
   Property(RbmModel, boost::shared_ptr<RbmModel>)
-  Property(VisibleVector, boost::shared_ptr<boost::numeric::ublas::matrix<float> >)
-  Property(HiddenVector, boost::shared_ptr<boost::numeric::ublas::matrix<float> >)
+  Property(VisibleVector, boost::shared_ptr<std::vector<float> >)
+  Property(HiddenVector, boost::shared_ptr<std::vector<float> >)
   Property(SampleHiddens, bool)
+  Property(IsGaussian, bool)
 
 private:
   mutable RbmEncoder* data;
