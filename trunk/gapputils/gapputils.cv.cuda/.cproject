@@ -33,9 +33,9 @@
 								<option id="cuda.toolchain.compiler.option.debugging.level.1259719107" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level"/>
 								<option id="cuda.toolchain.compiler.general.incpath.1845533851" name="Include paths (-I)" superClass="cuda.toolchain.compiler.general.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/include"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Programs/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 									<listOptionValue builtIn="false" value="/home/tombr/include"/>
+									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
+									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
 								<option id="cuda.toolchain.compiler.option.debugging.gprof.889312858" name="Generate gprof information (-pg)" superClass="cuda.toolchain.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cuda.toolchain.compiler.input.1051704669" superClass="cuda.toolchain.compiler.input"/>
@@ -45,9 +45,9 @@
 								<option id="gnu.cpp.compiler.option.debugging.level.675972569" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.23391216" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/include"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Programs/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 									<listOptionValue builtIn="false" value="/home/tombr/include"/>
+									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
+									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.debugging.gprof.1523464757" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1858955895" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -57,8 +57,8 @@
 								<option id="gnu.c.compiler.option.debugging.level.375302751" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.602524337" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/include"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Programs/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
+									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
+									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
 								<option id="gnu.c.compiler.option.debugging.gprof.1608165658" name="Generate gprof information (-pg)" superClass="gnu.c.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.958246626" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
@@ -68,8 +68,8 @@
 							<tool id="cuda.toolchain.gnu.assembler.1994539119" name="GCC Assembler" superClass="cuda.toolchain.gnu.assembler">
 								<option id="gnu.both.asm.option.include.paths.480847684" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/include"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Programs/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
+									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
+									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.915998344" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
