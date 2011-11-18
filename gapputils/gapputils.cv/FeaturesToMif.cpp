@@ -42,11 +42,12 @@ BeginPropertyDefinitions(FeaturesToMif)
   DefineProperty(Data, Input(), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(MaxCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(MifName, Output("Mif"), Filename(), NotEqual<std::string>(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-FeaturesToMif::FeaturesToMif() : _ColumnCount(1), _RowCount(1), data(0) {
+FeaturesToMif::FeaturesToMif() : _ColumnCount(1), _RowCount(1), _MaxCount(-1), data(0) {
   WfeUpdateTimestamp
   setLabel("FeaturesToMif");
 
@@ -79,7 +80,8 @@ void FeaturesToMif::execute(gapputils::workflow::IProgressMonitor* monitor) cons
 
   const int columnCount = getColumnCount();
   const int rowCount = getRowCount();
-  const int sliceCount = getData()->size() / (columnCount * rowCount);
+  const int totalSliceCount = getData()->size() / (columnCount * rowCount);
+  const int sliceCount = (getMaxCount() == -1 ? totalSliceCount : std::min(getMaxCount(), totalSliceCount));
 
   CMIF mif(columnCount, rowCount, sliceCount);
   CMIF::pixelArray pixels = mif.getRawData();
