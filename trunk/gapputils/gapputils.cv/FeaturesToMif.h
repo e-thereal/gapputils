@@ -22,6 +22,7 @@ class FeaturesToMif : public gapputils::workflow::WorkflowElement {
   Property(Data, boost::shared_ptr<std::vector<float> >)
   Property(ColumnCount, int)
   Property(RowCount, int)
+  Property(MaxCount, int)
   Property(MifName, std::string)
 
 private:
