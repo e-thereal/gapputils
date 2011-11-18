@@ -551,7 +551,7 @@ void Workflow::newItem(Node* node) {
   workbench->setCurrentItem(item);
 }
 
-void Workflow::newCable(Edge* edge) {
+bool Workflow::newCable(Edge* edge) {
 
 //  cout << "Connecting " << edge->getOutputNode() << "." << edge->getOutputProperty()
 //       << " with " << edge->getInputNode() << "." << edge->getInputProperty() << "... " << flush;
@@ -595,10 +595,11 @@ void Workflow::newCable(Edge* edge) {
     }
   } else {
     // TODO: Error handling
-    cout << "FAILED!" << endl;
-    return;
+    cout << "[Warning] Can not find connections for edge " << edge->getInputNode() << " -> " << edge->getOutputNode() << endl;
+    return false;
   }
 //  cout << "DONE!" << endl;
+  return true;
 }
 
 void Workflow::resumeViewport() {
@@ -705,8 +706,13 @@ void Workflow::resumeFromModel() {
     }
     newItem(nodes->at(i));
   }
-  for (unsigned i = 0; i < edges->size(); ++i)
-    newCable(edges->at(i));
+  for (unsigned i = 0; i < edges->size(); ++i) {
+    if (!newCable(edges->at(i))) {
+      removeEdge(edges->at(i));
+      --i;
+      cout << "[Info] Edge has been removed from the model." << endl;
+    }
+  }
 
   for (unsigned i = 0; i < globals->size(); ++i)
     activateGlobalProperty(globals->at(i));

@@ -75,7 +75,7 @@ public:
   virtual ~Workflow();
 
   void newItem(Node* node);
-  void newCable(Edge* edge);
+  bool newCable(Edge* edge);
   void resumeFromModel();
   void resumeViewport();
 
