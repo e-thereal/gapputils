@@ -61,13 +61,17 @@ void OneOfN::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
+  boost::shared_ptr<std::vector<float> > vec(new std::vector<float>(getCount(), 0.f));
+  vec->at(getOnIndex()) = 1.f;
 
+  data->setVector(vec);
 }
 
 void OneOfN::writeResults() {
   if (!data)
     return;
 
+  setVector(data->getVector());
 }
 
 }

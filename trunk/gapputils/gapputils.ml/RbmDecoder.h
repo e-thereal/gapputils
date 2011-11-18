@@ -29,9 +29,9 @@ class RbmDecoder : public gapputils::workflow::WorkflowElement {
   InitReflectableClass(RbmDecoder)
 
   Property(RbmModel, boost::shared_ptr<RbmModel>)
-  Property(HiddenVector, boost::shared_ptr<boost::numeric::ublas::matrix<float> >)
-  Property(VisibleVector, boost::shared_ptr<boost::numeric::ublas::matrix<float> >)
-  Property(GaussianModel, bool)
+  Property(HiddenVector, boost::shared_ptr<std::vector<float> >)
+  Property(VisibleVector, boost::shared_ptr<std::vector<float> >)
+  Property(IsGaussian, bool)
 
 private:
   mutable RbmDecoder* data;

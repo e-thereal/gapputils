@@ -33,9 +33,9 @@
 								<option id="cuda.toolchain.compiler.option.debugging.level.1966762153" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level"/>
 								<option id="cuda.toolchain.compiler.option.misc.other.1153762761" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0" valueType="string"/>
 								<option id="cuda.toolchain.compiler.general.incpath.173093293" name="Include paths (-I)" superClass="cuda.toolchain.compiler.general.incpath" valueType="includePath">
-									<listOptionValue builtIn="false" value="/usr/local/cuda/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/include"/>
+									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
 								</option>
 								<inputType id="cuda.toolchain.compiler.input.1577130827" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
@@ -47,6 +47,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/include"/>
+									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.223800445" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.1652206224" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
@@ -68,9 +69,15 @@
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.linker.666070791" name="NVCC Linker" superClass="cuda.toolchain.gnu.cpp.linker">
 								<option defaultValue="true" id="gnu.cpp.link.option.shared.1922687467" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
-								<option id="gnu.cpp.link.option.paths.cuda.190396936" superClass="gnu.cpp.link.option.paths.cuda" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/usr/local/cuda/lib64"/>
+								<option id="gnu.cpp.link.option.paths.cuda.190396936" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths.cuda" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
+									<listOptionValue builtIn="false" value="/res1/software/cuda/lib"/>
+								</option>
+								<option id="gnu.cpp.link.option.libs.cuda.1668097258" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs.cuda" valueType="libs">
+									<listOptionValue builtIn="false" value="tbblas"/>
+									<listOptionValue builtIn="false" value="cudart"/>
+									<listOptionValue builtIn="false" value="cublas"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1251689944" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -79,12 +86,14 @@
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.linker.834219561" name="NVCC LinkerC" superClass="cuda.toolchain.gnu.c.linker">
 								<option id="gnu.cpp.link.option.libs.798601414" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="tbblas"/>
 									<listOptionValue builtIn="false" value="culib"/>
 									<listOptionValue builtIn="false" value="tinyxml"/>
 									<listOptionValue builtIn="false" value="gapputils"/>
 									<listOptionValue builtIn="false" value="capputils"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1097237842" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
@@ -144,6 +153,13 @@
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/culib"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/culib/Debug"/>
 						<entry flags="RESOLVED" kind="libraryFile" name="culib"/>
+					</externalSetting>
+				</externalSettings>
+				<externalSettings containerId="tbblas;cdt.managedbuild.config.gnu.lib.debug.1108083634" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/tbblas"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/tbblas/Debug"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="tbblas"/>
 					</externalSetting>
 				</externalSettings>
 			</storageModule>

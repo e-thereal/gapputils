@@ -21,10 +21,6 @@ namespace gapputils {
 
 namespace ml {
 
-float sigmoid(const float& x) {
-  return 1.f/ (1.f + exp(-x));
-}
-
 BeginPropertyDefinitions(RbmModel)
 
   DefineProperty(VisibleBiases)
@@ -57,25 +53,15 @@ boost::shared_ptr<ublas::matrix<float> > RbmModel::encodeDesignMatrix(ublas::mat
 }
 
 boost::shared_ptr<ublas::matrix<float> > RbmModel::decodeApproximation(ublas::matrix<float>& approximation) const {
-//  const unsigned visibleCount = getVisibleCount();
-//
-//  assert((approximation->size() % (visibleCount + 1)) == 0);
-//
-//  const unsigned sampleCount = approximation->size() / (visibleCount + 1);
-//  std::vector<float>* visibleMeans = getVisibleMeans().get();
-//  std::vector<float>* visibleStds = getVisibleStds().get();
-//
-//  boost::shared_ptr<std::vector<float> > scaledSet(new std::vector<float>(approximation->size() - sampleCount));
-//  for (unsigned iSample = 0, iApprox = 0, iScaled = 0; iSample < sampleCount; ++iSample) {
-//    ++iApprox;
-//    for (unsigned iFeature = 0; iFeature < visibleCount; ++iFeature, ++iApprox, ++iScaled) {
-//      scaledSet->at(iScaled) = approximation->at(iApprox) * visibleStds->at(iFeature) + visibleMeans->at(iFeature);
-//    }
-//  }
-//
-//  return scaledSet;
-  boost::shared_ptr<ublas::matrix<float> > decoded;
-  return decoded;
+  boost::shared_ptr<ublas::matrix<float> > unscaledMatrix(new ublas::matrix<float>(approximation.size1(), approximation.size2()));
+  ublas::matrix<float>& m = *unscaledMatrix;
+
+  for (unsigned iCol = 0; iCol < m.size2(); ++iCol) {
+    ublas::column(m, iCol) = ublas::column(approximation, iCol) * (*getVisibleStds())(iCol) +
+        ublas::scalar_vector<float>(m.size1(), (*getVisibleMeans())(iCol));
+  }
+
+  return unscaledMatrix;
 }
 
 }

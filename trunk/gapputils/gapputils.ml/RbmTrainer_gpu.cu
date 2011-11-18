@@ -11,7 +11,6 @@
 #include <capputils/Verifier.h>
 
 #include <boost/progress.hpp>
-//#include <boost/lambda/lambda.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -20,10 +19,8 @@
 #include <tbblas/device_matrix.hpp>
 #include <tbblas/device_vector.hpp>
 
-#include <thrust/random.h>
-#include <thrust/random/normal_distribution.h>
-
 #include "tbblas_io.hpp"
+#include "sampling.hpp"
 
 namespace ublas = boost::numeric::ublas;
 
@@ -31,50 +28,12 @@ namespace gapputils {
 
 namespace ml {
 
-template<class T>
-struct sigmoid_device {
-
-__host__ __device__ T operator()(const T& x) const {
-  return 1.f/ (1.f + exp(-x));
-}
-
-};
-
-__host__ __device__
-unsigned int hash(unsigned int a)
-{
-    a = (a+0x7ed55d16) + (a<<12);
-    a = (a^0xc761c23c) ^ (a>>19);
-    a = (a+0x165667b1) + (a<<5);
-    a = (a+0xd3a2646c) ^ (a<<9);
-    a = (a+0xfd7046c5) + (a<<3);
-    a = (a^0xb55a4f09) ^ (a>>16);
-    return a;
-}
-
-template<class T>
-struct get_randn : public thrust::unary_function<unsigned int, T> {
-  T mean, stddev;
-
-  get_randn(const T& mean, const T& stddev) : mean(mean), stddev(stddev) { }
-
-  __host__ __device__ T operator()(unsigned i) const {
-    thrust::default_random_engine rng(hash(i)); 
-    thrust::random::experimental::normal_distribution<T> dist(mean, stddev);
-
-    return dist(rng);
-  }
-};
-
-template<class T>
-struct sample_units : public thrust::binary_function<T, unsigned int, T> {
-  __host__ __device__ T operator()(const T& x, unsigned i) const {
-    thrust::default_random_engine rng(hash(i)); 
-    thrust::uniform_real_distribution<T> u01(0,1); 
-
-    return x > u01(rng);
-  }
-};
+//#define TIC timer.restart();
+//#define TOC cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+//#define REPEAT for(int i = 0; i < 1000; ++i)
+#define TIC
+#define TOC
+#define REPEAT
 
 void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   //using namespace boost::lambda;
@@ -118,25 +77,30 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   for (unsigned iCol = 0; iCol < trainingSet.size2(); ++iCol)
     means(iCol) = ublas::sum(ublas::column(trainingSet, iCol)) / trainingSet.size1();
   rbm->setVisibleMeans(visibleMeans);
+  std::cout << "[Info] Means calculated: " << timer.elapsed() << " s" << std::endl;
 
   ublas::vector<float>& stds = *visibleStds;
   for (unsigned iCol = 0; iCol < trainingSet.size2(); ++iCol)
-    stds(iCol) = sqrt(ublas::norm_2(ublas::column(trainingSet, iCol) -
-      ublas::scalar_vector<float>(trainingSet.size1(), means(iCol))) / trainingSet.size1());
+    stds(iCol) = ublas::norm_2(ublas::column(trainingSet, iCol) -
+      ublas::scalar_vector<float>(trainingSet.size1(), means(iCol)) / trainingSet.size1());
   rbm->setVisibleStds(visibleStds);
+  std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s" << std::endl;
 
   // Apply feature scaling to training set
   boost::shared_ptr<ublas::matrix<float> > scaledSet = rbm->encodeDesignMatrix(trainingSet, !getIsGaussian());
+  std::cout << "[Info] Design matrix standardized: " << timer.elapsed() << " s" << std::endl;
   ublas::matrix<float>& uX = *scaledSet;
 
-  // TODO: Shuffle the rows of the matrix randomly
   for (unsigned i = uX.size1() - 1; i > 0; --i) {
     unsigned j = rand() % (i + 1);
     ublas::row(uX, i).swap(ublas::row(uX, j));
   }
+  std::cout << "[Info] Rows shuffled: " << timer.elapsed() << " s" << std::endl;
 
   tbblas::device_matrix<float> X(scaledSet->size1(), scaledSet->size2());
-  X = *scaledSet;
+  std::cout << "[Info] Design matrix allocated: " << timer.elapsed() << " s" << std::endl;
+  X = uX;
+  std::cout << "[Info] Design matrix written to the device: " << timer.elapsed() << " s" << std::endl;
 
   // Train the RBM
   // Initialize weights and bias terms
@@ -162,10 +126,11 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   // Initialize bias terms
   thrust::fill(b.data().begin(), b.data().end(), 0.f);
   thrust::fill(c.data().begin(), c.data().end(), 0.f);
+  std::cout << "[Info] RBM initialized: " << timer.elapsed() << " s" << std::endl;
 
-  //rbm->setWeightMatrix(weightMatrix);
-  //rbm->setVisibleBiases(visibleBiases);
-  //rbm->setHiddenBiases(hiddenBiases);
+  rbm->setWeightMatrix(weightMatrix);
+  rbm->setVisibleBiases(visibleBiases);
+  rbm->setHiddenBiases(hiddenBiases);
 
   // Start the learning
   const int batchSize = getBatchSize();
@@ -199,50 +164,51 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   const int epochCount = getEpochCount();
 
-  read_matrix("data.bin", batch);
+  //read_matrix("data.bin", batch);
 
   //boost::progress_timer progresstimer;
-  std::cout << "[Info] Start calculation" << std::endl;
+  std::cout << "[Info] Preparation finished after " << timer.elapsed() << " s" << std::endl;
+  std::cout << "[Info] Starting training" << std::endl;
+  timer.restart();
   for (int iEpoch = 0; iEpoch < epochCount; ++iEpoch) {
 
     float error = 0;
     for (int iBatch = 0; iBatch < batchCount; ++iBatch) {
-      std::cout.precision(10);
-      timer.restart();
+      //std::cout.precision(10);
+      TIC
       /*** START POSITIVE PHASE ***/
 
       // Get current batch
-      //batch = tbblas::subrange(X, iBatch * batchSize, (iBatch + 1) * batchSize, 0, X.size2());
+      batch = tbblas::subrange(X, iBatch * batchSize, (iBatch + 1) * batchSize, 0, X.size2());
       //read_matrix("data.bin", batch);
 
       // Calculate p(h | X, W) = sigm(XW + C)
-      
-      poshidprobs = tbblas::prod(batch, W);
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      REPEAT poshidprobs = tbblas::prod(batch, W);
+      TOC
+      REPEAT
       for (unsigned iRow = 0; iRow < poshidprobs.size1(); ++iRow)
         tbblas::row(poshidprobs, iRow) += c;
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
-
-      thrust::transform(poshidprobs.data().begin(), poshidprobs.data().end(),
-          poshidprobs.data().begin(), sigmoid_device<float>());
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TOC
+      REPEAT thrust::transform(poshidprobs.data().begin(), poshidprobs.data().end(),
+          poshidprobs.data().begin(), sigmoid<float>());
+      TOC
 
       // (x_n)(mu_n)'
-      timer.restart();
-      posprods = tbblas::prod(tbblas::trans(batch), poshidprobs);
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TIC
+      REPEAT posprods = tbblas::prod(tbblas::trans(batch), poshidprobs);
+      TOC
 
-      timer.restart();
+      TIC
       // Calculate the total activation of the hidden and visible units
       // TODO: Sums are way to slow. Calculate all sums simulaniously
-      for (unsigned iCol = 0; iCol < poshidprobs.size2(); ++iCol)
-        poshidact(iCol) = tbblas::sum(tbblas::column(poshidprobs, iCol));
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      REPEAT // for (unsigned iCol = 0; iCol < poshidprobs.size2(); ++iCol)
+        poshidact = tbblas::sum(poshidprobs); //poshidact(iCol) = tbblas::sum(tbblas::column(poshidprobs, iCol));
+      TOC
 
-      timer.restart();
-      for (unsigned iCol = 0; iCol < batch.size2(); ++iCol)
-        posvisact(iCol) = tbblas::sum(tbblas::column(batch, iCol));
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TIC
+      REPEAT // for (unsigned iCol = 0; iCol < batch.size2(); ++iCol)
+        posvisact = tbblas::sum(batch); // posvisact(iCol) = tbblas::sum(tbblas::column(batch, iCol));
+      TOC
 
       /*tbblas::device_matrix<float> posprods_test;
       tbblas::device_vector<float> poshidact_test, posvisact_test;
@@ -258,12 +224,12 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       /*** END OF POSITIVE PHASE ***/
 
       // Sample the hidden states
-      timer.restart();
-      thrust::transform(
+      TIC
+      REPEAT thrust::transform(
           poshidprobs.data().begin(), poshidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
           poshidstates.data().begin(), sample_units<float>()
       );
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TOC
 
       //std::cout << "      E[p(h)] = " << ublas::norm_1(poshidprobs) / poshidprobs.data().size() << std::endl;
       //std::cout << " E[h] (ublas) = " << ublas::norm_1(poshidstates) / poshidstates.data().size() << std::endl;
@@ -274,46 +240,52 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       /*** START NEGATIVE PHASE ***/
 
       // Calculate p(x | H, W) = sigm(HW' + B)
-      timer.restart();
-      negdata = tbblas::prod(poshidstates, tbblas::trans(W));
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
-      for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
+      TIC
+      REPEAT negdata = tbblas::prod(poshidstates, tbblas::trans(W));
+      TOC
+      REPEAT for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
         tbblas::row(negdata, iRow) += b;
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TOC
 
       // For the binary case
       if (!getIsGaussian())
-        thrust::transform(negdata.data().begin(), negdata.data().end(), negdata.data().begin(),
-            sigmoid_device<float>());
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+        REPEAT
+        thrust::transform(negdata.begin(), negdata.end(), negdata.begin(),
+            sigmoid<float>());
+      TOC
 
       // Calculate p(h | Xneg, W) = sigm(XnegW + C)
-      timer.restart();
+      TIC
+      REPEAT
       neghidprobs = tbblas::prod(negdata, W);
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
-      for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
+      TOC
+      REPEAT for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
         tbblas::row(neghidprobs, iRow) += c;
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TOC
 
+      REPEAT
       thrust::transform(neghidprobs.data().begin(), neghidprobs.data().end(), neghidprobs.data().begin(),
-          sigmoid_device<float>());
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+          sigmoid<float>());
+      TOC
 
       // (xneg)(mu_neg)'
-      timer.restart();
+      TIC
+      REPEAT
       negprods = tbblas::prod(tbblas::trans(negdata), neghidprobs);
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TOC
 
       // Calculate the total activation of the visible and hidden units (reconstruction)
-      // TODO: Sums are to slow. Speed up using simultanious sums
-      timer.restart();
-      for (unsigned iCol = 0; iCol < neghidprobs.size2(); ++iCol)
-        neghidact(iCol) = tbblas::sum(tbblas::column(neghidprobs, iCol));
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
-      timer.restart();
-      for (unsigned iCol = 0; iCol < negdata.size2(); ++iCol)
-        negvisact(iCol) = tbblas::sum(tbblas::column(negdata, iCol));
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      // TODO: Sums are to slow. Speed up using simultaneous sums
+      TIC
+      REPEAT
+      //for (unsigned iCol = 0; iCol < neghidprobs.size2(); ++iCol)
+      neghidact = tbblas::sum(neghidprobs); //  neghidact(iCol) = tbblas::sum(tbblas::column(neghidprobs, iCol));
+      TOC
+      TIC
+      REPEAT
+      // for (unsigned iCol = 0; iCol < negdata.size2(); ++iCol)
+      negvisact = tbblas::sum(negdata); //  negvisact(iCol) = tbblas::sum(tbblas::column(negdata, iCol));
+      TOC
 
       /*tbblas::device_matrix<float> negprods_test;
       tbblas::device_vector<float> neghidact_test, negvisact_test;
@@ -328,11 +300,12 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
       /*** END OF NEGATIVE PHASE ***/
 
-      timer.restart();
-      float err = tbblas::norm_2(negdata -= batch);
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      float err = 0.f;
+      TIC REPEAT
+      err = tbblas::norm_2(negdata -= batch);
+      TOC
       error += err * err;
-      std::cout << "Epoch " << iEpoch << " batch " << iBatch << " error " << err * err << std::endl;
+      //std::cout << "Epoch " << iEpoch << " batch " << iBatch << " error " << err * err << std::endl;
 
       momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
 
@@ -341,15 +314,15 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       //if (iEpoch) {
         // Don't learn anything in the first epoch in order to get a good estimate of the initial error
       // TODO: Investigate, why this is so slow. Maybe optimized axpy for matrices
-      timer.restart();
+      TIC REPEAT
         vishidinc = momentum * vishidinc + epsilonw * (((posprods -= negprods) / (float)batchSize) -= weightcost * W);
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
-
+      TOC
+      REPEAT
         visbiasinc = momentum * visbiasinc + (epsilonvb / batchSize) * (posvisact -= negvisact);
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
-
+      TOC
+      REPEAT
         hidbiasinc = momentum * hidbiasinc + (epsilonhb / batchSize) * (poshidact -= neghidact);
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TOC
 
       //}
 
@@ -365,25 +338,30 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       std::cout << tbblas::norm_1(hidbiasinc_test -= hidbiasinc) / hidbiasinc.size() << std:: endl;*/
 
       // TODO: Need optimized axpy for matrices
-      timer.restart();
+      TIC REPEAT
       W += vishidinc;
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TOC REPEAT
       b += visbiasinc;
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TOC REPEAT
       c += hidbiasinc;
-      cudaThreadSynchronize(); std::cout << __LINE__ << ": " << timer.elapsed() << "s" << std::endl;
+      TOC
 
       /*** END OF UPDATES ***/
 
-      std::cout << "Time: " << timer.elapsed() << "s" << std::endl;
+      //std::cout << "Time: " << timer.elapsed() << "s" << std::endl;
 
       if (monitor)
         monitor->reportProgress(100 * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
     }
-    std::cout << "Epoch " << iEpoch << " error " << error << std::endl;
+    int eta = timer.elapsed() / (iEpoch + 1) * (epochCount - iEpoch - 1);
+    int sec = eta % 60;
+    int minutes = (eta / 60) % 60;
+    int hours = eta / 3600;
+    std::cout << "Epoch " << iEpoch << " error " << error << " after " << timer.elapsed() << "s. ETA: "
+        << hours << " h " << minutes << " min " << sec << " s" << std::endl;
   }
 
-  //data->setRbmModel(rbm);
+  data->setRbmModel(rbm);
 }
 
 }
