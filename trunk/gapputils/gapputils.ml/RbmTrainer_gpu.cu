@@ -16,11 +16,15 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/timer.hpp>
 
+#include <thrust/iterator/constant_iterator.h>
+
 #include <tbblas/device_matrix.hpp>
 #include <tbblas/device_vector.hpp>
 
 #include "tbblas_io.hpp"
 #include "sampling.hpp"
+
+#include <algorithm>
 
 namespace ublas = boost::numeric::ublas;
 
@@ -34,6 +38,24 @@ namespace ml {
 #define TIC
 #define TOC
 #define REPEAT
+
+template<class T>
+struct min_1 {
+
+T  operator()(const T& x) const {
+  return max((T)1, x);
+}
+
+};
+
+template<class T>
+struct minus_squared : thrust::binary_function<float, float, float> {
+
+T operator()(const T& x, const T& y) const {
+  return (x - y) * (x - y);
+}
+
+};
 
 void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   //using namespace boost::lambda;
@@ -74,15 +96,20 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   boost::shared_ptr<ublas::vector<float> > visibleStds(new ublas::vector<float>(visibleCount));
 
   ublas::vector<float>& means = *visibleMeans;
+  float mean = thrust::reduce(trainingSet.data().begin(), trainingSet.data().end()) / trainingSet.data().size();
+
   for (unsigned iCol = 0; iCol < trainingSet.size2(); ++iCol)
-    means(iCol) = ublas::sum(ublas::column(trainingSet, iCol)) / trainingSet.size1();
+    means(iCol) = mean; //ublas::sum(ublas::column(trainingSet, iCol)) / trainingSet.size1();
   rbm->setVisibleMeans(visibleMeans);
   std::cout << "[Info] Means calculated: " << timer.elapsed() << " s" << std::endl;
 
   ublas::vector<float>& stds = *visibleStds;
+  float stddev = sqrt(thrust::inner_product(trainingSet.data().begin(), trainingSet.data().end(),
+      thrust::constant_iterator<float>(mean), 0.f, thrust::plus<float>(), minus_squared<float>()) / trainingSet.data().size());
   for (unsigned iCol = 0; iCol < trainingSet.size2(); ++iCol)
-    stds(iCol) = ublas::norm_2(ublas::column(trainingSet, iCol) -
-      ublas::scalar_vector<float>(trainingSet.size1(), means(iCol)) / trainingSet.size1());
+    stds(iCol) = stddev; //ublas::norm_2(ublas::column(trainingSet, iCol) -
+      //ublas::scalar_vector<float>(trainingSet.size1(), means(iCol)) / trainingSet.size1());
+  //std::transform(stds.begin(), stds.end(), stds.begin(), min_1<float>());
   rbm->setVisibleStds(visibleStds);
   std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s" << std::endl;
 
@@ -125,7 +152,7 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   // Initialize bias terms
   thrust::fill(b.data().begin(), b.data().end(), 0.f);
-  thrust::fill(c.data().begin(), c.data().end(), 0.f);
+  thrust::fill(c.data().begin(), c.data().end(), getInitialHidden());
   std::cout << "[Info] RBM initialized: " << timer.elapsed() << " s" << std::endl;
 
   rbm->setWeightMatrix(weightMatrix);
@@ -135,9 +162,9 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   // Start the learning
   const int batchSize = getBatchSize();
   const int batchCount = sampleCount / batchSize;
-  float epsilonw =  0.1;      // Learning rate for weights
-  float epsilonvb = 0.1;      // Learning rate for biases of visible units
-  float epsilonhb = 0.1;      // Learning rate for biases of hidden units
+  float epsilonw =  getLearningRate();      // Learning rate for weights
+  float epsilonvb = getLearningRate();      // Learning rate for biases of visible units
+  float epsilonhb = getLearningRate();      // Learning rate for biases of hidden units
   float weightcost = 0.0002;
   float initialmomentum = 0.5f;
   float finalmomentum = 0.9f;
@@ -157,6 +184,11 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   tbblas::device_vector<float> posvisact(visibleCount);
   tbblas::device_vector<float> neghidact(hiddenCount);
   tbblas::device_vector<float> negvisact(visibleCount);
+
+  boost::shared_ptr<std::vector<float> > debugPosData(new std::vector<float>(sampleCount * visibleCount));
+  boost::shared_ptr<std::vector<float> > debugNegData(new std::vector<float>(sampleCount * visibleCount));
+
+  std::copy(uX.data().begin(), uX.data().end(), debugPosData->begin());
 
   thrust::fill(vishidinc.data().begin(), vishidinc.data().end(), 0.f);
   thrust::fill(hidbiasinc.data().begin(), hidbiasinc.data().end(), 0.f);
@@ -200,14 +232,13 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
       TIC
       // Calculate the total activation of the hidden and visible units
-      // TODO: Sums are way to slow. Calculate all sums simulaniously
-      REPEAT // for (unsigned iCol = 0; iCol < poshidprobs.size2(); ++iCol)
-        poshidact = tbblas::sum(poshidprobs); //poshidact(iCol) = tbblas::sum(tbblas::column(poshidprobs, iCol));
+      REPEAT
+        poshidact = tbblas::sum(poshidprobs);
       TOC
 
       TIC
-      REPEAT // for (unsigned iCol = 0; iCol < batch.size2(); ++iCol)
-        posvisact = tbblas::sum(batch); // posvisact(iCol) = tbblas::sum(tbblas::column(batch, iCol));
+      REPEAT
+        posvisact = tbblas::sum(batch);
       TOC
 
       /*tbblas::device_matrix<float> posprods_test;
@@ -248,11 +279,12 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       TOC
 
       // For the binary case
-      if (!getIsGaussian())
+      if (!getIsGaussian()) {
         REPEAT
         thrust::transform(negdata.begin(), negdata.end(), negdata.begin(),
             sigmoid<float>());
-      TOC
+        TOC
+      }
 
       // Calculate p(h | Xneg, W) = sigm(XnegW + C)
       TIC
@@ -275,16 +307,13 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       TOC
 
       // Calculate the total activation of the visible and hidden units (reconstruction)
-      // TODO: Sums are to slow. Speed up using simultaneous sums
       TIC
       REPEAT
-      //for (unsigned iCol = 0; iCol < neghidprobs.size2(); ++iCol)
-      neghidact = tbblas::sum(neghidprobs); //  neghidact(iCol) = tbblas::sum(tbblas::column(neghidprobs, iCol));
+      neghidact = tbblas::sum(neghidprobs);
       TOC
       TIC
       REPEAT
-      // for (unsigned iCol = 0; iCol < negdata.size2(); ++iCol)
-      negvisact = tbblas::sum(negdata); //  negvisact(iCol) = tbblas::sum(tbblas::column(negdata, iCol));
+      negvisact = tbblas::sum(negdata);
       TOC
 
       /*tbblas::device_matrix<float> negprods_test;
@@ -300,11 +329,18 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
       /*** END OF NEGATIVE PHASE ***/
 
+      if (iEpoch == epochCount - 1) {
+        ublas::matrix<float> temp = negdata;
+        thrust::copy(temp.data().begin(), temp.data().end(), debugNegData->begin() + (iBatch * batchSize * visibleCount));
+      }
+
       float err = 0.f;
       TIC REPEAT
       err = tbblas::norm_2(negdata -= batch);
       TOC
       error += err * err;
+      //std::cout << "norm2(negdata) = " << tbblas::norm_2(negdata) << std::endl;
+      //std::cout << "norm2(data)    = " << tbblas::norm_2(batch) << std::endl;
       //std::cout << "Epoch " << iEpoch << " batch " << iBatch << " error " << err * err << std::endl;
 
       momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
@@ -313,7 +349,6 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
       //if (iEpoch) {
         // Don't learn anything in the first epoch in order to get a good estimate of the initial error
-      // TODO: Investigate, why this is so slow. Maybe optimized axpy for matrices
       TIC REPEAT
         vishidinc = momentum * vishidinc + epsilonw * (((posprods -= negprods) / (float)batchSize) -= weightcost * W);
       TOC
@@ -337,7 +372,6 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       std::cout << tbblas::norm_1(visbiasinc_test -= visbiasinc) / visbiasinc.size() << std::endl;
       std::cout << tbblas::norm_1(hidbiasinc_test -= hidbiasinc) / hidbiasinc.size() << std:: endl;*/
 
-      // TODO: Need optimized axpy for matrices
       TIC REPEAT
       W += vishidinc;
       TOC REPEAT
@@ -362,6 +396,8 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   }
 
   data->setRbmModel(rbm);
+  data->setPosData(debugPosData);
+  data->setNegData(debugNegData);
 }
 
 }

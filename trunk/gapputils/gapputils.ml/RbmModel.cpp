@@ -14,6 +14,8 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/lambda/lambda.hpp>
 
+#include <iostream>
+
 namespace ublas = boost::numeric::ublas;
 using namespace boost::lambda;
 
@@ -45,9 +47,13 @@ boost::shared_ptr<ublas::matrix<float> > RbmModel::encodeDesignMatrix(ublas::mat
     ublas::column(m, iCol) = (ublas::column(designMatrix, iCol) -
         ublas::scalar_vector<float>(m.size1(), (*getVisibleMeans())(iCol))) / (*getVisibleStds())(iCol);
   }
+//  std::cout << "Design: " << designMatrix << std::endl;
+//  std::cout << "Means: " << *getVisibleMeans() << std::endl;
+//  std::cout << "Stddev: " << *getVisibleStds() << std::endl;
+//  std::cout << "Scaled: " << m << std::endl;
 
   if (binary)
-    std::transform(m.data().begin(), m.data().end(), m.data().begin(), (_1 >= 0.f) * 1.f);
+    std::transform(m.data().begin(), m.data().end(), m.data().begin(), (_1 > 0.f) * 1.f);
 
   return scaledMatrix;
 }
