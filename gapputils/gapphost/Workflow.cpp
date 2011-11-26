@@ -153,42 +153,47 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), _ViewportScale(1
   this->Changed.connect(EventHandler<Workflow>(this, &Workflow::changedHandler));
 }
 
+#define TRACE std::cout << __LINE__ << std::endl;
+
 Workflow::~Workflow() {
+  const std::string className = getModule()->getClassName();
+  const std::string uuid = getUuid();
+  std::cout << "[Info] Start deleting " << className << " (" << uuid << ")" << std::endl;
   Q_EMIT deleteCalled(this);
-
+  TRACE
   LibraryLoader& loader = LibraryLoader::getInstance();
-
+  TRACE
   if (worker) {
     worker->quit();
     worker->wait();
     delete worker;
   }
-
+  TRACE
   if (ownWidget) {
     delete widget;
     inputsNode.setToolItem(0);
     outputsNode.setToolItem(0);
   }
-
+  TRACE
   for (unsigned i = 0; i < _Edges->size(); ++i)
     delete _Edges->at(i);
   delete _Edges;
-
+  TRACE
   for (unsigned i = 0; i < _GlobalEdges->size(); ++i)
     delete _GlobalEdges->at(i);
   delete _GlobalEdges;
-
+  TRACE
   for (unsigned i = 0; i < _Nodes->size(); ++i)
     delete _Nodes->at(i);
   delete _Nodes;
-
+  TRACE
   for (unsigned i = 0; i < _GlobalProperties->size(); ++i)
     delete _GlobalProperties->at(i);
   delete _GlobalProperties;
-
+  TRACE
   inputsNode.setModule(0);
   outputsNode.setModule(0);
-
+  TRACE
   // Don't delete module before setting it to zero
   // The module property is observed and reflectable. Thus, when resetting
   // the module, the event listener is disconnected from the old module.
@@ -197,20 +202,25 @@ Workflow::~Workflow() {
   ReflectableClass* module = getModule();
   setModule(0);
   delete module;
-
+  TRACE
   // Unload interface library
   if (getInterface()) {
     loader.freeLibrary(getLibraryName());
   }
-
+  TRACE
   // Unload libraries
-  for (unsigned i = 0; i < _Libraries->size(); ++i)
+  for (unsigned i = 0; i < _Libraries->size(); ++i) {
+    std::cout << _Libraries->at(i) << std::endl;
     loader.freeLibrary(_Libraries->at(i));
+  }
+  TRACE
   delete _Libraries;
-
+  TRACE
   map<string, Workflow*>* workflowMap = host::DataModel::getInstance().getWorkflowMap().get();
   assert(workflowMap->find(getUuid()) != workflowMap->end());
   workflowMap->erase(getUuid());
+  TRACE
+  std::cout << "[Info] Finished deleting " << className << " (" << uuid << ")" << std::endl;
 }
 
 void Workflow::showContextMenu(const QPoint& point) {
