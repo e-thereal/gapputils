@@ -29,7 +29,10 @@ class RbmTrainer : public gapputils::workflow::WorkflowElement {
   Property(EpochCount, int)
   Property(BatchSize, int)
   Property(LearningRate, float)
+  Property(InitialHidden, float)
   Property(IsGaussian, bool)
+  Property(PosData, boost::shared_ptr<std::vector<float> >)
+  Property(NegData, boost::shared_ptr<std::vector<float> >)
 
 private:
   mutable RbmTrainer* data;

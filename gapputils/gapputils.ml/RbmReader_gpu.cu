@@ -86,5 +86,3 @@ void RbmReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 }
 
 }
-
-

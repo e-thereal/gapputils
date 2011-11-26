@@ -45,8 +45,10 @@ void RbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   // Calculate p(x | H, W) = sigm(HW' + B)
   negdata = tbblas::prod(H, tbblas::trans(W));
-  for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
-    tbblas::row(negdata, iRow) += b;
+  if (!getUseWeightsOnly()) {
+    for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
+      tbblas::row(negdata, iRow) += b;
+  }
 
   // For the binary case
   if (!getIsGaussian())
@@ -57,7 +59,7 @@ void RbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   visibles = negdata;
 
   boost::shared_ptr<std::vector<float> > visibleVector(new std::vector<float>(sampleCount * visibleCount));
-  if (!getIsGaussian()) {
+  if (!getIsGaussian() || getUseWeightsOnly()) {
     std::copy(visibles.data().begin(), visibles.data().end(), visibleVector->begin());
   } else {
     boost::shared_ptr<ublas::matrix<float> > decoded = rbm.decodeApproximation(visibles);

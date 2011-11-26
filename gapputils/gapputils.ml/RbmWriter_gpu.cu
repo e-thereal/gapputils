@@ -13,6 +13,8 @@
 #include <cstdio>
 #include <iostream>
 
+#include "RbmReader.h"
+
 #define RBM_WRITER_ASSERT(pred) \
   if (!pred) { \
     std::cout << "[Error] Couldn't write file " << getFilename() << std::endl; \
@@ -24,6 +26,14 @@
 namespace gapputils {
 
 namespace ml {
+
+struct adiff : public thrust::binary_function<float, float, float> {
+__host__ __device__
+float operator()(const float& x, const float& y) {
+  return fabs(x - y);
+}
+
+};
 
 void RbmWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!data)
@@ -65,17 +75,44 @@ void RbmWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       buffer.begin());
   RBM_WRITER_ASSERT(fwrite(&buffer[0], sizeof(float), visibleCount * hiddenCount, file) == visibleCount * hiddenCount);
 
-  thrust::copy(rbm.getVisibleStds()->data().begin(),
-      rbm.getVisibleStds()->data().end(),
-      buffer.begin());
-  RBM_WRITER_ASSERT(fwrite(&buffer[0], sizeof(float), visibleCount, file) == visibleCount);
-
   thrust::copy(rbm.getVisibleMeans()->data().begin(),
       rbm.getVisibleMeans()->data().end(),
       buffer.begin());
   RBM_WRITER_ASSERT(fwrite(&buffer[0], sizeof(float), visibleCount, file) == visibleCount);
 
+  thrust::copy(rbm.getVisibleStds()->data().begin(),
+      rbm.getVisibleStds()->data().end(),
+      buffer.begin());
+  RBM_WRITER_ASSERT(fwrite(&buffer[0], sizeof(float), visibleCount, file) == visibleCount);
+
   fclose(file);
+
+  RbmReader reader;
+  reader.setFilename(getFilename());
+  reader.execute(0);
+  reader.writeResults();
+
+  RbmModel& rbm2 = *reader.getRbmModel();
+
+  assert(rbm.getVisibleBiases()->size() == rbm2.getVisibleBiases()->size());
+  assert(thrust::inner_product(rbm.getVisibleBiases()->data().begin(), rbm.getVisibleBiases()->data().end(),
+      rbm2.getVisibleBiases()->data().begin(), 0.f, thrust::plus<float>(), adiff()) == 0);
+
+  assert(rbm.getHiddenBiases()->size() == rbm2.getHiddenBiases()->size());
+  assert(thrust::inner_product(rbm.getHiddenBiases()->data().begin(), rbm.getHiddenBiases()->data().end(),
+      rbm2.getHiddenBiases()->data().begin(), 0.f, thrust::plus<float>(), adiff()) == 0);
+
+  assert(rbm.getWeightMatrix()->data().size() == rbm2.getWeightMatrix()->data().size());
+  assert(thrust::inner_product(rbm.getWeightMatrix()->data().begin(), rbm.getWeightMatrix()->data().end(),
+      rbm2.getWeightMatrix()->data().begin(), 0.f, thrust::plus<float>(), adiff()) == 0);
+
+  assert(rbm.getVisibleMeans()->size() == rbm2.getVisibleMeans()->size());
+  assert(thrust::inner_product(rbm.getVisibleMeans()->begin(), rbm.getVisibleMeans()->end(),
+      rbm2.getVisibleMeans()->begin(), 0.f, thrust::plus<float>(), adiff()) == 0);
+
+  assert(rbm.getVisibleStds()->size() == rbm2.getVisibleStds()->size());
+  assert(thrust::inner_product(rbm.getVisibleStds()->begin(), rbm.getVisibleStds()->end(),
+      rbm2.getVisibleStds()->begin(), 0.f, thrust::plus<float>(), adiff()) == 0);
 }
 
 }

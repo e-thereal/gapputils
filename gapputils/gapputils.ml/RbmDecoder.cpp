@@ -36,10 +36,11 @@ BeginPropertyDefinitions(RbmDecoder)
   DefineProperty(HiddenVector, Input("In"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(VisibleVector, Output("Out"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(IsGaussian, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(UseWeightsOnly, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-RbmDecoder::RbmDecoder() : _IsGaussian(0), data(0) {
+RbmDecoder::RbmDecoder() : _IsGaussian(0), _UseWeightsOnly(0), data(0) {
   WfeUpdateTimestamp
   setLabel("RbmDecoder");
 
