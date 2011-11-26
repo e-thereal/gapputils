@@ -23,6 +23,9 @@ class FeaturesToMif : public gapputils::workflow::WorkflowElement {
   Property(ColumnCount, int)
   Property(RowCount, int)
   Property(MaxCount, int)
+  Property(MinValue, double)
+  Property(MaxValue, double)
+  Property(AutoScale, bool)
   Property(MifName, std::string)
 
 private:

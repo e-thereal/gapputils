@@ -41,12 +41,15 @@ BeginPropertyDefinitions(SliceToFeatures)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(MifNames, Input("Mifs"), Filename("MIFs (*.MIF);;ROI MIFs (*_roi.MIF)", true), Enumerable<std::vector<std::string>, false>(), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(VoxelsPerSlice, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(SliceCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Data, Output(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID), Volatile(), Hide())
 
 EndPropertyDefinitions
 
-SliceToFeatures::SliceToFeatures() : _VoxelsPerSlice(0), data(0) {
+SliceToFeatures::SliceToFeatures() : _RowCount(0), _ColumnCount(0), _VoxelsPerSlice(0), _SliceCount(0), data(0) {
   WfeUpdateTimestamp
   setLabel("SliceToFeatures");
 
@@ -100,6 +103,10 @@ void SliceToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) co
     std::copy(mif.beginPixels(), mif.endPixels(), sliceData->begin() + oldSize);
   }
 
+  data->setRowCount(rowCount);
+  data->setColumnCount(columnCount);
+  if (voxelsPerSlice)
+    data->setSliceCount(sliceData->size() / voxelsPerSlice);
   data->setData(sliceData);
   data->setVoxelsPerSlice(voxelsPerSlice);
 
@@ -110,7 +117,10 @@ void SliceToFeatures::writeResults() {
   if (!data)
     return;
 
+  setRowCount(data->getRowCount());
+  setColumnCount(data->getColumnCount());
   setVoxelsPerSlice(data->getVoxelsPerSlice());
+  setSliceCount(data->getSliceCount());
   setData(data->getData());
 }
 

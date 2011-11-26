@@ -43,11 +43,17 @@ BeginPropertyDefinitions(FeaturesToMif)
   DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(MaxCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(MinValue, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(MaxValue, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(AutoScale, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(MifName, Output("Mif"), Filename(), NotEqual<std::string>(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-FeaturesToMif::FeaturesToMif() : _ColumnCount(1), _RowCount(1), _MaxCount(-1), data(0) {
+FeaturesToMif::FeaturesToMif()
+ : _ColumnCount(1), _RowCount(1), _MaxCount(-1), _MinValue(0), _MaxValue(1),
+   _AutoScale(true), data(0)
+{
   WfeUpdateTimestamp
   setLabel("FeaturesToMif");
 
@@ -76,8 +82,6 @@ void FeaturesToMif::execute(gapputils::workflow::IProgressMonitor* monitor) cons
   if (!capputils::Verifier::Valid(*this) || !getData())
     return;
 
-  //const int count = getColumnCount() * getRowCount() * getSliceCount();
-
   const int columnCount = getColumnCount();
   const int rowCount = getRowCount();
   const int totalSliceCount = getData()->size() / (columnCount * rowCount);
@@ -90,25 +94,36 @@ void FeaturesToMif::execute(gapputils::workflow::IProgressMonitor* monitor) cons
 
   float minV = features[0], maxV = features[0];
 
-  for (int z = 1, i = 0; z <= mif.getSliceCount(); ++z) {
-    for (int y = 0; y < mif.getRowCount(); ++y) {
-      for (int x = 0; x < mif.getColumnCount(); ++x, ++i) {
-        minV = std::min(minV, features[i]);
-        maxV = std::max(maxV, features[i]);
+  if (getAutoScale()) {
+    for (int z = 1, i = 0; z <= mif.getSliceCount(); ++z) {
+      for (int y = 0; y < mif.getRowCount(); ++y) {
+        for (int x = 0; x < mif.getColumnCount(); ++x, ++i) {
+          minV = std::min(minV, features[i]);
+          maxV = std::max(maxV, features[i]);
+        }
       }
+      if (monitor)
+        monitor->reportProgress(50 * z / mif.getSliceCount());
     }
-    if (monitor)
-      monitor->reportProgress(50 * z / mif.getSliceCount());
+  } else {
+    minV = getMinValue();
+    maxV = getMaxValue();
   }
 
   for (int z = 1, i = 0; z <= mif.getSliceCount(); ++z) {
     for (int y = 0; y < mif.getRowCount(); ++y) {
       for (int x = 0; x < mif.getColumnCount(); ++x, ++i) {
-        pixels[z][y][x] = (features[i] - minV) * 255. / (maxV - minV);
+        pixels[z][y][x] = std::min(255.0, std::max(0.0, (features[i] - minV) * 255. / (maxV - minV)));
+//        pixels[z][y][x] = (features[i] - minV) * 255. / (maxV - minV);
       }
     }
-    if (monitor)
-      monitor->reportProgress(50 * z / mif.getSliceCount() + 50);
+    if (monitor) {
+      if (getAutoScale()) {
+        monitor->reportProgress(50 * z / mif.getSliceCount() + 50);
+      } else {
+        monitor->reportProgress(100 * z / mif.getSliceCount());
+      }
+    }
   }
 
   mif.writeToFile(getMifName(), true);
