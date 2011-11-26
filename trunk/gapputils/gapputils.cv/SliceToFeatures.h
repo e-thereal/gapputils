@@ -21,7 +21,10 @@ class SliceToFeatures : public gapputils::workflow::WorkflowElement {
   InitReflectableClass(SliceToFeatures)
 
   Property(MifNames, std::vector<std::string>)
+  Property(RowCount, int)
+  Property(ColumnCount, int)
   Property(VoxelsPerSlice, int)
+  Property(SliceCount, int)
   Property(Data, boost::shared_ptr<std::vector<float> >)
 
 private:
