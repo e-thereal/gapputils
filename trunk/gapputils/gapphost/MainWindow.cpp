@@ -24,6 +24,8 @@
 using namespace std;
 using namespace capputils;
 
+#define ONLY_WORKFLOWELEMENTS
+
 namespace gapputils {
 
 using namespace workflow;
@@ -71,7 +73,7 @@ void updateToolBox(QTreeWidget* toolBox) {
 #ifdef ONLY_WORKFLOWELEMENTS
     reflection::ReflectableClass* object = factory.newInstance(name);
     if (dynamic_cast<WorkflowElement*>(object) == 0) {
-      cout << name << " is not a workflow element" << endl;
+//      cout << name << " is not a workflow element" << endl;
       delete object;
       continue;
     }
