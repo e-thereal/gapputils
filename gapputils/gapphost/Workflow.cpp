@@ -156,7 +156,7 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), _ViewportScale(1
 #define TRACE std::cout << __LINE__ << std::endl;
 
 Workflow::~Workflow() {
-  const std::string className = getModule()->getClassName();
+  const std::string className = (getModule() ? getModule()->getClassName() : "none");
   const std::string uuid = getUuid();
 //  std::cout << "[Info] Start deleting " << className << " (" << uuid << ")" << std::endl;
   Q_EMIT deleteCalled(this);
@@ -201,7 +201,8 @@ Workflow::~Workflow() {
   // deleted.
   ReflectableClass* module = getModule();
   setModule(0);
-  delete module;
+  if (module)
+    delete module;
 
   // Unload interface library
   if (getInterface()) {
@@ -217,8 +218,9 @@ Workflow::~Workflow() {
   delete _Libraries;
 
   map<string, Workflow*>* workflowMap = host::DataModel::getInstance().getWorkflowMap().get();
-  assert(workflowMap->find(getUuid()) != workflowMap->end());
-  workflowMap->erase(getUuid());
+  //assert(workflowMap->find(getUuid()) != workflowMap->end());
+  if (workflowMap && workflowMap->find(getUuid()) != workflowMap->end())
+    workflowMap->erase(getUuid());
 
 //  std::cout << "[Info] Finished deleting " << className << " (" << uuid << ")" << std::endl;
 }
