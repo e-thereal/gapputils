@@ -4,7 +4,7 @@
  *  Created on: Nov 16, 2011
  *      Author: tombr
  */
-
+#define BOOST_TYPEOF_COMPLIANT
 #include "RbmDecoder.h"
 
 #include <capputils/Verifier.h>
