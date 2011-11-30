@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="CUDA">
+      <UniqueIdentifier>{eda90993-bfab-41a9-b809-3671082204d4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -42,6 +45,27 @@
     <ClInclude Include="tbblas_io.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DiagonalMatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="distributions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FgrbmModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FgrbmTrainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RbmReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RbmWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryImageGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MnistReader.cpp">
@@ -65,8 +89,46 @@
     <ClCompile Include="ublas_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DiagonalMatrix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="distributions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FgrbmModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FgrbmTrainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RbmReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RbmWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BinaryImageGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="RbmTrainer_gpu.cu" />
+    <CudaCompile Include="RbmTrainer_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="FgrbmTrainer_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="RbmDecoder_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="RbmEncoder_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="RbmReader_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="RbmWriter_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

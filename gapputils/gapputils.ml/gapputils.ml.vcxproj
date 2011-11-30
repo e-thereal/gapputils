@@ -83,26 +83,45 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BinaryImageGenerator.h" />
+    <ClInclude Include="DiagonalMatrix.h" />
+    <ClInclude Include="distributions.h" />
+    <ClInclude Include="FgrbmModel.h" />
+    <ClInclude Include="FgrbmTrainer.h" />
     <ClInclude Include="MnistReader.h" />
     <ClInclude Include="OneOfN.h" />
     <ClInclude Include="RbmDecoder.h" />
     <ClInclude Include="RbmEncoder.h" />
     <ClInclude Include="RbmModel.h" />
+    <ClInclude Include="RbmReader.h" />
     <ClInclude Include="RbmTrainer.h" />
+    <ClInclude Include="RbmWriter.h" />
     <ClInclude Include="tbblas_io.hpp" />
     <ClInclude Include="ublas_io.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BinaryImageGenerator.cpp" />
+    <ClCompile Include="DiagonalMatrix.cpp" />
+    <ClCompile Include="distributions.cpp" />
+    <ClCompile Include="FgrbmModel.cpp" />
+    <ClCompile Include="FgrbmTrainer.cpp" />
     <ClCompile Include="MnistReader.cpp" />
     <ClCompile Include="OneOfN.cpp" />
     <ClCompile Include="RbmDecoder.cpp" />
     <ClCompile Include="RbmEncoder.cpp" />
     <ClCompile Include="RbmModel.cpp" />
+    <ClCompile Include="RbmReader.cpp" />
     <ClCompile Include="RbmTrainer.cpp" />
+    <ClCompile Include="RbmWriter.cpp" />
     <ClCompile Include="ublas_io.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="FgrbmTrainer_gpu.cu" />
+    <CudaCompile Include="RbmDecoder_gpu.cu" />
+    <CudaCompile Include="RbmEncoder_gpu.cu" />
+    <CudaCompile Include="RbmReader_gpu.cu" />
     <CudaCompile Include="RbmTrainer_gpu.cu" />
+    <CudaCompile Include="RbmWriter_gpu.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
