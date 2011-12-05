@@ -21,6 +21,7 @@
 #include <thrust/reduce.h>
 
 #include "sampling.hpp"
+#include "RbmModel.h"   ///< For sigmoid<T>()
 
 namespace ublas = boost::numeric::ublas;
 
@@ -37,6 +38,9 @@ T operator()(const T& x, const T& y) const {
 
 };
 
+// TODO: This module crashs when executed, workflow reloaded and executed
+//       Possibly because of cublas. Use new cublas interface in tbblas
+//       and open and close a computing session accordingly
 void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   boost::timer timer;
 
@@ -70,6 +74,7 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   const unsigned hiddenCount = getHiddenCount();
   const unsigned factorCount = getFactorCount();
   const unsigned sampleCount = getVisiblesVector()->size() / visibleCount;
+  const int batchSize = getBatchSize();
 
   boost::shared_ptr<FgrbmModel> fgrbm(new FgrbmModel());
 
@@ -80,24 +85,26 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   float mean = thrust::reduce(visiblesSet.data().begin(), visiblesSet.data().end()) / visiblesSet.data().size();
   fgrbm->setVisibleMean(mean);
-  std::cout << "[Info] Means calculated: " << timer.elapsed() << " s" << std::endl;
+  std::cout << "[Info] Means calculated: " << timer.elapsed() << " s (" << mean << ")" << std::endl;
 
-  thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<float>(mean),
-      visiblesSet.data().begin(), thrust::minus<float>());
-  thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<float>(mean),
-      conditionalsSet.data().begin(), thrust::minus<float>());
+  if (getIsGaussian()) {
+    thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<float>(mean),
+        visiblesSet.data().begin(), thrust::minus<float>());
+    thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<float>(mean),
+        conditionalsSet.data().begin(), thrust::minus<float>());
 
-  float stddev = sqrt(thrust::inner_product(visiblesSet.data().begin(), visiblesSet.data().end(),
-      visiblesSet.data().begin(), 0.f) / visiblesSet.data().size());
-  fgrbm->setVisibleStd(stddev);
-  std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s" << std::endl;
+    float stddev = sqrt(thrust::inner_product(visiblesSet.data().begin(), visiblesSet.data().end(),
+        visiblesSet.data().begin(), 0.f) / visiblesSet.data().size());
+    fgrbm->setVisibleStd(stddev);
+    std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s" << std::endl;
 
-  // Apply feature scaling to training set
-  thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<float>(stddev),
-      visiblesSet.data().begin(), thrust::divides<float>());
-  thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<float>(stddev),
-      conditionalsSet.data().begin(), thrust::divides<float>());
-  std::cout << "[Info] Design matrix standardized: " << timer.elapsed() << " s" << std::endl;
+    // Apply feature scaling to training set
+    thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<float>(stddev),
+        visiblesSet.data().begin(), thrust::divides<float>());
+    thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<float>(stddev),
+        conditionalsSet.data().begin(), thrust::divides<float>());
+    std::cout << "[Info] Design matrix standardized: " << timer.elapsed() << " s" << std::endl;
+  }
   ublas::matrix<float>& uX = conditionalsSet;
   ublas::matrix<float>& uY = visiblesSet;
 
@@ -107,6 +114,20 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
     ublas::row(uY, i).swap(ublas::row(uY, j));
   }
   std::cout << "[Info] Rows shuffled: " << timer.elapsed() << " s" << std::endl;
+
+  int deviceMemory = 0;
+  deviceMemory += 3 * batchSize * visibleCount;
+  deviceMemory += 4 * batchSize * factorCount;
+  deviceMemory += 3 * batchSize * hiddenCount;
+  deviceMemory += 8 * visibleCount * factorCount;
+  deviceMemory += 4 * hiddenCount * factorCount;
+  deviceMemory += 4 * visibleCount;
+  deviceMemory += 4 * hiddenCount;
+  std::cout << "[Info] Required device memory without training data: " << 4. * deviceMemory / 1024. / 1024. << " MB" << std::endl;
+
+  deviceMemory += uX.size1() * uX.size2();
+  deviceMemory += uY.size1() * uY.size2();
+  std::cout << "[Info] Required device memory including training data: " << 4. * deviceMemory / 1024. / 1024. << " MB" << std::endl;
 
   tbblas::device_matrix<float> X(uX.size1(), uX.size2());
   tbblas::device_matrix<float> Y(uY.size1(), uY.size2());
@@ -130,16 +151,16 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   // Initialize weights
   thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(Wx.data().size()),
-      Wx.data().begin(), get_randn<float>(0.f, 0.1f));
+      Wx.data().begin(), get_randn<float>(0.f, 0.01f));
   thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(Wy.data().size()),
-      Wy.data().begin(), get_randn<float>(0.f, 0.1f));
+      Wy.data().begin(), get_randn<float>(0.f, 0.01f));
   thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(Wh.data().size()),
-      Wh.data().begin(), get_randn<float>(0.f, 0.1f));
+      Wh.data().begin(), get_randn<float>(0.f, 0.01f));
 
   // Initialize bias terms
   thrust::fill(b.data().begin(), b.data().end(), 0.f);
   thrust::fill(c.data().begin(), c.data().end(), getInitialHidden());
-  std::cout << "[Info] RBM initialized: " << timer.elapsed() << " s" << std::endl;
+  std::cout << "[Info] FGRBM initialized: " << timer.elapsed() << " s" << std::endl;
 
   fgrbm->setConditionalWeights(conditionalWeights);
   fgrbm->setVisibleWeights(visibleWeights);
@@ -148,18 +169,21 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   fgrbm->setHiddenBiases(hiddenBiases);
 
   // Start the learning
-  const int batchSize = getBatchSize();
   const int batchCount = sampleCount / batchSize;
   float epsilonw =  getLearningRate();      // Learning rate for weights
   float epsilonvb = getLearningRate();      // Learning rate for biases of visible units
   float epsilonhb = getLearningRate();      // Learning rate for biases of hidden units
-  float weightcost = 0.0002;
+  float weightcost = 0.f; // 0.0002;
   float initialmomentum = 0.5f;
   float finalmomentum = 0.9f;
   float momentum;
 
   tbblas::device_matrix<float> xbatch(batchSize, visibleCount);
   tbblas::device_matrix<float> ybatch(batchSize, visibleCount);
+  tbblas::device_matrix<float> XWx(batchSize, factorCount);
+  tbblas::device_matrix<float> YWy(batchSize, factorCount);
+  tbblas::device_matrix<float> HWh(batchSize, factorCount);
+  tbblas::device_matrix<float> NxF(batchSize, factorCount);
   tbblas::device_matrix<float> poshidprobs(batchSize, hiddenCount);
   tbblas::device_matrix<float> posEx(visibleCount, factorCount);
   tbblas::device_matrix<float> posEy(visibleCount, factorCount);
@@ -174,7 +198,7 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   tbblas::device_matrix<float> Wxinc(visibleCount, factorCount);
   tbblas::device_matrix<float> Wyinc(visibleCount, factorCount);
-  tbblas::device_matrix<float> Whinc(visibleCount, factorCount);
+  tbblas::device_matrix<float> Whinc(hiddenCount, factorCount);
 
   tbblas::device_vector<float> hidbiasinc(hiddenCount);
   tbblas::device_vector<float> visbiasinc(visibleCount);
@@ -201,179 +225,106 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
       /*** START POSITIVE PHASE ***/
 
-//      // Get current batch
-//      batch = tbblas::subrange(X, iBatch * batchSize, (iBatch + 1) * batchSize, 0, X.size2());
-//      //read_matrix("data.bin", batch);
-//
-//      // Calculate p(h | X, W) = sigm(XW + C)
-//      REPEAT poshidprobs = tbblas::prod(batch, W);
-//      TOC
-//      REPEAT
-//      for (unsigned iRow = 0; iRow < poshidprobs.size1(); ++iRow)
-//        tbblas::row(poshidprobs, iRow) += c;
-//      TOC
-//      REPEAT thrust::transform(poshidprobs.data().begin(), poshidprobs.data().end(),
-//          poshidprobs.data().begin(), sigmoid<float>());
-//      TOC
-//
-//      // (x_n)(mu_n)'
-//      TIC
-//      REPEAT posprods = tbblas::prod(tbblas::trans(batch), poshidprobs);
-//      TOC
-//
-//      TIC
-//      // Calculate the total activation of the hidden and visible units
-//      REPEAT
-//        poshidact = tbblas::sum(poshidprobs);
-//      TOC
-//
-//      TIC
-//      REPEAT
-//        posvisact = tbblas::sum(batch);
-//      TOC
-//
-//      /*tbblas::device_matrix<float> posprods_test;
-//      tbblas::device_vector<float> poshidact_test, posvisact_test;
-//      read_matrix("posprods.bin", posprods_test);
-//      read_vector("poshidact.bin", poshidact_test);
-//      read_vector("posvisact.bin", posvisact_test);
-//
-//      std::cout << "Positive phase errors:" << std::endl;
-//      std::cout << tbblas::norm_1(posprods_test -= posprods) / posprods.data().size() << std::endl;
-//      std::cout << tbblas::norm_1(poshidact_test -= poshidact) / poshidact.size() << std::endl;
-//      std::cout << tbblas::norm_1(posvisact_test -= posvisact) / posvisact.size() << std:: endl;*/
-//
-//      /*** END OF POSITIVE PHASE ***/
-//
-//      // Sample the hidden states
-//      TIC
-//      REPEAT thrust::transform(
-//          poshidprobs.data().begin(), poshidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
-//          poshidstates.data().begin(), sample_units<float>()
-//      );
-//      TOC
-//
-//      //std::cout << "      E[p(h)] = " << ublas::norm_1(poshidprobs) / poshidprobs.data().size() << std::endl;
-//      //std::cout << " E[h] (ublas) = " << ublas::norm_1(poshidstates) / poshidstates.data().size() << std::endl;
-//
-//      //read_matrix("poshidstates.bin", poshidstates);
-//      //std::cout << "E[h] (matlab) = " << ublas::norm_1(poshidstates) / poshidstates.data().size() << std::endl;
-//
-//      /*** START NEGATIVE PHASE ***/
-//
-//      // Calculate p(x | H, W) = sigm(HW' + B)
-//      TIC
-//      REPEAT negdata = tbblas::prod(poshidstates, tbblas::trans(W));
-//      TOC
-//      REPEAT for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
-//        tbblas::row(negdata, iRow) += b;
-//      TOC
-//
-//      // For the binary case
-//      if (!getIsGaussian()) {
-//        REPEAT
-//        thrust::transform(negdata.begin(), negdata.end(), negdata.begin(),
-//            sigmoid<float>());
-//        TOC
-//      }
-//
-//      // Calculate p(h | Xneg, W) = sigm(XnegW + C)
-//      TIC
-//      REPEAT
-//      neghidprobs = tbblas::prod(negdata, W);
-//      TOC
-//      REPEAT for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
-//        tbblas::row(neghidprobs, iRow) += c;
-//      TOC
-//
-//      REPEAT
-//      thrust::transform(neghidprobs.data().begin(), neghidprobs.data().end(), neghidprobs.data().begin(),
-//          sigmoid<float>());
-//      TOC
-//
-//      // (xneg)(mu_neg)'
-//      TIC
-//      REPEAT
-//      negprods = tbblas::prod(tbblas::trans(negdata), neghidprobs);
-//      TOC
-//
-//      // Calculate the total activation of the visible and hidden units (reconstruction)
-//      TIC
-//      REPEAT
-//      neghidact = tbblas::sum(neghidprobs);
-//      TOC
-//      TIC
-//      REPEAT
-//      negvisact = tbblas::sum(negdata);
-//      TOC
-//
-//      /*tbblas::device_matrix<float> negprods_test;
-//      tbblas::device_vector<float> neghidact_test, negvisact_test;
-//      read_matrix("negprods.bin", negprods_test);
-//      read_vector("neghidact.bin", neghidact_test);
-//      read_vector("negvisact.bin", negvisact_test);
-//
-//      std::cout << "Negative phase errors:" << std::endl;
-//      std::cout << tbblas::norm_1(negprods_test -= negprods) / negprods.data().size() << std::endl;
-//      std::cout << tbblas::norm_1(neghidact_test -= neghidact) / neghidact.size() << std::endl;
-//      std::cout << tbblas::norm_1(negvisact_test -= negvisact) / negvisact.size() << std:: endl;*/
-//
-//      /*** END OF NEGATIVE PHASE ***/
-//
-//      if (iEpoch == epochCount - 1) {
-//        ublas::matrix<float> temp = negdata;
-//        thrust::copy(temp.data().begin(), temp.data().end(), debugNegData->begin() + (iBatch * batchSize * visibleCount));
-//      }
-//
-//      float err = 0.f;
-//      TIC REPEAT
-//      err = tbblas::norm_2(negdata -= batch);
-//      TOC
-//      error += err * err;
-//      //std::cout << "norm2(negdata) = " << tbblas::norm_2(negdata) << std::endl;
-//      //std::cout << "norm2(data)    = " << tbblas::norm_2(batch) << std::endl;
-//      //std::cout << "Epoch " << iEpoch << " batch " << iBatch << " error " << err * err << std::endl;
-//
-//      momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
-//
-//      /*** UPDATE WEIGHTS AND BIASES ***/
-//
-//      //if (iEpoch) {
-//        // Don't learn anything in the first epoch in order to get a good estimate of the initial error
-//      TIC REPEAT
-//        vishidinc = momentum * vishidinc + epsilonw * (((posprods -= negprods) / (float)batchSize) -= weightcost * W);
-//      TOC
-//      REPEAT
-//        visbiasinc = momentum * visbiasinc + (epsilonvb / batchSize) * (posvisact -= negvisact);
-//      TOC
-//      REPEAT
-//        hidbiasinc = momentum * hidbiasinc + (epsilonhb / batchSize) * (poshidact -= neghidact);
-//      TOC
-//
-//      //}
-//
-//      /*tbblas::device_matrix<float> vishidinc_test;
-//      tbblas::device_vector<float> visbiasinc_test, hidbiasinc_test;
-//      read_matrix("vishidinc.bin", vishidinc_test);
-//      read_vector("visbiasinc.bin", visbiasinc_test);
-//      read_vector("hidbiasinc.bin", hidbiasinc_test);
-//
-//      std::cout << "Finalization phase errors:" << std::endl;
-//      std::cout << tbblas::norm_1(vishidinc_test -= vishidinc) / vishidinc.data().size() << std::endl;
-//      std::cout << tbblas::norm_1(visbiasinc_test -= visbiasinc) / visbiasinc.size() << std::endl;
-//      std::cout << tbblas::norm_1(hidbiasinc_test -= hidbiasinc) / hidbiasinc.size() << std:: endl;*/
-//
-//      TIC REPEAT
-//      W += vishidinc;
-//      TOC REPEAT
-//      b += visbiasinc;
-//      TOC REPEAT
-//      c += hidbiasinc;
-//      TOC
+      // Get current batch
+      xbatch = tbblas::subrange(X, iBatch * batchSize, (iBatch + 1) * batchSize, 0, X.size2());
+      ybatch = tbblas::subrange(Y, iBatch * batchSize, (iBatch + 1) * batchSize, 0, X.size2());
+
+      // Pre-compute X*Wx and Y*Wy
+      XWx = tbblas::prod(xbatch, Wx);
+      YWy = tbblas::prod(ybatch, Wy);
+
+      // Calculate p(h | X, Y, W) = sigm((XWx o YWy) * WhT + C)
+      poshidprobs = tbblas::prod(NxF = XWx * YWy, tbblas::trans(Wh));         // x = (XWx o YWy) * WhT
+      for (unsigned iRow = 0; iRow < poshidprobs.size1(); ++iRow)             // x = x + C
+        tbblas::row(poshidprobs, iRow) += c;
+      thrust::transform(poshidprobs.data().begin(), poshidprobs.data().end(), // x = sigm(x)
+          poshidprobs.data().begin(), sigmoid<float>());
+
+      // Pre-compute H*Wh
+      HWh = tbblas::prod(poshidprobs, Wh);
+
+      // -dEx = XT * (YWy o HWh)
+      // -dEy = YT * (XWx o HWh)
+      // -dEh = HT * (XWx o YWy)
+      posEx = tbblas::prod(tbblas::trans(xbatch), (NxF = YWy * HWh));
+      posEy = tbblas::prod(tbblas::trans(ybatch), (NxF = XWx * HWh));
+      posEh = tbblas::prod(tbblas::trans(poshidprobs), (NxF = XWx * YWy));
+
+      // Calculate the total activation of the hidden and visible units
+      poshidact = tbblas::sum(poshidprobs);
+      posvisact = tbblas::sum(ybatch);
+
+      /*** END OF POSITIVE PHASE ***/
+
+      // Sample the hidden states
+      thrust::transform(
+          poshidprobs.data().begin(), poshidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
+          poshidstates.data().begin(), sample_units<float>()
+      );
+
+      /*** START NEGATIVE PHASE ***/
+
+      // Calculate p(y | X, H, W) = sigm((X*Wx o H*Wh) * WyT + B)
+      HWh = tbblas::prod(poshidstates, Wh);     // recompute using the sampled version of H
+      negdata = tbblas::prod(NxF = XWx * HWh, tbblas::trans(Wy));
+      for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
+        tbblas::row(negdata, iRow) += b;
+
+      // For the binary case
+      if (!getIsGaussian()) {
+        thrust::transform(negdata.begin(), negdata.end(), negdata.begin(),
+            sigmoid<float>());
+      }
+
+      // Pre-compute Yneg*Wy
+      YWy = tbblas::prod(negdata, Wy);
+
+      // Calculate p(h | Yneg, X, W) = sigm((X*Wx o Yneg*Wy) * WhT + C)
+      neghidprobs = tbblas::prod((NxF = XWx * YWy), tbblas::trans(Wh));         // x = (X*Wx o Yneg*Wy) * WhT
+      for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)                   // x = x + C
+        tbblas::row(neghidprobs, iRow) += c;
+
+      thrust::transform(neghidprobs.data().begin(), neghidprobs.data().end(),   // x = sigm(x)
+          neghidprobs.data().begin(), sigmoid<float>());
+
+      // Pre-compute H*Wh
+      HWh = tbblas::prod(neghidprobs, Wh);
+
+      // -dEx = XT * (YWy o HWh)
+      // -dEy = YT * (XWx o HWh)
+      // -dEh = HT * (XWx o YWy)
+      negEx = tbblas::prod(tbblas::trans(xbatch), (NxF = YWy * HWh));
+      negEy = tbblas::prod(tbblas::trans(negdata), (NxF = XWx * HWh));
+      negEh = tbblas::prod(tbblas::trans(neghidprobs), (NxF = XWx * YWy));
+
+      // Calculate the total activation of the visible and hidden units (reconstruction)
+      neghidact = tbblas::sum(neghidprobs);
+      negvisact = tbblas::sum(negdata);
+
+      /*** END OF NEGATIVE PHASE ***/
+
+      float err = 0.f;
+      err = tbblas::norm_2(negdata -= ybatch);
+      error += err * err;
+      momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
+
+      /*** UPDATE WEIGHTS AND BIASES ***/
+
+      if (iEpoch) {
+        Wxinc = momentum * Wxinc + epsilonw * (((posEx -= negEx) / (float)batchSize) -= weightcost * Wx);
+        Wyinc = momentum * Wyinc + epsilonw * (((posEy -= negEy) / (float)batchSize) -= weightcost * Wy);
+        Whinc = momentum * Whinc + epsilonw * (((posEh -= negEh) / (float)batchSize) -= weightcost * Wh);
+        visbiasinc = momentum * visbiasinc + (epsilonvb / batchSize) * (posvisact -= negvisact);
+        hidbiasinc = momentum * hidbiasinc + (epsilonhb / batchSize) * (poshidact -= neghidact);
+      }
+
+      Wx += Wxinc;
+      Wy += Wyinc;
+      Wh += Whinc;
+      b += visbiasinc;
+      c += hidbiasinc;
 
       /*** END OF UPDATES ***/
-
-      //std::cout << "Time: " << timer.elapsed() << "s" << std::endl;
 
       if (monitor)
         monitor->reportProgress(100 * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));

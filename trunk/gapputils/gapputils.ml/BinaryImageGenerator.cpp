@@ -79,11 +79,8 @@ void BinaryImageGenerator::execute(gapputils::workflow::IProgressMonitor* monito
   using namespace boost::lambda;
 
   boost::shared_ptr<std::vector<float> > randomData(new std::vector<float>(count));
-
   for (int i = 0; i < count; ++i)
      randomData->at(i) = ((rand() % 10) == 0 ? 1.f : 0.f);
-  std::for_each(randomData->begin(), randomData->end(), std::cout << _1 << " ");
-  std::cout << std::endl;
 
   data->setFeatureCount(featureCount);
   data->setData(randomData);
