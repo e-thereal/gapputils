@@ -18,6 +18,7 @@
 #include <capputils/ReflectableClassFactory.h>
 #include <qbrush.h>
 #include <gapputils/WorkflowElement.h>
+#include <gapputils/WorkflowInterface.h>
 
 #include <iostream>
 
@@ -72,7 +73,7 @@ void updateToolBox(QTreeWidget* toolBox) {
 
 #ifdef ONLY_WORKFLOWELEMENTS
     reflection::ReflectableClass* object = factory.newInstance(name);
-    if (dynamic_cast<WorkflowElement*>(object) == 0) {
+    if (dynamic_cast<WorkflowElement*>(object) == 0 && dynamic_cast<WorkflowInterface*>(object) == 0) {
 //      cout << name << " is not a workflow element" << endl;
       delete object;
       continue;

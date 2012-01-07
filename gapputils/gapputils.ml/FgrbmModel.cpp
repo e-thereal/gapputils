@@ -20,6 +20,8 @@
 
 #include <gapputils/HideAttribute.h>
 
+#include "tbblas_serialize.hpp"
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -29,13 +31,13 @@ namespace ml {
 
 BeginPropertyDefinitions(FgrbmModel)
 
-  DefineProperty(VisibleBiases)
-  DefineProperty(HiddenBiases)
-  DefineProperty(VisibleWeights)
-  DefineProperty(HiddenWeights)
-  DefineProperty(ConditionalWeights)
-  DefineProperty(VisibleMean)
-  DefineProperty(VisibleStd)
+  DefineProperty(VisibleBiases, Serialize<TYPE_OF(VisibleBiases)>())
+  DefineProperty(HiddenBiases, Serialize<TYPE_OF(HiddenBiases)>())
+  DefineProperty(VisibleWeights, Serialize<TYPE_OF(VisibleWeights)>())
+  DefineProperty(HiddenWeights, Serialize<TYPE_OF(HiddenWeights)>())
+  DefineProperty(ConditionalWeights, Serialize<TYPE_OF(ConditionalWeights)>())
+  DefineProperty(VisibleMean, Serialize<TYPE_OF(VisibleMean)>())
+  DefineProperty(VisibleStd, Serialize<TYPE_OF(VisibleStd)>())
 
 EndPropertyDefinitions
 

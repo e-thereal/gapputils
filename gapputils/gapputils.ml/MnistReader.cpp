@@ -21,11 +21,15 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
+//#include <thrust/reduce.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+
+#include <boost/lambda/lambda.hpp>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -39,6 +43,7 @@ BeginPropertyDefinitions(MnistReader)
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Filename, Input("Name"), FileExists(), Filename(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(MaxImageCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(MakeBinary, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ImageCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
@@ -71,6 +76,8 @@ inline void swapEndian(unsigned int &val) {
 
 
 void MnistReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+  using namespace boost::lambda;
+
   if (!data)
     data = new MnistReader();
 
@@ -100,6 +107,14 @@ void MnistReader::execute(gapputils::workflow::IProgressMonitor* monitor) const 
 
   assert(fread(&bytes[0], sizeof(unsigned char), count, file) == count);
   std::copy(bytes.begin(), bytes.end(), floats->begin());
+
+  if (getMakeBinary()) {
+    float mean = 0.f;
+    for_each(floats->begin(), floats->end(), mean += _1);
+    mean /= floats->size();
+    for (int i = 0; i < floats->size(); ++i)
+      floats->at(i) = floats->at(i) > mean;
+  }
 
   fclose(file);
 

@@ -75,7 +75,7 @@ void RandomImageTransformation::execute(gapputils::workflow::IProgressMonitor* m
   if (!getInput() || getRowCount() < 1 || getColumnCount() < 1 || getXRange().size() != 2 || getYRange().size() != 2)
     return;
 
-  std::vector<float>& input = *getInput();
+  std::vector<double>& input = *getInput();
 
   const int rowCount = getRowCount();
   const int columnCount = getColumnCount();
@@ -87,7 +87,7 @@ void RandomImageTransformation::execute(gapputils::workflow::IProgressMonitor* m
   if (count % featureCount != 0)
     return;
 
-  boost::shared_ptr<std::vector<float> > output(new std::vector<float>(count));
+  boost::shared_ptr<std::vector<double> > output(new std::vector<double>(count));
   for (int sliceOffset = 0; sliceOffset < count; sliceOffset += featureCount) {
     // Get random transformation parameters
     // apply transformation
@@ -96,7 +96,7 @@ void RandomImageTransformation::execute(gapputils::workflow::IProgressMonitor* m
     int dy = rand() % (yrange[1] - yrange[0] + 1) + yrange[0];
 
     std::copy(&input[std::max(0, sliceOffset - dx - dy * columnCount)],
-        &input[std::min(count, sliceOffset - dx - dy * columnCount + featureCount)],
+        &input[std::min(count - 1, sliceOffset - dx - dy * columnCount + featureCount)],
         output->begin() + sliceOffset);
   }
 

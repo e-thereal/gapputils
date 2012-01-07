@@ -61,15 +61,18 @@ BeginPropertyDefinitions(RbmTrainer)
   DefineProperty(BatchSize, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(LearningRate, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(InitialHidden, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(SparsityTarget, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(SparsityWeight, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(IsGaussian, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(PosData, Output("PD"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(NegData, Output("ND"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  //DefineProperty(PosData, Output("PD"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  //DefineProperty(NegData, Output("ND"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
 RbmTrainer::RbmTrainer()
  : _VisibleCount(1), _HiddenCount(1), _SampleHiddens(true),
-   _EpochCount(1), _BatchSize(10), _LearningRate(0.01f), _InitialHidden(0.f), _IsGaussian(false), data(0)
+   _EpochCount(1), _BatchSize(10), _LearningRate(0.01f), _InitialHidden(0.f),
+   _SparsityTarget(0.1f), _SparsityWeight(0.1f), _IsGaussian(false), data(0)
 {
   WfeUpdateTimestamp
   setLabel("RbmTrainer");
@@ -96,8 +99,8 @@ void RbmTrainer::writeResults() {
     return;
 
   setRbmModel(data->getRbmModel());
-  setNegData(data->getNegData());
-  setPosData(data->getPosData());
+  //setNegData(data->getNegData());
+  //setPosData(data->getPosData());
 }
 
 }

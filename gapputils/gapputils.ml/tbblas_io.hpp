@@ -7,6 +7,9 @@
 
 #include <cstdio>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
 #include "ublas_io.hpp"
 
@@ -83,6 +86,61 @@ bool read_vector(const std::string& filename, tbblas::device_vector<T>& v) {
   fclose(file);
 
   return res;
+}
+
+template<class T>
+bool read_matrix_from_text(const std::string& filename, tbblas::device_matrix<T>& m) {
+  std::ifstream file(filename.c_str());
+  if (!file)
+    return false;
+
+  std::string line;
+  int rowCount = 0, columnCount = 0;
+  std::vector<T> values;
+  T value;
+  while(getline(file, line)) {
+    ++columnCount;
+    std::stringstream lineStream(line);
+    int rows = 0;
+    while(!lineStream.eof()) {
+      ++rows;
+      lineStream >> value;
+      values.push_back(value);
+    }
+    rowCount = std::max(rowCount, rows);
+  }
+  file.close();
+
+  if (m.rowCount() != rowCount || m.columnCount() != columnCount)
+    return false;
+
+  thrust::copy(values.begin(), values.end(), m.data().begin());
+
+  return true;
+}
+
+template<class T>
+bool read_vector_from_text(const std::string& filename, tbblas::device_vector<T>& v) {
+  std::ifstream file(filename.c_str());
+  if (!file)
+    return false;
+
+  int count = 0;
+  std::vector<T> values;
+  T value;
+  while(!file.eof()) {
+    ++count;
+    file >> value;
+    values.push_back(value);
+  }
+  file.close();
+
+  if (v.size() != count)
+    return false;
+
+  thrust::copy(values.begin(), values.end(), v.data().begin());
+
+  return true;
 }
 
 #endif /* GAPPUTILS_TBBLAS_IO_ */

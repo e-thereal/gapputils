@@ -1,11 +1,11 @@
 /*
- * RbmReader.cpp
+ * FgrbmReader.cpp
  *
  *  Created on: Nov 17, 2011
  *      Author: tombr
  */
 
-#include "RbmReader.h"
+#include "FgrbmReader.h"
 
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
@@ -29,52 +29,52 @@ namespace gapputils {
 
 namespace ml {
 
-BeginPropertyDefinitions(RbmReader)
+BeginPropertyDefinitions(FgrbmReader)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Filename, Input("File"), Filename("RBM Model (*.rbm)"), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RbmModel, Output("RBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Filename, Input("File"), Filename("FGRBM Model (*.fgrbm)"), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(FgrbmModel, Output("FGRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(VisibleCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(HiddenCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-RbmReader::RbmReader() : _VisibleCount(0), _HiddenCount(0), data(0) {
+FgrbmReader::FgrbmReader() : _VisibleCount(0), _HiddenCount(0), data(0) {
   WfeUpdateTimestamp
-  setLabel("RbmReader");
+  setLabel("FgrbmReader");
 
-  Changed.connect(capputils::EventHandler<RbmReader>(this, &RbmReader::changedHandler));
+  Changed.connect(capputils::EventHandler<FgrbmReader>(this, &FgrbmReader::changedHandler));
 }
 
-RbmReader::~RbmReader() {
+FgrbmReader::~FgrbmReader() {
   if (data)
     delete data;
 }
 
-void RbmReader::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void FgrbmReader::changedHandler(capputils::ObservableClass* sender, int eventId) {
 
 }
 
-void RbmReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+void FgrbmReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!data)
-    data = new RbmReader();
+    data = new FgrbmReader();
 
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  boost::shared_ptr<RbmModel> rbm(new RbmModel());
-  capputils::Serializer::readFromFile(*rbm, getFilename());
+  boost::shared_ptr<FgrbmModel> fgrbm(new FgrbmModel());
+  capputils::Serializer::readFromFile(*fgrbm, getFilename());
 
-  data->setRbmModel(rbm);
-  data->setVisibleCount(rbm->getVisibleBiases()->size());
-  data->setHiddenCount(rbm->getHiddenBiases()->size());
+  data->setFgrbmModel(fgrbm);
+  data->setVisibleCount(fgrbm->getVisibleBiases()->size());
+  data->setHiddenCount(fgrbm->getHiddenBiases()->size());
 }
 
-void RbmReader::writeResults() {
+void FgrbmReader::writeResults() {
   if (!data)
     return;
 
-  setRbmModel(data->getRbmModel());
+  setFgrbmModel(data->getFgrbmModel());
   setVisibleCount(data->getVisibleCount());
   setHiddenCount(data->getHiddenCount());
 }

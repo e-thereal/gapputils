@@ -66,6 +66,24 @@
     <ClInclude Include="BinaryImageGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RandomImageTransformation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FgrbmEncoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tbblas_serialize.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FgrbmReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FgrbmWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageMatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MnistReader.cpp">
@@ -110,6 +128,21 @@
     <ClCompile Include="BinaryImageGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RandomImageTransformation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FgrbmEncoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FgrbmReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FgrbmWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageMatrix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="RbmTrainer_gpu.cu">
@@ -124,10 +157,13 @@
     <CudaCompile Include="RbmEncoder_gpu.cu">
       <Filter>CUDA</Filter>
     </CudaCompile>
-    <CudaCompile Include="RbmReader_gpu.cu">
+    <CudaCompile Include="FgrbmEncoder_gpu.cu">
       <Filter>CUDA</Filter>
     </CudaCompile>
-    <CudaCompile Include="RbmWriter_gpu.cu">
+    <CudaCompile Include="tbblas_serialize_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="ImageMatrix_gpu.cu">
       <Filter>CUDA</Filter>
     </CudaCompile>
   </ItemGroup>

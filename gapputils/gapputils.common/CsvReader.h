@@ -19,9 +19,11 @@ Property(FirstColumn, int)
 Property(LastColumn, int)
 Property(FirstRow, int)
 Property(LastRow, int)
+Property(Delimiter, std::string)
+
 Property(ColumnCount, int)
 Property(RowCount, int)
-Property(Data, double*)
+Property(Data, boost::shared_ptr<std::vector<float> >)
 
 private:
   mutable CsvReader* data;

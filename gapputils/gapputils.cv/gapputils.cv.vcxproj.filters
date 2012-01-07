@@ -119,6 +119,15 @@
     <ClCompile Include="HistogramEqualization.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FeaturesToImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageSaver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageToDicom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ToRgb.h">
@@ -194,6 +203,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HistogramEqualization.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FeaturesToImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageSaver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageToDicom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -33,20 +33,22 @@ BeginPropertyDefinitions(CsvReader)
 
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(FirstColumn, ShortName("FC"), Observe(PROPERTY_ID), Description("Zero-based index of the first column"), Input(), TimeStamp(PROPERTY_ID))
-  DefineProperty(LastColumn, ShortName("LC"), Observe(PROPERTY_ID), Description("Zero-based index of the last column. A value of -1 indicates to read until the end."), Input(), TimeStamp(PROPERTY_ID))
-  DefineProperty(FirstRow, ShortName("FR"), Observe(PROPERTY_ID), Description("Zero-based index of the first row"), Input(), TimeStamp(PROPERTY_ID))
-  DefineProperty(LastRow, ShortName("LR"), Observe(PROPERTY_ID), Description("Zero-based index of the last row. A value of -1 indicates to read until the end."), Input(), TimeStamp(PROPERTY_ID))
   // TODO: workaround here. Inputs are not encoded in outputs. Therefore filename here would give wrong results
-  DefineProperty(Filename, ShortName("File"), Observe(PROPERTY_ID), FileExists(), Input(), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, ShortName("CC"), Observe(PROPERTY_ID), Output(), Volatile(), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, ShortName("RC"), Observe(PROPERTY_ID), Output(), Volatile(), TimeStamp(PROPERTY_ID))
-  DefineProperty(Data, Observe(PROPERTY_ID), Output(), Hide(), Volatile(), TimeStamp(PROPERTY_ID))
+  DefineProperty(Filename, Input("File"), Filename(), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(FirstColumn, Description("Zero-based index of the first column"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(LastColumn, Description("Zero-based index of the last column. A value of -1 indicates to read until the end."), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(FirstRow, Observe(PROPERTY_ID), Description("Zero-based index of the first row"), TimeStamp(PROPERTY_ID))
+  DefineProperty(LastRow, Observe(PROPERTY_ID), Description("Zero-based index of the last row. A value of -1 indicates to read until the end."), TimeStamp(PROPERTY_ID))
+  DefineProperty(Delimiter, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  
+  DefineProperty(ColumnCount, Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(RowCount, Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Data, Output(), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
 CsvReader::CsvReader() : _Filename(""), _FirstColumn(0), _LastColumn(-1),
-_FirstRow(1), _LastRow(-1), _ColumnCount(0), _RowCount(0), _Data(0), data(0)
+_FirstRow(1), _LastRow(-1), _Delimiter(","), _ColumnCount(0), _RowCount(0), data(0)
 {
   setLabel("Reader");
 }
@@ -54,9 +56,6 @@ _FirstRow(1), _LastRow(-1), _ColumnCount(0), _RowCount(0), _Data(0), data(0)
 
 CsvReader::~CsvReader(void)
 {
-  if (_Data)
-    delete _Data;
-
   if (data)
     delete data;
 }
@@ -106,7 +105,7 @@ void CsvReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       vector<double>* dataRow = new vector<double>();
       vector<string> tokens;
 
-      tokenize(line, tokens, ",");
+      tokenize(line, tokens, getDelimiter());
       for (int columnIndex = 0; columnIndex < (int)tokens.size(); ++columnIndex) {
         if (firstColumn <= columnIndex && (lastColumn == -1 || columnIndex <= lastColumn)) {
           stringstream stream(tokens[columnIndex]);
@@ -121,15 +120,11 @@ void CsvReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   }
   csvfile.close();
 
-  // Wrap up the data
-  if (data->getData())
-    delete data->getData();
-
-  double* _data = new double[dataVector.size() * columnCount];
+  boost::shared_ptr<std::vector<float> > _data(new std::vector<float>(dataVector.size() * columnCount));
   for (unsigned i = 0, k = 0; i < dataVector.size(); ++i) {
     vector<double>* dataRow = dataVector[i];
     for (unsigned j = 0; j < dataRow->size(); ++j, ++k) {
-      _data[k] = dataRow->at(j);
+      _data->at(k) = dataRow->at(j);
     }
     k += columnCount - dataRow->size();
     delete dataRow;
@@ -146,11 +141,7 @@ void CsvReader::writeResults() {
 
   setColumnCount(data->getColumnCount());
   setRowCount(data->getRowCount());
-
-  if (getData())
-    delete getData();
   setData(data->getData());
-  data->setData(0);
 }
 
 }

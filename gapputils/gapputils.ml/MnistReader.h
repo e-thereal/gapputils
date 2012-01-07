@@ -22,6 +22,7 @@ class MnistReader : public gapputils::workflow::WorkflowElement {
 
   Property(Filename, std::string)
   Property(MaxImageCount, int)
+  Property(MakeBinary, int)
   Property(ImageCount, int)
   Property(RowCount, int)
   Property(ColumnCount, int)

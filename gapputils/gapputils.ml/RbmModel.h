@@ -29,7 +29,7 @@ template<class T>
 struct sigmoid {
 
 __host__ __device__ T operator()(const T& x) const {
-  return 1.f/ (1.f + exp(-x));
+  return 1/ (1 + exp(-x));
 }
 
 };
@@ -44,8 +44,8 @@ class RbmModel : public capputils::reflection::ReflectableClass {
   Property(VisibleBiases, boost::shared_ptr<tbblas::device_vector<float> >)
   Property(HiddenBiases, boost::shared_ptr<tbblas::device_vector<float> >)
   Property(WeightMatrix, boost::shared_ptr<tbblas::device_matrix<float> >)
-  Property(VisibleMeans, boost::shared_ptr<boost::numeric::ublas::vector<float> >)  ///< used for feature scaling
-  Property(VisibleStds, boost::shared_ptr<boost::numeric::ublas::vector<float> >)   ///< used for feature scaling
+  Property(VisibleMeans, boost::shared_ptr<tbblas::device_vector<float> >)  ///< used for feature scaling
+  Property(VisibleStds, boost::shared_ptr<tbblas::device_vector<float> >)   ///< used for feature scaling
 
 public:
   RbmModel();
@@ -65,6 +65,5 @@ public:
 }
 
 }
-
 
 #endif /* GAPPUTILS_ML_RBMMODEL_H_ */
