@@ -86,10 +86,15 @@
     <ClInclude Include="BinaryImageGenerator.h" />
     <ClInclude Include="DiagonalMatrix.h" />
     <ClInclude Include="distributions.h" />
+    <ClInclude Include="FgrbmEncoder.h" />
     <ClInclude Include="FgrbmModel.h" />
+    <ClInclude Include="FgrbmReader.h" />
     <ClInclude Include="FgrbmTrainer.h" />
+    <ClInclude Include="FgrbmWriter.h" />
+    <ClInclude Include="ImageMatrix.h" />
     <ClInclude Include="MnistReader.h" />
     <ClInclude Include="OneOfN.h" />
+    <ClInclude Include="RandomImageTransformation.h" />
     <ClInclude Include="RbmDecoder.h" />
     <ClInclude Include="RbmEncoder.h" />
     <ClInclude Include="RbmModel.h" />
@@ -97,16 +102,22 @@
     <ClInclude Include="RbmTrainer.h" />
     <ClInclude Include="RbmWriter.h" />
     <ClInclude Include="tbblas_io.hpp" />
+    <ClInclude Include="tbblas_serialize.hpp" />
     <ClInclude Include="ublas_io.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BinaryImageGenerator.cpp" />
     <ClCompile Include="DiagonalMatrix.cpp" />
     <ClCompile Include="distributions.cpp" />
+    <ClCompile Include="FgrbmEncoder.cpp" />
     <ClCompile Include="FgrbmModel.cpp" />
+    <ClCompile Include="FgrbmReader.cpp" />
     <ClCompile Include="FgrbmTrainer.cpp" />
+    <ClCompile Include="FgrbmWriter.cpp" />
+    <ClCompile Include="ImageMatrix.cpp" />
     <ClCompile Include="MnistReader.cpp" />
     <ClCompile Include="OneOfN.cpp" />
+    <ClCompile Include="RandomImageTransformation.cpp" />
     <ClCompile Include="RbmDecoder.cpp" />
     <ClCompile Include="RbmEncoder.cpp" />
     <ClCompile Include="RbmModel.cpp" />
@@ -116,12 +127,13 @@
     <ClCompile Include="ublas_io.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="FgrbmEncoder_gpu.cu" />
     <CudaCompile Include="FgrbmTrainer_gpu.cu" />
+    <CudaCompile Include="ImageMatrix_gpu.cu" />
     <CudaCompile Include="RbmDecoder_gpu.cu" />
     <CudaCompile Include="RbmEncoder_gpu.cu" />
-    <CudaCompile Include="RbmReader_gpu.cu" />
     <CudaCompile Include="RbmTrainer_gpu.cu" />
-    <CudaCompile Include="RbmWriter_gpu.cu" />
+    <CudaCompile Include="tbblas_serialize_gpu.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -56,9 +56,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).dll</OutputFile>
-      <AdditionalLibraryDirectories>$(CULA_LIB_PATH_32);$(CUDA_LIB_PATH);$(BOOST_LIB_PATH);$(OutDir);$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(TIFF_LIB_PATH);$(GDCM_LIB_PATH);$(CULA_LIB_PATH_32);$(CUDA_LIB_PATH);$(BOOST_LIB_PATH);$(OutDir);$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cufft.lib;cublas.lib;cula.lib;cudart.lib;qtmaind.lib;QtCored4.lib;QtGuid4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gapputils.cv.cuda.lib;cufft.lib;cublas.lib;cula.lib;cudart.lib;qtmaind.lib;QtCored4.lib;QtGuid4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Cropper.cpp" />
+    <ClCompile Include="FeaturesToImage.cpp" />
     <ClCompile Include="FromHsv.cpp" />
     <ClCompile Include="FromRgb.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_GridDialog.cpp">
@@ -115,6 +116,8 @@
     <ClCompile Include="GridPointItem.cpp" />
     <ClCompile Include="GridWidget.cpp" />
     <ClCompile Include="HistogramEqualization.cpp" />
+    <ClCompile Include="ImageSaver.cpp" />
+    <ClCompile Include="ImageToDicom.cpp" />
     <ClCompile Include="ImageWarp.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="RectangleDialog.cpp" />
@@ -134,6 +137,7 @@
     <ClInclude Include="AamWriter.h" />
     <ClInclude Include="ActiveAppearanceModel.h" />
     <ClInclude Include="Cropper.h" />
+    <ClInclude Include="FeaturesToImage.h" />
     <ClInclude Include="FromHsv.h" />
     <ClInclude Include="FromRgb.h" />
     <ClInclude Include="gapputils.cv_global.h" />
@@ -164,6 +168,8 @@
     </CustomBuild>
     <ClInclude Include="GridPointItem.h" />
     <ClInclude Include="HistogramEqualization.h" />
+    <ClInclude Include="ImageSaver.h" />
+    <ClInclude Include="ImageToDicom.h" />
     <ClInclude Include="ImageWarp.h" />
     <ClInclude Include="Rectangle.h" />
     <CustomBuild Include="RectangleDialog.h">

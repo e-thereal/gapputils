@@ -52,7 +52,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <CudaCompile>
-      <Include>$(SolutionDir);$(NVSDKCOMPUTE_ROOT)/C/common/inc</Include>
+      <Include>$(BOOST_INC_PATH);$(SolutionDir);$(NVSDKCOMPUTE_ROOT)/C/common/inc</Include>
       <CodeGeneration>compute_20,sm_20</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
@@ -78,9 +78,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AamMatchFunction.h" />
+    <ClInclude Include="image_matrix.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="AamMatchFunction.cu" />
+    <CudaCompile Include="image_matrix.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

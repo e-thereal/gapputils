@@ -14,6 +14,7 @@
 #include <capputils/NotEqualAssertion.h>
 #include <capputils/ObserveAttribute.h>
 #include <capputils/OutputAttribute.h>
+#include <capputils/Serializer.h>
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
@@ -52,6 +53,21 @@ RbmReader::~RbmReader() {
 
 void RbmReader::changedHandler(capputils::ObservableClass* sender, int eventId) {
 
+}
+
+void RbmReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+  if (!data)
+    data = new RbmReader();
+
+  if (!capputils::Verifier::Valid(*this))
+    return;
+
+  boost::shared_ptr<RbmModel> rbm(new RbmModel());
+  capputils::Serializer::readFromFile(*rbm, getFilename());
+
+  data->setRbmModel(rbm);
+  data->setVisibleCount(rbm->getVisibleBiases()->size());
+  data->setHiddenCount(rbm->getHiddenBiases()->size());
 }
 
 void RbmReader::writeResults() {

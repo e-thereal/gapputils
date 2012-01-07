@@ -14,10 +14,16 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/lambda/lambda.hpp>
 
+#include <capputils/SerializeAttribute.h>
+
 #include <iostream>
+
+#include "tbblas_serialize.hpp"
 
 namespace ublas = boost::numeric::ublas;
 using namespace boost::lambda;
+
+using namespace capputils::attributes;
 
 namespace gapputils {
 
@@ -25,11 +31,11 @@ namespace ml {
 
 BeginPropertyDefinitions(RbmModel)
 
-  DefineProperty(VisibleBiases)
-  DefineProperty(HiddenBiases)
-  DefineProperty(WeightMatrix)
-  DefineProperty(VisibleMeans)
-  DefineProperty(VisibleStds)
+  DefineProperty(VisibleBiases, Serialize<TYPE_OF(VisibleBiases)>())
+  DefineProperty(HiddenBiases, Serialize<TYPE_OF(HiddenBiases)>())
+  DefineProperty(WeightMatrix, Serialize<TYPE_OF(WeightMatrix)>())
+  DefineProperty(VisibleMeans, Serialize<TYPE_OF(VisibleMeans)>())
+  DefineProperty(VisibleStds, Serialize<TYPE_OF(VisibleStds)>())
 
 EndPropertyDefinitions
 

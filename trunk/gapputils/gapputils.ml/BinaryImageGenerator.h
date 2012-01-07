@@ -22,7 +22,7 @@ class BinaryImageGenerator : public gapputils::workflow::WorkflowElement {
   Property(ColumnCount, int)
   Property(ImageCount, int)
   Property(FeatureCount, int)
-  Property(Data, boost::shared_ptr<std::vector<float> >)
+  Property(Data, boost::shared_ptr<std::vector<double> >)
 
 private:
   mutable BinaryImageGenerator* data;

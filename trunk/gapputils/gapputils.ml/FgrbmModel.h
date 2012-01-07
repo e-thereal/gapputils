@@ -21,13 +21,13 @@ class FgrbmModel : public capputils::reflection::ReflectableClass {
 
   InitReflectableClass(FgrbmModel)
 
-  Property(VisibleBiases, boost::shared_ptr<tbblas::device_vector<float> >)
-  Property(HiddenBiases, boost::shared_ptr<tbblas::device_vector<float> >)
-  Property(VisibleWeights, boost::shared_ptr<tbblas::device_matrix<float> >)
-  Property(HiddenWeights, boost::shared_ptr<tbblas::device_matrix<float> >)
-  Property(ConditionalWeights, boost::shared_ptr<tbblas::device_matrix<float> >)
-  Property(VisibleMean, float)
-  Property(VisibleStd, float)
+  Property(VisibleBiases, boost::shared_ptr<tbblas::device_vector<double> >)
+  Property(HiddenBiases, boost::shared_ptr<tbblas::device_vector<double> >)
+  Property(VisibleWeights, boost::shared_ptr<tbblas::device_matrix<double> >)
+  Property(HiddenWeights, boost::shared_ptr<tbblas::device_matrix<double> >)
+  Property(ConditionalWeights, boost::shared_ptr<tbblas::device_matrix<double> >)
+  Property(VisibleMean, double)
+  Property(VisibleStd, double)
 
 public:
   FgrbmModel();

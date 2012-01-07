@@ -17,12 +17,12 @@ namespace ml {
 class RandomImageTransformation : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(RandomImageTransformation)
-  Property(Input, boost::shared_ptr<std::vector<float> >)
+  Property(Input, boost::shared_ptr<std::vector<double> >)
   Property(RowCount, int)
   Property(ColumnCount, int)
   Property(XRange, std::vector<int>)
   Property(YRange, std::vector<int>)
-  Property(Output, boost::shared_ptr<std::vector<float> >)
+  Property(Output, boost::shared_ptr<std::vector<double> >)
 
 private:
   mutable RandomImageTransformation* data;

@@ -22,6 +22,7 @@
 
 #include "sampling.hpp"
 #include "RbmModel.h"   ///< For sigmoid<T>()
+#include "tbblas_io.hpp"
 
 namespace ublas = boost::numeric::ublas;
 
@@ -30,7 +31,7 @@ namespace gapputils {
 namespace ml {
 
 template<class T>
-struct minus_squared : thrust::binary_function<float, float, float> {
+struct minus_squared : thrust::binary_function<T, T, T> {
 
 T operator()(const T& x, const T& y) const {
   return (x - y) * (x - y);
@@ -78,41 +79,42 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   boost::shared_ptr<FgrbmModel> fgrbm(new FgrbmModel());
 
-  ublas::matrix<float> visiblesSet(sampleCount, visibleCount);
-  ublas::matrix<float> conditionalsSet(sampleCount, visibleCount);
+  ublas::matrix<double> visiblesSet(sampleCount, visibleCount);
+  ublas::matrix<double> conditionalsSet(sampleCount, visibleCount);
   std::copy(getVisiblesVector()->begin(), getVisiblesVector()->end(), visiblesSet.data().begin());
   std::copy(getConditionalsVector()->begin(), getConditionalsVector()->end(), conditionalsSet.data().begin());
 
-  float mean = thrust::reduce(visiblesSet.data().begin(), visiblesSet.data().end()) / visiblesSet.data().size();
+  double mean = thrust::reduce(visiblesSet.data().begin(), visiblesSet.data().end()) / visiblesSet.data().size();
   fgrbm->setVisibleMean(mean);
   std::cout << "[Info] Means calculated: " << timer.elapsed() << " s (" << mean << ")" << std::endl;
 
   if (getIsGaussian()) {
-    thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<float>(mean),
-        visiblesSet.data().begin(), thrust::minus<float>());
-    thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<float>(mean),
-        conditionalsSet.data().begin(), thrust::minus<float>());
+    thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<double>(mean),
+        visiblesSet.data().begin(), thrust::minus<double>());
+    thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<double>(mean),
+        conditionalsSet.data().begin(), thrust::minus<double>());
 
-    float stddev = sqrt(thrust::inner_product(visiblesSet.data().begin(), visiblesSet.data().end(),
+    double stddev = sqrt(thrust::inner_product(visiblesSet.data().begin(), visiblesSet.data().end(),
         visiblesSet.data().begin(), 0.f) / visiblesSet.data().size());
     fgrbm->setVisibleStd(stddev);
     std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s" << std::endl;
 
     // Apply feature scaling to training set
-    thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<float>(stddev),
-        visiblesSet.data().begin(), thrust::divides<float>());
-    thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<float>(stddev),
-        conditionalsSet.data().begin(), thrust::divides<float>());
+    thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<double>(stddev),
+        visiblesSet.data().begin(), thrust::divides<double>());
+    thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<double>(stddev),
+        conditionalsSet.data().begin(), thrust::divides<double>());
     std::cout << "[Info] Design matrix standardized: " << timer.elapsed() << " s" << std::endl;
   }
-  ublas::matrix<float>& uX = conditionalsSet;
-  ublas::matrix<float>& uY = visiblesSet;
+  ublas::matrix<double>& uX = conditionalsSet;
+  ublas::matrix<double>& uY = visiblesSet;
 
-  for (unsigned i = uX.size1() - 1; i > 0; --i) {
+  /*for (unsigned i = uX.size1() - 1; i > 0; --i) {
     unsigned j = rand() % (i + 1);
     ublas::row(uX, i).swap(ublas::row(uX, j));
     ublas::row(uY, i).swap(ublas::row(uY, j));
-  }
+  }*/
+
   std::cout << "[Info] Rows shuffled: " << timer.elapsed() << " s" << std::endl;
 
   int deviceMemory = 0;
@@ -129,37 +131,47 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   deviceMemory += uY.size1() * uY.size2();
   std::cout << "[Info] Required device memory including training data: " << 4. * deviceMemory / 1024. / 1024. << " MB" << std::endl;
 
-  tbblas::device_matrix<float> X(uX.size1(), uX.size2());
-  tbblas::device_matrix<float> Y(uY.size1(), uY.size2());
+  tbblas::device_matrix<double> X(uX.size1(), uX.size2());
+  tbblas::device_matrix<double> Y(uY.size1(), uY.size2());
   std::cout << "[Info] Design matrices allocated: " << timer.elapsed() << " s" << std::endl;
-  X = uX;
-  Y = uY;
+  //X = uX;
+  //Y = uY;
+  assert(read_matrix_from_text("X_full.txt", X));
+  assert(read_matrix_from_text("Y_full.txt", Y));
+
   std::cout << "[Info] Design matrices written to the device: " << timer.elapsed() << " s" << std::endl;
 
   // Train the RBM
   // Initialize weights and bias terms
-  boost::shared_ptr<tbblas::device_matrix<float> > conditionalWeights(new tbblas::device_matrix<float>(visibleCount, factorCount));
-  boost::shared_ptr<tbblas::device_matrix<float> > visibleWeights(new tbblas::device_matrix<float>(visibleCount, factorCount));
-  boost::shared_ptr<tbblas::device_matrix<float> > hiddenWeights(new tbblas::device_matrix<float>(hiddenCount, factorCount));
-  boost::shared_ptr<tbblas::device_vector<float> > visibleBiases(new tbblas::device_vector<float>(visibleCount));
-  boost::shared_ptr<tbblas::device_vector<float> > hiddenBiases(new tbblas::device_vector<float>(hiddenCount));
-  tbblas::device_matrix<float>& Wx = *conditionalWeights;
-  tbblas::device_matrix<float>& Wy = *visibleWeights;
-  tbblas::device_matrix<float>& Wh = *hiddenWeights;
-  tbblas::device_vector<float>& b = *visibleBiases;
-  tbblas::device_vector<float>& c = *hiddenBiases;
+  boost::shared_ptr<tbblas::device_matrix<double> > conditionalWeights(new tbblas::device_matrix<double>(visibleCount, factorCount));
+  boost::shared_ptr<tbblas::device_matrix<double> > visibleWeights(new tbblas::device_matrix<double>(visibleCount, factorCount));
+  boost::shared_ptr<tbblas::device_matrix<double> > hiddenWeights(new tbblas::device_matrix<double>(hiddenCount, factorCount));
+  boost::shared_ptr<tbblas::device_vector<double> > visibleBiases(new tbblas::device_vector<double>(visibleCount));
+  boost::shared_ptr<tbblas::device_vector<double> > hiddenBiases(new tbblas::device_vector<double>(hiddenCount));
+  tbblas::device_matrix<double>& Wx = *conditionalWeights;
+  tbblas::device_matrix<double>& Wy = *visibleWeights;
+  tbblas::device_matrix<double>& Wh = *hiddenWeights;
+  tbblas::device_vector<double>& b = *visibleBiases;
+  tbblas::device_vector<double>& c = *hiddenBiases;
 
   // Initialize weights
   thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(Wx.data().size()),
-      Wx.data().begin(), get_randn<float>(0.f, 0.01f));
+      Wx.data().begin(), get_randn<double>(0.f, 0.01f));
   thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(Wy.data().size()),
-      Wy.data().begin(), get_randn<float>(0.f, 0.01f));
+      Wy.data().begin(), get_randn<double>(0.f, 0.01f));
   thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(Wh.data().size()),
-      Wh.data().begin(), get_randn<float>(0.f, 0.01f));
+      Wh.data().begin(), get_randn<double>(0.f, 0.01f));
+
+  //assert(read_matrix_from_text("Wx_sampled.txt", Wx));
+  //assert(read_matrix_from_text("Wy_sampled.txt", Wy));
+  //assert(read_matrix_from_text("Wh.txt", Wh));
 
   // Initialize bias terms
   thrust::fill(b.data().begin(), b.data().end(), 0.f);
   thrust::fill(c.data().begin(), c.data().end(), getInitialHidden());
+
+  //assert(read_vector_from_text("b.txt", b));
+  //assert(read_vector_from_text("c.txt", c));
   std::cout << "[Info] FGRBM initialized: " << timer.elapsed() << " s" << std::endl;
 
   fgrbm->setConditionalWeights(conditionalWeights);
@@ -170,42 +182,42 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   // Start the learning
   const int batchCount = sampleCount / batchSize;
-  float epsilonw =  getLearningRate();      // Learning rate for weights
-  float epsilonvb = getLearningRate();      // Learning rate for biases of visible units
-  float epsilonhb = getLearningRate();      // Learning rate for biases of hidden units
-  float weightcost = 0.f; // 0.0002;
-  float initialmomentum = 0.5f;
-  float finalmomentum = 0.9f;
-  float momentum;
+  double epsilonw =  getLearningRate();      // Learning rate for weights
+  double epsilonvb = getLearningRate();      // Learning rate for biases of visible units
+  double epsilonhb = getLearningRate();      // Learning rate for biases of hidden units
+  double weightcost = 0; // 0.0002;
+  double initialmomentum = 0.9; //65; // 0.5f;
+  double finalmomentum = 0.9; // 65; // 0.9f;
+  double momentum;
 
-  tbblas::device_matrix<float> xbatch(batchSize, visibleCount);
-  tbblas::device_matrix<float> ybatch(batchSize, visibleCount);
-  tbblas::device_matrix<float> XWx(batchSize, factorCount);
-  tbblas::device_matrix<float> YWy(batchSize, factorCount);
-  tbblas::device_matrix<float> HWh(batchSize, factorCount);
-  tbblas::device_matrix<float> NxF(batchSize, factorCount);
-  tbblas::device_matrix<float> poshidprobs(batchSize, hiddenCount);
-  tbblas::device_matrix<float> posEx(visibleCount, factorCount);
-  tbblas::device_matrix<float> posEy(visibleCount, factorCount);
-  tbblas::device_matrix<float> posEh(hiddenCount, factorCount);
-  tbblas::device_matrix<float> poshidstates(batchSize, hiddenCount);
+  tbblas::device_matrix<double> xbatch(batchSize, visibleCount);
+  tbblas::device_matrix<double> ybatch(batchSize, visibleCount);
+  tbblas::device_matrix<double> XWx(batchSize, factorCount);
+  tbblas::device_matrix<double> YWy(batchSize, factorCount);
+  tbblas::device_matrix<double> HWh(batchSize, factorCount);
+  tbblas::device_matrix<double> NxF(batchSize, factorCount);
+  tbblas::device_matrix<double> poshidprobs(batchSize, hiddenCount);
+  tbblas::device_matrix<double> posEx(visibleCount, factorCount);
+  tbblas::device_matrix<double> posEy(visibleCount, factorCount);
+  tbblas::device_matrix<double> posEh(hiddenCount, factorCount);
+  tbblas::device_matrix<double> poshidstates(batchSize, hiddenCount);
 
-  tbblas::device_matrix<float> negdata(batchSize, visibleCount);
-  tbblas::device_matrix<float> neghidprobs(batchSize, hiddenCount);
-  tbblas::device_matrix<float> negEx(visibleCount, factorCount);
-  tbblas::device_matrix<float> negEy(visibleCount, factorCount);
-  tbblas::device_matrix<float> negEh(hiddenCount, factorCount);
+  tbblas::device_matrix<double> negdata(batchSize, visibleCount);
+  tbblas::device_matrix<double> neghidprobs(batchSize, hiddenCount);
+  tbblas::device_matrix<double> negEx(visibleCount, factorCount);
+  tbblas::device_matrix<double> negEy(visibleCount, factorCount);
+  tbblas::device_matrix<double> negEh(hiddenCount, factorCount);
 
-  tbblas::device_matrix<float> Wxinc(visibleCount, factorCount);
-  tbblas::device_matrix<float> Wyinc(visibleCount, factorCount);
-  tbblas::device_matrix<float> Whinc(hiddenCount, factorCount);
+  tbblas::device_matrix<double> Wxinc(visibleCount, factorCount);
+  tbblas::device_matrix<double> Wyinc(visibleCount, factorCount);
+  tbblas::device_matrix<double> Whinc(hiddenCount, factorCount);
 
-  tbblas::device_vector<float> hidbiasinc(hiddenCount);
-  tbblas::device_vector<float> visbiasinc(visibleCount);
-  tbblas::device_vector<float> poshidact(hiddenCount);
-  tbblas::device_vector<float> posvisact(visibleCount);
-  tbblas::device_vector<float> neghidact(hiddenCount);
-  tbblas::device_vector<float> negvisact(visibleCount);
+  tbblas::device_vector<double> hidbiasinc(hiddenCount);
+  tbblas::device_vector<double> visbiasinc(visibleCount);
+  tbblas::device_vector<double> poshidact(hiddenCount);
+  tbblas::device_vector<double> posvisact(visibleCount);
+  tbblas::device_vector<double> neghidact(hiddenCount);
+  tbblas::device_vector<double> negvisact(visibleCount);
 
   thrust::fill(Wxinc.data().begin(), Wxinc.data().end(), 0.f);
   thrust::fill(Wyinc.data().begin(), Wyinc.data().end(), 0.f);
@@ -220,7 +232,7 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   timer.restart();
   for (int iEpoch = 0; iEpoch < epochCount; ++iEpoch) {
 
-    float error = 0;
+    double error = 0;
     for (int iBatch = 0; iBatch < batchCount; ++iBatch) {
 
       /*** START POSITIVE PHASE ***/
@@ -233,15 +245,31 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
       XWx = tbblas::prod(xbatch, Wx);
       YWy = tbblas::prod(ybatch, Wy);
 
+      /*tbblas::device_matrix<double> XWx_gold(XWx.size1(), XWx.size2());
+      tbblas::device_matrix<double> YWy_gold(YWy.size1(), YWy.size2());
+      tbblas::device_matrix<double> HWh_gold(HWh.size1(), HWh.size2());
+      assert(read_matrix_from_text("XWx.txt", XWx_gold));
+      assert(read_matrix_from_text("YWy.txt", YWy_gold));
+
+      std::cout << "XWx error: " << tbblas::norm_1(XWx_gold -= XWx) << std::endl;
+      std::cout << "YWy error: " << tbblas::norm_1(YWy_gold -= YWy) << std::endl;*/
+
       // Calculate p(h | X, Y, W) = sigm((XWx o YWy) * WhT + C)
       poshidprobs = tbblas::prod(NxF = XWx * YWy, tbblas::trans(Wh));         // x = (XWx o YWy) * WhT
       for (unsigned iRow = 0; iRow < poshidprobs.size1(); ++iRow)             // x = x + C
         tbblas::row(poshidprobs, iRow) += c;
+
+      /*tbblas::device_matrix<double> php_gold(poshidprobs.size1(), poshidprobs.size2());
+      assert(read_matrix_from_text("php.txt", php_gold));
+      std::cout << "php error: " << tbblas::norm_1(php_gold -= poshidprobs) << std::endl;*/
+
       thrust::transform(poshidprobs.data().begin(), poshidprobs.data().end(), // x = sigm(x)
-          poshidprobs.data().begin(), sigmoid<float>());
+          poshidprobs.data().begin(), sigmoid<double>());
 
       // Pre-compute H*Wh
       HWh = tbblas::prod(poshidprobs, Wh);
+      /*assert(read_matrix_from_text("HWh.txt", HWh_gold));
+      std::cout << "HWh error: " << tbblas::norm_1(HWh_gold -= HWh) << std::endl;*/
 
       // -dEx = XT * (YWy o HWh)
       // -dEy = YT * (XWx o HWh)
@@ -254,13 +282,34 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
       poshidact = tbblas::sum(poshidprobs);
       posvisact = tbblas::sum(ybatch);
 
+      /*tbblas::device_matrix<double> pEx_gold(posEx.size1(), posEx.size2());
+      tbblas::device_matrix<double> pEy_gold(posEy.size1(), posEy.size2());
+      tbblas::device_matrix<double> pEh_gold(posEh.size1(), posEh.size2());
+      
+      tbblas::device_vector<double> pva_gold(posvisact.size());
+      tbblas::device_vector<double> pha_gold(poshidact.size());
+
+      assert(read_matrix_from_text("pEx.txt", pEx_gold));
+      assert(read_matrix_from_text("pEy.txt", pEy_gold));
+      assert(read_matrix_from_text("pEh.txt", pEh_gold));
+      assert(read_vector_from_text("pva.txt", pva_gold));
+      assert(read_vector_from_text("pha.txt", pha_gold));
+
+      std::cout << "pEx error: " << tbblas::norm_1(pEx_gold -= posEx) << std::endl;
+      std::cout << "pEy error: " << tbblas::norm_1(pEy_gold -= posEy) << std::endl;
+      std::cout << "pEh error: " << tbblas::norm_1(pEh_gold -= posEh) << std::endl;
+
+      std::cout << "pva error: " << tbblas::norm_1(pva_gold -= posvisact) << std::endl;
+      std::cout << "pha error: " << tbblas::norm_1(pha_gold -= poshidact) << std::endl;*/
+
       /*** END OF POSITIVE PHASE ***/
 
       // Sample the hidden states
       thrust::transform(
           poshidprobs.data().begin(), poshidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
-          poshidstates.data().begin(), sample_units<float>()
+          poshidstates.data().begin(), sample_units<double>()
       );
+      thrust::copy(poshidprobs.data().begin(), poshidprobs.data().end(), poshidstates.data().begin());
 
       /*** START NEGATIVE PHASE ***/
 
@@ -270,10 +319,23 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
       for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
         tbblas::row(negdata, iRow) += b;
 
+      /*tbblas::device_matrix<double> nY_gold(ybatch.size1(), ybatch.size2());
+      assert(read_matrix_from_text("nY.txt", nY_gold));
+      std::cout << "nY error: " << tbblas::norm_1(nY_gold -= negdata) << std::endl;*/
+
+      /*--- Verified ---*/
+
       // For the binary case
       if (!getIsGaussian()) {
         thrust::transform(negdata.begin(), negdata.end(), negdata.begin(),
-            sigmoid<float>());
+            sigmoid<double>());
+
+        if (getSampleVisibles()) {
+          thrust::transform(
+              negdata.data().begin(), negdata.data().end(), thrust::counting_iterator<unsigned>(0),
+              negdata.data().begin(), sample_units<double>()
+          );
+        }
       }
 
       // Pre-compute Yneg*Wy
@@ -285,7 +347,11 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
         tbblas::row(neghidprobs, iRow) += c;
 
       thrust::transform(neghidprobs.data().begin(), neghidprobs.data().end(),   // x = sigm(x)
-          neghidprobs.data().begin(), sigmoid<float>());
+          neghidprobs.data().begin(), sigmoid<double>());
+
+      /*tbblas::device_matrix<double> nhp_gold(neghidprobs.size1(), neghidprobs.size2());
+      assert(read_matrix_from_text("nhp.txt", nhp_gold));
+      std::cout << "nhp error: " << tbblas::norm_1(nhp_gold -= neghidprobs) << std::endl;*/
 
       // Pre-compute H*Wh
       HWh = tbblas::prod(neghidprobs, Wh);
@@ -303,20 +369,21 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
       /*** END OF NEGATIVE PHASE ***/
 
-      float err = 0.f;
+      double err = 0.f;
       err = tbblas::norm_2(negdata -= ybatch);
       error += err * err;
       momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
+      //std::cout << "Error: " << err * err << std::endl;
 
       /*** UPDATE WEIGHTS AND BIASES ***/
 
-      if (iEpoch) {
-        Wxinc = momentum * Wxinc + epsilonw * (((posEx -= negEx) / (float)batchSize) -= weightcost * Wx);
-        Wyinc = momentum * Wyinc + epsilonw * (((posEy -= negEy) / (float)batchSize) -= weightcost * Wy);
-        Whinc = momentum * Whinc + epsilonw * (((posEh -= negEh) / (float)batchSize) -= weightcost * Wh);
+      //if (iEpoch) {
+        Wxinc = momentum * Wxinc + epsilonw * (((posEx -= negEx) / (double)batchSize) -= weightcost * Wx);
+        Wyinc = momentum * Wyinc + epsilonw * (((posEy -= negEy) / (double)batchSize) -= weightcost * Wy);
+        Whinc = momentum * Whinc + epsilonw * (((posEh -= negEh) / (double)batchSize) -= weightcost * Wh);
         visbiasinc = momentum * visbiasinc + (epsilonvb / batchSize) * (posvisact -= negvisact);
         hidbiasinc = momentum * hidbiasinc + (epsilonhb / batchSize) * (poshidact -= neghidact);
-      }
+      //}
 
       Wx += Wxinc;
       Wy += Wyinc;
@@ -333,11 +400,23 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
     int sec = eta % 60;
     int minutes = (eta / 60) % 60;
     int hours = eta / 3600;
-    std::cout << "Epoch " << iEpoch << " error " << error << " after " << timer.elapsed() << "s. ETA: "
+    std::cout << "Epoch " << iEpoch << " error " << (error / sampleCount) << " after " << timer.elapsed() << "s. ETA: "
         << hours << " h " << minutes << " min " << sec << " s" << std::endl;
   }
 
+  const int wCount = visibleCount * factorCount;
+  boost::shared_ptr<std::vector<float> > vWx(new std::vector<float>(wCount));
+  boost::shared_ptr<std::vector<float> > vWy(new std::vector<float>(wCount));
+
+  ublas::matrix<double, ublas::column_major> mWx = Wx;
+  ublas::matrix<double, ublas::column_major> mWy = Wy;
+
+  std::copy(mWx.data().begin(), mWx.data().end(), vWx->begin());
+  std::copy(mWy.data().begin(), mWy.data().end(), vWy->begin());
+
   data->setFgrbmModel(fgrbm);
+  data->setWx(vWx);
+  data->setWy(vWy);
 }
 
 }

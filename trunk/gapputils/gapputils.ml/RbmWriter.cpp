@@ -14,6 +14,7 @@
 #include <capputils/NotEqualAssertion.h>
 #include <capputils/ObserveAttribute.h>
 #include <capputils/OutputAttribute.h>
+#include <capputils/Serializer.h>
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
@@ -50,6 +51,16 @@ RbmWriter::~RbmWriter() {
 
 void RbmWriter::changedHandler(capputils::ObservableClass* sender, int eventId) {
 
+}
+
+void RbmWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+  if (!data)
+    data = new RbmWriter();
+
+  if (!capputils::Verifier::Valid(*this) || !getRbmModel())
+    return;
+
+  capputils::Serializer::writeToFile(*getRbmModel(), getFilename());
 }
 
 void RbmWriter::writeResults() {
