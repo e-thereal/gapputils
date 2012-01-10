@@ -134,10 +134,10 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   tbblas::device_matrix<double> X(uX.size1(), uX.size2());
   tbblas::device_matrix<double> Y(uY.size1(), uY.size2());
   std::cout << "[Info] Design matrices allocated: " << timer.elapsed() << " s" << std::endl;
-  //X = uX;
-  //Y = uY;
-  assert(read_matrix_from_text("X_full.txt", X));
-  assert(read_matrix_from_text("Y_full.txt", Y));
+  X = uX;
+  Y = uY;
+  //assert(read_matrix_from_text("X_full.txt", X));
+  //assert(read_matrix_from_text("Y_full.txt", Y));
 
   std::cout << "[Info] Design matrices written to the device: " << timer.elapsed() << " s" << std::endl;
 
