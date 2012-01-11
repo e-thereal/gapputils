@@ -110,14 +110,14 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   rbm->setVisibleMeans(visibleMeans);
   std::cout << "[Info] Means (" << mean << ") calculated: " << timer.elapsed() << " s" << std::endl;
 
-  tbblas::device_vector<float>& stds = *visibleStds;TRACE
+  tbblas::device_vector<float>& stds = *visibleStds;
   float stddev = sqrt(thrust::inner_product(X.data().begin(), X.data().end(),
       thrust::constant_iterator<float>(mean), 0.f, thrust::plus<float>(), minus_squared<float>()) / X.data().size());TRACE
   for (unsigned iCol = 0; iCol < X.size2(); ++iCol)
     stds(iCol) = stddev; //ublas::norm_2(ublas::column(trainingSet, iCol) -
       //ublas::scalar_vector<float>(trainingSet.size1(), means(iCol)) / trainingSet.size1());
   //std::transform(stds.begin(), stds.end(), stds.begin(), min_1<float>());
-  TRACE rbm->setVisibleStds(visibleStds);TRACE
+  rbm->setVisibleStds(visibleStds);
   std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s" << std::endl;
 
   // Apply feature scaling to training set
