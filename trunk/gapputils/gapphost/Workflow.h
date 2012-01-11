@@ -13,6 +13,7 @@
 #include <qobject.h>
 #include <qwidget.h>
 #include <qaction.h>
+#include <qformlayout.h>
 #include <vector>
 #include <qtreeview.h>
 #include <tinyxml/tinyxml.h>
@@ -60,6 +61,7 @@ class Workflow : public QObject, public Node, public CompatibilityChecker, publi
 private:
   Workbench* workbench;
   QTreeView* propertyGrid;
+  QFormLayout* infoLayout;
   QWidget* widget;
   Node inputsNode, outputsNode;
   std::set<std::string> loadedLibraries;
@@ -176,6 +178,7 @@ private Q_SLOTS:
   void handleViewportChanged();
 
   void showContextMenu(const QPoint &);
+  void gridClicked(const QModelIndex& index);
   void makePropertyGlobal();
   void removePropertyFromGlobal();
   void connectProperty();
