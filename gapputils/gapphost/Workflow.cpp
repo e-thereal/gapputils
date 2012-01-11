@@ -14,6 +14,9 @@
 #include <qaction.h>
 #include <qmenu.h>
 #include <qmessagebox.h>
+#include <qformlayout.h>
+#include <qlabel.h>
+#include <qtextedit.h>
 
 #include <cassert>
 
@@ -30,6 +33,7 @@
 #include <capputils/ShortNameAttribute.h>
 #include <capputils/Executer.h>
 #include <capputils/TimeStampAttribute.h>
+#include <capputils/DescriptionAttribute.h>
 
 #include <gapputils/CombinerInterface.h>
 #include <gapputils/HideAttribute.h>
@@ -38,6 +42,7 @@
 #include <gapputils/LabelAttribute.h>
 
 #include <boost/filesystem.hpp>
+#include <boost/units/detail/utility.hpp>
 
 #include "PropertyGridDelegate.h"
 #include "CustomToolItemAttribute.h"
@@ -132,10 +137,23 @@ Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), _ViewportScale(1
 
   propertyGrid->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(propertyGrid, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
+  connect(propertyGrid, SIGNAL(clicked(const QModelIndex&)), this, SLOT(gridClicked(const QModelIndex&)));
+  QSplitter* gridSplitter = new QSplitter(Qt::Vertical);
+  gridSplitter->addWidget(propertyGrid);
+
+  QWidget* infoWidget = new QWidget();
+  infoLayout = new QFormLayout();
+  infoWidget->setLayout(infoLayout);
+  gridSplitter->addWidget(infoWidget);
+
+  //QLabel* description = new QLabel("<b>Test</b>");
+  //description->setWordWrap(true);
+  //infoLayout->addRow(description);
+  //infoLayout->addRow("Type:", new QLabel("string"));
 
   QSplitter* splitter = new QSplitter(Qt::Horizontal);
   splitter->addWidget(workbench);
-  splitter->addWidget(propertyGrid);
+  splitter->addWidget(gridSplitter);
   splitter->setSizes(QList<int>() << 900 << 260);
   widget = splitter;
 
@@ -225,6 +243,56 @@ Workflow::~Workflow() {
 //  std::cout << "[Info] Finished deleting " << className << " (" << uuid << ")" << std::endl;
 }
 
+QLabel* createTopAlignedLabel(const std::string& text) {
+  QLabel* label = new QLabel(text.c_str());
+  label->setAlignment(Qt::AlignTop);
+  return label;
+}
+
+void Workflow::gridClicked(const QModelIndex& index) {
+  const QModelIndex& valueIndex = index.sibling(index.row(), 1);
+  if (!valueIndex.isValid())
+    return;
+
+  QVariant varient = valueIndex.data(Qt::UserRole);
+  if (!varient.canConvert<PropertyReference>())
+   return;
+
+  const PropertyReference& reference = varient.value<PropertyReference>();
+  IClassProperty* prop = reference.getProperty();
+
+  while (infoLayout->count()) {
+    QLayoutItem *item = infoLayout->takeAt(0);
+    if (item) {
+      delete item->widget();
+      delete item;
+    } else {
+      break;
+    }
+  }
+
+  QLabel* description;
+  DescriptionAttribute* descAttr = prop->getAttribute<DescriptionAttribute>();
+  if (descAttr)
+    description = new QLabel((std::string("<b>") + descAttr->getDescription() + "</b>").c_str());
+  else
+    description = new QLabel((std::string("<b>") + prop->getName() + "</b>").c_str());
+  description->setWordWrap(true);
+  infoLayout->addRow(description);
+  QLabel* typeLabel = new QLabel(boost::units::detail::demangle(prop->getType().name()).c_str());
+  typeLabel->setWordWrap(true);
+  infoLayout->addRow(createTopAlignedLabel("Type:"), typeLabel);
+
+  // check if global and check if connected and fill actions list accordingly
+  GlobalProperty* gprop = getGlobalProperty(reference.getObject(), reference.getProperty());
+  if (gprop)
+    infoLayout->addRow("Name:", new QLabel(gprop->getName().c_str()));
+
+  GlobalEdge* edge = getGlobalEdge(reference.getObject(), reference.getProperty());
+  if (edge)
+    infoLayout->addRow("Connection:", new QLabel(edge->getGlobalProperty().c_str()));
+}
+
 void Workflow::showContextMenu(const QPoint& point) {
   QList<QAction*> actions;
   QModelIndex index = propertyGrid->indexAt(point);
@@ -290,8 +358,8 @@ void Workflow::connectProperty() {
       list.getList()->addItem(globals->at(i)->getName().c_str());
     } else {
       GlobalProperty* gprop = globals->at(i);
-      cout << gprop->getName() << " is not compatible." << endl;
-      cout << gprop->getProperty()->getType().name() << " != " << reference.getProperty()->getType().name() << endl;
+      //cout << gprop->getName() << " is not compatible." << endl;
+      //cout << gprop->getProperty()->getType().name() << " != " << reference.getProperty()->getType().name() << endl;
     }
   }
   if (list.getList()->count() == 0) {
@@ -1121,7 +1189,12 @@ Node* Workflow::getNode(ToolItem* item, unsigned& pos) {
 
 Node* Workflow::getNode(capputils::reflection::ReflectableClass* object) {
   unsigned pos;
-  return getNode(object, pos);
+  if (object == inputsNode.getModule())
+    return &inputsNode;
+  else if (object == outputsNode.getModule())
+    return &outputsNode;
+  else
+    return getNode(object, pos);
 }
 
 Node* Workflow::getNode(capputils::reflection::ReflectableClass* object, unsigned& pos) {
@@ -1137,6 +1210,12 @@ Node* Workflow::getNode(capputils::reflection::ReflectableClass* object, unsigne
 
 Node* Workflow::getNode(const std::string& uuid) {
   Node* node = 0;
+
+  if (inputsNode.getUuid().compare(uuid) == 0)
+    return &inputsNode;
+  else if (outputsNode.getUuid().compare(uuid) == 0)
+    return &outputsNode;
+
   for(unsigned pos = 0; pos < _Nodes->size(); ++pos) {
     node = _Nodes->at(pos);
     if (node->getUuid().compare(uuid) == 0) {
