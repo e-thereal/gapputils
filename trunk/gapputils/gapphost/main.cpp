@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     MainWindow w;
     if (model.getNoGui()) {
       // TODO: wait until update has finished.
-      model.getMainWorkflow()->resumeFromModel();
+      model.getMainWorkflow()->resume();
       model.getMainWorkflow()->updateOutputs();
     } else {
       w.show();

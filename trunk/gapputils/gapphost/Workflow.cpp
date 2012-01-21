@@ -34,6 +34,7 @@
 #include <capputils/Executer.h>
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/DescriptionAttribute.h>
+#include <capputils/FromEnumerableAttribute.h>
 
 #include <gapputils/CombinerInterface.h>
 #include <gapputils/HideAttribute.h>
@@ -92,10 +93,14 @@ DefineProperty(InputsPosition)
 DefineProperty(OutputsPosition)
 DefineProperty(ViewportScale)
 DefineProperty(ViewportPosition)
+DefineProperty(InputChecksums)
 
 EndPropertyDefinitions
 
-Workflow::Workflow() : _InputsPosition(0), _OutputsPosition(0), _ViewportScale(1.0), ownWidget(true), hasIONodes(false), processingCombination(false), worker(0) {
+Workflow::Workflow()
+ : _InputsPosition(0), _OutputsPosition(0), _ViewportScale(1.0), ownWidget(true), hasIONodes(false),
+   processingCombination(false), dryrun(false), worker(0)
+{
   _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
   _Nodes = new vector<Node*>();
@@ -281,6 +286,7 @@ void Workflow::gridClicked(const QModelIndex& index) {
   infoLayout->addRow(description);
   QLabel* typeLabel = new QLabel(boost::units::detail::demangle(prop->getType().name()).c_str());
   typeLabel->setWordWrap(true);
+  typeLabel->setMinimumSize(10, 10);
   infoLayout->addRow(createTopAlignedLabel("Type:"), typeLabel);
 
   // check if global and check if connected and fill actions list accordingly
@@ -527,13 +533,14 @@ void Workflow::createModule(int x, int y, QString classname) {
     Workflow* workflow = new Workflow();
     workflow->setModule(object);
     addDependencies(workflow, name);
-    workflow->resumeFromModel();
+    workflow->resume();
     connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
     connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
     node = workflow;
   } else {
     node = new Node();
     node->setModule(object);
+    node->resume();
   }
   node->setX(x);
   node->setY(y);
@@ -755,7 +762,7 @@ void Workflow::createAndLoadAdhocModule() {
   delete module;
 }
 
-void Workflow::resumeFromModel() {
+void Workflow::resume() {
   map<string, Workflow*>* workflowMap = host::DataModel::getInstance().getWorkflowMap().get();
   assert(workflowMap->find(getUuid()) == workflowMap->end());
   workflowMap->insert(pair<string, Workflow*>(getUuid(), this));
@@ -778,13 +785,14 @@ void Workflow::resumeFromModel() {
   vector<GlobalProperty*>* globals = getGlobalProperties();
   vector<GlobalEdge*>* gedges = getGlobalEdges();
   for (unsigned i = 0; i < nodes->size(); ++i) {
-    Workflow* workflow = dynamic_cast<Workflow*>(nodes->at(i));
+    Node* node = nodes->at(i);
+    node->resume();
+    Workflow* workflow = dynamic_cast<Workflow*>(node);
     if (workflow) {
-      workflow->resumeFromModel();
       connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
       connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
     }
-    newItem(nodes->at(i));
+    newItem(node);
   }
   for (unsigned i = 0; i < edges->size(); ++i) {
     if (!newCable(edges->at(i))) {
@@ -991,6 +999,8 @@ void Workflow::buildStack(Node* node) {
 }
 
 void Workflow::updateCurrentModule() {
+  return;
+
   //cout << "[" << QThread::currentThreadId() << "] " << "Update selected module" << endl;
   // build stack
   Node* node = getNode(workbench->getCurrentItem());
@@ -1007,25 +1017,52 @@ Workflow* Workflow::getCurrentWorkflow() {
   return dynamic_cast<Workflow*>(node);
 }
 
-void Workflow::updateOutputs() {
+void Workflow::updateOutputs(bool updateNodes) {
   // if multiple interface
   //  - clear multiple outputs
   //  - reset combinations iterator
-  CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
-  if (combiner) {
-    combiner->resetCombinations();
-    processingCombination = true;
-    ToolItem* item = getToolItem();
-    if (item)
-      item->setProgress(5);
+  if (host::DataModel::getInstance().getMainWorkflow() == this) {
+    ReflectableClass* module = getModule();
+    std::vector<checksum_type> checksums;
+    if (module) {
+      const std::vector<IClassProperty*>& properties = module->getProperties();
+      for (unsigned i = 0; i < properties.size(); ++i) {
+
+        if (properties[i]->getAttribute<InputAttribute>() &&
+            !properties[i]->getAttribute<FromEnumerableAttribute>())
+        {
+          checksums.push_back(getChecksum(properties[i], *module));
+        }
+      }
+    }
+    updateChecksum(checksums);
+  } else {
+    updateChecksum(getInputChecksums());
   }
 
+  if (!updateNodes && isUpToDate()) {
+    processStack();         ///< This emits the finished signal
+    return;
+  }
+
+  CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
+  if (combiner) {
+    if (combiner->resetCombinations())
+      processingCombination = true;
+    else {
+      processStack();
+      return;
+    }
+  }
+  this->updateNodes();
+}
+
+void Workflow::updateNodes() {
   buildStack(&outputsNode);
   processStack();
 }
 
 void Workflow::processStack() {
-  //cout << "[" << QThread::currentThreadId() << "] " << "Process stack" << endl;
   while (!nodeStack.empty()) {
     Node* node = nodeStack.top();
     nodeStack.pop();
@@ -1033,13 +1070,12 @@ void Workflow::processStack() {
     processedStack.push(node);
 
     // Update the node, if it needs update or if it is the last one
-    if (nodeStack.empty() || !node->isUpToDate()) {
-//      cout << "Updating " << node->getToolItem()->getLabel() << "..." << endl;
+    if (nodeStack.empty() || !node->isUpToDate() || processingCombination) {
       node->getToolItem()->setProgress(-2);
       Workflow* workflow = dynamic_cast<Workflow*>(node);
       if (workflow) {
         connect(workflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(finalizeModuleUpdate(workflow::Node*)));
-        workflow->updateOutputs();
+        workflow->updateNodes();
       } else {
         Q_EMIT processModule(node);
       }
@@ -1060,18 +1096,17 @@ void Workflow::processStack() {
   //     * Rebuild stack
   //     * Start calculation (process stack)
   CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
+
   if (combiner && processingCombination) {
     combiner->appendResults();
     if (combiner->advanceCombinations()) {
       ToolItem* item = getToolItem();
       if (item)
         item->setProgress(combiner->getProgress());
-      buildStack(&outputsNode);
-      processStack();
+      updateNodes();
       return;       // return here. otherwise update finished is emitted.
-    } else {
-      processingCombination = false;
     }
+    processingCombination = false;
   }
 
   Q_EMIT updateFinished(this);
@@ -1085,6 +1120,13 @@ void Workflow::finalizeModuleUpdate(Node* node) {
     node->writeResults();
   }
   node->getToolItem()->setProgress(100);
+  if (node == &outputsNode) {
+    // The output checksum of current workflow to its input checksum
+    setOutputChecksum(getInputChecksum());
+  } else {
+    // Set output checksum of node to its input checksum
+    node->setOutputChecksum(node->getInputChecksum());
+  }
 
   // processStack (will emit updateFinished signal)
   processStack();
@@ -1112,16 +1154,40 @@ void Workflow::showModuleDialog(ToolItem* item) {
     element->show();
 }
 
-bool Workflow::isUpToDate() const {
-  if (dynamic_cast<CombinerInterface*>(getModule()))
-    return true;
-  return false;
-}
-
 void Workflow::update(IProgressMonitor* monitor) {
 }
 
 void Workflow::writeResults() {
+}
+
+void Workflow::updateChecksum(const std::vector<checksum_type>& inputChecksums) {
+  setInputChecksums(inputChecksums);
+  buildStack(&outputsNode);
+  while (!nodeStack.empty()) {
+    Node* node = nodeStack.top();
+    nodeStack.pop();
+
+    if (node == &inputsNode) {
+      node->updateChecksum(inputChecksums);
+    } else {
+
+      // Collect checksums of all direct inputs
+      std::vector<checksum_type> checksums;
+      vector<Edge*>* edges = getEdges();
+      for (int j = (int)edges->size() - 1; j >= 0; --j) {
+        Edge* edge = edges->at(j);
+        if (edge->getInputNodePtr() == node && edge->getOutputNodePtr()) {
+          checksums.push_back(edge->getOutputNodePtr()->getInputChecksum());
+        }
+      }
+
+      node->updateChecksum(checksums);
+    }
+
+    if (node == &outputsNode) {
+      setInputChecksum(node->getInputChecksum());
+    }
+  }
 }
 
 void Workflow::delegateDeleteCalled(workflow::Workflow* workflow) {
@@ -1150,7 +1216,7 @@ void Workflow::load(const string& filename) {
   Xmlizer::GetPropertyFromXml(*this, findProperty("Nodes"), filename);
   Xmlizer::GetPropertyFromXml(*this, findProperty("Edges"), filename);
   Xmlizer::GetPropertyFromXml(*this, findProperty("GlobalProperties"), filename);
-  resumeFromModel();
+  resume();
 }
 
 void Workflow::setUiEnabled(bool enabled) {
@@ -1345,6 +1411,8 @@ GlobalEdge* Workflow::getGlobalEdge(capputils::reflection::ReflectableClass* obj
   }
   return 0;
 }
+
+
 
 }
 

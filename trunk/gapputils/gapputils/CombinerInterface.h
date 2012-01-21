@@ -28,13 +28,11 @@ public:
   CombinerInterface();
   virtual ~CombinerInterface();
 
-  virtual void clearOutputs() = 0;
-
   /**
    * Resets the combination iterator
    * Clears all output collections
    */
-  void resetCombinations();
+  bool resetCombinations();
 
   /**
    * Writes all ToEnumeration values to the corresponding collection
