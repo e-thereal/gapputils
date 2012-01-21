@@ -52,6 +52,7 @@ GridList::~GridList(void)
 
 void GridList::clearOutputs() {
   _Models->clear();
+  _Images->clear();
 }
 
 }

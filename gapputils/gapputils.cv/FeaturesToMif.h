@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef GAPPUTILS_CVL_PRINCIPLECOMPONENTSTOMIF_H_
-#define GAPPUTILS_CVL_PRINCIPLECOMPONENTSTOMIF_H_
+#ifndef GAPPUTILS_CV_FEATURESTOMIF_H_
+#define GAPPUTILS_CV_FEATURESTOMIF_H_
 
 #include <gapputils/WorkflowElement.h>
 #include <boost/shared_ptr.hpp>
@@ -46,4 +46,4 @@ public:
 }
 
 
-#endif /* GAPPUTILS_CVL_PRINCIPLECOMPONENTSTOMIF_H_ */
+#endif /* GAPPUTILS_CV_FEATURESTOMIF_H_ */

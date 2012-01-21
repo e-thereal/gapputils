@@ -28,6 +28,8 @@
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/if.hpp>
 
+#include "distributions.h"
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -42,12 +44,13 @@ BeginPropertyDefinitions(BinaryImageGenerator)
   DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ImageCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(FeatureCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(IsBinary, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Data, Output("Imgs"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
 BinaryImageGenerator::BinaryImageGenerator()
- : _RowCount(0), _ColumnCount(0), _ImageCount(0), _FeatureCount(0), data(0)
+ : _RowCount(0), _ColumnCount(0), _ImageCount(0), _FeatureCount(0), _IsBinary(true), data(0)
 {
   WfeUpdateTimestamp
   setLabel("BinaryImageGenerator");
@@ -79,9 +82,15 @@ void BinaryImageGenerator::execute(gapputils::workflow::IProgressMonitor* monito
   using namespace boost::lambda;
 
   boost::shared_ptr<std::vector<double> > randomData(new std::vector<double>(count));
-  for (int i = 0; i < count; ++i) {
-     randomData->at(i) = ((rand() % 10) == 0 ? 1.f : 0.f);
-     //std::cout << randomData->at(i) << " ";
+  createNormalSample normals;
+  if (getIsBinary()) {
+    for (int i = 0; i < count; ++i) {
+       randomData->at(i) = ((rand() % 10) == 0 ? 1.f : 0.f);
+    }
+  } else {
+    for (int i = 0; i < count; ++i) {
+       randomData->at(i) = normals(0.0);
+    }
   }
 
   data->setFeatureCount(featureCount);

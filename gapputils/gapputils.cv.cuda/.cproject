@@ -38,6 +38,7 @@
 									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
 								<option id="cuda.toolchain.compiler.option.debugging.gprof.889312858" name="Generate gprof information (-pg)" superClass="cuda.toolchain.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.25096987" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot;" valueType="string"/>
 								<inputType id="cuda.toolchain.compiler.input.1051704669" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.755194832" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">

@@ -23,6 +23,9 @@
 
 #include <algorithm>
 
+#include <culib/CudaImage.h>
+#include <culib/transform.h>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -30,14 +33,18 @@ namespace gapputils {
 
 namespace ml {
 
+DefineEnum(TransformationType)
+
 BeginPropertyDefinitions(RandomImageTransformation)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Input, Input("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  ReflectableProperty(Transformation, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(XRange, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(YRange, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ZRange, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Output, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
@@ -81,8 +88,10 @@ void RandomImageTransformation::execute(gapputils::workflow::IProgressMonitor* m
   const int columnCount = getColumnCount();
   const int featureCount = rowCount * columnCount;
   const int count = (int)input.size();
+  const int sampleCount = count / featureCount;
   const std::vector<int>& xrange = getXRange();
   const std::vector<int>& yrange = getYRange();
+  const std::vector<int>& zrange = getZRange();
 
   if (count % featureCount != 0)
     return;
@@ -92,12 +101,38 @@ void RandomImageTransformation::execute(gapputils::workflow::IProgressMonitor* m
     // Get random transformation parameters
     // apply transformation
 
-    int dx = rand() % (xrange[1] - xrange[0] + 1) + xrange[0];
-    int dy = rand() % (yrange[1] - yrange[0] + 1) + yrange[0];
+    float dx = (double)rand() / (double)RAND_MAX * (xrange[1] - xrange[0]) + xrange[0];
+    float dy = (double)rand() / (double)RAND_MAX * (yrange[1] - yrange[0]) + yrange[0];
+    float dz = (double)rand() / (double)RAND_MAX * (zrange[1] - zrange[0]) + zrange[0];
 
-    std::copy(&input[std::max(0, sliceOffset - dx - dy * columnCount)],
-        &input[std::min(count - 1, sliceOffset - dx - dy * columnCount + featureCount)],
-        output->begin() + sliceOffset);
+    fmatrix4 mat = make_fmatrix4_identity();
+
+    switch(getTransformation()) {
+    case TransformationType::Translation:
+      mat = make_fmatrix4_translation(dx, dy, 0.f);
+      break;
+
+    case TransformationType::Rotation:
+      mat = make_fmatrix4_translation(columnCount/2, rowCount/2,0) * make_fmatrix4_rotationZ(dz) *
+            make_fmatrix4_translation(-columnCount/2, -rowCount/2,0);
+      break;
+
+    case TransformationType::Scaling:
+      mat = make_fmatrix4_translation(columnCount/2, rowCount/2,0) * make_fmatrix4_scaling(dx, dy, 1.0f)
+          * make_fmatrix4_translation(-columnCount/2, -rowCount/2,0);
+      break;
+
+    case TransformationType::Rigid:
+      mat = make_fmatrix4_translation(dx + columnCount/2, dy + rowCount/2,0) * make_fmatrix4_rotationZ(dz) *
+            make_fmatrix4_translation(-columnCount/2, -rowCount/2,0);
+    }
+
+    culib::CudaImage image(dim3(columnCount, rowCount));
+    std::copy(input.begin() + sliceOffset, input.begin() + sliceOffset + featureCount, image.getWorkingCopy());
+
+    culib::transform3D(image.getDevicePointer(), image.getCudaArray(), image.getSize(), mat);
+    image.saveDeviceToWorkingCopy();
+    std::copy(image.getWorkingCopy(), image.getWorkingCopy() + featureCount, output->begin() + sliceOffset);
   }
 
   data->setOutput(output);

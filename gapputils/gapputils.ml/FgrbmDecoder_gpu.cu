@@ -15,6 +15,8 @@
 #include "sampling.hpp"
 #include "RbmModel.h"
 
+#include <iostream>
+
 namespace gapputils {
 
 namespace ml {
@@ -49,6 +51,15 @@ void FgrbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const
   X = conditionals;
   H = hiddens;
 
+  if (getIsGaussian()) {
+    std::cout << "[Info] Normalizing conditionals with mean = " << fgrbm.getVisibleMean() << " and stddev = " << fgrbm.getVisibleStd() << std::endl;
+    thrust::transform(X.data().begin(), X.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleMean()),
+        X.data().begin(), thrust::minus<double>());
+
+    thrust::transform(X.data().begin(), X.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleStd()),
+        X.data().begin(), thrust::divides<double>());
+  }
+
   tbblas::device_matrix<double>& Wx = *fgrbm.getConditionalWeights();
   tbblas::device_matrix<double>& Wy = *fgrbm.getVisibleWeights();
   tbblas::device_matrix<double>& Wh = *fgrbm.getHiddenWeights();
@@ -65,8 +76,30 @@ void FgrbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const
   negdata = tbblas::prod(NxF = XWx * HWh, tbblas::trans(Wy));
   for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
     tbblas::row(negdata, iRow) += b;
-  thrust::transform(negdata.data().begin(), negdata.data().end(), // x = sigm(x)
-      negdata.data().begin(), sigmoid<double>());
+
+  if (!getIsGaussian()) {
+    thrust::transform(negdata.begin(), negdata.end(), negdata.begin(),
+        sigmoid<double>());
+
+    if (getSampleVisibles()) {
+      thrust::transform(
+          negdata.data().begin(), negdata.data().end(), thrust::counting_iterator<unsigned>(0),
+          negdata.data().begin(), sample_units<double>()
+      );
+    }
+  } else {
+    if (getSampleVisibles()) {
+      thrust::transform(
+          negdata.data().begin(), negdata.data().end(), thrust::counting_iterator<unsigned>(0),
+          negdata.data().begin(), sample_normal<double>()
+      );
+    }
+    //thrust::transform(negdata.data().begin(), negdata.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleStd()),
+    //    negdata.data().begin(), thrust::multiplies<double>());
+
+    //thrust::transform(negdata.data().begin(), negdata.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleMean()),
+    //    negdata.data().begin(), thrust::plus<double>());
+  }
 
   ublas::matrix<double> visibles = negdata;
   boost::shared_ptr<std::vector<double> > visibleVector(new std::vector<double>(sampleCount * visibleCount));

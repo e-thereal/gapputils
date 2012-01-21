@@ -39,6 +39,8 @@ T operator()(const T& x, const T& y) const {
 
 };
 
+#define LOCATE(a,b) std::cout << #b": " << (char*)&a.b - (char*)&a << std::endl
+
 // TODO: This module crashs when executed, workflow reloaded and executed
 //       Possibly because of cublas. Use new cublas interface in tbblas
 //       and open and close a computing session accordingly
@@ -70,6 +72,15 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   std::cout << "Building FGRBM ..." << std::endl;
 
+//  FgrbmModel test;
+//  LOCATE(test, VisibleMean);
+//  LOCATE(test, VisibleStd);
+//  LOCATE(test, VisibleBiases);
+//  LOCATE(test, HiddenBiases);
+//  LOCATE(test, VisibleWeights);
+//  LOCATE(test, HiddenWeights);
+//  LOCATE(test, ConditionalWeights);
+
   // Calculate the mean and the std of all features
   const unsigned visibleCount = getVisibleCount();
   const unsigned hiddenCount = getHiddenCount();
@@ -78,6 +89,7 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   const int batchSize = getBatchSize();
 
   boost::shared_ptr<FgrbmModel> fgrbm(new FgrbmModel());
+  std::cout << "Size = " << sizeof(*fgrbm) << std::endl;
 
   ublas::matrix<double> visiblesSet(sampleCount, visibleCount);
   ublas::matrix<double> conditionalsSet(sampleCount, visibleCount);
@@ -97,7 +109,7 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
     double stddev = sqrt(thrust::inner_product(visiblesSet.data().begin(), visiblesSet.data().end(),
         visiblesSet.data().begin(), 0.f) / visiblesSet.data().size());
     fgrbm->setVisibleStd(stddev);
-    std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s" << std::endl;
+    std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s (" << stddev << ")" << std::endl;
 
     // Apply feature scaling to training set
     thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<double>(stddev),
@@ -136,8 +148,6 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   std::cout << "[Info] Design matrices allocated: " << timer.elapsed() << " s" << std::endl;
   X = uX;
   Y = uY;
-  //assert(read_matrix_from_text("X_full.txt", X));
-  //assert(read_matrix_from_text("Y_full.txt", Y));
 
   std::cout << "[Info] Design matrices written to the device: " << timer.elapsed() << " s" << std::endl;
 
@@ -162,16 +172,10 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(Wh.data().size()),
       Wh.data().begin(), get_randn<double>(0.f, 0.01f));
 
-  //assert(read_matrix_from_text("Wx_sampled.txt", Wx));
-  //assert(read_matrix_from_text("Wy_sampled.txt", Wy));
-  //assert(read_matrix_from_text("Wh.txt", Wh));
-
   // Initialize bias terms
   thrust::fill(b.data().begin(), b.data().end(), 0.f);
   thrust::fill(c.data().begin(), c.data().end(), getInitialHidden());
 
-  //assert(read_vector_from_text("b.txt", b));
-  //assert(read_vector_from_text("c.txt", c));
   std::cout << "[Info] FGRBM initialized: " << timer.elapsed() << " s" << std::endl;
 
   fgrbm->setConditionalWeights(conditionalWeights);
@@ -186,7 +190,7 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   double epsilonvb = getLearningRate();      // Learning rate for biases of visible units
   double epsilonhb = getLearningRate();      // Learning rate for biases of hidden units
   double weightcost = 0; // 0.0002;
-  double initialmomentum = 0.9; //65; // 0.5f;
+  double initialmomentum = 0.5; //65; // 0.5f;
   double finalmomentum = 0.9; // 65; // 0.9f;
   double momentum;
 
@@ -245,31 +249,16 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
       XWx = tbblas::prod(xbatch, Wx);
       YWy = tbblas::prod(ybatch, Wy);
 
-      /*tbblas::device_matrix<double> XWx_gold(XWx.size1(), XWx.size2());
-      tbblas::device_matrix<double> YWy_gold(YWy.size1(), YWy.size2());
-      tbblas::device_matrix<double> HWh_gold(HWh.size1(), HWh.size2());
-      assert(read_matrix_from_text("XWx.txt", XWx_gold));
-      assert(read_matrix_from_text("YWy.txt", YWy_gold));
-
-      std::cout << "XWx error: " << tbblas::norm_1(XWx_gold -= XWx) << std::endl;
-      std::cout << "YWy error: " << tbblas::norm_1(YWy_gold -= YWy) << std::endl;*/
-
       // Calculate p(h | X, Y, W) = sigm((XWx o YWy) * WhT + C)
       poshidprobs = tbblas::prod(NxF = XWx * YWy, tbblas::trans(Wh));         // x = (XWx o YWy) * WhT
       for (unsigned iRow = 0; iRow < poshidprobs.size1(); ++iRow)             // x = x + C
         tbblas::row(poshidprobs, iRow) += c;
-
-      /*tbblas::device_matrix<double> php_gold(poshidprobs.size1(), poshidprobs.size2());
-      assert(read_matrix_from_text("php.txt", php_gold));
-      std::cout << "php error: " << tbblas::norm_1(php_gold -= poshidprobs) << std::endl;*/
 
       thrust::transform(poshidprobs.data().begin(), poshidprobs.data().end(), // x = sigm(x)
           poshidprobs.data().begin(), sigmoid<double>());
 
       // Pre-compute H*Wh
       HWh = tbblas::prod(poshidprobs, Wh);
-      /*assert(read_matrix_from_text("HWh.txt", HWh_gold));
-      std::cout << "HWh error: " << tbblas::norm_1(HWh_gold -= HWh) << std::endl;*/
 
       // -dEx = XT * (YWy o HWh)
       // -dEy = YT * (XWx o HWh)
@@ -282,26 +271,6 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
       poshidact = tbblas::sum(poshidprobs);
       posvisact = tbblas::sum(ybatch);
 
-      /*tbblas::device_matrix<double> pEx_gold(posEx.size1(), posEx.size2());
-      tbblas::device_matrix<double> pEy_gold(posEy.size1(), posEy.size2());
-      tbblas::device_matrix<double> pEh_gold(posEh.size1(), posEh.size2());
-      
-      tbblas::device_vector<double> pva_gold(posvisact.size());
-      tbblas::device_vector<double> pha_gold(poshidact.size());
-
-      assert(read_matrix_from_text("pEx.txt", pEx_gold));
-      assert(read_matrix_from_text("pEy.txt", pEy_gold));
-      assert(read_matrix_from_text("pEh.txt", pEh_gold));
-      assert(read_vector_from_text("pva.txt", pva_gold));
-      assert(read_vector_from_text("pha.txt", pha_gold));
-
-      std::cout << "pEx error: " << tbblas::norm_1(pEx_gold -= posEx) << std::endl;
-      std::cout << "pEy error: " << tbblas::norm_1(pEy_gold -= posEy) << std::endl;
-      std::cout << "pEh error: " << tbblas::norm_1(pEh_gold -= posEh) << std::endl;
-
-      std::cout << "pva error: " << tbblas::norm_1(pva_gold -= posvisact) << std::endl;
-      std::cout << "pha error: " << tbblas::norm_1(pha_gold -= poshidact) << std::endl;*/
-
       /*** END OF POSITIVE PHASE ***/
 
       // Sample the hidden states
@@ -309,7 +278,6 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
           poshidprobs.data().begin(), poshidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
           poshidstates.data().begin(), sample_units<double>()
       );
-      thrust::copy(poshidprobs.data().begin(), poshidprobs.data().end(), poshidstates.data().begin());
 
       /*** START NEGATIVE PHASE ***/
 
@@ -318,12 +286,6 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
       negdata = tbblas::prod(NxF = XWx * HWh, tbblas::trans(Wy));
       for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
         tbblas::row(negdata, iRow) += b;
-
-      /*tbblas::device_matrix<double> nY_gold(ybatch.size1(), ybatch.size2());
-      assert(read_matrix_from_text("nY.txt", nY_gold));
-      std::cout << "nY error: " << tbblas::norm_1(nY_gold -= negdata) << std::endl;*/
-
-      /*--- Verified ---*/
 
       // For the binary case
       if (!getIsGaussian()) {
@@ -334,6 +296,13 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
           thrust::transform(
               negdata.data().begin(), negdata.data().end(), thrust::counting_iterator<unsigned>(0),
               negdata.data().begin(), sample_units<double>()
+          );
+        }
+      } else {
+        if (getSampleVisibles()) {
+          thrust::transform(
+              negdata.data().begin(), negdata.data().end(), thrust::counting_iterator<unsigned>(0),
+              negdata.data().begin(), sample_normal<double>()
           );
         }
       }
@@ -348,10 +317,6 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
       thrust::transform(neghidprobs.data().begin(), neghidprobs.data().end(),   // x = sigm(x)
           neghidprobs.data().begin(), sigmoid<double>());
-
-      /*tbblas::device_matrix<double> nhp_gold(neghidprobs.size1(), neghidprobs.size2());
-      assert(read_matrix_from_text("nhp.txt", nhp_gold));
-      std::cout << "nhp error: " << tbblas::norm_1(nhp_gold -= neghidprobs) << std::endl;*/
 
       // Pre-compute H*Wh
       HWh = tbblas::prod(neghidprobs, Wh);
@@ -369,21 +334,18 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
       /*** END OF NEGATIVE PHASE ***/
 
-      double err = 0.f;
-      err = tbblas::norm_2(negdata -= ybatch);
-      error += err * err;
+      error += tbblas::norm_1(negdata -= ybatch);
       momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
-      //std::cout << "Error: " << err * err << std::endl;
 
       /*** UPDATE WEIGHTS AND BIASES ***/
 
-      //if (iEpoch) {
+      if (iEpoch) {
         Wxinc = momentum * Wxinc + epsilonw * (((posEx -= negEx) / (double)batchSize) -= weightcost * Wx);
         Wyinc = momentum * Wyinc + epsilonw * (((posEy -= negEy) / (double)batchSize) -= weightcost * Wy);
         Whinc = momentum * Whinc + epsilonw * (((posEh -= negEh) / (double)batchSize) -= weightcost * Wh);
         visbiasinc = momentum * visbiasinc + (epsilonvb / batchSize) * (posvisact -= negvisact);
         hidbiasinc = momentum * hidbiasinc + (epsilonhb / batchSize) * (poshidact -= neghidact);
-      //}
+      }
 
       Wx += Wxinc;
       Wy += Wyinc;

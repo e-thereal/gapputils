@@ -8,6 +8,7 @@
 #include "FgrbmTrainer.h"
 
 #include <capputils/EventHandler.h>
+#include <capputils/FlagAttribute.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
 #include <capputils/InputAttribute.h>
@@ -38,12 +39,12 @@ BeginPropertyDefinitions(FgrbmTrainer)
   DefineProperty(VisibleCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(HiddenCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(FactorCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SampleVisibles, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(SampleVisibles, Flag(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(EpochCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(BatchSize, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(LearningRate, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(InitialHidden, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(IsGaussian, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(IsGaussian, Flag(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Wx, Output(), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Wy, Output(), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
