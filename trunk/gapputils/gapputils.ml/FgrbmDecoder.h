@@ -24,8 +24,8 @@ class FgrbmDecoder : public gapputils::workflow::WorkflowElement {
     Property(ConditionalVector, boost::shared_ptr<std::vector<double> >)
     Property(HiddenVector, boost::shared_ptr<std::vector<double> >)
     Property(VisibleVector, boost::shared_ptr<std::vector<double> >)
-    //Property(SampleHiddens, bool)
-    //Property(IsGaussian, bool)
+    Property(SampleVisibles, bool)
+    Property(IsGaussian, bool)
 
 private:
   mutable FgrbmDecoder* data;

@@ -11,7 +11,7 @@
             <Item value="9" />
         </Collection>
     </X>
-    <Y timestamp="Dec 31 1969 16:00:00">
+    <Y timestamp="Jan 19 2012 11:07:28">
         <Collection>
             <Item value="5" />
             <Item value="3" />
@@ -21,11 +21,11 @@
             <Item value="4" />
         </Collection>
     </Y>
-    <OutputName value="gp.xml" timestamp="Jun 08 2011 15:44:17" />
+    <OutputName value="gp.xml" timestamp="Jan 19 2012 09:57:39" />
     <First value="0" timestamp="Dec 31 1969 16:00:00" />
     <Step value="0.25" timestamp="Dec 31 1969 16:00:00" />
-    <Last value="10" timestamp="Jun 08 2011 15:44:15" />
-    <Xstar timestamp="Jun 08 2011 15:44:15">
+    <Last value="10" timestamp="Jun 08 2011 17:44:15" />
+    <Xstar timestamp="Jun 08 2011 17:44:15">
         <Collection>
             <Item value="0" />
             <Item value="0.25" />
@@ -70,97 +70,97 @@
             <Item value="10" />
         </Collection>
     </Xstar>
-    <Mu timestamp="Jun 08 2011 15:45:36">
+    <Mu timestamp="Jan 19 2012 11:07:44">
         <Collection>
-            <Item value="6.51499" />
-            <Item value="6.17282" />
-            <Item value="5.78885" />
-            <Item value="5.37082" />
-            <Item value="4.9274" />
-            <Item value="4.46795" />
-            <Item value="4.00222" />
-            <Item value="3.54013" />
-            <Item value="3.09145" />
-            <Item value="2.66555" />
-            <Item value="2.27113" />
-            <Item value="1.91595" />
-            <Item value="1.60664" />
-            <Item value="1.34852" />
-            <Item value="1.14547" />
-            <Item value="0.999826" />
-            <Item value="0.912412" />
-            <Item value="0.882488" />
-            <Item value="0.907843" />
-            <Item value="0.984902" />
-            <Item value="1.10886" />
-            <Item value="1.27388" />
-            <Item value="1.47329" />
-            <Item value="1.6998" />
-            <Item value="1.94576" />
-            <Item value="2.20337" />
-            <Item value="2.46488" />
-            <Item value="2.72284" />
-            <Item value="2.9703" />
-            <Item value="3.20094" />
-            <Item value="3.40925" />
-            <Item value="3.59059" />
-            <Item value="3.74129" />
-            <Item value="3.85865" />
-            <Item value="3.941" />
-            <Item value="3.98765" />
-            <Item value="3.9988" />
-            <Item value="3.97552" />
-            <Item value="3.91962" />
-            <Item value="3.83353" />
-            <Item value="3.72021" />
+            <Item value="6.61891" />
+            <Item value="6.24674" />
+            <Item value="5.83758" />
+            <Item value="5.39916" />
+            <Item value="4.93995" />
+            <Item value="4.46891" />
+            <Item value="3.99537" />
+            <Item value="3.52874" />
+            <Item value="3.07817" />
+            <Item value="2.65247" />
+            <Item value="2.25971" />
+            <Item value="1.90709" />
+            <Item value="1.60079" />
+            <Item value="1.34569" />
+            <Item value="1.14533" />
+            <Item value="1.00189" />
+            <Item value="0.915989" />
+            <Item value="0.886822" />
+            <Item value="0.912222" />
+            <Item value="0.988678" />
+            <Item value="1.11152" />
+            <Item value="1.27508" />
+            <Item value="1.47285" />
+            <Item value="1.69771" />
+            <Item value="1.94217" />
+            <Item value="2.19854" />
+            <Item value="2.45918" />
+            <Item value="2.71673" />
+            <Item value="2.96422" />
+            <Item value="3.19533" />
+            <Item value="3.40448" />
+            <Item value="3.58697" />
+            <Item value="3.73899" />
+            <Item value="3.85775" />
+            <Item value="3.94144" />
+            <Item value="3.98924" />
+            <Item value="4.00123" />
+            <Item value="3.97839" />
+            <Item value="3.92242" />
+            <Item value="3.8357" />
+            <Item value="3.72118" />
         </Collection>
     </Mu>
-    <CI timestamp="Jun 08 2011 15:45:36">
+    <CI timestamp="Jan 19 2012 11:07:44">
         <Collection>
-            <Item value="0.962405" />
-            <Item value="0.741434" />
-            <Item value="0.554023" />
-            <Item value="0.404292" />
-            <Item value="0.298643" />
-            <Item value="0.243937" />
-            <Item value="0.235333" />
-            <Item value="0.251377" />
-            <Item value="0.272081" />
-            <Item value="0.287925" />
-            <Item value="0.296097" />
-            <Item value="0.296952" />
-            <Item value="0.292017" />
-            <Item value="0.283318" />
-            <Item value="0.272683" />
-            <Item value="0.261456" />
-            <Item value="0.250305" />
-            <Item value="0.239423" />
-            <Item value="0.228791" />
-            <Item value="0.219011" />
-            <Item value="0.211867" />
-            <Item value="0.210956" />
-            <Item value="0.220893" />
-            <Item value="0.244998" />
-            <Item value="0.283014" />
-            <Item value="0.331583" />
-            <Item value="0.385622" />
-            <Item value="0.439601" />
-            <Item value="0.487879" />
-            <Item value="0.525046" />
-            <Item value="0.545908" />
-            <Item value="0.546013" />
-            <Item value="0.522044" />
-            <Item value="0.472971" />
-            <Item value="0.403172" />
-            <Item value="0.331514" />
-            <Item value="0.311865" />
-            <Item value="0.407782" />
-            <Item value="0.605484" />
-            <Item value="0.867603" />
-            <Item value="1.17457" />
+            <Item value="0.955088" />
+            <Item value="0.732195" />
+            <Item value="0.544204" />
+            <Item value="0.394705" />
+            <Item value="0.289814" />
+            <Item value="0.236045" />
+            <Item value="0.228023" />
+            <Item value="0.243742" />
+            <Item value="0.263592" />
+            <Item value="0.278456" />
+            <Item value="0.285784" />
+            <Item value="0.286078" />
+            <Item value="0.281087" />
+            <Item value="0.272641" />
+            <Item value="0.262621" />
+            <Item value="0.252097" />
+            <Item value="0.241667" />
+            <Item value="0.231278" />
+            <Item value="0.221023" />
+            <Item value="0.211335" />
+            <Item value="0.204305" />
+            <Item value="0.203444" />
+            <Item value="0.213383" />
+            <Item value="0.236997" />
+            <Item value="0.274023" />
+            <Item value="0.321014" />
+            <Item value="0.373134" />
+            <Item value="0.425019" />
+            <Item value="0.471501" />
+            <Item value="0.507249" />
+            <Item value="0.527496" />
+            <Item value="0.527872" />
+            <Item value="0.505063" />
+            <Item value="0.457923" />
+            <Item value="0.39043" />
+            <Item value="0.320729" />
+            <Item value="0.302211" />
+            <Item value="0.398543" />
+            <Item value="0.596423" />
+            <Item value="0.859695" />
+            <Item value="1.17014" />
         </Collection>
     </CI>
-    <SigmaF value="3.80762" timestamp="Jun 08 2011 15:45:36" />
-    <Length value="3.38367" timestamp="Jun 08 2011 15:45:36" />
-    <SigmaN value="0.156534" timestamp="Jun 08 2011 15:45:36" />
+    <SigmaF value="4.35949" timestamp="Jan 19 2012 11:07:44" />
+    <Length value="3.56051" timestamp="Jan 19 2012 11:07:44" />
+    <SigmaN value="0.151609" timestamp="Jan 19 2012 11:07:44" />
 </GaussianProcesses-GPTest>

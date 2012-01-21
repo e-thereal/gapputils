@@ -14,10 +14,10 @@ class SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<float> > > : pu
   typedef boost::shared_ptr<tbblas::device_matrix<float> > PMatrixType;
 
 public:
-  virtual bool writeToFile(capputils::reflection::ClassProperty<PMatrixType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool readFromFile(capputils::reflection::ClassProperty<PMatrixType>* prop, capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void writeToFile(capputils::reflection::ClassProperty<PMatrixType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void readFromFile(capputils::reflection::ClassProperty<PMatrixType>* prop, capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file);
 };
 
 template<>
@@ -26,10 +26,10 @@ class SerializeAttribute<boost::shared_ptr<tbblas::device_vector<float> > > : pu
   typedef boost::shared_ptr<tbblas::device_vector<float> > PVectorType;
 
 public:
-  virtual bool writeToFile(capputils::reflection::ClassProperty<PVectorType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool readFromFile(capputils::reflection::ClassProperty<PVectorType>* prop, capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void writeToFile(capputils::reflection::ClassProperty<PVectorType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void readFromFile(capputils::reflection::ClassProperty<PVectorType>* prop, capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file);
 };
 
 template<>
@@ -38,10 +38,10 @@ class SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<double> > > : p
   typedef boost::shared_ptr<tbblas::device_matrix<double> > PMatrixType;
 
 public:
-  virtual bool writeToFile(capputils::reflection::ClassProperty<PMatrixType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool readFromFile(capputils::reflection::ClassProperty<PMatrixType>* prop, capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void writeToFile(capputils::reflection::ClassProperty<PMatrixType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void readFromFile(capputils::reflection::ClassProperty<PMatrixType>* prop, capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file);
 };
 
 template<>
@@ -50,10 +50,10 @@ class SerializeAttribute<boost::shared_ptr<tbblas::device_vector<double> > > : p
   typedef boost::shared_ptr<tbblas::device_vector<double> > PVectorType;
 
 public:
-  virtual bool writeToFile(capputils::reflection::ClassProperty<PVectorType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool readFromFile(capputils::reflection::ClassProperty<PVectorType>* prop, capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
-  virtual bool readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void writeToFile(capputils::reflection::ClassProperty<PVectorType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void readFromFile(capputils::reflection::ClassProperty<PVectorType>* prop, capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file);
+  virtual void readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file);
 };
 
 }

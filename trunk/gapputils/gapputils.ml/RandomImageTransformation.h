@@ -9,10 +9,13 @@
 #define GAPPUTILS_ML_RANDOMIMAGETRANSFORMATION_H_
 
 #include <gapputils/WorkflowElement.h>
+#include <capputils/Enumerators.h>
 
 namespace gapputils {
 
 namespace ml {
+
+ReflectableEnum(TransformationType, Translation, Rotation, Scaling, Rigid);
 
 class RandomImageTransformation : public gapputils::workflow::WorkflowElement {
 
@@ -20,8 +23,10 @@ class RandomImageTransformation : public gapputils::workflow::WorkflowElement {
   Property(Input, boost::shared_ptr<std::vector<double> >)
   Property(RowCount, int)
   Property(ColumnCount, int)
+  Property(Transformation, TransformationType)
   Property(XRange, std::vector<int>)
   Property(YRange, std::vector<int>)
+  Property(ZRange, std::vector<int>)
   Property(Output, boost::shared_ptr<std::vector<double> >)
 
 private:

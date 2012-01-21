@@ -10,7 +10,7 @@ namespace capputils {
 
 namespace attributes {
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<float> > >::writeToFile(capputils::reflection::ClassProperty<PMatrixType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<float> > >::writeToFile(capputils::reflection::ClassProperty<PMatrixType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
   assert(prop);
 
   PMatrixType matrix = prop->getValue(object);
@@ -22,46 +22,40 @@ bool SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<float> > >::writ
   std::vector<float> buffer(count);
   thrust::copy(matrix->data().begin(), matrix->data().end(), buffer.begin());
 
-  fwrite(&rowCount, sizeof(unsigned), 1, file);
-  fwrite(&columnCount, sizeof(unsigned), 1, file);
-  fwrite(&buffer[0], sizeof(float), count, file);
-
-  return true;
+  assert(fwrite(&rowCount, sizeof(unsigned), 1, file) == 1);
+  assert(fwrite(&columnCount, sizeof(unsigned), 1, file) == 1);
+  assert(fwrite(&buffer[0], sizeof(float), count, file) == count);
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<float> > >::readFromFile(capputils::reflection::ClassProperty<PMatrixType>* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<float> > >::readFromFile(capputils::reflection::ClassProperty<PMatrixType>* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
   assert(prop);
   unsigned rowCount, columnCount;
-  fread(&rowCount, sizeof(unsigned), 1, file);
-  fread(&columnCount, sizeof(unsigned), 1, file);
+  assert(fread(&rowCount, sizeof(unsigned), 1, file) == 1);
+  assert(fread(&columnCount, sizeof(unsigned), 1, file) == 1);
 
   const unsigned count = rowCount * columnCount;
   std::vector<float> buffer(count);
-  fread(&buffer[0], sizeof(float), count, file);
+  assert(fread(&buffer[0], sizeof(float), count, file) == count);
 
   PMatrixType matrix(new tbblas::device_matrix<float>(rowCount, columnCount));
   thrust::copy(buffer.begin(), buffer.end(), matrix->data().begin());
 
   prop->setValue(object, matrix);
-
-  return true;
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<float> > >::writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<float> > >::writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
   capputils::reflection::ClassProperty<PMatrixType>* typedProperty = dynamic_cast<capputils::reflection::ClassProperty<PMatrixType>* >(prop);
-  if (typedProperty)
-    return writeToFile(typedProperty, object, file);
-  return false;
+  assert(typedProperty);
+  writeToFile(typedProperty, object, file);
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<float> > >::readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<float> > >::readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
   capputils::reflection::ClassProperty<PMatrixType>* typedProperty = dynamic_cast<capputils::reflection::ClassProperty<PMatrixType>* >(prop);
-  if (typedProperty)
-    return readFromFile(typedProperty, object, file);
-  return false;
+  assert(typedProperty);
+  readFromFile(typedProperty, object, file);
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_vector<float> > >::writeToFile(capputils::reflection::ClassProperty<PVectorType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_vector<float> > >::writeToFile(capputils::reflection::ClassProperty<PVectorType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
   assert(prop);
 
   PVectorType vec = prop->getValue(object);
@@ -72,45 +66,38 @@ bool SerializeAttribute<boost::shared_ptr<tbblas::device_vector<float> > >::writ
   std::vector<float> buffer(count);
   thrust::copy(vec->data().begin(), vec->data().end(), buffer.begin());
 
-  fwrite(&count, sizeof(unsigned), 1, file);
-  fwrite(&buffer[0], sizeof(float), count, file);
-
-  return true;
+  assert(fwrite(&count, sizeof(unsigned), 1, file) == 1);
+  assert(fwrite(&buffer[0], sizeof(float), count, file) == count);
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_vector<float> > >::readFromFile(capputils::reflection::ClassProperty<PVectorType>* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_vector<float> > >::readFromFile(capputils::reflection::ClassProperty<PVectorType>* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
   assert(prop);
   unsigned count;
-  fread(&count, sizeof(unsigned), 1, file);
+  assert(fread(&count, sizeof(unsigned), 1, file) == 1);
   
   std::vector<float> buffer(count);
-  fread(&buffer[0], sizeof(float), count, file);
+  assert(fread(&buffer[0], sizeof(float), count, file) == count);
 
   PVectorType vec(new tbblas::device_vector<float>(count));
   thrust::copy(buffer.begin(), buffer.end(), vec->data().begin());
-
   prop->setValue(object, vec);
-
-  return true;
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_vector<float> > >::writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_vector<float> > >::writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
   capputils::reflection::ClassProperty<PVectorType>* typedProperty = dynamic_cast<capputils::reflection::ClassProperty<PVectorType>* >(prop);
-  if (typedProperty)
-    return writeToFile(typedProperty, object, file);
-  return false;
+  assert(typedProperty);
+  writeToFile(typedProperty, object, file);
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_vector<float> > >::readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_vector<float> > >::readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
   capputils::reflection::ClassProperty<PVectorType>* typedProperty = dynamic_cast<capputils::reflection::ClassProperty<PVectorType>* >(prop);
-  if (typedProperty)
-    return readFromFile(typedProperty, object, file);
-  return false;
+  assert(typedProperty);
+  readFromFile(typedProperty, object, file);
 }
 
 /*** DOUBLE ***/
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<double> > >::writeToFile(capputils::reflection::ClassProperty<PMatrixType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<double> > >::writeToFile(capputils::reflection::ClassProperty<PMatrixType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
   assert(prop);
 
   PMatrixType matrix = prop->getValue(object);
@@ -122,46 +109,39 @@ bool SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<double> > >::wri
   std::vector<double> buffer(count);
   thrust::copy(matrix->data().begin(), matrix->data().end(), buffer.begin());
 
-  fwrite(&rowCount, sizeof(unsigned), 1, file);
-  fwrite(&columnCount, sizeof(unsigned), 1, file);
-  fwrite(&buffer[0], sizeof(double), count, file);
-
-  return true;
+  assert(fwrite(&rowCount, sizeof(unsigned), 1, file) == 1);
+  assert(fwrite(&columnCount, sizeof(unsigned), 1, file) == 1);
+  assert(fwrite(&buffer[0], sizeof(double), count, file) == count);
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<double> > >::readFromFile(capputils::reflection::ClassProperty<PMatrixType>* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<double> > >::readFromFile(capputils::reflection::ClassProperty<PMatrixType>* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
   assert(prop);
   unsigned rowCount, columnCount;
-  fread(&rowCount, sizeof(unsigned), 1, file);
-  fread(&columnCount, sizeof(unsigned), 1, file);
+  assert(fread(&rowCount, sizeof(unsigned), 1, file) == 1);
+  assert(fread(&columnCount, sizeof(unsigned), 1, file) == 1);
 
   const unsigned count = rowCount * columnCount;
   std::vector<double> buffer(count);
-  fread(&buffer[0], sizeof(double), count, file);
+  assert(fread(&buffer[0], sizeof(double), count, file) == count);
 
   PMatrixType matrix(new tbblas::device_matrix<double>(rowCount, columnCount));
   thrust::copy(buffer.begin(), buffer.end(), matrix->data().begin());
-
   prop->setValue(object, matrix);
-
-  return true;
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<double> > >::writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<double> > >::writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
   capputils::reflection::ClassProperty<PMatrixType>* typedProperty = dynamic_cast<capputils::reflection::ClassProperty<PMatrixType>* >(prop);
-  if (typedProperty)
-    return writeToFile(typedProperty, object, file);
-  return false;
+  assert(typedProperty);
+  writeToFile(typedProperty, object, file);
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<double> > >::readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_matrix<double> > >::readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
   capputils::reflection::ClassProperty<PMatrixType>* typedProperty = dynamic_cast<capputils::reflection::ClassProperty<PMatrixType>* >(prop);
-  if (typedProperty)
-    return readFromFile(typedProperty, object, file);
-  return false;
+  assert(typedProperty);
+  readFromFile(typedProperty, object, file);
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_vector<double> > >::writeToFile(capputils::reflection::ClassProperty<PVectorType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_vector<double> > >::writeToFile(capputils::reflection::ClassProperty<PVectorType>* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
   assert(prop);
 
   PVectorType vec = prop->getValue(object);
@@ -172,40 +152,33 @@ bool SerializeAttribute<boost::shared_ptr<tbblas::device_vector<double> > >::wri
   std::vector<double> buffer(count);
   thrust::copy(vec->data().begin(), vec->data().end(), buffer.begin());
 
-  fwrite(&count, sizeof(unsigned), 1, file);
-  fwrite(&buffer[0], sizeof(double), count, file);
-
-  return true;
+  assert(fwrite(&count, sizeof(unsigned), 1, file) == 1);
+  assert(fwrite(&buffer[0], sizeof(double), count, file) == count);
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_vector<double> > >::readFromFile(capputils::reflection::ClassProperty<PVectorType>* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_vector<double> > >::readFromFile(capputils::reflection::ClassProperty<PVectorType>* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
   assert(prop);
   unsigned count;
-  fread(&count, sizeof(unsigned), 1, file);
+  assert(fread(&count, sizeof(unsigned), 1, file) == 1);
   
   std::vector<double> buffer(count);
-  fread(&buffer[0], sizeof(double), count, file);
+  assert(fread(&buffer[0], sizeof(double), count, file) == count);
 
   PVectorType vec(new tbblas::device_vector<double>(count));
   thrust::copy(buffer.begin(), buffer.end(), vec->data().begin());
-
   prop->setValue(object, vec);
-
-  return true;
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_vector<double> > >::writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_vector<double> > >::writeToFile(capputils::reflection::IClassProperty* prop, const capputils::reflection::ReflectableClass& object, FILE* file) {
   capputils::reflection::ClassProperty<PVectorType>* typedProperty = dynamic_cast<capputils::reflection::ClassProperty<PVectorType>* >(prop);
-  if (typedProperty)
-    return writeToFile(typedProperty, object, file);
-  return false;
+  assert(typedProperty);
+  writeToFile(typedProperty, object, file);
 }
 
-bool SerializeAttribute<boost::shared_ptr<tbblas::device_vector<double> > >::readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
+void SerializeAttribute<boost::shared_ptr<tbblas::device_vector<double> > >::readFromFile(capputils::reflection::IClassProperty* prop, capputils::reflection::ReflectableClass& object, FILE* file) {
   capputils::reflection::ClassProperty<PVectorType>* typedProperty = dynamic_cast<capputils::reflection::ClassProperty<PVectorType>* >(prop);
-  if (typedProperty)
-    return readFromFile(typedProperty, object, file);
-  return false;
+  assert(typedProperty);
+  readFromFile(typedProperty, object, file);
 }
 
 }

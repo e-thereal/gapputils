@@ -43,13 +43,22 @@ void FgrbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) const
   std::copy(getVisibleVector()->begin(), getVisibleVector()->end(), visibles.data().begin());
   std::copy(getConditionalVector()->begin(), getConditionalVector()->end(), conditionals.data().begin());
 
-  // normalize visible variables -> X (design matrix with one sample per row)
-  if (getIsGaussian()) {
-    //normalize data inplace
-  }
   tbblas::device_matrix<double> X(sampleCount, visibleCount), Y(sampleCount, visibleCount);
   X = conditionals;
   Y = visibles;
+
+  // normalize visible variables -> X (design matrix with one sample per row)
+  if (getIsGaussian()) {
+    thrust::transform(X.data().begin(), X.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleMean()),
+        X.data().begin(), thrust::minus<double>());
+    thrust::transform(Y.data().begin(), Y.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleMean()),
+        Y.data().begin(), thrust::minus<double>());
+
+    thrust::transform(X.data().begin(), X.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleStd()),
+        X.data().begin(), thrust::divides<double>());
+    thrust::transform(Y.data().begin(), Y.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleStd()),
+        Y.data().begin(), thrust::divides<double>());
+  }
 
   tbblas::device_matrix<double>& Wx = *fgrbm.getConditionalWeights();
   tbblas::device_matrix<double>& Wy = *fgrbm.getVisibleWeights();
@@ -67,9 +76,17 @@ void FgrbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) const
   hidprobs = tbblas::prod(NxF = XWx * YWy, tbblas::trans(Wh));         // x = (XWx o YWy) * WhT
   for (unsigned iRow = 0; iRow < hidprobs.size1(); ++iRow)             // x = x + C
     tbblas::row(hidprobs, iRow) += c;
+
   thrust::transform(hidprobs.data().begin(), hidprobs.data().end(), // x = sigm(x)
       hidprobs.data().begin(), sigmoid<double>());
   
+  if (getSampleHiddens()) {
+    thrust::transform(
+        hidprobs.data().begin(), hidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
+        hidprobs.data().begin(), sample_units<double>()
+    );
+  }
+
   ublas::matrix<double> hiddens = hidprobs;
   boost::shared_ptr<std::vector<double> > hiddenVector(new std::vector<double>(sampleCount * hiddenCount));
   std::copy(hiddens.data().begin(), hiddens.data().end(), hiddenVector->begin());

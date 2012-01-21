@@ -41,7 +41,9 @@ SOURCES = FromRgb.cpp \
           AamResample.cpp \
           SliceToFeatures.cpp \
           FeaturesToMif.cpp \
-          FeaturesToImage.cpp
+          FeaturesToImage.cpp \
+          ImageToMif.cpp \
+          StackImages.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \

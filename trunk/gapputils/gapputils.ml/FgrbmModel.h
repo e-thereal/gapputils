@@ -21,6 +21,9 @@ class FgrbmModel : public capputils::reflection::ReflectableClass {
 
   InitReflectableClass(FgrbmModel)
 
+  int dummyEntry;   ///< Brings the struct into 8 byte alignment. This is necessary in order to ensure
+                    ///< compatibility between gcc and nvcc
+
   Property(VisibleBiases, boost::shared_ptr<tbblas::device_vector<double> >)
   Property(HiddenBiases, boost::shared_ptr<tbblas::device_vector<double> >)
   Property(VisibleWeights, boost::shared_ptr<tbblas::device_matrix<double> >)

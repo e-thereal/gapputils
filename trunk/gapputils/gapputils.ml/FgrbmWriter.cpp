@@ -22,6 +22,8 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
+#include <iostream>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -60,6 +62,7 @@ void FgrbmWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   if (!capputils::Verifier::Valid(*this) || !getFgrbmModel())
     return;
 
+  std::cout << "Mean = " << getFgrbmModel()->getVisibleMean() << std::endl;
   capputils::Serializer::writeToFile(*getFgrbmModel(), getFilename());
 }
 

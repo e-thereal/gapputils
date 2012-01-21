@@ -39,7 +39,7 @@ DefineEnum(SliceOrientation)
 BeginPropertyDefinitions(SliceFromMif)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(MifName, Input("Mif"), FileExists(), Filename("MIF (*.MIF)"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(MifName, Input("Mif"), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Image, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Width, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Height, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
