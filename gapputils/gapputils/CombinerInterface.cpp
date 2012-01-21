@@ -40,12 +40,10 @@ CombinerInterface::CombinerInterface() {
 CombinerInterface::~CombinerInterface() {
 }
 
-void CombinerInterface::resetCombinations() {
+bool CombinerInterface::resetCombinations() {
   using namespace capputils::reflection;
 
   cout << "Reset combinations" << endl;
-
-  clearOutputs();
 
   inputProperties.clear();
   outputProperties.clear();
@@ -71,6 +69,8 @@ void CombinerInterface::resetCombinations() {
         maxIterations = max(maxIterations, count);
         iterator->reset();
 
+        if (iterator->eof(*this))
+          return false;
         properties[i]->setValue(*this, *this, iterator);
         inputProperties.push_back(properties[i]);
         inputIterators.push_back(iterator);
@@ -81,6 +81,7 @@ void CombinerInterface::resetCombinations() {
       const int enumId = toEnumerable->getEnumerablePropertyId();
 
       if (enumId < (int)properties.size() && (enumerable = properties[enumId]->getAttribute<IEnumerableAttribute>())) {
+        enumerable->clear(properties[enumId], *this);
         IPropertyIterator* iterator = enumerable->getPropertyIterator(properties[enumId]);
         iterator->reset();
         outputProperties.push_back(properties[i]);
@@ -88,6 +89,7 @@ void CombinerInterface::resetCombinations() {
       }
     }
   }
+  return true;
 }
 
 void CombinerInterface::appendResults() {
@@ -106,11 +108,14 @@ bool CombinerInterface::advanceCombinations() {
   // second can not be detected by Verifier::UpToDate(). Thus, a module can be
   // falsely tagged as up to date if it is changed multiply times within one second.
   // Therefore, the process waits for one second before the next iteration starts.
-#ifdef _WIN32
-  _sleep(1000);
-#else
-  sleep(1);
-#endif
+
+  // Update: Old timestamp method was replaced by new checksum method
+//#ifdef _WIN32
+//  _sleep(1000);
+//#else
+//  sleep(1);
+//#endif
+
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
     inputIterators[i]->next();
     if (inputIterators[i]->eof(*this)) {
@@ -132,5 +137,3 @@ int CombinerInterface::getProgress() const {
 }
 
 }
-
-

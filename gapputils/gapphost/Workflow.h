@@ -57,6 +57,7 @@ class Workflow : public QObject, public Node, public CompatibilityChecker, publi
   Property(ViewportPosition, std::vector<double>)
 
   Property(Interface, boost::shared_ptr<gapputils::InterfaceDescription>)
+  Property(InputChecksums, std::vector<checksum_type>)
 
 private:
   Workbench* workbench;
@@ -65,7 +66,14 @@ private:
   QWidget* widget;
   Node inputsNode, outputsNode;
   std::set<std::string> loadedLibraries;
-  bool ownWidget, hasIONodes, processingCombination;
+  bool ownWidget,                         ///< True at the beginning. False if widget has been dispensed
+       hasIONodes,                        ///< True if IO nodes are already present.
+       processingCombination,             ///< True if in combination mode of a CombinerInterface
+       dryrun;                            ///< True if in dry-run mode. This mode calculates checksums only
+                                          ///  in order the check if an update of the output parameters is
+                                          ///  necessary. Intermediate nodes are not updated when the outputs
+                                          ///  don't require an update
+
   WorkflowWorker* worker;
   std::stack<Node*> nodeStack;
   std::stack<Node*> processedStack;
@@ -78,7 +86,7 @@ public:
 
   void newItem(Node* node);
   bool newCable(Edge* edge);
-  void resumeFromModel();
+  virtual void resume();
   void resumeViewport();
 
   /// The workflow loses ownership of the widget when calling this method
@@ -87,10 +95,35 @@ public:
 
   /// This call is asynchronous. updateFinished signal is emitted when done.
   void updateCurrentModule();
-  void updateOutputs();
+
+  /**
+   * \brief Updates all outputs
+   *
+   * \param[in] updateNodes If true, all nodes that require an update are updated,
+   *                        otherwise an update is only performed if the output parameters
+   *                        need an update.
+   */
+  void updateOutputs(bool updateNodes = false);
   void processStack();
   void buildStack(Node* node);
   void load(const std::string& filename);
+
+  /**
+   * \brief Recursively updates the checksums of all nodes in all sub workflows
+   *
+   * \param[in] inputChecksums  String containing the concatenation of all direct input checksums
+   *
+   * This method builds a stack of nodes and updates the checksums of all nodes in this order.
+   * It calls the node's updateChecksums(string) method.
+   */
+  virtual void updateChecksum(const std::vector<checksum_type>& inputChecksums);
+
+  /**
+   * \brief Updates all nodes that need an update.
+   *
+   * This method assumes that updateChecksum was called before.
+   */
+  void updateNodes();
 
   /// Workflows are never up-to-date unless all modules are up-to-date
   /**
@@ -98,7 +131,6 @@ public:
    * Checking each modules is the same as if you would recalculate the workflow. Thus,
    * workflows are always assumed not to be up to date.
    */
-  virtual bool isUpToDate() const;
   virtual void update(IProgressMonitor* monitor);
   virtual void writeResults();
 

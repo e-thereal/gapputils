@@ -187,7 +187,7 @@ void MainWindow::resume() {
     model.setCurrentWorkflow(currentUuid);
   }
 
-  workflow->resumeFromModel();
+  workflow->resume();
   openWorkflows.push_back(workflow);
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
   workflow->resumeViewport(); // resume after the layout stuff is done.

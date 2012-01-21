@@ -1,12 +1,15 @@
 #include "PropertyGridDelegate.h"
 
 #include <qcombobox.h>
+#include <qcheckbox.h>
+
 #include <capputils/EnumerableAttribute.h>
 #include <capputils/FromEnumerableAttribute.h>
 #include <capputils/IReflectableAttribute.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
 #include <capputils/Enumerator.h>
+#include <capputils/FlagAttribute.h>
 #include "PropertyReference.h"
 #include "FilenameEdit.h"
 
@@ -66,7 +69,10 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
       connect(editor, SIGNAL(editingFinished()),
                  this, SLOT(commitAndCloseEditor()));
       return editor;
-    }
+    }/* else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
+      QCheckBox* editor = new QCheckBox(parent);
+      return editor;
+    }*/
   }
   return QStyledItemDelegate::createEditor(parent, option, index);
 }
@@ -102,7 +108,10 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
     } else if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
       FilenameEdit* edit = static_cast<FilenameEdit*>(editor);
       edit->setText(index.model()->data(index).toString());
-    }
+    }/* else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
+      QCheckBox* cb = static_cast<QCheckBox*>(editor);
+      cb->setChecked(index.model()->data(index).toString().compare("0"));
+    }*/
   }
   QStyledItemDelegate::setEditorData(editor, index);
 }
@@ -136,7 +145,13 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
       QString text = edit->getText();
       model->setData(index, text);
       return;
-    }
+    } /*else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
+      QCheckBox* cb = static_cast<QCheckBox*>(editor);
+      if (cb->isChecked())
+        model->setData(index, "1");
+      else
+        model->setData(index, "0");
+    }*/
   }
   QStyledItemDelegate::setModelData(editor, model, index);
 }

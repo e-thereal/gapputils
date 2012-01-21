@@ -46,6 +46,14 @@ public:
    * additional dialogs. Be creative. ;)
    */
   virtual void show() { }
+
+  /**
+   * \brief Called when the workflow is resumed
+   *
+   * Overload this method if a module needs to be initialized after all
+   * properties have been read.
+   */
+  virtual void resume() { }
 };
 
 }
