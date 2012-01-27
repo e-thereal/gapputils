@@ -38,10 +38,11 @@ BeginPropertyDefinitions(FgrbmModel)
   DefineProperty(ConditionalWeights, Serialize<TYPE_OF(ConditionalWeights)>())
   DefineProperty(VisibleMean, Serialize<TYPE_OF(VisibleMean)>())
   DefineProperty(VisibleStd, Serialize<TYPE_OF(VisibleStd)>())
+  DefineProperty(IsGaussian, Serialize<TYPE_OF(IsGaussian)>())
 
 EndPropertyDefinitions
 
-FgrbmModel::FgrbmModel() : _VisibleMean(0.f), _VisibleStd(1.f) {
+FgrbmModel::FgrbmModel() : _VisibleMean(0.f), _VisibleStd(1.f), _IsGaussian(false) {
 }
 
 FgrbmModel::~FgrbmModel() {

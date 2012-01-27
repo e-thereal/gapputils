@@ -94,11 +94,11 @@ void FgrbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const
           negdata.data().begin(), sample_normal<double>()
       );
     }
-    //thrust::transform(negdata.data().begin(), negdata.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleStd()),
-    //    negdata.data().begin(), thrust::multiplies<double>());
+    thrust::transform(negdata.data().begin(), negdata.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleStd()),
+        negdata.data().begin(), thrust::multiplies<double>());
 
-    //thrust::transform(negdata.data().begin(), negdata.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleMean()),
-    //    negdata.data().begin(), thrust::plus<double>());
+    thrust::transform(negdata.data().begin(), negdata.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleMean()),
+        negdata.data().begin(), thrust::plus<double>());
   }
 
   ublas::matrix<double> visibles = negdata;
@@ -110,6 +110,3 @@ void FgrbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const
 }
 
 }
-
-
-

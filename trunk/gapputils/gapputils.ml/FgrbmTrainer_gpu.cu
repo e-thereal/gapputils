@@ -39,6 +39,19 @@ T operator()(const T& x, const T& y) const {
 
 };
 
+template<class T>
+struct add_diagonal : thrust::binary_function<unsigned, T, T> {
+  unsigned diagonalShift;
+  T bias;
+
+  add_diagonal(unsigned ld, T bias) : diagonalShift(ld + 1), bias(bias) { }
+
+  __host__ __device__
+  T operator()(const unsigned& idx, const T& value) {
+    return value + ((idx % diagonalShift) == 0) * bias;
+  }
+};
+
 #define LOCATE(a,b) std::cout << #b": " << (char*)&a.b - (char*)&a << std::endl
 
 // TODO: This module crashs when executed, workflow reloaded and executed
@@ -53,15 +66,22 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   if (!capputils::Verifier::Valid(*this))
     return;
 
+  if (!getInitialFgrbmModel()) {
+    std::cout << "[Warning] No initial model given." << std::endl;
+    return;
+  }
+
+  FgrbmModel& initialModel = *getInitialFgrbmModel();
+
+  const unsigned visibleCount = initialModel.getVisibleBiases()->size();
+  const unsigned hiddenCount = initialModel.getHiddenBiases()->size();
+  const unsigned factorCount = initialModel.getVisibleWeights()->size2();
+
   if (!getConditionalsVector() || !getVisiblesVector()) {
     std::cout << "[Warning] Missing training set!" << std::endl;
     return;
   }
-  if (getVisibleCount() <= 0) {
-    std::cout << "[Warning] VisibleCount must be greater than 0!" << std::endl;
-    return;
-  }
-  if (getVisiblesVector()->size() % getVisibleCount()) {
+  if (getVisiblesVector()->size() % visibleCount) {
     std::cout << "[Warning] Training set size must be a multiple of VisibleCount!" << std::endl;
     return;
   }
@@ -82,52 +102,16 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 //  LOCATE(test, ConditionalWeights);
 
   // Calculate the mean and the std of all features
-  const unsigned visibleCount = getVisibleCount();
-  const unsigned hiddenCount = getHiddenCount();
-  const unsigned factorCount = getFactorCount();
   const unsigned sampleCount = getVisiblesVector()->size() / visibleCount;
   const int batchSize = getBatchSize();
-
-  boost::shared_ptr<FgrbmModel> fgrbm(new FgrbmModel());
-  std::cout << "Size = " << sizeof(*fgrbm) << std::endl;
 
   ublas::matrix<double> visiblesSet(sampleCount, visibleCount);
   ublas::matrix<double> conditionalsSet(sampleCount, visibleCount);
   std::copy(getVisiblesVector()->begin(), getVisiblesVector()->end(), visiblesSet.data().begin());
   std::copy(getConditionalsVector()->begin(), getConditionalsVector()->end(), conditionalsSet.data().begin());
 
-  double mean = thrust::reduce(visiblesSet.data().begin(), visiblesSet.data().end()) / visiblesSet.data().size();
-  fgrbm->setVisibleMean(mean);
-  std::cout << "[Info] Means calculated: " << timer.elapsed() << " s (" << mean << ")" << std::endl;
-
-  if (getIsGaussian()) {
-    thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<double>(mean),
-        visiblesSet.data().begin(), thrust::minus<double>());
-    thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<double>(mean),
-        conditionalsSet.data().begin(), thrust::minus<double>());
-
-    double stddev = sqrt(thrust::inner_product(visiblesSet.data().begin(), visiblesSet.data().end(),
-        visiblesSet.data().begin(), 0.f) / visiblesSet.data().size());
-    fgrbm->setVisibleStd(stddev);
-    std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s (" << stddev << ")" << std::endl;
-
-    // Apply feature scaling to training set
-    thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<double>(stddev),
-        visiblesSet.data().begin(), thrust::divides<double>());
-    thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<double>(stddev),
-        conditionalsSet.data().begin(), thrust::divides<double>());
-    std::cout << "[Info] Design matrix standardized: " << timer.elapsed() << " s" << std::endl;
-  }
   ublas::matrix<double>& uX = conditionalsSet;
   ublas::matrix<double>& uY = visiblesSet;
-
-  /*for (unsigned i = uX.size1() - 1; i > 0; --i) {
-    unsigned j = rand() % (i + 1);
-    ublas::row(uX, i).swap(ublas::row(uX, j));
-    ublas::row(uY, i).swap(ublas::row(uY, j));
-  }*/
-
-  std::cout << "[Info] Rows shuffled: " << timer.elapsed() << " s" << std::endl;
 
   int deviceMemory = 0;
   deviceMemory += 3 * batchSize * visibleCount;
@@ -137,11 +121,36 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   deviceMemory += 4 * hiddenCount * factorCount;
   deviceMemory += 4 * visibleCount;
   deviceMemory += 4 * hiddenCount;
-  std::cout << "[Info] Required device memory without training data: " << 4. * deviceMemory / 1024. / 1024. << " MB" << std::endl;
+  std::cout << "[Info] Required device memory without training data: " << 8. * deviceMemory / 1024. / 1024. << " MB" << std::endl;
 
   deviceMemory += uX.size1() * uX.size2();
   deviceMemory += uY.size1() * uY.size2();
-  std::cout << "[Info] Required device memory including training data: " << 4. * deviceMemory / 1024. / 1024. << " MB" << std::endl;
+  std::cout << "[Info] Required device memory including training data: " << 8. * deviceMemory / 1024. / 1024. << " MB" << std::endl;
+
+  boost::shared_ptr<FgrbmModel> fgrbm = initialModel.clone();
+
+  if (fgrbm->getIsGaussian()) {
+    thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<double>(fgrbm->getVisibleMean()),
+        visiblesSet.data().begin(), thrust::minus<double>());
+    thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<double>(fgrbm->getVisibleMean()),
+        conditionalsSet.data().begin(), thrust::minus<double>());
+
+    // Apply feature scaling to training set
+    thrust::transform(visiblesSet.data().begin(), visiblesSet.data().end(), thrust::constant_iterator<double>(fgrbm->getVisibleStd()),
+        visiblesSet.data().begin(), thrust::divides<double>());
+    thrust::transform(conditionalsSet.data().begin(), conditionalsSet.data().end(), thrust::constant_iterator<double>(fgrbm->getVisibleStd()),
+        conditionalsSet.data().begin(), thrust::divides<double>());
+    std::cout << "[Info] Design matrix standardized: " << timer.elapsed() << " s" << std::endl;
+  }
+
+
+  /*for (unsigned i = uX.size1() - 1; i > 0; --i) {
+    unsigned j = rand() % (i + 1);
+    ublas::row(uX, i).swap(ublas::row(uX, j));
+    ublas::row(uY, i).swap(ublas::row(uY, j));
+  }*/
+
+  std::cout << "[Info] Rows shuffled: " << timer.elapsed() << " s" << std::endl;
 
   tbblas::device_matrix<double> X(uX.size1(), uX.size2());
   tbblas::device_matrix<double> Y(uY.size1(), uY.size2());
@@ -153,36 +162,13 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   // Train the RBM
   // Initialize weights and bias terms
-  boost::shared_ptr<tbblas::device_matrix<double> > conditionalWeights(new tbblas::device_matrix<double>(visibleCount, factorCount));
-  boost::shared_ptr<tbblas::device_matrix<double> > visibleWeights(new tbblas::device_matrix<double>(visibleCount, factorCount));
-  boost::shared_ptr<tbblas::device_matrix<double> > hiddenWeights(new tbblas::device_matrix<double>(hiddenCount, factorCount));
-  boost::shared_ptr<tbblas::device_vector<double> > visibleBiases(new tbblas::device_vector<double>(visibleCount));
-  boost::shared_ptr<tbblas::device_vector<double> > hiddenBiases(new tbblas::device_vector<double>(hiddenCount));
-  tbblas::device_matrix<double>& Wx = *conditionalWeights;
-  tbblas::device_matrix<double>& Wy = *visibleWeights;
-  tbblas::device_matrix<double>& Wh = *hiddenWeights;
-  tbblas::device_vector<double>& b = *visibleBiases;
-  tbblas::device_vector<double>& c = *hiddenBiases;
-
-  // Initialize weights
-  thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(Wx.data().size()),
-      Wx.data().begin(), get_randn<double>(0.f, 0.01f));
-  thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(Wy.data().size()),
-      Wy.data().begin(), get_randn<double>(0.f, 0.01f));
-  thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(Wh.data().size()),
-      Wh.data().begin(), get_randn<double>(0.f, 0.01f));
-
-  // Initialize bias terms
-  thrust::fill(b.data().begin(), b.data().end(), 0.f);
-  thrust::fill(c.data().begin(), c.data().end(), getInitialHidden());
+  tbblas::device_matrix<double>& Wx = *fgrbm->getConditionalWeights();
+  tbblas::device_matrix<double>& Wy = *fgrbm->getVisibleWeights();
+  tbblas::device_matrix<double>& Wh = *fgrbm->getHiddenWeights();
+  tbblas::device_vector<double>& b = *fgrbm->getVisibleBiases();
+  tbblas::device_vector<double>& c = *fgrbm->getHiddenBiases();
 
   std::cout << "[Info] FGRBM initialized: " << timer.elapsed() << " s" << std::endl;
-
-  fgrbm->setConditionalWeights(conditionalWeights);
-  fgrbm->setVisibleWeights(visibleWeights);
-  fgrbm->setHiddenWeights(hiddenWeights);
-  fgrbm->setVisibleBiases(visibleBiases);
-  fgrbm->setHiddenBiases(hiddenBiases);
 
   // Start the learning
   const int batchCount = sampleCount / batchSize;
@@ -288,7 +274,7 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
         tbblas::row(negdata, iRow) += b;
 
       // For the binary case
-      if (!getIsGaussian()) {
+      if (!fgrbm->getIsGaussian()) {
         thrust::transform(negdata.begin(), negdata.end(), negdata.begin(),
             sigmoid<double>());
 
@@ -384,5 +370,3 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 }
 
 }
-
-

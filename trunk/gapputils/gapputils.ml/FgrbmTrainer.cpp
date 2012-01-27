@@ -35,23 +35,20 @@ BeginPropertyDefinitions(FgrbmTrainer)
 
   DefineProperty(ConditionalsVector, Input("X"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(VisiblesVector, Input("Y"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(FgrbmModel, Output("FGRBM"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VisibleCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(HiddenCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(FactorCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InitialFgrbmModel, Input("FGRBM"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(SampleVisibles, Flag(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(EpochCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(BatchSize, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(LearningRate, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InitialHidden, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(IsGaussian, Flag(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(FgrbmModel, Output("FGRBM"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Wx, Output(), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Wy, Output(), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-FgrbmTrainer::FgrbmTrainer() : data(0) {
-  WfeUpdateTimestamp
+FgrbmTrainer::FgrbmTrainer()
+ : _SampleVisibles(false), _EpochCount(30), _BatchSize(1), _LearningRate(1e-3), data(0)
+{
   setLabel("FgrbmTrainer");
 
   Changed.connect(capputils::EventHandler<FgrbmTrainer>(this, &FgrbmTrainer::changedHandler));

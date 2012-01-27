@@ -31,10 +31,13 @@ class FgrbmModel : public capputils::reflection::ReflectableClass {
   Property(ConditionalWeights, boost::shared_ptr<tbblas::device_matrix<double> >)
   Property(VisibleMean, double)
   Property(VisibleStd, double)
+  Property(IsGaussian, bool)
 
 public:
   FgrbmModel();
   virtual ~FgrbmModel();
+
+  boost::shared_ptr<FgrbmModel> clone();
 };
 
 }
