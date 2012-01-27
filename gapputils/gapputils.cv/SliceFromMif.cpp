@@ -7,6 +7,8 @@
 
 #include "SliceFromMif.h"
 
+#include <capputils/DescriptionAttribute.h>
+#include <capputils/NoParameterAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -41,15 +43,14 @@ BeginPropertyDefinitions(SliceFromMif)
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(MifName, Input("Mif"), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Image, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Width, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Height, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Width, Description("Is set to width of extracted slice."), NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Height, Description("Is set to height of extracted slice."), NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(SlicePosition, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   ReflectableProperty(Orientation, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
 SliceFromMif::SliceFromMif() : _Width(0), _Height(0), _SlicePosition(0), data(0) {
-  WfeUpdateTimestamp
   setLabel("SliceFromMif");
 
   Changed.connect(capputils::EventHandler<SliceFromMif>(this, &SliceFromMif::changedHandler));
@@ -103,13 +104,13 @@ void SliceFromMif::execute(gapputils::workflow::IProgressMonitor* monitor) const
     for (int x = 0; x < width; ++x, ++i) {
       switch (getOrientation()) {
       case SliceOrientation::Axial:
-        buffer[i] = (float)pixels[slicePos + 1][y][x] / 512.f;
+        buffer[i] = (float)pixels[slicePos + 1][y][x] / 2048.f;
         break;
       case SliceOrientation::Sagital:
-        buffer[i] = (float)pixels[mif.getSliceCount() - y][x][slicePos] / 512.f;
+        buffer[i] = (float)pixels[mif.getSliceCount() - y][x][slicePos] / 2048.f;
         break;
       case SliceOrientation::Coronal:
-        buffer[i] = (float)pixels[mif.getSliceCount() - y][slicePos][x] / 512.f;
+        buffer[i] = (float)pixels[mif.getSliceCount() - y][slicePos][x] / 2048.f;
         break;
       }
 

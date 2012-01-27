@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'RectangleDialog.h'
 **
-** Created: Wed Nov 16 10:30:56 2011
+** Created: Tue Jan 24 14:07:13 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.3)
 **
 ** WARNING! All changes made in this file will be lost!

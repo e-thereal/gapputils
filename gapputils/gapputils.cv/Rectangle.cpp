@@ -19,6 +19,7 @@
 #include <capputils/VolatileAttribute.h>
 #include <capputils/Xmlizer.h>
 
+#include <capputils/NoParameterAttribute.h>
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
@@ -49,7 +50,7 @@ BeginPropertyDefinitions(Rectangle)
   DefineProperty(RectangleHeight, Observe(rectHeightId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   ReflectableProperty(Model, Hide(), Observe(modelId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Rectangle, Output("Rect"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BackgroundImage, Volatile(), ReadOnly(), Observe(backgroundId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(BackgroundImage, NoParameter(), Volatile(), ReadOnly(), Observe(backgroundId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(RectangleName, Input("Name"), Volatile(), Observe(nameId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
@@ -95,7 +96,8 @@ void Rectangle::changedHandler(capputils::ObservableClass* sender, int eventId) 
   }
 
   if (eventId == modelId) {
-    this->setTime(modelId, std::time(0));
+    // TODO: Update module such that is uses the new checksum mechanism
+    //this->setTime(modelId, std::time(0));
     if (getRectangleName().size())
       capputils::Xmlizer::ToXml(getRectangleName(), *getModel());
   }

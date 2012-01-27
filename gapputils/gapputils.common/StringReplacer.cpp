@@ -13,9 +13,13 @@
 #include <capputils/OutputAttribute.h>
 #include <capputils/NotEqualAssertion.h>
 #include <capputils/Verifier.h>
+#include <capputils/SerializeAttribute.h>
 #include <capputils/TimeStampAttribute.h>
 
+#include <gapputils/CacheableAttribute.h>
+
 using namespace capputils::attributes;
+using namespace gapputils::attributes;
 using namespace std;
 
 namespace gapputils {

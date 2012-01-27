@@ -7,6 +7,7 @@
 
 #include "Resample.h"
 
+#include <capputils/DescriptionAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -39,8 +40,8 @@ BeginPropertyDefinitions(Resample)
   DefineProperty(InputImages, Input("Imgs"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputImages, Output("Imgs"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Width, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Height, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Width, Description("Absolute width after resizing no matter what the initial width has been."), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Height, Description("Absolute height after resizing no matter what the initial height has been."), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
