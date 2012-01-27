@@ -21,14 +21,12 @@ namespace gapputils {
 namespace workflow {
 
 class WorkflowElement : public capputils::reflection::ReflectableClass,
-                        public capputils::ObservableClass,
-                        public capputils::TimedClass
+                        public capputils::ObservableClass
 {
 
   InitAbstractReflectableClass(WorkflowElement)
 
   Property(Label, std::string)
-  Property(SetOnCompilation, int)
 
 public:
   static int labelId;

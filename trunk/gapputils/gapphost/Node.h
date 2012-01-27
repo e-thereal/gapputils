@@ -61,6 +61,20 @@ public:
   static checksum_type getChecksum(const capputils::reflection::IClassProperty* property,
       const capputils::reflection::ReflectableClass& object);
 
+  /**
+   * \brief Caches the state of the module if possible
+   *
+   * Caching is only possible if all non-parameters (except inputs) are serializable
+   */
+  virtual void updateCache();
+
+  /**
+   * \brief Tries to restore the state of a module from the module cache
+   *
+   * \return True, iff the state could be sucessfully restored from the cache
+   */
+  virtual bool restoreFromCache();
+
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 };

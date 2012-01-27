@@ -33,6 +33,10 @@ EditInterfaceDialog::EditInterfaceDialog(InterfaceDescription* interface, QWidge
 {
   setGeometry(x(), y(), 500, 400);
 
+  isCombinerCB = new QCheckBox("Combiner Interface");
+  isCombinerCB->setChecked(interface->getIsCombinerInterface());
+  connect(isCombinerCB, SIGNAL(stateChanged(int)), this, SLOT(combinerStatusChanged(int)));
+
   QGroupBox* includesGB = new QGroupBox("Includes");
   QVBoxLayout* includesLayout = new QVBoxLayout();
   includesLayout->addWidget(includesEdit = new QTextEdit());
@@ -75,6 +79,7 @@ EditInterfaceDialog::EditInterfaceDialog(InterfaceDescription* interface, QWidge
   connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
   QVBoxLayout* mainLayout = new QVBoxLayout();
+  mainLayout->addWidget(isCombinerCB);
   mainLayout->addWidget(includesGB);
   mainLayout->addLayout(propSetLayout);
   mainLayout->addWidget(buttonBox);
@@ -177,6 +182,10 @@ void EditInterfaceDialog::includesChanged() {
     if (line.length())
       interface->getHeaders()->push_back(line);
   }
+}
+
+void EditInterfaceDialog::combinerStatusChanged(int state) {
+  interface->setIsCombinerInterface(isCombinerCB->isChecked());
 }
 
 }

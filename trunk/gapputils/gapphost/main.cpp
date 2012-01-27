@@ -2,6 +2,7 @@
 
 #include "MainWindow.h"
 #include <QtGui/QApplication>
+#include <qdir.h>
 
 // TODO: do the cuda, cublas and cula initialization stuff only if requested
 #include <cublas.h>
@@ -44,6 +45,8 @@ int main(int argc, char *argv[])
   cublasInit();
 
   boost::filesystem::create_directories(".gapphost");
+  boost::filesystem::create_directories(DataModel::getConfigurationDirectory());
+
 #ifdef GAPPHOST_CULA_SUPPORT
   culaStatus status;
 
@@ -57,6 +60,7 @@ int main(int argc, char *argv[])
   QApplication a(argc, argv);
   DataModel& model = DataModel::getInstance();
   try {
+    Xmlizer::FromXml(model, DataModel::getConfigurationDirectory() + "/config.xml");
     Xmlizer::FromXml(model, "gapphost.conf.xml"); // compatibility to old versions
     Xmlizer::FromXml(model, ".gapphost/config.xml");
   } catch (capputils::exceptions::FactoryException ex) {

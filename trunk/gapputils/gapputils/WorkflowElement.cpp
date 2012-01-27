@@ -26,7 +26,6 @@ int WorkflowElement::labelId;
 BeginAbstractPropertyDefinitions(WorkflowElement)
 
   DefineProperty(Label, Label(), Observe(labelId = PROPERTY_ID))
-  DefineProperty(SetOnCompilation, TimeStamp(PROPERTY_ID), Hide(), Volatile())
 
 EndPropertyDefinitions
 

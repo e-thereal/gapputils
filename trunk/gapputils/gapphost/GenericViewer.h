@@ -22,9 +22,10 @@ class GenericViewer : public QObject, public workflow::DefaultWorkflowElement {
   Property(Program, std::string)
   Property(Filename1, std::string)
   Property(Filename2, std::string)
+  Property(Filename3, std::string)
 
 private:
-  static int filename1Id, filename2Id;
+  static int filename1Id, filename2Id, filename3Id;
   QProcess viewer;
   QTimer updateViewTimer;
 

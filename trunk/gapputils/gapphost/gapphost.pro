@@ -29,7 +29,6 @@ SOURCES = main.cpp \
 		  GlobalProperty.cpp \
 		  PopUpList.cpp \
 		  GlobalEdge.cpp \
-		  XslTransformation.cpp \
 		  EditInterfaceDialog.cpp
 		  
 HEADERS = MainWindow.h \

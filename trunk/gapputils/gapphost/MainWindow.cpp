@@ -74,7 +74,6 @@ void updateToolBox(QTreeWidget* toolBox) {
 #ifdef ONLY_WORKFLOWELEMENTS
     reflection::ReflectableClass* object = factory.newInstance(name);
     if (dynamic_cast<WorkflowElement*>(object) == 0 && dynamic_cast<WorkflowInterface*>(object) == 0) {
-//      cout << name << " is not a workflow element" << endl;
       delete object;
       continue;
     }
@@ -86,6 +85,12 @@ void updateToolBox(QTreeWidget* toolBox) {
       currentGroupString = name.substr(0, pos-1);
     } else {
       pos = -1;
+    }
+
+    if (!currentGroupString.compare("gapputils::host::internal") ||
+        !currentGroupString.compare("gapputils::workflow"))
+    {
+      continue;
     }
 
     if (currentGroupString.compare(groupString)) {
@@ -398,9 +403,10 @@ void MainWindow::editCurrentInterface() {
     newInterface = true;
   }
   EditInterfaceDialog dialog(currentWorkflow->getInterface().get(), this);
-  dialog.exec();
-  currentWorkflow->updateInterfaceTimeStamp();
-  reload();
+  if (dialog.exec() == QDialog::Accepted) {
+    currentWorkflow->updateInterfaceTimeStamp();
+    reload();
+  }
 }
 
 }
