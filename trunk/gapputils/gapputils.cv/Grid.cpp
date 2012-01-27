@@ -111,7 +111,7 @@ void Grid::changedEventHandler(capputils::ObservableClass* sender, int eventId) 
   if (eventId == modelId) {
     // update time stamp
     // TODO: update time stamp automatically (use observer instead of executable property)
-    this->setTime(modelId, std::time(0));
+    //this->setTime(modelId, std::time(0));
   }
 }
 

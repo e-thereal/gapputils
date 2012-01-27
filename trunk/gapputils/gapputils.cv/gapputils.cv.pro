@@ -43,7 +43,8 @@ SOURCES = FromRgb.cpp \
           FeaturesToMif.cpp \
           FeaturesToImage.cpp \
           ImageToMif.cpp \
-          StackImages.cpp
+          StackImages.cpp \
+          Checkerboard.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \

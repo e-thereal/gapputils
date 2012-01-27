@@ -21,8 +21,10 @@
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
 #include <capputils/EnumerableAttribute.h>
+#include <capputils/NoParameterAttribute.h>
 
 #include <gapputils/HideAttribute.h>
+#include <gapputils/ReadOnlyAttribute.h>
 
 #include <CMIF.hpp>
 #include <CSlice.hpp>
@@ -41,11 +43,11 @@ BeginPropertyDefinitions(SliceToFeatures)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(MifNames, Input("Mifs"), Filename("MIFs (*.MIF);;ROI MIFs (*_roi.MIF)", true), Enumerable<std::vector<std::string>, false>(), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VoxelsPerSlice, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SliceCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Data, Output(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID), Volatile(), Hide())
+  DefineProperty(RowCount, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ColumnCount, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(VoxelsPerSlice, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(SliceCount, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Data, Output(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID), Volatile(), ReadOnly())
 
 EndPropertyDefinitions
 
