@@ -23,7 +23,6 @@ namespace workflow {
 
 BeginPropertyDefinitions(WorkflowInterface)
   DefineProperty(Label, Label(), Observe(PROPERTY_ID))
-  DefineProperty(SetOnCompilation, TimeStamp(PROPERTY_ID), Hide(), Volatile())
 EndPropertyDefinitions
 
 WorkflowInterface::WorkflowInterface() : _Label("Interface") {

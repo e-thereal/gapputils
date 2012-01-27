@@ -13,6 +13,7 @@
 #include <qlineedit.h>
 #include <qtextedit.h>
 #include <qshortcut.h>
+#include <qcheckbox.h>
 
 #include <gapputils/InterfaceDescription.h>
 
@@ -24,12 +25,14 @@ class EditInterfaceDialog : public QDialog {
   Q_OBJECT
 
 private:
+  QCheckBox* isCombinerCB;
   QListWidget* propertyList;
   QLineEdit *nameEdit, *typeEdit, *defaultEdit;
   QTextEdit *attributesEdit, *includesEdit;
   InterfaceDescription* interface;
   PropertyDescription* currentProperty;
   QShortcut* deleteSC;
+
   bool attributesChangeable;
 
 public:
@@ -44,6 +47,7 @@ private Q_SLOTS:
   void attributesChanged();
   void deleteItem();
   void includesChanged();
+  void combinerStatusChanged(int state);
 };
 
 }

@@ -117,6 +117,10 @@ public:
    * It calls the node's updateChecksums(string) method.
    */
   virtual void updateChecksum(const std::vector<checksum_type>& inputChecksums);
+  void updateChecksum(const std::vector<checksum_type>& inputChecksums, Node* node);
+
+  virtual void updateCache();
+  virtual bool restoreFromCache();
 
   /**
    * \brief Updates all nodes that need an update.

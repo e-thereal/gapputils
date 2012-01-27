@@ -31,11 +31,13 @@ BeginPropertyDefinitions(GenericViewer)
   DefineProperty(Program, Observe(PROPERTY_ID))
   DefineProperty(Filename1, Observe(filename1Id = PROPERTY_ID), Input("File1"), Filename(), FileExists())
   DefineProperty(Filename2, Observe(filename2Id = PROPERTY_ID), Input("File2"), Filename())
+  DefineProperty(Filename3, Observe(filename3Id = PROPERTY_ID), Input("File3"), Filename())
 
 EndPropertyDefinitions
 
 int GenericViewer::filename1Id;
 int GenericViewer::filename2Id;
+int GenericViewer::filename3Id;
 
 void killProcess(QProcess* process) {
   process->terminate();
@@ -64,7 +66,7 @@ void GenericViewer::changedHandler(capputils::ObservableClass*, int eventId) {
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  if (eventId != filename1Id && eventId != filename2Id)
+  if (eventId != filename1Id && eventId != filename2Id && eventId != filename3Id)
     return;
 
   updateViewTimer.start();
@@ -79,6 +81,8 @@ void GenericViewer::updateView() {
   command << getProgram().c_str() << " \"" << getFilename1().c_str() << "\"";
   if (getFilename2().size())
     command << " \"" << getFilename2() << "\"";
+  if (getFilename3().size())
+    command << " \"" << getFilename3() << "\"";
 
   cout << "Executing: " << command.str().c_str() << endl;
 

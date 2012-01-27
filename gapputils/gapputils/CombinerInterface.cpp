@@ -33,7 +33,6 @@ BeginAbstractPropertyDefinitions(CombinerInterface)
 EndPropertyDefinitions
 
 CombinerInterface::CombinerInterface() {
-  WfiUpdateTimestamp
   setLabel("CombinerInterface");
 }
 
@@ -43,7 +42,7 @@ CombinerInterface::~CombinerInterface() {
 bool CombinerInterface::resetCombinations() {
   using namespace capputils::reflection;
 
-  cout << "Reset combinations" << endl;
+  //cout << "Reset combinations" << endl;
 
   inputProperties.clear();
   outputProperties.clear();
@@ -93,7 +92,7 @@ bool CombinerInterface::resetCombinations() {
 }
 
 void CombinerInterface::appendResults() {
-  cout << "Append results" << endl;
+  //cout << "Append results" << endl;
   for (unsigned i = 0; i < outputIterators.size(); ++i) {
     outputIterators[i]->setValue(*this, *this, outputProperties[i]);
     outputIterators[i]->next();
@@ -101,20 +100,8 @@ void CombinerInterface::appendResults() {
 }
 
 bool CombinerInterface::advanceCombinations() {
-  cout << "Advance combinations" << endl;
+  //cout << "Advance combinations" << endl;
   ++currentIteration;
-
-  // TODO: Timestamps have a precision of 1 second. Changes done within one
-  // second can not be detected by Verifier::UpToDate(). Thus, a module can be
-  // falsely tagged as up to date if it is changed multiply times within one second.
-  // Therefore, the process waits for one second before the next iteration starts.
-
-  // Update: Old timestamp method was replaced by new checksum method
-//#ifdef _WIN32
-//  _sleep(1000);
-//#else
-//  sleep(1);
-//#endif
 
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
     inputIterators[i]->next();

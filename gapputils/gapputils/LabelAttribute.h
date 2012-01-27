@@ -10,12 +10,15 @@
 
 #include "gapputils.h"
 #include <capputils/IAttribute.h>
+#include <capputils/NoParameterAttribute.h>
 
 namespace gapputils {
 
 namespace attributes {
 
-class LabelAttribute : public virtual capputils::attributes::IAttribute {
+class LabelAttribute : public virtual capputils::attributes::IAttribute,
+                       public capputils::attributes::NoParameterAttribute
+{
 public:
   LabelAttribute();
   virtual ~LabelAttribute();

@@ -19,6 +19,7 @@ class InterfaceDescription : public capputils::reflection::ReflectableClass {
 
   Property(Headers, boost::shared_ptr<std::vector<std::string> >)
   Property(PropertyDescriptions, boost::shared_ptr<std::vector<boost::shared_ptr<PropertyDescription> > >)
+  Property(IsCombinerInterface, bool)
   Property(Name, std::string)
 
 public:

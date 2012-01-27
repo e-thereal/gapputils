@@ -35,6 +35,7 @@
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/DescriptionAttribute.h>
 #include <capputils/FromEnumerableAttribute.h>
+#include <capputils/ToEnumerableAttribute.h>
 
 #include <gapputils/CombinerInterface.h>
 #include <gapputils/HideAttribute.h>
@@ -44,6 +45,8 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/units/detail/utility.hpp>
+
+#include <set>
 
 #include "PropertyGridDelegate.h"
 #include "CustomToolItemAttribute.h"
@@ -150,11 +153,6 @@ Workflow::Workflow()
   infoLayout = new QFormLayout();
   infoWidget->setLayout(infoLayout);
   gridSplitter->addWidget(infoWidget);
-
-  //QLabel* description = new QLabel("<b>Test</b>");
-  //description->setWordWrap(true);
-  //infoLayout->addRow(description);
-  //infoLayout->addRow("Type:", new QLabel("string"));
 
   QSplitter* splitter = new QSplitter(Qt::Horizontal);
   splitter->addWidget(workbench);
@@ -297,6 +295,20 @@ void Workflow::gridClicked(const QModelIndex& index) {
   GlobalEdge* edge = getGlobalEdge(reference.getObject(), reference.getProperty());
   if (edge)
     infoLayout->addRow("Connection:", new QLabel(edge->getGlobalProperty().c_str()));
+
+  Node* node = getNode(workbench->getCurrentItem());
+  if (node) {
+    QLabel* uuidLabel = new QLabel(node->getUuid().c_str());
+    uuidLabel->setMinimumSize(10, 10);
+    infoLayout->addRow("Uuid:", uuidLabel);
+  }
+
+  if (reference.getObject()) {
+    QLabel* moduleTypeLabel = new QLabel(reference.getObject()->getClassName().c_str());
+    moduleTypeLabel->setWordWrap(true);
+    moduleTypeLabel->setMinimumSize(10, 10);
+    infoLayout->addRow(createTopAlignedLabel("Module:"), moduleTypeLabel);
+  }
 }
 
 void Workflow::showContextMenu(const QPoint& point) {
@@ -576,7 +588,7 @@ void Workflow::newItem(Node* node) {
   ToolItem* item;
   ICustomToolItemAttribute* customToolItem = node->getModule()->getAttribute<ICustomToolItemAttribute>();
 
-  // Get the label corrent label
+  // Get the label
   string label = string("[") + node->getModule()->getClassName() + "]";
   vector<IClassProperty*>& properties = node->getModule()->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
@@ -593,27 +605,48 @@ void Workflow::newItem(Node* node) {
 
     for (unsigned i = 0; i < properties.size(); ++i) {
       IClassProperty* prop = properties[i];
-      if (prop->getAttribute<InputAttribute>())
+      if (prop->getAttribute<InputAttribute>() && !prop->getAttribute<FromEnumerableAttribute>())
         item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
-      if (prop->getAttribute<OutputAttribute>())
+      if (prop->getAttribute<OutputAttribute>() && !prop->getAttribute<ToEnumerableAttribute>())
         item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
     }
   } else if (node == &inputsNode) {
     item = new ToolItem("Inputs");
     item->setDeletable(false);
 
+    std::set<int> linkedEnumerables;
+
+    if (dynamic_cast<CombinerInterface*>(getModule())) {
+      FromEnumerableAttribute* fromEnum = 0;
+      for (unsigned i = 0; i < properties.size(); ++i) {
+        IClassProperty* prop = properties[i];
+        if ((fromEnum = prop->getAttribute<FromEnumerableAttribute>())) {
+          linkedEnumerables.insert(fromEnum->getEnumerablePropertyId());
+        }
+      }
+    }
+
     for (unsigned i = 0; i < properties.size(); ++i) {
       IClassProperty* prop = properties[i];
-      if (prop->getAttribute<InputAttribute>())
+      if (prop->getAttribute<InputAttribute>() && linkedEnumerables.find(i) == linkedEnumerables.end())
         item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
     }
   } else if (node == &outputsNode) {
     item = new ToolItem("Outputs");
     item->setDeletable(false);
 
+    std::set<int> linkedEnumerables;
+    ToEnumerableAttribute* toEnum = 0;
     for (unsigned i = 0; i < properties.size(); ++i) {
       IClassProperty* prop = properties[i];
-      if (prop->getAttribute<OutputAttribute>())
+      if ((toEnum = prop->getAttribute<ToEnumerableAttribute>())) {
+        linkedEnumerables.insert(toEnum->getEnumerablePropertyId());
+      }
+    }
+
+    for (unsigned i = 0; i < properties.size(); ++i) {
+      IClassProperty* prop = properties[i];
+      if (prop->getAttribute<OutputAttribute>() && linkedEnumerables.find(i) == linkedEnumerables.end())
         item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
     }
   } else if (customToolItem) {
@@ -726,6 +759,9 @@ std::string Workflow::getInterfaceName() {
 void Workflow::createAndLoadAdhocModule() {
   using namespace gapputils::host::internal;
   time_t libTime, interfaceTime;
+  gapputils::host::DataModel& model = gapputils::host::DataModel::getInstance();
+  gapputils::host::BuilderSettings& builderSettings = *model.getBuilderSettings();
+  gapputils::host::XsltSettings& xsltSettings = *model.getXsltSettings();
 
   if (!boost::filesystem::exists(getLibraryName().c_str()) ||
       ((libTime = boost::filesystem::last_write_time(getLibraryName().c_str())) < (interfaceTime = getTime(interfaceId))))
@@ -733,23 +769,51 @@ void Workflow::createAndLoadAdhocModule() {
     string prefix = getPrefix();
     Xmlizer::ToXml(prefix + ".xml", *getInterface());
 
-    // TODO: don't use XslTransformation because platform dependent parameters are set during compile time
-    XslTransformation transform;
-    transform.setInputName(prefix + ".xml");
-    transform.setOutputName(prefix + ".cpp");
-    transform.setXsltName("/home/tombr/.gapphost/module.xslt");
-    transform.execute(0);
-    transform.writeResults();
-    cout << transform.getCommandOutput() << endl;
+//    XslTransformation transform;
+//    transform.setInputName(prefix + ".xml");
+//    transform.setOutputName(prefix + ".cpp");
+//    if (getInterface()->getIsCombinerInterface())
+//      transform.setXsltName(model.getConfigurationDirectory() + "/" + xsltSettings.getCombinerInterfaceStyleSheetName());
+//    else
+//      transform.setXsltName(model.getConfigurationDirectory() + "/" + xsltSettings.getStandardInterfaceStyleSheetName());
+//    transform.execute(0);
+//    transform.writeResults();
+//    cout << transform.getCommandOutput() << endl;
 
-    // TODO: Compilation is platform dependent. Introduce necessary settings. These settings
-    //       are set in the global gapphost configuration (e.g. at ~/.gapphost/config.xml)
+    capputils::Executer xslt;
+    xslt.getCommand() << xsltSettings.getCommandName() << " "
+                      << xsltSettings.getInputSwitch() << "\"" << prefix << ".xml\" "
+                      << xsltSettings.getOutputSwitch() << "\"" << prefix << ".cpp\" "
+                      << xsltSettings.getXsltSwitch() << "\"" << model.getConfigurationDirectory() << "/";
+    if (getInterface()->getIsCombinerInterface())
+      xslt.getCommand() << xsltSettings.getCombinerInterfaceStyleSheetName() << "\"";
+    else
+      xslt.getCommand() << xsltSettings.getStandardInterfaceStyleSheetName() << "\"";
+    cout << "[Info] " << xslt.getCommandString() << endl;
+    if (xslt.execute()) {
+      cout << "[Error] Xsl transformation failed: " << xslt.getOutput() << endl;
+      return;
+    }
+
     capputils::Executer build;
-    build.getCommand() << "gcc -shared -I\"/home/tombr/Projects\" -I\"/home/tombr/include\" -I\"/home/tombr/Programs/cuda/include\" -I\"/home/tombr/Programs/Qt-4.7.3/include\" -I\"/home/tombr/Programs/Qt-4.7.3/include/QtCore\" -I\"/home/tombr/Programs/Qt-4.7.3/include/QtGui\" -std=c++0x "
-                          << prefix << ".cpp" << " -o " << getLibraryName();
+    build.getCommand() << builderSettings.getCompilerName();
+
+    std::vector<std::string>& flags = *builderSettings.getCompilerFlags();
+    for (unsigned i = 0; i < flags.size(); ++i)
+      build.getCommand() << " " << flags[i];
+
+    std::vector<std::string>& includeDirs = *builderSettings.getIncludeDirectories();
+    for (unsigned i = 0; i < includeDirs.size(); ++i)
+      build.getCommand() << " " << builderSettings.getIncludeSwitch() << "\"" << includeDirs[i] << "\"";
+
+    build.getCommand() << " " << prefix << ".cpp " << builderSettings.getOutputSwitch() << getLibraryName();
+
+    //build.getCommand() << "gcc -shared -I\"/home/tombr/Projects\" -I\"/home/tombr/include\" -I\"/home/tombr/Programs/cuda/include\" -I\"/home/tombr/Programs/Qt-4.7.3/include\" -I\"/home/tombr/Programs/Qt-4.7.3/include/QtCore\" -I\"/home/tombr/Programs/Qt-4.7.3/include/QtGui\" -std=c++0x "
+    //                      << prefix << ".cpp" << " -o " << getLibraryName();
+    cout << "[Info] " << build.getCommandString() << endl;
     if (build.execute()) {
       // TODO: report error
-      cout << "compilation failed: " << build.getOutput() << endl;
+      cout << "[Error] Compilation failed: " << build.getOutput() << endl;
       return;
     }
   }
@@ -999,12 +1063,13 @@ void Workflow::buildStack(Node* node) {
 }
 
 void Workflow::updateCurrentModule() {
-  return;
+  //return;
 
   //cout << "[" << QThread::currentThreadId() << "] " << "Update selected module" << endl;
   // build stack
   Node* node = getNode(workbench->getCurrentItem());
   if (node) {
+    updateChecksum(getInputChecksums(), node);
     buildStack(node);
     processStack();
   }
@@ -1023,15 +1088,17 @@ void Workflow::updateOutputs(bool updateNodes) {
   //  - reset combinations iterator
   if (host::DataModel::getInstance().getMainWorkflow() == this) {
     ReflectableClass* module = getModule();
+    CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(module);
     std::vector<checksum_type> checksums;
     if (module) {
       const std::vector<IClassProperty*>& properties = module->getProperties();
       for (unsigned i = 0; i < properties.size(); ++i) {
-
+//        std::cout << properties[i]->getName() << std::endl;
         if (properties[i]->getAttribute<InputAttribute>() &&
-            !properties[i]->getAttribute<FromEnumerableAttribute>())
+            (!combiner || !properties[i]->getAttribute<FromEnumerableAttribute>()))
         {
-          checksums.push_back(getChecksum(properties[i], *module));
+          int cs = getChecksum(properties[i], *module);
+          checksums.push_back(cs);
         }
       }
     }
@@ -1045,6 +1112,10 @@ void Workflow::updateOutputs(bool updateNodes) {
     return;
   }
 
+  this->updateNodes();
+}
+
+void Workflow::updateNodes() {
   CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
   if (combiner) {
     if (combiner->resetCombinations())
@@ -1054,10 +1125,6 @@ void Workflow::updateOutputs(bool updateNodes) {
       return;
     }
   }
-  this->updateNodes();
-}
-
-void Workflow::updateNodes() {
   buildStack(&outputsNode);
   processStack();
 }
@@ -1070,7 +1137,9 @@ void Workflow::processStack() {
     processedStack.push(node);
 
     // Update the node, if it needs update or if it is the last one
-    if (nodeStack.empty() || !node->isUpToDate() || processingCombination) {
+    if (nodeStack.empty() || ((!node->isUpToDate() || processingCombination) &&
+        !node->restoreFromCache()))
+    {
       node->getToolItem()->setProgress(-2);
       Workflow* workflow = dynamic_cast<Workflow*>(node);
       if (workflow) {
@@ -1103,7 +1172,8 @@ void Workflow::processStack() {
       ToolItem* item = getToolItem();
       if (item)
         item->setProgress(combiner->getProgress());
-      updateNodes();
+      buildStack(&outputsNode);
+      processStack();
       return;       // return here. otherwise update finished is emitted.
     }
     processingCombination = false;
@@ -1161,8 +1231,12 @@ void Workflow::writeResults() {
 }
 
 void Workflow::updateChecksum(const std::vector<checksum_type>& inputChecksums) {
+  updateChecksum(inputChecksums, &outputsNode);
+}
+
+void Workflow::updateChecksum(const std::vector<checksum_type>& inputChecksums, Node* node) {
   setInputChecksums(inputChecksums);
-  buildStack(&outputsNode);
+  buildStack(node);
   while (!nodeStack.empty()) {
     Node* node = nodeStack.top();
     nodeStack.pop();
@@ -1412,7 +1486,12 @@ GlobalEdge* Workflow::getGlobalEdge(capputils::reflection::ReflectableClass* obj
   return 0;
 }
 
+void Workflow::updateCache() {
+}
 
+bool Workflow::restoreFromCache() {
+  return false;
+}
 
 }
 
