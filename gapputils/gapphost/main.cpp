@@ -16,6 +16,7 @@
 #include <iostream>
 #include <capputils/ReflectableClassFactory.h>
 #include <capputils/FactoryException.h>
+#include <sstream>
 
 #include "DataModel.h"
 #include "Workflow.h"

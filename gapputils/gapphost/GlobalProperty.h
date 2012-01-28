@@ -17,6 +17,8 @@ namespace gapputils {
 
 namespace workflow {
 
+class Expression;
+
 class GlobalProperty : public capputils::reflection::ReflectableClass {
 
   InitReflectableClass(GlobalProperty)
@@ -27,6 +29,7 @@ class GlobalProperty : public capputils::reflection::ReflectableClass {
   Property(NodePtr, Node*)
   Property(PropertyId, int)
   Property(Edges, std::vector<Edge*>*)
+  Property(Expressions, boost::shared_ptr<std::vector<Expression* > >)
 
 public:
   GlobalProperty();

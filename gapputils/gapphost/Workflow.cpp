@@ -204,6 +204,12 @@ Workflow::~Workflow() {
     delete _GlobalEdges->at(i);
   delete _GlobalEdges;
 
+  // Delete expressions first because expressions link to nodes and
+  // disconnect when deleted. Thus, the node must not be deleted before
+  // deleting the expression
+  for (unsigned i = 0; i < _Nodes->size(); ++i)
+    _Nodes->at(i)->getExpressions()->clear();
+
   for (unsigned i = 0; i < _Nodes->size(); ++i)
     delete _Nodes->at(i);
   delete _Nodes;
@@ -475,9 +481,13 @@ void Workflow::removeGlobalProperty(GlobalProperty* gprop) {
   QStandardItem* item = getItem(gprop->getNodePtr()->getModule(), gprop->getProperty());
   assert(item);
 
-  // remove edges to that property first
+  // remove edges and expressions to that property first
   while(gprop->getEdges()->size()) {
     removeGlobalEdge((GlobalEdge*)gprop->getEdges()->at(0));
+  }
+
+  while(gprop->getExpressions()->size()) {
+    gprop->getExpressions()->at(0)->disconnect(gprop);
   }
 
   for (unsigned i = 0; i < _GlobalProperties->size(); ++i) {
@@ -554,6 +564,7 @@ void Workflow::createModule(int x, int y, QString classname) {
     node->setModule(object);
     node->resume();
   }
+  node->setWorkflow(this);
   node->setX(x);
   node->setY(y);
   getNodes()->push_back(node);
@@ -769,17 +780,6 @@ void Workflow::createAndLoadAdhocModule() {
     string prefix = getPrefix();
     Xmlizer::ToXml(prefix + ".xml", *getInterface());
 
-//    XslTransformation transform;
-//    transform.setInputName(prefix + ".xml");
-//    transform.setOutputName(prefix + ".cpp");
-//    if (getInterface()->getIsCombinerInterface())
-//      transform.setXsltName(model.getConfigurationDirectory() + "/" + xsltSettings.getCombinerInterfaceStyleSheetName());
-//    else
-//      transform.setXsltName(model.getConfigurationDirectory() + "/" + xsltSettings.getStandardInterfaceStyleSheetName());
-//    transform.execute(0);
-//    transform.writeResults();
-//    cout << transform.getCommandOutput() << endl;
-
     capputils::Executer xslt;
     xslt.getCommand() << xsltSettings.getCommandName() << " "
                       << xsltSettings.getInputSwitch() << "\"" << prefix << ".xml\" "
@@ -808,8 +808,6 @@ void Workflow::createAndLoadAdhocModule() {
 
     build.getCommand() << " " << prefix << ".cpp " << builderSettings.getOutputSwitch() << getLibraryName();
 
-    //build.getCommand() << "gcc -shared -I\"/home/tombr/Projects\" -I\"/home/tombr/include\" -I\"/home/tombr/Programs/cuda/include\" -I\"/home/tombr/Programs/Qt-4.7.3/include\" -I\"/home/tombr/Programs/Qt-4.7.3/include/QtCore\" -I\"/home/tombr/Programs/Qt-4.7.3/include/QtGui\" -std=c++0x "
-    //                      << prefix << ".cpp" << " -o " << getLibraryName();
     cout << "[Info] " << build.getCommandString() << endl;
     if (build.execute()) {
       // TODO: report error
@@ -834,11 +832,13 @@ void Workflow::resume() {
   if (!hasIONodes) {
     hasIONodes = true;
     inputsNode.setModule(getModule());
-    outputsNode.setModule(getModule());
     inputsNode.setX(getInputsPosition()[0]);
     inputsNode.setY(getInputsPosition()[1]);
+    inputsNode.setWorkflow(this);
+    outputsNode.setModule(getModule());
     outputsNode.setX(getOutputsPosition()[0]);
     outputsNode.setY(getOutputsPosition()[1]);
+    outputsNode.setWorkflow(this);
 
     newItem(&inputsNode);
     newItem(&outputsNode);
@@ -850,6 +850,7 @@ void Workflow::resume() {
   vector<GlobalEdge*>* gedges = getGlobalEdges();
   for (unsigned i = 0; i < nodes->size(); ++i) {
     Node* node = nodes->at(i);
+    node->setWorkflow(this);
     node->resume();
     Workflow* workflow = dynamic_cast<Workflow*>(node);
     if (workflow) {
@@ -871,6 +872,9 @@ void Workflow::resume() {
 
   for (unsigned i = 0; i < gedges->size(); ++i)
     activateGlobalEdge(gedges->at(i));
+
+  for (unsigned i = 0; i < nodes->size(); ++i)
+    nodes->at(i)->resumeExpressions();
 }
 
 QWidget* Workflow::dispenseWidget() {
@@ -1068,11 +1072,32 @@ void Workflow::updateCurrentModule() {
   //cout << "[" << QThread::currentThreadId() << "] " << "Update selected module" << endl;
   // build stack
   Node* node = getNode(workbench->getCurrentItem());
-  if (node) {
+  if (!node)
+    return;
+
+  if (host::DataModel::getInstance().getMainWorkflow() == this) {
+    ReflectableClass* module = getModule();
+    CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(module);
+    std::vector<checksum_type> checksums;
+    if (module) {
+      const std::vector<IClassProperty*>& properties = module->getProperties();
+      for (unsigned i = 0; i < properties.size(); ++i) {
+//        std::cout << properties[i]->getName() << std::endl;
+        if (properties[i]->getAttribute<InputAttribute>() &&
+            (!combiner || !properties[i]->getAttribute<FromEnumerableAttribute>()))
+        {
+          int cs = getChecksum(properties[i], *module);
+          checksums.push_back(cs);
+        }
+      }
+    }
+    updateChecksum(checksums, node);
+  } else {
     updateChecksum(getInputChecksums(), node);
-    buildStack(node);
-    processStack();
   }
+
+  buildStack(node);
+  processStack();
 }
 
 Workflow* Workflow::getCurrentWorkflow() {
@@ -1130,14 +1155,19 @@ void Workflow::updateNodes() {
 }
 
 void Workflow::processStack() {
+  CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
+
   while (!nodeStack.empty()) {
     Node* node = nodeStack.top();
     nodeStack.pop();
 
     processedStack.push(node);
 
+    // TODO: Single update in a combiner interface is not handled correctly.
+    //       It is unclear how to determine if a module is up-to-date or not.
+
     // Update the node, if it needs update or if it is the last one
-    if (nodeStack.empty() || ((!node->isUpToDate() || processingCombination) &&
+    if (nodeStack.empty() || ((!node->isUpToDate() || processingCombination || combiner) &&
         !node->restoreFromCache()))
     {
       node->getToolItem()->setProgress(-2);
@@ -1164,7 +1194,6 @@ void Workflow::processStack() {
   //     * advance to next calculation
   //     * Rebuild stack
   //     * Start calculation (process stack)
-  CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
 
   if (combiner && processingCombination) {
     combiner->appendResults();

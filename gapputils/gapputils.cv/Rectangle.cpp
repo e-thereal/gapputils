@@ -51,13 +51,13 @@ BeginPropertyDefinitions(Rectangle)
   ReflectableProperty(Model, Hide(), Observe(modelId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Rectangle, Output("Rect"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(BackgroundImage, NoParameter(), Volatile(), ReadOnly(), Observe(backgroundId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RectangleName, Input("Name"), Volatile(), Observe(nameId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(RectangleName, Input("Name"), Observe(nameId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
 Rectangle::Rectangle()
  : _Width(100), _Height(100), _RectangleWidth(50), _RectangleHeight(50),
-   _Model(new RectangleModel()), data(0), dialog(0)
+   _Model(new RectangleModel()), data(0), dialog(0), initialized(false)
 {
   WfeUpdateTimestamp
   setLabel("Rectangle");
@@ -75,18 +75,25 @@ Rectangle::~Rectangle() {
   }
 }
 
+void Rectangle::resume() {
+  RectangleWidget* widget = new RectangleWidget(getWidth(), getHeight(), getModel());
+  widget->setBackgroundImage(getBackgroundImage());
+  dialog = new RectangleDialog(widget);
+  initialized = true;
+}
+
 void Rectangle::changedHandler(capputils::ObservableClass* sender, int eventId) {
+  if (!initialized)
+    return;
+
   if (eventId == widthId || eventId == heightId) {
-    if (dialog) {
-      RectangleWidget* widget = (RectangleWidget*)dialog->getWidget();
-      widget->updateSize(getWidth(), getHeight());
-    }
+    RectangleWidget* widget = (RectangleWidget*)dialog->getWidget();
+    widget->updateSize(getWidth(), getHeight());
   }
+
   if (eventId == backgroundId) {
-    if (dialog) {
-      RectangleWidget* widget = (RectangleWidget*)dialog->getWidget();
-      widget->setBackgroundImage(getBackgroundImage());
-    }
+    RectangleWidget* widget = (RectangleWidget*)dialog->getWidget();
+    widget->setBackgroundImage(getBackgroundImage());
   }
 
   if (eventId == rectWidthId) {
@@ -96,8 +103,6 @@ void Rectangle::changedHandler(capputils::ObservableClass* sender, int eventId) 
   }
 
   if (eventId == modelId) {
-    // TODO: Update module such that is uses the new checksum mechanism
-    //this->setTime(modelId, std::time(0));
     if (getRectangleName().size())
       capputils::Xmlizer::ToXml(getRectangleName(), *getModel());
   }
@@ -119,7 +124,7 @@ void Rectangle::writeResults() {
   if (!data)
     return;
 
-  // Make a copy of the rectangle so that is will not be changed later
+  // Make a copy of the rectangle so that it will not be changed later
   TiXmlNode* modelNode = capputils::Xmlizer::CreateXml(*getModel());
   boost::shared_ptr<RectangleModel> modelCopy((RectangleModel*)capputils::Xmlizer::CreateReflectableClass(*modelNode));
   setRectangle(modelCopy);
@@ -127,11 +132,6 @@ void Rectangle::writeResults() {
 }
 
 void Rectangle::show() {
-  if (!dialog) {
-    RectangleWidget* widget = new RectangleWidget(getWidth(), getHeight(), getModel());
-    widget->setBackgroundImage(getBackgroundImage());
-    dialog = new RectangleDialog(widget);
-  }
   dialog->show();
 }
 

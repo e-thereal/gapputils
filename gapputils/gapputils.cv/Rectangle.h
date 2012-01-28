@@ -37,6 +37,7 @@ class Rectangle : public gapputils::workflow::WorkflowElement {
 private:
   mutable Rectangle* data;
   RectangleDialog* dialog;
+  bool initialized;
   static int widthId, heightId, rectWidthId, rectHeightId, backgroundId,
              modelId, nameId;
 
@@ -47,6 +48,7 @@ public:
   virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
   virtual void writeResults();
   virtual void show();
+  virtual void resume();
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 };

@@ -29,7 +29,8 @@ SOURCES = main.cpp \
 		  GlobalProperty.cpp \
 		  PopUpList.cpp \
 		  GlobalEdge.cpp \
-		  EditInterfaceDialog.cpp
+		  EditInterfaceDialog.cpp \
+		  Expression.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \

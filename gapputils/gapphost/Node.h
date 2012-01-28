@@ -9,12 +9,15 @@
 #include <capputils/ObservableClass.h>
 #include <gapputils/IProgressMonitor.h>
 #include "ModelHarmonizer.h"
+#include "Expression.h"
 
 namespace gapputils {
 
 class ToolItem;
 
 namespace workflow {
+
+class Workflow;
 
 class Node : public capputils::reflection::ReflectableClass,
              public capputils::ObservableClass
@@ -31,6 +34,8 @@ public:
   Property(InputChecksum, checksum_type)
   Property(OutputChecksum, checksum_type)
   Property(ToolItem, ToolItem*)
+  Property(Workflow, Workflow*)
+  Property(Expressions, boost::shared_ptr<std::vector<boost::shared_ptr<Expression> > >)
 
 private:
   ModelHarmonizer* harmonizer;
@@ -40,10 +45,29 @@ public:
   Node();
   virtual ~Node(void);
 
+  /**
+   * \brief Returns the expression object of the named property if the property is associated to one.
+   *
+   * \param[in] propertyName  Name of the property for which an expression is looked for
+   *
+   * \return The expression object, or 0 if the property is not bound to an expression
+   */
+  Expression* getExpression(const std::string& propertyName);
+
+  /**
+   * \brief Removes an expression from a property
+   *
+   * \param[in] propertyName  Name of the property for which the expression should be removed
+   *
+   * \return  True if an expression was removed. False if no expression for the given property could be found.
+   */
+  bool removeExpression(const std::string& propertyName);
+
   virtual bool isUpToDate() const;
   virtual void update(IProgressMonitor* monitor);
   virtual void writeResults();
   virtual void resume();
+  void resumeExpressions();
 
   QStandardItemModel* getModel();
 
