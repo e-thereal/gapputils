@@ -23,10 +23,13 @@ BeginPropertyDefinitions(GlobalProperty)
   DefineProperty(NodePtr, Volatile())
   DefineProperty(PropertyId, Volatile())
   DefineProperty(Edges, Volatile())
+  DefineProperty(Expressions, Volatile())
 
 EndPropertyDefinitions
 
-GlobalProperty::GlobalProperty() : _NodePtr(0), _PropertyId(-1) {
+GlobalProperty::GlobalProperty()
+ : _NodePtr(0), _PropertyId(-1), _Expressions(new std::vector<Expression*>())
+{
   _Edges = new std::vector<Edge*>();
 }
 

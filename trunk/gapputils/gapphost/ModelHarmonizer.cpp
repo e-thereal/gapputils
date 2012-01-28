@@ -18,6 +18,10 @@
 #include <capputils/ShortNameAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
+#include "Node.h"
+
+#include <cassert>
+
 #include "PropertyReference.h"
 
 using namespace capputils;
@@ -28,9 +32,10 @@ using namespace std;
 namespace gapputils {
 
 using namespace attributes;
+using namespace workflow;
 
-void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
-  vector<IClassProperty*> properties = object.getProperties();
+void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node) {
+  vector<IClassProperty*> properties = object->getProperties();
   parentItem->removeRows(0, parentItem->rowCount());
 
   for (unsigned i = 0, gridPos = 0; i < properties.size(); ++i) {
@@ -44,7 +49,7 @@ void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
     QStandardItem* key = new QStandardItem(keyName.c_str());
     QStandardItem* value = new QStandardItem();
     key->setEditable(false);
-    value->setData(QVariant::fromValue(PropertyReference(&object, properties[i])), Qt::UserRole);
+    value->setData(QVariant::fromValue(PropertyReference(object, properties[i], node)), Qt::UserRole);
 
     DescriptionAttribute* description = properties[i]->getAttribute<DescriptionAttribute>();
     if (description) {
@@ -64,7 +69,7 @@ void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
 
     IReflectableAttribute* reflectable = properties[i]->getAttribute<IReflectableAttribute>();
     if (reflectable) {
-      ReflectableClass* subObject = reflectable->getValuePtr(object, properties[i]);
+      ReflectableClass* subObject = reflectable->getValuePtr(*object, properties[i]);
 
       Enumerator* enumerator = dynamic_cast<Enumerator*>(subObject);
       if (!enumerator && subObject) {
@@ -72,14 +77,14 @@ void buildModel(QStandardItem* parentItem, ReflectableClass& object) {
           value->setText(subObject->getClassName().c_str());
           value->setEnabled(false);
         } else {
-          value->setText(properties[i]->getStringValue(object).c_str());
+          value->setText(properties[i]->getStringValue(*object).c_str());
         }
-        buildModel(key, *subObject);
+        buildModel(key, subObject, node);
       } else {
-        value->setText(properties[i]->getStringValue(object).c_str());
+        value->setText(properties[i]->getStringValue(*object).c_str());
       }
     } else {
-      value->setText(properties[i]->getStringValue(object).c_str());
+      value->setText(properties[i]->getStringValue(*object).c_str());
     }
     parentItem->setChild(gridPos, 0, key);
     parentItem->setChild(gridPos, 1, value);
@@ -129,17 +134,22 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object) {
 }
 
 void ModelHarmonizer::ObjectChangedHandler::operator()(capputils::ObservableClass* /*sender*/, int /*eventId*/) {
-  updateModel(parent->model->invisibleRootItem(), *parent->object);
+  updateModel(parent->model->invisibleRootItem(), *parent->node->getModule());
 }
 
-ModelHarmonizer::ModelHarmonizer(ReflectableClass* object) : QObject(), objectChanged(this), object(object) {
+ModelHarmonizer::ModelHarmonizer(gapputils::workflow::Node* node)
+ : QObject(), objectChanged(this), node(node)
+{
   model = new QStandardItemModel(0, 2);
   model->setHorizontalHeaderItem(0, new QStandardItem("Property"));
   model->setHorizontalHeaderItem(1, new QStandardItem("Value"));
 
-  buildModel(model->invisibleRootItem(), *object);
+  assert(node);
+  assert(node->getModule());
+
+  buildModel(model->invisibleRootItem(), node->getModule(), node);
   connect(model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(itemChanged(QStandardItem*)));
-  ObservableClass* observable = dynamic_cast<ObservableClass*>(object);
+  ObservableClass* observable = dynamic_cast<ObservableClass*>(node->getModule());
   if (observable) {
     observable->Changed.connect(objectChanged);
   }
@@ -157,7 +167,7 @@ void ModelHarmonizer::itemChanged(QStandardItem* item) {
   // Update model if necessary
   if (item->data(Qt::UserRole).canConvert<PropertyReference>()) {
     const PropertyReference& reference = item->data(Qt::UserRole).value<PropertyReference>();
-    ReflectableClass* object = reference.getObject();
+    ReflectableClass* object = reference.getNode()->getModule();
     IClassProperty* prop = reference.getProperty();
     QString qstr = item->text();
     std::string str(qstr.toUtf8().data());

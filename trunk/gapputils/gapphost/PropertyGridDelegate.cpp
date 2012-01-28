@@ -12,10 +12,16 @@
 #include <capputils/FlagAttribute.h>
 #include "PropertyReference.h"
 #include "FilenameEdit.h"
+#include "Expression.h"
+#include "Node.h"
+
+#include <iostream>
 
 using namespace capputils::reflection;
 using namespace capputils::attributes;
 using namespace std;
+
+using namespace gapputils::workflow;
 
 PropertyGridDelegate::PropertyGridDelegate(QObject *parent)
   : QStyledItemDelegate(parent)
@@ -37,6 +43,9 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
     IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
     FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
     FilenameAttribute* fa = 0;
+
+    ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
+
     if (reflectable) {
       ReflectableClass* object = reference.getObject();
       IClassProperty* prop = reference.getProperty();
@@ -69,7 +78,12 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
       connect(editor, SIGNAL(editingFinished()),
                  this, SLOT(commitAndCloseEditor()));
       return editor;
-    }/* else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
+    } else if (stringProperty) {
+      QLineEdit* edit = new QLineEdit(parent);
+      return edit;
+    }
+
+    /* else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
       QCheckBox* editor = new QCheckBox(parent);
       return editor;
     }*/
@@ -83,8 +97,12 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
   const QVariant& varient = index.data(Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
-    IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
-    FromEnumerableAttribute* fromEnumerable = reference.getProperty()->getAttribute<FromEnumerableAttribute>();
+    IClassProperty* property = reference.getProperty();
+    Node* node = reference.getNode();
+
+    IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
+    FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
+    ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
     if (reflectable) {
       ReflectableClass* object = reference.getObject();
       IClassProperty* prop = reference.getProperty();
@@ -107,8 +125,27 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
       return;
     } else if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
       FilenameEdit* edit = static_cast<FilenameEdit*>(editor);
-      edit->setText(index.model()->data(index).toString());
-    }/* else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
+
+      Expression* expression = node->getExpression(property->getName());
+      if (expression) {
+        edit->setText(expression->getExpression().c_str());
+      } else {
+        edit->setText(index.model()->data(index).toString());
+      }
+      return;
+    } else if (stringProperty) {
+      QLineEdit* edit = static_cast<QLineEdit*>(editor);
+
+      Expression* expression = node->getExpression(property->getName());
+      if (expression) {
+        edit->setText(expression->getExpression().c_str());
+      } else {
+        edit->setText(index.model()->data(index).toString());
+      }
+      return;
+    }
+
+    /* else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
       QCheckBox* cb = static_cast<QCheckBox*>(editor);
       cb->setChecked(index.model()->data(index).toString().compare("0"));
     }*/
@@ -122,8 +159,13 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
   const QVariant& varient = index.data(Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
-    IReflectableAttribute* reflectable = reference.getProperty()->getAttribute<IReflectableAttribute>();
-    FromEnumerableAttribute* fromEnumerable = reference.getProperty()->getAttribute<FromEnumerableAttribute>();
+
+    IClassProperty* property = reference.getProperty();
+    Node* node = reference.getNode();
+
+    IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
+    FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
+    ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
     if (reflectable) {
       ReflectableClass* object = reference.getObject();
       IClassProperty* prop = reference.getProperty();
@@ -143,9 +185,52 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
     } else if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
       FilenameEdit* edit = static_cast<FilenameEdit*>(editor);
       QString text = edit->getText();
-      model->setData(index, text);
+      if (text[0] == '=') {
+        std::string expressionString(text.toAscii().data());
+        Expression* expression = node->getExpression(property->getName());
+        if (expression) {
+          expression->setExpression(expressionString);
+        } else {
+          boost::shared_ptr<Expression> newExpression(new Expression());
+          newExpression->setExpression(expressionString);
+          newExpression->setPropertyName(property->getName());
+          newExpression->setNode(node);
+          node->getExpressions()->push_back(newExpression);
+          expression = newExpression.get();
+        }
+        model->setData(index, expression->evaluate().c_str());
+        expression->resume();
+      } else {
+        node->removeExpression(property->getName());
+        model->setData(index, text);
+      }
       return;
-    } /*else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
+    } else if (stringProperty) {
+      QLineEdit* edit = static_cast<QLineEdit*>(editor);
+      QString text = edit->text();
+      if (text[0] == '=') {
+        std::string expressionString(text.toAscii().data());
+        Expression* expression = node->getExpression(property->getName());
+        if (expression) {
+          expression->setExpression(expressionString);
+        } else {
+          boost::shared_ptr<Expression> newExpression(new Expression());
+          newExpression->setExpression(expressionString);
+          newExpression->setPropertyName(property->getName());
+          newExpression->setNode(node);
+          node->getExpressions()->push_back(newExpression);
+          expression = newExpression.get();
+        }
+        model->setData(index, expression->evaluate().c_str());
+        expression->resume();
+      } else {
+        node->removeExpression(property->getName());
+        model->setData(index, text);
+      }
+      return;
+    }
+
+    /*else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
       QCheckBox* cb = static_cast<QCheckBox*>(editor);
       if (cb->isChecked())
         model->setData(index, "1");

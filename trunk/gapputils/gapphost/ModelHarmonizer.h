@@ -15,6 +15,10 @@
 
 namespace gapputils {
 
+namespace workflow {
+  class Node;
+}
+
 class ModelHarmonizer : public QObject {
   Q_OBJECT
 
@@ -27,11 +31,11 @@ class ModelHarmonizer : public QObject {
   } objectChanged;
 
 private:
-  capputils::reflection::ReflectableClass* object;
+  gapputils::workflow::Node* node;
   QStandardItemModel* model;
 
 public:
-  ModelHarmonizer(capputils::reflection::ReflectableClass* object);
+  ModelHarmonizer(gapputils::workflow::Node* node);
   virtual ~ModelHarmonizer();
 
   QStandardItemModel* getModel() const;

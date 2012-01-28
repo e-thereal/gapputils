@@ -7,8 +7,9 @@ PropertyReference::PropertyReference()
 }
 
 PropertyReference::PropertyReference(ReflectableClass* object,
-    IClassProperty* prop)
-    : object(object), prop(prop)
+    IClassProperty* prop,
+    gapputils::workflow::Node* node)
+    : object(object), prop(prop), node(node)
 {
 }
 
@@ -22,4 +23,8 @@ ReflectableClass* PropertyReference::getObject() const {
 
 IClassProperty* PropertyReference::getProperty() const {
   return prop;
+}
+
+gapputils::workflow::Node* PropertyReference::getNode() const {
+  return node;
 }

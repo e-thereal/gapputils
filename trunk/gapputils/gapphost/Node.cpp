@@ -50,9 +50,13 @@ BeginPropertyDefinitions(Node)
   DefineProperty(InputChecksum)
   DefineProperty(OutputChecksum)
   DefineProperty(ToolItem, Volatile())
+  DefineProperty(Workflow, Volatile())
+  DefineProperty(Expressions, Enumerable<TYPE_OF(Expressions), true>())
 EndPropertyDefinitions
 
-Node::Node(void) :_X(0), _Y(0), _Module(0), _InputChecksum(0), _OutputChecksum(0), _ToolItem(0), harmonizer(0)
+Node::Node(void)
+ : _X(0), _Y(0), _Module(0), _InputChecksum(0), _OutputChecksum(0), _ToolItem(0), _Workflow(0),
+   _Expressions(new std::vector<boost::shared_ptr<Expression> >()), harmonizer(0)
 {
   boost::uuids::uuid uuid = boost::uuids::random_generator()();
   std::stringstream stream;
@@ -66,6 +70,31 @@ Node::~Node(void)
   if (_Module) {
     delete _Module;
   }
+}
+
+Expression* Node::getExpression(const std::string& propertyName) {
+  std::vector<boost::shared_ptr<Expression> >& expressions = *getExpressions();
+
+  for (unsigned i = 0; i < expressions.size(); ++i) {
+    if (!expressions[i]->getPropertyName().compare(propertyName)) {
+      return expressions[i].get();
+    }
+  }
+
+  return 0;
+}
+
+bool Node::removeExpression(const std::string& propertyName) {
+  std::vector<boost::shared_ptr<Expression> >& expressions = *getExpressions();
+
+  for (unsigned i = 0; i < expressions.size(); ++i) {
+    if (!expressions[i]->getPropertyName().compare(propertyName)) {
+      expressions.erase(expressions.begin() + i);
+      return true;
+    }
+  }
+
+  return false;
 }
 
 bool Node::isUpToDate() const {
@@ -99,10 +128,25 @@ void Node::resume() {
     }
   }
 
+  std::vector<boost::shared_ptr<Expression> >& expressions = *getExpressions();
+
+  for (unsigned i = 0; i < expressions.size(); ++i) {
+    expressions[i]->setNode(this);
+    // TODO: may resume expressions here. But make sure that global properties are available
+    //       for connecting stuff.
+  }
+
   WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
   if (element) {
     element->resume();
   }
+}
+
+void Node::resumeExpressions() {
+  std::vector<boost::shared_ptr<Expression> >& expressions = *getExpressions();
+
+  for (unsigned i = 0; i < expressions.size(); ++i)
+    expressions[i]->resume();
 }
 
 // TODO: Need better method to get the checksum of a property
@@ -190,7 +234,7 @@ void Node::updateChecksum(const std::vector<checksum_type>& inputChecksums) {
 
 QStandardItemModel* Node::getModel() {
   if (!harmonizer)
-    harmonizer = new ModelHarmonizer(getModule());
+    harmonizer = new ModelHarmonizer(this);
   return harmonizer->getModel();
 }
 
