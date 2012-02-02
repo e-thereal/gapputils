@@ -61,6 +61,7 @@
 #include "XslTransformation.h"
 
 #include "DataModel.h"
+#include "MainWindow.h"
 
 using namespace capputils;
 using namespace capputils::reflection;
@@ -777,6 +778,7 @@ void Workflow::createAndLoadAdhocModule() {
   if (!boost::filesystem::exists(getLibraryName().c_str()) ||
       ((libTime = boost::filesystem::last_write_time(getLibraryName().c_str())) < (interfaceTime = getTime(interfaceId))))
   {
+    //getInterface()->setName(getInterfaceName());
     string prefix = getPrefix();
     Xmlizer::ToXml(prefix + ".xml", *getInterface());
 
@@ -821,13 +823,15 @@ void Workflow::createAndLoadAdhocModule() {
   setModule(ReflectableClassFactory::getInstance().newInstance(string("gapputils::host::internal::") + getInterface()->getName()));
   inputsNode.setModule(getModule());
   outputsNode.setModule(getModule());
-  delete module;
+  if (module)
+    delete module;
 }
 
 void Workflow::resume() {
   map<string, Workflow*>* workflowMap = host::DataModel::getInstance().getWorkflowMap().get();
-  assert(workflowMap->find(getUuid()) == workflowMap->end());
-  workflowMap->insert(pair<string, Workflow*>(getUuid(), this));
+  //assert(workflowMap->find(getUuid()) == workflowMap->end());
+  if (workflowMap->find(getUuid()) == workflowMap->end())
+    workflowMap->insert(pair<string, Workflow*>(getUuid(), this));
 
   if (!hasIONodes) {
     hasIONodes = true;
@@ -951,7 +955,7 @@ void Workflow::deleteModule(ToolItem* item) {
   Node* node = getNode(item, i);
 
   if (!node) {
-    cout << "Node not found!" << endl;
+    cout << "[Error] Node not found! " << __FILE__ << ", " << __LINE__ << endl;
     return;
   }
 
@@ -1298,8 +1302,9 @@ void Workflow::delegateDeleteCalled(workflow::Workflow* workflow) {
 }
 
 void Workflow::load(const string& filename) {
-  // Delete all current nodes and edges
+  // Delete all current nodes, edges
   // Load model data from xml file (only selected properties)
+  // Replace workflows's uuid with new uuid (also in interface name
   // resume
   while (_Edges->size()) {
     CableItem* cable = _Edges->at(0)->getCableItem();
@@ -1316,10 +1321,17 @@ void Workflow::load(const string& filename) {
   }
 
   Xmlizer::GetPropertyFromXml(*this, findProperty("Libraries"), filename);
+  Xmlizer::GetPropertyFromXml(*this, findProperty("Interface"), filename);
   Xmlizer::GetPropertyFromXml(*this, findProperty("Nodes"), filename);
   Xmlizer::GetPropertyFromXml(*this, findProperty("Edges"), filename);
   Xmlizer::GetPropertyFromXml(*this, findProperty("GlobalProperties"), filename);
-  resume();
+  Xmlizer::GetPropertyFromXml(*this, findProperty("GlobalEdges"), filename);
+
+  InterfaceDescription* interface = getInterface().get();
+  if (interface)
+    interface->setName(getInterfaceName());
+
+  gapputils::host::DataModel::getInstance().getMainWindow()->reload();
 }
 
 void Workflow::setUiEnabled(bool enabled) {

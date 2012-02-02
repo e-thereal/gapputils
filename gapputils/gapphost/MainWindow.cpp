@@ -109,6 +109,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 {
   DataModel& model = DataModel::getInstance();
 
+  model.setMainWindow(this);
+
   setWindowTitle("Application Host");
   this->setGeometry(model.getWindowX(), model.getWindowY(), model.getWindowWidth(), model.getWindowHeight());
 
@@ -267,6 +269,8 @@ void MainWindow::reload() {
   DataModel& model = DataModel::getInstance();
   Workflow* workflow = model.getMainWorkflow();
 
+  Xmlizer::ToXml("reload1.xml", model);
+
   TiXmlElement* modelElement = Xmlizer::CreateXml(model);
   delete workflow;
   workflow = 0;
@@ -274,6 +278,7 @@ void MainWindow::reload() {
   tabWidget->removeTab(0);  // First tab is never automatically removed
 
   Xmlizer::FromXml(model, *modelElement);
+  Xmlizer::ToXml("reload2.xml", model);
   resume();
   updateToolBox(toolBox);
 }

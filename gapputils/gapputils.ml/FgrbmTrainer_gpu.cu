@@ -143,12 +143,11 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
     std::cout << "[Info] Design matrix standardized: " << timer.elapsed() << " s" << std::endl;
   }
 
-
-  /*for (unsigned i = uX.size1() - 1; i > 0; --i) {
+  for (unsigned i = uX.size1() - 1; i > 0; --i) {
     unsigned j = rand() % (i + 1);
     ublas::row(uX, i).swap(ublas::row(uX, j));
     ublas::row(uY, i).swap(ublas::row(uY, j));
-  }*/
+  }
 
   std::cout << "[Info] Rows shuffled: " << timer.elapsed() << " s" << std::endl;
 

@@ -23,6 +23,7 @@ LinearTransformation.d LinearTransformation.o:  \
   /home/tombr/Projects/capputils/FilenameAttribute.h \
   /home/tombr/Projects/capputils/InputAttribute.h \
   /home/tombr/Projects/capputils/ShortNameAttribute.h \
+  /home/tombr/Projects/capputils/NoParameterAttribute.h \
   /home/tombr/Projects/capputils/NotEqualAssertion.h \
   /home/tombr/Projects/capputils/ObserveAttribute.h \
   /home/tombr/Projects/capputils/IExecutableAttribute.h \
@@ -82,6 +83,8 @@ LinearTransformation.d LinearTransformation.o:  \
 /home/tombr/Projects/capputils/InputAttribute.h:
 
 /home/tombr/Projects/capputils/ShortNameAttribute.h:
+
+/home/tombr/Projects/capputils/NoParameterAttribute.h:
 
 /home/tombr/Projects/capputils/NotEqualAssertion.h:
 

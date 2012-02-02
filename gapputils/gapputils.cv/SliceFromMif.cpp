@@ -24,6 +24,7 @@
 #include <gapputils/ReadOnlyAttribute.h>
 
 #include <CMIF.hpp>
+#include <CChannel.hpp>
 #include <cmath>
 
 #include <culib/CudaImage.h>
@@ -96,7 +97,10 @@ void SliceFromMif::execute(gapputils::workflow::IProgressMonitor* monitor) const
     break;
   }
 
-  boost::shared_ptr<culib::CudaImage> image(new culib::CudaImage(dim3(width, height)));
+  boost::shared_ptr<culib::CudaImage> image(new culib::CudaImage(dim3(width, height),
+      dim3(mif.getChannel(1).getPixelSizeX(),
+           mif.getChannel(1).getPixelSizeY(),
+           mif.getChannel(1).getSliceThickness())));
   float* buffer = image->getOriginalImage();
 
   CMIF::pixelArray pixels = mif.getRawData();

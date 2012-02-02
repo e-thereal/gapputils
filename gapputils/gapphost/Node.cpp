@@ -330,6 +330,7 @@ bool Node::restoreFromCache() {
   std::vector<IClassProperty*>& properties = module->getProperties();
   boost::crc_32_type crc32;
   checksum_type checksum;
+
   for (unsigned i = 0; i < properties.size(); ++i) {
     IClassProperty* prop = properties[i];
 

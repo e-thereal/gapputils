@@ -15,11 +15,13 @@ IntSplitter.d IntSplitter.o: ../IntSplitter.cpp ../IntSplitter.h \
   /home/tombr/Projects/capputils/IExecutableAttribute.h \
   /home/tombr/Projects/capputils/InputAttribute.h \
   /home/tombr/Projects/capputils/ShortNameAttribute.h \
+  /home/tombr/Projects/capputils/NoParameterAttribute.h \
   /home/tombr/Projects/capputils/OutputAttribute.h \
   /home/tombr/Projects/capputils/VolatileAttribute.h \
   /home/tombr/Projects/gapputils/LabelAttribute.h \
   /home/tombr/Projects/gapputils/gapputils.h \
   /home/tombr/Projects/capputils/IAttribute.h \
+  /home/tombr/Projects/capputils/NoParameterAttribute.h \
   /home/tombr/Projects/capputils/ShortNameAttribute.h
 
 ../IntSplitter.h:
@@ -56,6 +58,8 @@ IntSplitter.d IntSplitter.o: ../IntSplitter.cpp ../IntSplitter.h \
 
 /home/tombr/Projects/capputils/ShortNameAttribute.h:
 
+/home/tombr/Projects/capputils/NoParameterAttribute.h:
+
 /home/tombr/Projects/capputils/OutputAttribute.h:
 
 /home/tombr/Projects/capputils/VolatileAttribute.h:
@@ -65,5 +69,7 @@ IntSplitter.d IntSplitter.o: ../IntSplitter.cpp ../IntSplitter.h \
 /home/tombr/Projects/gapputils/gapputils.h:
 
 /home/tombr/Projects/capputils/IAttribute.h:
+
+/home/tombr/Projects/capputils/NoParameterAttribute.h:
 
 /home/tombr/Projects/capputils/ShortNameAttribute.h:

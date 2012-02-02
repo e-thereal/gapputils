@@ -79,6 +79,9 @@ void ImageToMif::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   const int sliceCount = getImage()->getSize().z;
 
   CMIF mif(columnCount, rowCount, sliceCount);
+  mif.getChannel(1).setPixelSizeX(getImage()->getVoxelSize().x);
+  mif.getChannel(1).setPixelSizeY(getImage()->getVoxelSize().y);
+  mif.getChannel(1).setSliceThickness(getImage()->getVoxelSize().z);
   CMIF::pixelArray pixels = mif.getRawData();
 
   float* features = getImage()->getWorkingCopy();
@@ -104,7 +107,7 @@ void ImageToMif::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   for (int z = 1, i = 0; z <= mif.getSliceCount(); ++z) {
     for (int y = 0; y < mif.getRowCount(); ++y) {
       for (int x = 0; x < mif.getColumnCount(); ++x, ++i) {
-        pixels[z][y][x] = std::min(255.0, std::max(0.0, (features[i] - minV) * 255. / (maxV - minV)));
+        pixels[z][y][x] = std::min(2048.0, std::max(0.0, (features[i] - minV) * 2048. / (maxV - minV)));
       }
     }
     if (monitor) {

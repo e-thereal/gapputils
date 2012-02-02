@@ -7,6 +7,7 @@
 
 #include "FgrbmModel.h"
 
+#include <capputils/DescriptionAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -31,11 +32,11 @@ namespace ml {
 
 BeginPropertyDefinitions(FgrbmModel)
 
-  DefineProperty(VisibleBiases, Serialize<TYPE_OF(VisibleBiases)>())
-  DefineProperty(HiddenBiases, Serialize<TYPE_OF(HiddenBiases)>())
-  DefineProperty(VisibleWeights, Serialize<TYPE_OF(VisibleWeights)>())
-  DefineProperty(HiddenWeights, Serialize<TYPE_OF(HiddenWeights)>())
-  DefineProperty(ConditionalWeights, Serialize<TYPE_OF(ConditionalWeights)>())
+  DefineProperty(VisibleBiases, Description("Vector of the size V"), Serialize<TYPE_OF(VisibleBiases)>())
+  DefineProperty(HiddenBiases, Description("Vector of the size H"), Serialize<TYPE_OF(HiddenBiases)>())
+  DefineProperty(VisibleWeights, Description("A V x F matrix."), Serialize<TYPE_OF(VisibleWeights)>())
+  DefineProperty(HiddenWeights, Description("A H x F matrix."), Serialize<TYPE_OF(HiddenWeights)>())
+  DefineProperty(ConditionalWeights, Description("A V x F matrix."), Serialize<TYPE_OF(ConditionalWeights)>())
   DefineProperty(VisibleMean, Serialize<TYPE_OF(VisibleMean)>())
   DefineProperty(VisibleStd, Serialize<TYPE_OF(VisibleStd)>())
   DefineProperty(IsGaussian, Serialize<TYPE_OF(IsGaussian)>())

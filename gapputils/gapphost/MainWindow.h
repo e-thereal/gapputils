@@ -41,7 +41,7 @@ public:
   void setGuiEnabled(bool enabled);
   void resume();
 
-private Q_SLOTS:
+public Q_SLOTS:
   void quit();
   void loadWorkflow();
   void saveWorkflow();
