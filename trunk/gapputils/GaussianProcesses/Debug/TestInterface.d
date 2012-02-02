@@ -18,6 +18,7 @@ TestInterface.d TestInterface.o: ../TestInterface.cpp ../TestInterface.h \
   /home/tombr/Projects/gapputils/PropertyDescription.h \
   /home/tombr/Projects/capputils/OutputAttribute.h \
   /home/tombr/Projects/capputils/ShortNameAttribute.h \
+  /home/tombr/Projects/capputils/NoParameterAttribute.h \
   /home/tombr/Projects/capputils/ObserveAttribute.h \
   /home/tombr/Projects/capputils/IExecutableAttribute.h \
   /home/tombr/Projects/capputils/VolatileAttribute.h \
@@ -64,6 +65,8 @@ TestInterface.d TestInterface.o: ../TestInterface.cpp ../TestInterface.h \
 /home/tombr/Projects/capputils/OutputAttribute.h:
 
 /home/tombr/Projects/capputils/ShortNameAttribute.h:
+
+/home/tombr/Projects/capputils/NoParameterAttribute.h:
 
 /home/tombr/Projects/capputils/ObserveAttribute.h:
 

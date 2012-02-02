@@ -19,6 +19,7 @@ GPRegression.d GPRegression.o: ../GPRegression.cpp ../GPRegression.h \
   /home/tombr/Projects/capputils/IExecutableAttribute.h \
   /home/tombr/Projects/capputils/InputAttribute.h \
   /home/tombr/Projects/capputils/ShortNameAttribute.h \
+  /home/tombr/Projects/capputils/NoParameterAttribute.h \
   /home/tombr/Projects/capputils/OutputAttribute.h \
   /home/tombr/Projects/capputils/EventHandler.h \
   /home/tombr/Projects/capputils/ObservableClass.h \
@@ -28,6 +29,7 @@ GPRegression.d GPRegression.o: ../GPRegression.cpp ../GPRegression.h \
   /home/tombr/Projects/gapputils/HideAttribute.h \
   /home/tombr/Projects/capputils/IAttribute.h \
   /home/tombr/Projects/gapputils/LabelAttribute.h \
+  /home/tombr/Projects/capputils/NoParameterAttribute.h \
   /home/tombr/Projects/capputils/ShortNameAttribute.h \
   /home/tombr/Projects/capputils/TimeStampAttribute.h \
   /home/tombr/Projects/capputils/IXmlableAttribute.h \
@@ -77,6 +79,8 @@ GPRegression.d GPRegression.o: ../GPRegression.cpp ../GPRegression.h \
 
 /home/tombr/Projects/capputils/ShortNameAttribute.h:
 
+/home/tombr/Projects/capputils/NoParameterAttribute.h:
+
 /home/tombr/Projects/capputils/OutputAttribute.h:
 
 /home/tombr/Projects/capputils/EventHandler.h:
@@ -94,6 +98,8 @@ GPRegression.d GPRegression.o: ../GPRegression.cpp ../GPRegression.h \
 /home/tombr/Projects/capputils/IAttribute.h:
 
 /home/tombr/Projects/gapputils/LabelAttribute.h:
+
+/home/tombr/Projects/capputils/NoParameterAttribute.h:
 
 /home/tombr/Projects/capputils/ShortNameAttribute.h:
 

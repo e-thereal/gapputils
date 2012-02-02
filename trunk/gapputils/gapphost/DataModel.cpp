@@ -95,6 +95,7 @@ BeginPropertyDefinitions(DataModel)
   ReflectableProperty(MainWorkflow)
   DefineProperty(OpenWorkflows, Enumerable<boost::shared_ptr<std::vector<std::string> >, false>())
   DefineProperty(CurrentWorkflow)
+  DefineProperty(MainWindow, Volatile())
 EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;

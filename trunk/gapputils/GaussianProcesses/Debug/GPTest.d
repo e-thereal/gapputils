@@ -21,6 +21,7 @@ GPTest.d GPTest.o: ../GPTest.cpp ../GPTest.h \
   /home/tombr/Projects/capputils/ObservableClass.h \
   /home/tombr/Projects/capputils/OutputAttribute.h \
   /home/tombr/Projects/capputils/ShortNameAttribute.h \
+  /home/tombr/Projects/capputils/NoParameterAttribute.h \
   /home/tombr/Projects/capputils/FilenameAttribute.h \
   /home/tombr/Projects/capputils/IAssertionAttribute.h \
   /home/tombr/Projects/capputils/NotEqualAssertion.h \
@@ -32,6 +33,7 @@ GPTest.d GPTest.o: ../GPTest.cpp ../GPTest.h \
   /home/tombr/Projects/capputils/IPropertyIterator.h \
   /home/tombr/Projects/gapputils/LabelAttribute.h \
   /home/tombr/Projects/capputils/IAttribute.h \
+  /home/tombr/Projects/capputils/NoParameterAttribute.h \
   /home/tombr/Projects/capputils/ShortNameAttribute.h \
   /home/tombr/Projects/capputils/VolatileAttribute.h \
   /home/tombr/Projects/capputils/TimeStampAttribute.h \
@@ -342,6 +344,8 @@ GPTest.d GPTest.o: ../GPTest.cpp ../GPTest.h \
 
 /home/tombr/Projects/capputils/ShortNameAttribute.h:
 
+/home/tombr/Projects/capputils/NoParameterAttribute.h:
+
 /home/tombr/Projects/capputils/FilenameAttribute.h:
 
 /home/tombr/Projects/capputils/IAssertionAttribute.h:
@@ -363,6 +367,8 @@ GPTest.d GPTest.o: ../GPTest.cpp ../GPTest.h \
 /home/tombr/Projects/gapputils/LabelAttribute.h:
 
 /home/tombr/Projects/capputils/IAttribute.h:
+
+/home/tombr/Projects/capputils/NoParameterAttribute.h:
 
 /home/tombr/Projects/capputils/ShortNameAttribute.h:
 

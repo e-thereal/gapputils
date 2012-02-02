@@ -20,6 +20,7 @@ Interface.d Interface.o: ../Interface.cpp ../Interface.h \
   /home/tombr/Projects/capputils/IExecutableAttribute.h \
   /home/tombr/Projects/capputils/InputAttribute.h \
   /home/tombr/Projects/capputils/ShortNameAttribute.h \
+  /home/tombr/Projects/capputils/NoParameterAttribute.h \
   /home/tombr/Projects/capputils/OutputAttribute.h \
   /home/tombr/Projects/capputils/FilenameAttribute.h \
   /home/tombr/Projects/capputils/IAssertionAttribute.h \
@@ -71,6 +72,8 @@ Interface.d Interface.o: ../Interface.cpp ../Interface.h \
 /home/tombr/Projects/capputils/InputAttribute.h:
 
 /home/tombr/Projects/capputils/ShortNameAttribute.h:
+
+/home/tombr/Projects/capputils/NoParameterAttribute.h:
 
 /home/tombr/Projects/capputils/OutputAttribute.h:
 
