@@ -35,7 +35,7 @@ public:
   virtual void reportProgress(int i);
 
 public Q_SLOTS:
-  void updateModule(workflow::Node* node);
+  void updateModule(workflow::Node* node, bool force);
 
 Q_SIGNALS:
   void moduleUpdated(workflow::Node* node);

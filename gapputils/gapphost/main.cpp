@@ -22,6 +22,8 @@
 #include "Workflow.h"
 #include "DefaultInterface.h"
 
+//#include <CProcessInfo.hpp>
+
 using namespace gapputils::host;
 using namespace gapputils::workflow;
 using namespace gapputils;
@@ -44,6 +46,8 @@ void printIt(const T& x) {
 int main(int argc, char *argv[])
 {
   cublasInit();
+
+  //MSMRI::CProcessInfo::getInstance().getCommandLine(argc, argv);
 
   boost::filesystem::create_directories(".gapphost");
   boost::filesystem::create_directories(DataModel::getConfigurationDirectory());

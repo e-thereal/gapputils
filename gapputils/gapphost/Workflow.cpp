@@ -1171,8 +1171,7 @@ void Workflow::processStack() {
     //       It is unclear how to determine if a module is up-to-date or not.
 
     // Update the node, if it needs update or if it is the last one
-    if (nodeStack.empty() || ((!node->isUpToDate() || processingCombination || combiner) &&
-        !node->restoreFromCache()))
+    if (nodeStack.empty() || !node->isUpToDate() || processingCombination || combiner)
     {
       node->getToolItem()->setProgress(-2);
       Workflow* workflow = dynamic_cast<Workflow*>(node);
@@ -1180,7 +1179,7 @@ void Workflow::processStack() {
         connect(workflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(finalizeModuleUpdate(workflow::Node*)));
         workflow->updateNodes();
       } else {
-        Q_EMIT processModule(node);
+        Q_EMIT processModule(node, nodeStack.empty());
       }
       return;
     } else {
@@ -1257,7 +1256,7 @@ void Workflow::showModuleDialog(ToolItem* item) {
     element->show();
 }
 
-void Workflow::update(IProgressMonitor* monitor) {
+void Workflow::update(IProgressMonitor* monitor, bool force) {
 }
 
 void Workflow::writeResults() {

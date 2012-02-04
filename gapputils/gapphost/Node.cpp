@@ -25,8 +25,13 @@
 
 #include <iostream>
 #include <gapputils/WorkflowElement.h>
+#include <gapputils/ChecksumAttribute.h>
 #include <capputils/Verifier.h>
 #include <algorithm>
+
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
 
 #include "ToolItem.h"
 
@@ -35,6 +40,8 @@ using namespace capputils;
 using namespace capputils::reflection;
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
+
+namespace bio = boost::iostreams;
 
 namespace gapputils {
 
@@ -56,7 +63,7 @@ EndPropertyDefinitions
 
 Node::Node(void)
  : _X(0), _Y(0), _Module(0), _InputChecksum(0), _OutputChecksum(0), _ToolItem(0), _Workflow(0),
-   _Expressions(new std::vector<boost::shared_ptr<Expression> >()), harmonizer(0)
+   _Expressions(new std::vector<boost::shared_ptr<Expression> >()), harmonizer(0), readFromCache(false)
 {
   boost::uuids::uuid uuid = boost::uuids::random_generator()();
   std::stringstream stream;
@@ -101,19 +108,26 @@ bool Node::isUpToDate() const {
   return getInputChecksum() == getOutputChecksum();
 }
 
-void Node::update(IProgressMonitor* monitor) {
-  WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
-  if (element) {
-    element->execute(monitor);
+void Node::update(IProgressMonitor* monitor, bool force) {
+  if (force || !restoreFromCache()) {
+    WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
+    if (element) {
+      element->execute(monitor);
+    }
+  } else {
+    readFromCache = true;
   }
 }
 
 void Node::writeResults() {
-  WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
-  if (element)
-    element->writeResults();
+  if (!readFromCache) {
+    WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
+    if (element)
+      element->writeResults();
 
-  updateCache();
+    updateCache();
+  }
+  readFromCache = false;
 }
 
 void Node::resume() {
@@ -155,8 +169,11 @@ Node::checksum_type Node::getChecksum(const capputils::reflection::IClassPropert
 {
   IEnumerableAttribute* enumerable = property->getAttribute<IEnumerableAttribute>();
   IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
+  IChecksumAttribute* checksumAttribute = property->getAttribute<IChecksumAttribute>();
 
-  if (reflectable) {
+  if (checksumAttribute) {
+    return checksumAttribute->getChecksum(property, object);
+  } else if (reflectable) {
     // TODO: Replace it with getChecksum(ReflectableClass&) method
 
     boost::crc_32_type valueSum;
@@ -302,15 +319,16 @@ void Node::updateCache() {
   cacheName << cacheDirectory << "/" << crc32.checksum() << ".cache";
 
   boost::filesystem::create_directories(cacheDirectory);
-  FILE* cacheFile = fopen(cacheName.str().c_str(), "wb");
+  bio::filtering_ostream cacheFile;
+  cacheFile.push(boost::iostreams::gzip_compressor());
+  cacheFile.push(bio::file_descriptor_sink(cacheName.str().c_str()));
   if (!cacheFile)
     return;
 
   Serializer::writeToFile(*module, cacheFile);
 
   checksum = totalCrc32.checksum();
-  assert(fwrite(&checksum, sizeof(checksum), 1, cacheFile));
-  fclose(cacheFile);
+  cacheFile.write((char*)&checksum, sizeof(checksum));
 }
 
 bool Node::restoreFromCache() {
@@ -347,7 +365,9 @@ bool Node::restoreFromCache() {
     return false;
   }
 
-  FILE* cacheFile = fopen(cacheName.str().c_str(), "rb");
+  boost::iostreams::filtering_istream cacheFile;
+  cacheFile.push(boost::iostreams::gzip_decompressor());
+  cacheFile.push(bio::file_descriptor_source(cacheName.str().c_str()));
   if (!cacheFile) {
     std::cout << "[Warning] Can't open cache file for module '" << getUuid() << "'." << std::endl;
     return false;
@@ -363,17 +383,20 @@ bool Node::restoreFromCache() {
   }
 
   checksum_type currentChecksum = totalCrc32.checksum();
-  if (fread(&checksum, sizeof(checksum), 1, cacheFile) != 1) {
-    fclose(cacheFile);
+  cacheFile.read((char*)&checksum, sizeof(checksum));
+
+  if (cacheFile.bad()) {
+    std::cout << "[Info] Can't read checksum for module '" << getUuid() << "'." << std::endl;
     return false;
   }
-  fclose(cacheFile);
 
   if (currentChecksum != checksum) {
     std::cout << "[Info] Checksums don't match for module '" << getUuid() << "'." << std::endl;
+    return false;
   }
+  std::cout << "[Info] Reading value from cache for module '" << getUuid() << "'." << std::endl;
 
-  return currentChecksum == checksum;
+  return true;
 }
 
 }
