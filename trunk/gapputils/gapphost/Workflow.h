@@ -135,7 +135,7 @@ public:
    * Checking each modules is the same as if you would recalculate the workflow. Thus,
    * workflows are always assumed not to be up to date.
    */
-  virtual void update(IProgressMonitor* monitor);
+  virtual void update(IProgressMonitor* monitor, bool force);
   virtual void writeResults();
 
   void setUiEnabled(bool enabled);
@@ -222,7 +222,7 @@ private Q_SLOTS:
 
 Q_SIGNALS:
   void updateFinished(workflow::Node* node);
-  void processModule(workflow::Node* node);
+  void processModule(workflow::Node* node, bool force);
   void showWorkflowRequest(workflow::Workflow* workflow);
   void deleteCalled(workflow::Workflow* workflow);
 };

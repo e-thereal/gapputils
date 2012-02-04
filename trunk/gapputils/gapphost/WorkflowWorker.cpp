@@ -26,7 +26,7 @@ WorkflowWorker::~WorkflowWorker() {
   if (worker) {
     disconnect(worker, SIGNAL(progressed(workflow::Node*, int)), workflow, SLOT(showProgress(workflow::Node*, int)));
     disconnect(worker, SIGNAL(moduleUpdated(workflow::Node*)), workflow, SLOT(finalizeModuleUpdate(workflow::Node*)));
-    disconnect(workflow, SIGNAL(processModule(workflow::Node*)), worker, SLOT(updateModule(workflow::Node*)));
+    disconnect(workflow, SIGNAL(processModule(workflow::Node*, bool)), worker, SLOT(updateModule(workflow::Node*, bool)));
     delete worker;
   }
 }
@@ -37,15 +37,15 @@ void WorkflowWorker::run() {
   worker = new WorkflowWorker(0);
   connect(worker, SIGNAL(progressed(workflow::Node*, int)), workflow, SLOT(showProgress(workflow::Node*, int)));
   connect(worker, SIGNAL(moduleUpdated(workflow::Node*)), workflow, SLOT(finalizeModuleUpdate(workflow::Node*)));
-  connect(workflow, SIGNAL(processModule(workflow::Node*)), worker, SLOT(updateModule(workflow::Node*)));
+  connect(workflow, SIGNAL(processModule(workflow::Node*, bool)), worker, SLOT(updateModule(workflow::Node*, bool)));
 
   exec();
   //cout << "[" << QThread::currentThreadId() << "] " << "thread finished" << endl;
 }
 
-void WorkflowWorker::updateModule(Node* node) {
+void WorkflowWorker::updateModule(Node* node, bool force) {
   currentNode = node;
-  node->update(this);
+  node->update(this, force);
 
   Q_EMIT moduleUpdated(node);
 }

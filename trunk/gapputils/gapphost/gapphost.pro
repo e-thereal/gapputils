@@ -30,7 +30,8 @@ SOURCES = main.cpp \
 		  PopUpList.cpp \
 		  GlobalEdge.cpp \
 		  EditInterfaceDialog.cpp \
-		  Expression.cpp
+		  Expression.cpp \
+		  trace.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -58,6 +59,7 @@ INCLUDEPATH += /home/tombr/Projects
 INCLUDEPATH += /home/tombr/include
 INCLUDEPATH += /res1/software/cuda/include
 INCLUDEPATH += /res1/software/cula/include
+INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/utilities
 DEFINES += GAPPHOST_CULA_SUPPORT
 LIBS += -Wl,-E -pg
 LIBS += -L/home/tombr/Projects/tinyxml/Debug
@@ -66,4 +68,4 @@ LIBS += -L"/home/tombr/Projects/gapputils/Debug Shared"
 LIBS += -L"/res1/software/cuda/lib"
 LIBS += -L"/res1/software/cula/lib"
 LIBS += -L/home/tombr/lib
-LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -lcudart -lcula_core -lcula_lapack -lcublas
+LIBS += -lgapputils -lcapputils -ltinyxml -lboost_iostreams -lboost_signals -lboost_filesystem -lcudart -lcula_core -lcula_lapack -lcublas -lz

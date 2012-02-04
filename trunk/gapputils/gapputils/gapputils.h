@@ -7,4 +7,10 @@
 #endif
 #endif
 
+#include <boost/crc.hpp>
+
+namespace gapputils {
+  typedef boost::crc_32_type::value_type checksum_type;
+}
+
 #endif // GAPPUTILS_H

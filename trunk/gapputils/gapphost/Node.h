@@ -3,7 +3,7 @@
 #ifndef _GAPPHOST_NODE_H_
 #define _GAPPHOST_NODE_H_
 
-#include <boost/crc.hpp>
+#include <gapputils/gapputils.h>
 
 #include <capputils/ReflectableClass.h>
 #include <capputils/ObservableClass.h>
@@ -40,6 +40,7 @@ public:
 private:
   ModelHarmonizer* harmonizer;
   static int moduleId;
+  bool readFromCache;
 
 public:
   Node();
@@ -64,7 +65,7 @@ public:
   bool removeExpression(const std::string& propertyName);
 
   virtual bool isUpToDate() const;
-  virtual void update(IProgressMonitor* monitor);
+  virtual void update(IProgressMonitor* monitor, bool force);
   virtual void writeResults();
   virtual void resume();
   void resumeExpressions();
