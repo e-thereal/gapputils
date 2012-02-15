@@ -26,6 +26,7 @@ private:
   Workflow* workflow;
   WorkflowWorker* worker;
   Node* currentNode;
+  bool abortRequested;
 
 public:
   WorkflowWorker(Workflow* workflow);
@@ -33,6 +34,9 @@ public:
 
   virtual void run();
   virtual void reportProgress(int i);
+  virtual bool getAbortRequested() const;
+
+  void abort();
 
 public Q_SLOTS:
   void updateModule(workflow::Node* node, bool force);

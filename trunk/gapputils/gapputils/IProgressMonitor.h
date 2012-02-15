@@ -19,6 +19,7 @@ public:
   virtual ~IProgressMonitor();
 
   virtual void reportProgress(int i) = 0;
+  virtual bool getAbortRequested() const = 0;
 };
 
 }

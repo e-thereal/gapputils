@@ -45,6 +45,7 @@ void WorkflowWorker::run() {
 
 void WorkflowWorker::updateModule(Node* node, bool force) {
   currentNode = node;
+  abortRequested = false;
   node->update(this, force);
 
   Q_EMIT moduleUpdated(node);
@@ -52,6 +53,15 @@ void WorkflowWorker::updateModule(Node* node, bool force) {
 
 void WorkflowWorker::reportProgress(int i) {
   Q_EMIT progressed(currentNode, i);
+}
+
+void WorkflowWorker::abort() {
+  if (worker)
+    worker->abortRequested = true;
+}
+
+bool WorkflowWorker::getAbortRequested() const {
+  return abortRequested;
 }
 
 }

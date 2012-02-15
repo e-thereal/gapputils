@@ -105,7 +105,7 @@ void updateToolBox(QTreeWidget* toolBox) {
 }
 
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
-    : QMainWindow(parent, flags), libsChanged(false)
+    : QMainWindow(parent, flags), libsChanged(false), workingWorkflow(0)
 {
   DataModel& model = DataModel::getInstance();
 
@@ -309,7 +309,7 @@ void MainWindow::setGuiEnabled(bool enabled) {
 void MainWindow::updateCurrentModule() {
   setGuiEnabled(false);
 
-  Workflow* workingWorkflow = openWorkflows[tabWidget->currentIndex()];
+  workingWorkflow = openWorkflows[tabWidget->currentIndex()];
   connect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
   workingWorkflow->updateCurrentModule();
 }
@@ -317,18 +317,18 @@ void MainWindow::updateCurrentModule() {
 void MainWindow::updateWorkflow() {
   setGuiEnabled(false);
 
-  Workflow* workingWorkflow = openWorkflows[tabWidget->currentIndex()];
+  workingWorkflow = openWorkflows[tabWidget->currentIndex()];
   connect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
   workingWorkflow->updateOutputs();
 }
 
 void MainWindow::terminateUpdate() {
-  setGuiEnabled(true);
+  workingWorkflow->abortUpdate();
 }
 
 void MainWindow::updateFinished(Node* node) {
   setGuiEnabled(true);
-  Workflow* workingWorkflow = dynamic_cast<Workflow*>(node);
+  assert(workingWorkflow == dynamic_cast<Workflow*>(node));
   if (workingWorkflow)
     disconnect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
 }

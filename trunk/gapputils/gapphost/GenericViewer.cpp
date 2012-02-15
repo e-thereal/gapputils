@@ -29,9 +29,9 @@ BeginPropertyDefinitions(GenericViewer)
 
   ReflectableBase(workflow::WorkflowElement)
   DefineProperty(Program, Observe(PROPERTY_ID))
-  DefineProperty(Filename1, Observe(filename1Id = PROPERTY_ID), Input("File1"), Filename(), FileExists())
-  DefineProperty(Filename2, Observe(filename2Id = PROPERTY_ID), Input("File2"), Filename())
-  DefineProperty(Filename3, Observe(filename3Id = PROPERTY_ID), Input("File3"), Filename())
+  DefineProperty(Filename1, Observe(filename1Id = PROPERTY_ID), Input("File1"), Filename(), FileExists(), Volatile())
+  DefineProperty(Filename2, Observe(filename2Id = PROPERTY_ID), Input("File2"), Filename(), Volatile())
+  DefineProperty(Filename3, Observe(filename3Id = PROPERTY_ID), Input("File3"), Filename(), Volatile())
 
 EndPropertyDefinitions
 
@@ -72,7 +72,20 @@ void GenericViewer::changedHandler(capputils::ObservableClass*, int eventId) {
   updateViewTimer.start();
 }
 
+void GenericViewer::writeResults() {
+  updateView();
+}
+
 void GenericViewer::updateView() {
+  if (!capputils::Verifier::Valid(*this))
+    return;
+
+  if (getFilename2().size() && !FileExistsAttribute::exists(getFilename2()))
+    return;
+
+  if (getFilename3().size() && !FileExistsAttribute::exists(getFilename3()))
+    return;
+
   if (viewer.state() == QProcess::Running) {
     killProcess(&viewer);
   }

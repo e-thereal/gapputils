@@ -104,6 +104,7 @@ public:
    *                        need an update.
    */
   void updateOutputs(bool updateNodes = false);
+  void abortUpdate();
   void processStack();
   void buildStack(Node* node);
   void load(const std::string& filename);
