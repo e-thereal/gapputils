@@ -51,7 +51,7 @@ void FgrbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const
   X = conditionals;
   H = hiddens;
 
-  if (getIsGaussian()) {
+  if (fgrbm.getIsGaussian()) {
     std::cout << "[Info] Normalizing conditionals with mean = " << fgrbm.getVisibleMean() << " and stddev = " << fgrbm.getVisibleStd() << std::endl;
     thrust::transform(X.data().begin(), X.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleMean()),
         X.data().begin(), thrust::minus<double>());
@@ -77,7 +77,7 @@ void FgrbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const
   for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
     tbblas::row(negdata, iRow) += b;
 
-  if (!getIsGaussian()) {
+  if (!fgrbm.getIsGaussian()) {
     thrust::transform(negdata.begin(), negdata.end(), negdata.begin(),
         sigmoid<double>());
 

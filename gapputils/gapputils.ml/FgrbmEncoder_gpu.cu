@@ -48,7 +48,7 @@ void FgrbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) const
   Y = visibles;
 
   // normalize visible variables -> X (design matrix with one sample per row)
-  if (getIsGaussian()) {
+  if (fgrbm.getIsGaussian()) {
     thrust::transform(X.data().begin(), X.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleMean()),
         X.data().begin(), thrust::minus<double>());
     thrust::transform(Y.data().begin(), Y.data().end(), thrust::constant_iterator<double>(fgrbm.getVisibleMean()),

@@ -219,10 +219,10 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
   std::cout << "[Info] Preparation finished after " << timer.elapsed() << " s" << std::endl;
   std::cout << "[Info] Starting training" << std::endl;
   timer.restart();
-  for (int iEpoch = 0; iEpoch < epochCount; ++iEpoch) {
+  for (int iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
 
     double error = 0;
-    for (int iBatch = 0; iBatch < batchCount; ++iBatch) {
+    for (int iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
       /*** START POSITIVE PHASE ***/
 
