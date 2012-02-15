@@ -34,6 +34,7 @@ public:
   virtual ~GenericViewer();
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
+  virtual void writeResults();
 
 private Q_SLOTS:
   void updateView();

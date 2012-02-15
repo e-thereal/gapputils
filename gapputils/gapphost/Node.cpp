@@ -202,7 +202,7 @@ Node::checksum_type Node::getChecksum(const capputils::reflection::IClassPropert
     const std::string& str = property->getStringValue(object);
     valueSum.process_bytes(&str[0], str.size());
 
-    if (property->getAttribute<FilenameAttribute>()) {
+    if (property->getAttribute<FilenameAttribute>() && boost::filesystem::exists(str)) {
       time_t modifiedTime = boost::filesystem::last_write_time(str);
       valueSum.process_bytes(&modifiedTime, sizeof(modifiedTime));
     }

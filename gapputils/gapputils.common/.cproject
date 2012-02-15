@@ -65,6 +65,7 @@
 									<listOptionValue builtIn="false" value="tinyxml"/>
 									<listOptionValue builtIn="false" value="gapputils"/>
 									<listOptionValue builtIn="false" value="capputils"/>
+									<listOptionValue builtIn="false" value="boost_regex"/>
 								</option>
 								<option id="gnu.cpp.link.option.debugging.gprof.867418894" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.256954698" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">

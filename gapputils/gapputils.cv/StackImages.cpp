@@ -37,6 +37,8 @@ BeginPropertyDefinitions(StackImages)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(InputImages, Input("Imgs"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage1, Input("I1"), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
+  DefineProperty(InputImage2, Input("I2"), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Img"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
@@ -61,31 +63,83 @@ void StackImages::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   if (!data)
     data = new StackImages();
 
-  if (!capputils::Verifier::Valid(*this) || !getInputImages() || !getInputImages()->size()
-      || !getInputImages()->at(0))
-  {
+  if (!capputils::Verifier::Valid(*this)) {
     return;
   }
 
-  std::vector<boost::shared_ptr<culib::ICudaImage> >& inputs = *getInputImages();
-  const int width = inputs[0]->getSize().x;
-  const int height = inputs[0]->getSize().y;
+  // Get and check the dimensions
+  unsigned width = 0, height = 0, depth = 0;
+  if (getInputImages()) {
+    std::vector<boost::shared_ptr<culib::ICudaImage> >& inputs = *getInputImages();
+    for (unsigned i = 0; i < inputs.size(); ++i) {
+      if (depth == 0) {
+        width = inputs[i]->getSize().x;
+        height = inputs[i]->getSize().y;
+      }
+      if (inputs[i]->getSize().x != width || inputs[i]->getSize().y != height) {
+        std::cout << "[Warning] Size mismatch. Aborting." << std::endl;
+        return;
+      }
+      depth += inputs[i]->getSize().z;
+    }
+  }
 
-  int depth = 0;
-  for (int i = 0; i < inputs.size(); ++i) {
-    if (inputs[i]->getSize().x != width || inputs[i]->getSize().y != height) {
+  if (getInputImage1()) {
+    culib::ICudaImage& image = *getInputImage1();
+    if (depth == 0) {
+      width = image.getSize().x;
+      height = image.getSize().y;
+    }
+
+    if (image.getSize().x != width || image.getSize().y != height) {
       std::cout << "[Warning] Size mismatch. Aborting." << std::endl;
       return;
     }
-    depth += inputs[i]->getSize().z;
+    depth += image.getSize().z;
+  }
+
+  if (getInputImage2()) {
+    culib::ICudaImage& image = *getInputImage2();
+    if (depth == 0) {
+      width = image.getSize().x;
+      height = image.getSize().y;
+    }
+
+    if (image.getSize().x != width || image.getSize().y != height) {
+      std::cout << "[Warning] Size mismatch. Aborting." << std::endl;
+      return;
+    }
+    depth += image.getSize().z;
+  }
+
+  if (depth == 0) {
+    std::cout << "[Warning] No input images found." << std::endl;
+    return;
   }
 
   boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(width, height, depth)));
   float* imageData = output->getOriginalImage();
-  for (int i = 0; i < inputs.size(); ++i) {
-    const culib::ICudaImage& image = *inputs[i];
+  if (getInputImages()) {
+    std::vector<boost::shared_ptr<culib::ICudaImage> >& inputs = *getInputImages();
+    for (unsigned i = 0; i < inputs.size(); ++i) {
+      const culib::ICudaImage& image = *inputs[i];
 
-    const int count = image.getSize().x * image.getSize().y * image.getSize().z;
+      const unsigned count = image.getSize().x * image.getSize().y * image.getSize().z;
+      std::copy(image.getWorkingCopy(), image.getWorkingCopy() + count, imageData);
+      imageData += count;
+    }
+  }
+
+  if (getInputImage1()) {
+    const culib::ICudaImage& image = *getInputImage1();
+    const unsigned count = image.getSize().x * image.getSize().y * image.getSize().z;
+    std::copy(image.getWorkingCopy(), image.getWorkingCopy() + count, imageData);
+    imageData += count;
+  }
+
+  if (getInputImage2()) {
+    const culib::ICudaImage& image = *getInputImage2();
+    const unsigned count = image.getSize().x * image.getSize().y * image.getSize().z;
     std::copy(image.getWorkingCopy(), image.getWorkingCopy() + count, imageData);
     imageData += count;
   }

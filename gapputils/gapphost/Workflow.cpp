@@ -1144,6 +1144,18 @@ void Workflow::updateOutputs(bool updateNodes) {
   this->updateNodes();
 }
 
+void Workflow::abortUpdate() {
+  // Set the abort flag to true of the progress monitor of the current module
+  processingCombination = false;
+  while (!nodeStack.empty()) {
+    Node* node = nodeStack.top();
+    nodeStack.pop();
+
+    processedStack.push(node);
+  }
+  worker->abort();
+}
+
 void Workflow::updateNodes() {
   CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
   if (combiner) {

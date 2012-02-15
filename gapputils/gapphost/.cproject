@@ -49,8 +49,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Programs/cuda/lib"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Programs/cula/lib"/>
 									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.344790480" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">

@@ -13,6 +13,7 @@
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
+#include <capputils/FlagAttribute.h>
 #include <capputils/InputAttribute.h>
 #include <capputils/NotEqualAssertion.h>
 #include <capputils/ObserveAttribute.h>
@@ -43,6 +44,8 @@ BeginPropertyDefinitions(SliceToFeatures)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(MifNames, Input("Mifs"), Filename("MIFs (*.MIF);;ROI MIFs (*_roi.MIF)", true), Enumerable<std::vector<std::string>, false>(), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(MakeBinary, Flag(), Observe(PROPERTY_ID))
+  DefineProperty(Threshold, Observe(PROPERTY_ID))
   DefineProperty(RowCount, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(VoxelsPerSlice, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
@@ -51,7 +54,9 @@ BeginPropertyDefinitions(SliceToFeatures)
 
 EndPropertyDefinitions
 
-SliceToFeatures::SliceToFeatures() : _RowCount(0), _ColumnCount(0), _VoxelsPerSlice(0), _SliceCount(0), data(0) {
+SliceToFeatures::SliceToFeatures()
+ : _MakeBinary(false), _Threshold(1.f), _RowCount(0), _ColumnCount(0), _VoxelsPerSlice(0), _SliceCount(0), data(0)
+{
   WfeUpdateTimestamp
   setLabel("SliceToFeatures");
 
@@ -67,11 +72,24 @@ void SliceToFeatures::changedHandler(capputils::ObservableClass* sender, int eve
 
 }
 
+template<class T>
+struct apply_threshold {
+private:
+  T threshold;
+
+public:
+  apply_threshold(const T& threshold) : threshold(threshold) { }
+
+  T operator()(const T& value) {
+    return (T)(value >= threshold);
+  }
+};
+
 void SliceToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace MSMRI::MIF;
   using namespace std;
 
-  cout << "Checking validity of model." << endl;
+//  cout << "Checking validity of model." << endl;
 
   if (!data)
     data = new SliceToFeatures();
@@ -82,7 +100,7 @@ void SliceToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) co
   if (_MifNames.size() == 0)
     return;
 
-  cout << "Start getting features." << endl;
+//  cout << "Start getting features." << endl;
 
   CMIF firstMif(_MifNames[0]);
 
@@ -92,7 +110,7 @@ void SliceToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) co
 
   boost::shared_ptr<std::vector<float> > sliceData(new std::vector<float>());
 
-  for (unsigned i = 0; i < _MifNames.size(); ++i) {
+  for (unsigned i = 0; i < _MifNames.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
 
     CMIF mif(_MifNames[i]);
 
@@ -102,7 +120,12 @@ void SliceToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) co
     const int sliceCount = mif.getSliceCount();
     const int oldSize = sliceData->size();
     sliceData->resize(oldSize + voxelsPerSlice * sliceCount);
-    std::copy(mif.beginPixels(), mif.endPixels(), sliceData->begin() + oldSize);
+    if (getMakeBinary()) {
+      std::transform(mif.beginPixels(), mif.endPixels(),
+          sliceData->begin() + oldSize, apply_threshold<float>(getThreshold()));
+    } else {
+      std::copy(mif.beginPixels(), mif.endPixels(), sliceData->begin() + oldSize);
+    }
   }
 
   data->setRowCount(rowCount);
@@ -112,7 +135,7 @@ void SliceToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) co
   data->setData(sliceData);
   data->setVoxelsPerSlice(voxelsPerSlice);
 
-  cout << "Done getting features." << endl;
+//  cout << "Done getting features." << endl;
 }
 
 void SliceToFeatures::writeResults() {

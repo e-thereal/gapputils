@@ -32,6 +32,7 @@ private:
   bool libsChanged;
   std::vector<workflow::Workflow*> openWorkflows;
   QAction* changeInterfaceAction;
+  workflow::Workflow* workingWorkflow;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
