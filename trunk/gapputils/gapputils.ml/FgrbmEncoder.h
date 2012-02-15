@@ -31,7 +31,6 @@ class FgrbmEncoder : public gapputils::workflow::WorkflowElement {
   Property(VisibleVector, boost::shared_ptr<std::vector<double> >)
   Property(HiddenVector, boost::shared_ptr<std::vector<double> >)
   Property(SampleHiddens, bool)
-  Property(IsGaussian, bool)
 
 private:
   mutable FgrbmEncoder* data;
