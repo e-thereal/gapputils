@@ -9,6 +9,8 @@
 #include <capputils/VolatileAttribute.h>
 #include <capputils/EventHandler.h>
 
+#include <iostream>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 

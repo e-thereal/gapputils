@@ -1246,8 +1246,11 @@ void Workflow::finalizeModuleUpdate(Node* node) {
   processStack();
 }
 
-void Workflow::showProgress(Node* node, int i) {
-  node->getToolItem()->setProgress(i);
+void Workflow::showProgress(Node* node, double progress, bool updateNode) {
+  node->getToolItem()->setProgress(progress);
+  if (updateNode) {
+    node->writeResults();
+  }
 }
 
 void Workflow::showWorkflow(Workflow* workflow) {

@@ -33,6 +33,9 @@ class RbmTrainer : public gapputils::workflow::WorkflowElement {
   Property(SparsityTarget, float)
   Property(SparsityWeight, float)
   Property(IsGaussian, bool)
+  Property(Weights, boost::shared_ptr<std::vector<float> >)
+  Property(ShowWeights, int)
+  Property(ShowEvery, int)
   //Property(PosData, boost::shared_ptr<std::vector<float> >)
   //Property(NegData, boost::shared_ptr<std::vector<float> >)
 

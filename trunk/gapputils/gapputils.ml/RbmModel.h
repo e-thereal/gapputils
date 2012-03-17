@@ -46,6 +46,7 @@ class RbmModel : public capputils::reflection::ReflectableClass {
   Property(WeightMatrix, boost::shared_ptr<tbblas::device_matrix<float> >)
   Property(VisibleMeans, boost::shared_ptr<tbblas::device_vector<float> >)  ///< used for feature scaling
   Property(VisibleStds, boost::shared_ptr<tbblas::device_vector<float> >)   ///< used for feature scaling
+  Property(IsGaussian, bool)
 
 public:
   RbmModel();

@@ -43,7 +43,6 @@ class RbmEncoder : public gapputils::workflow::WorkflowElement {
   Property(VisibleVector, boost::shared_ptr<std::vector<float> >)
   Property(HiddenVector, boost::shared_ptr<std::vector<float> >)
   Property(SampleHiddens, bool)
-  Property(IsGaussian, bool)
 
 private:
   mutable RbmEncoder* data;

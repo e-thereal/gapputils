@@ -18,6 +18,8 @@ namespace ml {
 namespace ublas = boost::numeric::ublas;
 
 void RbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+  using namespace thrust::placeholders;
+
   if (!data)
     data = new RbmDecoder();
 
@@ -33,6 +35,8 @@ void RbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   const unsigned visibleCount = rbm.getVisibleBiases()->size();
   const unsigned hiddenCount = rbm.getHiddenBiases()->size();
   const unsigned sampleCount = getHiddenVector()->size() / hiddenCount;
+
+//  std::cout << "Decode: " << sampleCount << std::endl;
 
   ublas::matrix<float> hiddens(sampleCount, hiddenCount);
   std::copy(getHiddenVector()->begin(), getHiddenVector()->end(), hiddens.data().begin());
@@ -51,20 +55,23 @@ void RbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   }
 
   // For the binary case
-  if (!getIsGaussian())
+  if (!rbm.getIsGaussian())
     thrust::transform(negdata.data().begin(), negdata.data().end(), negdata.data().begin(),
-              sigmoid<float>());
+          sigmoid<float>());
+
+  boost::shared_ptr<std::vector<float> > visibleVector(new std::vector<float>(sampleCount * visibleCount));
+  if (rbm.getIsGaussian() && !getUseWeightsOnly()) {
+    assert (rbm.getVisibleMeans() && rbm.getVisibleMeans()->size());
+    assert (rbm.getVisibleStds() && rbm.getVisibleStds()->size());
+
+    const float mean = rbm.getVisibleMeans()->data()[0];
+    const float stddev = rbm.getVisibleStds()->data()[0];
+    thrust::transform(negdata.data().begin(), negdata.data().end(), negdata.data().begin(), _1 * stddev + mean);
+  }
 
   ublas::matrix<float> visibles(sampleCount, visibleCount);
   visibles = negdata;
-
-  boost::shared_ptr<std::vector<float> > visibleVector(new std::vector<float>(sampleCount * visibleCount));
-  if (!getIsGaussian() || getUseWeightsOnly()) {
-    std::copy(visibles.data().begin(), visibles.data().end(), visibleVector->begin());
-  } else {
-    boost::shared_ptr<ublas::matrix<float> > decoded = rbm.decodeApproximation(visibles);
-    std::copy(decoded->data().begin(), decoded->data().end(), visibleVector->begin());
-  }
+  std::copy(visibles.data().begin(), visibles.data().end(), visibleVector->begin());
 
   // Decode approximation (reconstruction)
   data->setVisibleVector(visibleVector);

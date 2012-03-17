@@ -33,19 +33,25 @@ namespace gapputils {
 
 namespace ml {
 
+int ImageMatrix::inputId;
+
 BeginPropertyDefinitions(ImageMatrix)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input("In"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage, Input("In"), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(MinValue, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(MaxValue, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ImageMatrix, Output("Out"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(AutoScale, Observe(PROPERTY_ID))
+  DefineProperty(CenterImages, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-ImageMatrix::ImageMatrix() : _MinValue(-2.f), _MaxValue(2.f), data(0) {
+ImageMatrix::ImageMatrix() : _MinValue(-2.f), _MaxValue(2.f), _AutoScale(false),
+ _CenterImages(false), data(0)
+{
   WfeUpdateTimestamp
-  setLabel("ImageMatrix");
+  setLabel("Matrix");
 
   Changed.connect(capputils::EventHandler<ImageMatrix>(this, &ImageMatrix::changedHandler));
 }
@@ -56,8 +62,14 @@ ImageMatrix::~ImageMatrix() {
 }
 
 void ImageMatrix::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
+  if (eventId == inputId) {
+    execute(0);
+    writeResults();
+  }
 }
+
+#define LOCATE(a,b) std::cout << #b": " << (char*)&a._##b - (char*)&a << std::endl
+#define LOCATE2(a,b) std::cout << #b": " << (char*)&a.b - (char*)&a << std::endl
 
 void ImageMatrix::writeResults() {
   if (!data)

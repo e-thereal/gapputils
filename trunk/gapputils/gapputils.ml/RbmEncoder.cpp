@@ -36,11 +36,10 @@ BeginPropertyDefinitions(RbmEncoder)
   DefineProperty(VisibleVector, Input("In"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(HiddenVector, Output("Out"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(SampleHiddens, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(IsGaussian, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-RbmEncoder::RbmEncoder() : _SampleHiddens(true), _IsGaussian(false), data(0) {
+RbmEncoder::RbmEncoder() : _SampleHiddens(true), data(0) {
   WfeUpdateTimestamp
   setLabel("RbmEncoder");
 

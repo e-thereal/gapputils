@@ -7,6 +7,7 @@
 
 #include "RbmTrainer.h"
 
+#include <capputils/DescriptionAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -64,6 +65,9 @@ BeginPropertyDefinitions(RbmTrainer)
   DefineProperty(SparsityTarget, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(SparsityWeight, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(IsGaussian, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Weights, Output("W"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(ShowWeights, Description("Only the first ShowWeights features are shown."), Observe(PROPERTY_ID))
+  DefineProperty(ShowEvery, Description("Debug output is shown only every ShowEvery epochs."), Observe(PROPERTY_ID))
   //DefineProperty(PosData, Output("PD"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   //DefineProperty(NegData, Output("ND"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
@@ -72,7 +76,7 @@ EndPropertyDefinitions
 RbmTrainer::RbmTrainer()
  : _VisibleCount(1), _HiddenCount(1), _SampleHiddens(true),
    _EpochCount(1), _BatchSize(10), _LearningRate(0.01f), _InitialHidden(0.f),
-   _SparsityTarget(0.1f), _SparsityWeight(0.1f), _IsGaussian(false), data(0)
+   _SparsityTarget(0.1f), _SparsityWeight(0.1f), _IsGaussian(false), _ShowWeights(0), _ShowEvery(1), data(0)
 {
   WfeUpdateTimestamp
   setLabel("RbmTrainer");
@@ -92,13 +96,12 @@ void RbmTrainer::changedHandler(capputils::ObservableClass* sender, int eventId)
 template <class T>
 T square(const T& a) { return a * a; }
 
-
-
 void RbmTrainer::writeResults() {
   if (!data)
     return;
 
   setRbmModel(data->getRbmModel());
+  setWeights(data->getWeights());
   //setNegData(data->getNegData());
   //setPosData(data->getPosData());
 }

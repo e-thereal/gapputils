@@ -17,6 +17,7 @@
 #include <boost/timer.hpp>
 
 #include <thrust/iterator/constant_iterator.h>
+#include <thrust/inner_product.h>
 
 #include <tbblas/device_matrix.hpp>
 #include <tbblas/device_vector.hpp>
@@ -61,7 +62,7 @@ T operator()(const T& x, const T& y) const {
 };
 
 void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
-  //using namespace boost::lambda;
+  using namespace thrust::placeholders;
   boost::timer timer;
 
   if (!data)
@@ -93,6 +94,7 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   const float sparsityWeight = getSparsityWeight();
 
   boost::shared_ptr<RbmModel> rbm(new RbmModel());
+  rbm->setIsGaussian(getIsGaussian());
 
   ublas::matrix<float> trainingSet(sampleCount, visibleCount);
   std::copy(getTrainingSet()->begin(), getTrainingSet()->end(), trainingSet.data().begin());
@@ -101,30 +103,30 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   boost::shared_ptr<tbblas::device_vector<float> > visibleMeans(new tbblas::device_vector<float>(visibleCount));
   boost::shared_ptr<tbblas::device_vector<float> > visibleStds(new tbblas::device_vector<float>(visibleCount));
-
-  tbblas::device_vector<float>& means = *visibleMeans;
-  float mean = thrust::reduce(X.data().begin(), X.data().end()) / X.data().size();
-
-  for (unsigned iCol = 0; iCol < X.size2(); ++iCol)
-    means(iCol) = mean; //ublas::sum(ublas::column(trainingSet, iCol)) / trainingSet.size1();
   rbm->setVisibleMeans(visibleMeans);
-  std::cout << "[Info] Means (" << mean << ") calculated: " << timer.elapsed() << " s" << std::endl;
-
-  tbblas::device_vector<float>& stds = *visibleStds;
-  float stddev = sqrt(thrust::inner_product(X.data().begin(), X.data().end(),
-      thrust::constant_iterator<float>(mean), 0.f, thrust::plus<float>(), minus_squared<float>()) / X.data().size());TRACE
-  for (unsigned iCol = 0; iCol < X.size2(); ++iCol)
-    stds(iCol) = stddev; //ublas::norm_2(ublas::column(trainingSet, iCol) -
-      //ublas::scalar_vector<float>(trainingSet.size1(), means(iCol)) / trainingSet.size1());
-  //std::transform(stds.begin(), stds.end(), stds.begin(), min_1<float>());
   rbm->setVisibleStds(visibleStds);
-  std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s" << std::endl;
 
-  // Apply feature scaling to training set
   if (getIsGaussian()) {
-    boost::shared_ptr<ublas::matrix<float> > scaledSet = rbm->encodeDesignMatrix(trainingSet, !getIsGaussian());
+    tbblas::device_vector<float>& means = *visibleMeans;
+    float mean = thrust::reduce(X.data().begin(), X.data().end()) / X.data().size();
+
+    for (unsigned iCol = 0; iCol < X.size2(); ++iCol)
+      means(iCol) = mean;
+
+    std::cout << "[Info] Means (" << mean << ") calculated: " << timer.elapsed() << " s" << std::endl;
+
+    tbblas::device_vector<float>& stds = *visibleStds;
+    thrust::transform(X.data().begin(), X.data().end(), X.data().begin(), _1 - mean);
+    float stddev = sqrt(thrust::transform_reduce(X.data().begin(), X.data().end(),
+        _1 * _1, 0.f, thrust::plus<float>()) / X.data().size());
+    for (unsigned iCol = 0; iCol < X.size2(); ++iCol)
+      stds(iCol) = stddev;
+
+    std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s" << std::endl;
+
+    // Apply feature scaling to training set
+    thrust::transform(X.data().begin(), X.data().end(), X.data().begin(), _1 / stddev);
     std::cout << "[Info] Design matrix standardized: " << timer.elapsed() << " s" << std::endl;
-    ublas::matrix<float>& uX = *scaledSet;
   }
 
   for (unsigned i = X.size1() - 1; i > 0; --i) {
@@ -132,11 +134,6 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     tbblas::row(X, i).swap(tbblas::row(X, j));
   }
   std::cout << "[Info] Rows shuffled: " << timer.elapsed() << " s" << std::endl;
-
-  //tbblas::device_matrix<float> X(scaledSet->size1(), scaledSet->size2());
-  //std::cout << "[Info] Design matrix allocated: " << timer.elapsed() << " s" << std::endl;
-  //X = uX;
-  //std::cout << "[Info] Design matrix written to the device: " << timer.elapsed() << " s" << std::endl;
 
   // Train the RBM
   // Initialize weights and bias terms
@@ -212,14 +209,20 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   //read_matrix("data.bin", batch);
 
+  const int cDebugWeight = (getShowWeights() ?
+      (getShowWeights() == -1 ? visibleCount * hiddenCount : getShowWeights() * visibleCount) :
+      0);
+  boost::shared_ptr<std::vector<float> > vW(new std::vector<float>(cDebugWeight));
+  data->setWeights(vW);
+
   //boost::progress_timer progresstimer;
   std::cout << "[Info] Preparation finished after " << timer.elapsed() << " s" << std::endl;
   std::cout << "[Info] Starting training" << std::endl;
   timer.restart();
-  for (int iEpoch = 0; iEpoch < epochCount; ++iEpoch) {
+  for (int iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
 
     float error = 0;
-    for (int iBatch = 0; iBatch < batchCount; ++iBatch) {
+    for (int iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
       /*** START POSITIVE PHASE ***/
 
       // Get current batch
@@ -320,8 +323,14 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     int hours = eta / 3600;
     std::cout << "Epoch " << iEpoch << " error " << (error / sampleCount) << " after " << timer.elapsed() << "s. ETA: "
         << hours << " h " << minutes << " min " << sec << " s" << std::endl;
+
+    if (monitor && getShowWeights() && (iEpoch % getShowEvery() == 0)) {
+      thrust::copy(W.data().begin(), W.data().begin() + vW->size(), vW->begin());
+      monitor->reportProgress(100 * (iEpoch + 1) / epochCount, true);
+    }
   }
 
+  thrust::copy(W.data().begin(), W.data().begin() + vW->size(), vW->begin());
   data->setRbmModel(rbm);
   //data->setPosData(debugPosData);
   //data->setNegData(debugNegData);

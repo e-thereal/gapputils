@@ -6,6 +6,8 @@
 #include <capputils/ObservableClass.h>
 #include <iostream>
 
+#include <qgraphicseffect.h>
+
 using namespace capputils;
 using namespace std;
 
@@ -20,6 +22,10 @@ CableItem::CableItem(Workbench* bench, ToolConnection* input, ToolConnection* ou
     setOutput(output);
   adjust();
   setZValue(1);
+
+//  QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect;
+//  effect->setBlurRadius(8);
+//  this->setGraphicsEffect(effect);
 }
 
 CableItem::~CableItem(void)

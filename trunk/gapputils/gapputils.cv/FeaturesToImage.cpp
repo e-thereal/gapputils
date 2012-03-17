@@ -34,10 +34,12 @@ namespace gapputils {
 
 namespace cv {
 
+int FeaturesToImage::dataId;
+
 BeginPropertyDefinitions(FeaturesToImage)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Data, Input(), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Data, Input(), ReadOnly(), Volatile(), Observe(dataId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(MaxCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
@@ -49,7 +51,7 @@ FeaturesToImage::FeaturesToImage()
  : _ColumnCount(1), _RowCount(1), _MaxCount(-1), data(0)
 {
   WfeUpdateTimestamp
-  setLabel("FeaturesToImage");
+  setLabel("F2I");
 
   Changed.connect(capputils::EventHandler<FeaturesToImage>(this, &FeaturesToImage::changedHandler));
 }
@@ -60,7 +62,10 @@ FeaturesToImage::~FeaturesToImage() {
 }
 
 void FeaturesToImage::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
+  if (eventId == dataId) {
+    execute(0);
+    writeResults();
+  }
 }
 
 void FeaturesToImage::execute(gapputils::workflow::IProgressMonitor* monitor) const {

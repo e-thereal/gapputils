@@ -22,9 +22,11 @@ class RbmWriter : public gapputils::workflow::WorkflowElement {
 
   Property(RbmModel, boost::shared_ptr<RbmModel>)
   Property(Filename, std::string)
+  Property(AutoSave, bool)
 
 private:
   mutable RbmWriter* data;
+  static int inputId;
 
 public:
   RbmWriter();

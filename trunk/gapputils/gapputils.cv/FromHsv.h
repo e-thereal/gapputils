@@ -24,6 +24,7 @@ class FromHsv : public workflow::WorkflowElement
 
 private:
   mutable FromHsv* data;
+  static int outputId;
 
 public:
   FromHsv(void);

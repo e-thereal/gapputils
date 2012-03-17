@@ -27,10 +27,12 @@ namespace gapputils {
 
 namespace cv {
 
+int FromHsv::outputId;
+
 BeginPropertyDefinitions(FromHsv)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(ImagePtr, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImagePtr, Output("Img"), Volatile(), ReadOnly(), Observe(outputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Hue, Input("H"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Saturation, Input("S"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Value, Input("V"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
@@ -50,7 +52,10 @@ FromHsv::~FromHsv(void)
 }
 
 void FromHsv::changedEventHandler(capputils::ObservableClass* sender, int eventId) {
-  
+  if (eventId != outputId) {
+    execute(0);
+    writeResults();
+  }
 }
 
 int toIntC(float value);
@@ -110,7 +115,9 @@ void FromHsv::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       float h = (hueBuffer ? hueBuffer[i] : 0);
       float s = (saturationBuffer ? saturationBuffer[i] : 0);
       float v = (valueBuffer ? valueBuffer[i] : 0);
-      color.setHsvF(h, s, v);
+      color.setHsvF(std::min(1.f, std::max(0.f, h)),
+          std::min(1.f, std::max(0.f, s)),
+          std::min(1.f, std::max(0.f, v)));
       image->setPixel(x, y, color.rgb());
     }
   }

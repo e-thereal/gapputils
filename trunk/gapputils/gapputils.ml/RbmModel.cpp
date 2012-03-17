@@ -36,6 +36,7 @@ BeginPropertyDefinitions(RbmModel)
   DefineProperty(WeightMatrix, Serialize<TYPE_OF(WeightMatrix)>())
   DefineProperty(VisibleMeans, Serialize<TYPE_OF(VisibleMeans)>())
   DefineProperty(VisibleStds, Serialize<TYPE_OF(VisibleStds)>())
+  DefineProperty(IsGaussian, Serialize<TYPE_OF(IsGaussian)>())
 
 EndPropertyDefinitions
 

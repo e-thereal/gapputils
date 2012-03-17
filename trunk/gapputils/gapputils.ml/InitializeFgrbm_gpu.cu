@@ -19,6 +19,7 @@
 
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/reduce.h>
+#include <thrust/inner_product.h>
 
 #include "sampling.hpp"
 #include "RbmModel.h"   ///< For sigmoid<T>()

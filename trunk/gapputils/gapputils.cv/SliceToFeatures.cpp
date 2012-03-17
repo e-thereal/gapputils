@@ -44,6 +44,7 @@ BeginPropertyDefinitions(SliceToFeatures)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(MifNames, Input("Mifs"), Filename("MIFs (*.MIF);;ROI MIFs (*_roi.MIF)", true), Enumerable<std::vector<std::string>, false>(), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(MifName, Input("Mif"), Filename("MIFs (*.MIF);;ROI MIFs (*_roi.MIF)"), Observe(PROPERTY_ID))
   DefineProperty(MakeBinary, Flag(), Observe(PROPERTY_ID))
   DefineProperty(Threshold, Observe(PROPERTY_ID))
   DefineProperty(RowCount, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
@@ -97,12 +98,14 @@ void SliceToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) co
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  if (_MifNames.size() == 0)
+  std::vector<std::string> mifNames(_MifNames.begin(), _MifNames.end());
+  if (getMifName().size())
+    mifNames.push_back(getMifName());
+
+  if (mifNames.size() == 0)
     return;
 
-//  cout << "Start getting features." << endl;
-
-  CMIF firstMif(_MifNames[0]);
+  CMIF firstMif(mifNames[0]);
 
   const int columnCount = firstMif.getColumnCount();
   const int rowCount = firstMif.getRowCount();
@@ -110,9 +113,9 @@ void SliceToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) co
 
   boost::shared_ptr<std::vector<float> > sliceData(new std::vector<float>());
 
-  for (unsigned i = 0; i < _MifNames.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
+  for (unsigned i = 0; i < mifNames.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
 
-    CMIF mif(_MifNames[i]);
+    CMIF mif(mifNames[i]);
 
     if (columnCount != mif.getColumnCount() || rowCount != mif.getRowCount())
       continue;
@@ -134,8 +137,6 @@ void SliceToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) co
     data->setSliceCount(sliceData->size() / voxelsPerSlice);
   data->setData(sliceData);
   data->setVoxelsPerSlice(voxelsPerSlice);
-
-//  cout << "Done getting features." << endl;
 }
 
 void SliceToFeatures::writeResults() {

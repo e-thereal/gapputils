@@ -27,6 +27,7 @@ class FeaturesToImage : public gapputils::workflow::WorkflowElement {
 
 private:
   mutable FeaturesToImage* data;
+  static int dataId;
 
 public:
   FeaturesToImage();

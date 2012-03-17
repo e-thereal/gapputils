@@ -27,10 +27,12 @@ namespace gapputils {
 
 namespace cv {
 
+int FromRgb::outputId;
+
 BeginPropertyDefinitions(FromRgb)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(ImagePtr, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImagePtr, Output("Img"), Volatile(), ReadOnly(), Observe(outputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Red, Input("R"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Green, Input("G"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Blue, Input("B"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
@@ -50,7 +52,10 @@ FromRgb::~FromRgb(void)
 }
 
 void FromRgb::changedEventHandler(capputils::ObservableClass* sender, int eventId) {
-  
+  if (eventId != outputId) {
+    execute(0);
+    writeResults();
+  }
 }
 
 int toIntC(float value) {
