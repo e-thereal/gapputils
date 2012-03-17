@@ -5,6 +5,10 @@
  *      Author: tombr
  */
 
+/**
+ * Icons: http://icons.mysitemyway.com/category/grunge-brushed-metal-pewter-icons/
+ */
+
 #include "ToolItem.h"
 
 #include <QStyleOptionGraphicsItem>
@@ -23,6 +27,7 @@
 #include <capputils/ShortNameAttribute.h>
 #include <qpicture.h>
 #include "CableItem.h"
+#include <qgraphicseffect.h>
 
 using namespace capputils;
 using namespace capputils::reflection;
@@ -257,6 +262,10 @@ ToolItem::ToolItem(const std::string& label, Workbench *bench)
   labelFont.setPointSize(10);
 
   updateSize();
+
+//  QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect;
+//  effect->setBlurRadius(8);
+//  this->setGraphicsEffect(effect);
 }
 
 ToolItem::~ToolItem() {
@@ -283,7 +292,7 @@ void ToolItem::setDeletable(bool deletable) {
   this->deletable = deletable;
 }
 
-void ToolItem::setProgress(int progress) {
+void ToolItem::setProgress(double progress) {
   this->progress = progress;
   update();
 }
@@ -333,8 +342,15 @@ ToolConnection* ToolItem::getConnection(int id, ToolConnection::Direction direct
 }
 
 QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) {
+  QPointF position = pos();
   switch (change) {
   case ItemPositionHasChanged:
+    if (((int)position.x()) % 15 != 7 || ((int)position.y()) % 15 != 7) {
+      position.setX((int)position.x() / 15 * 15 + 7);
+      position.setY((int)position.y() / 15 * 15 + 7);
+      setPos(position);
+      return QGraphicsItem::itemChange(change, value);
+    }
     updateCables();
     if (bench)
       bench->notifyItemChange(this);
@@ -446,7 +462,7 @@ void ToolItem::drawBox(QPainter* painter) {
 
   if (bench && isCurrentItem()) {
     gradient.setColorAt(0, Qt::white);
-    switch(progress) {
+    switch ((int)progress) {
     case -1:
       gradient.setColorAt(1, Qt::lightGray);
       break;
@@ -454,14 +470,14 @@ void ToolItem::drawBox(QPainter* painter) {
       gradient.setColorAt(1, Qt::yellow);
       break;
     default:
-      gradient.setColorAt(1, Qt::lightGray);
+      gradient.setColorAt(1, Qt::red);
     }
     progressGradient.setColorAt(0, Qt::white);
     progressGradient.setColorAt(1, Qt::green);
     setZValue(7);
   } else {
     gradient.setColorAt(0, Qt::lightGray);
-    switch(progress) {
+    switch ((int)progress) {
     case -1:
       gradient.setColorAt(1, Qt::gray);
       break;
@@ -469,7 +485,7 @@ void ToolItem::drawBox(QPainter* painter) {
       gradient.setColorAt(1, Qt::yellow);
       break;
     default:
-      gradient.setColorAt(1, Qt::gray);
+      gradient.setColorAt(1, Qt::red);
     }
     progressGradient.setColorAt(0, Qt::lightGray);
     progressGradient.setColorAt(1, Qt::green);
@@ -521,7 +537,7 @@ void ToolItem::drawBox(QPainter* painter) {
   if (progress >=0) {
     painter->save();
     painter->setClipping(true);
-    painter->setClipRect(0, 0, width * min(100,progress) / 100, height);
+    painter->setClipRect(0, 0, width * min(100., progress) / 100., height);
     painter->setBrush(progressGradient);
     painter->drawRoundedRect(0, 0, width, height, 4, 4);
     painter->restore();

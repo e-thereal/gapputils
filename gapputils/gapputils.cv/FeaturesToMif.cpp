@@ -19,6 +19,7 @@
 #include <capputils/VolatileAttribute.h>
 
 #include <gapputils/HideAttribute.h>
+#include <gapputils/ReadOnlyAttribute.h>
 
 #include <algorithm>
 #include <cmath>
@@ -39,7 +40,7 @@ namespace cv {
 BeginPropertyDefinitions(FeaturesToMif)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Data, Input(), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Data, Input(), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(MaxCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))

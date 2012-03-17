@@ -28,19 +28,21 @@ namespace gapputils {
 
 namespace ml {
 
+int RbmDecoder::inputId;
+
 BeginPropertyDefinitions(RbmDecoder)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
   DefineProperty(RbmModel, Input("RBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(HiddenVector, Input("In"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(HiddenVector, Input("In"), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(VisibleVector, Output("Out"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(IsGaussian, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(UseWeightsOnly, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(AutoDecode, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-RbmDecoder::RbmDecoder() : _IsGaussian(0), _UseWeightsOnly(0), data(0) {
+RbmDecoder::RbmDecoder() : _UseWeightsOnly(0), _AutoDecode(false), data(0) {
   WfeUpdateTimestamp
   setLabel("RbmDecoder");
 
@@ -53,7 +55,10 @@ RbmDecoder::~RbmDecoder() {
 }
 
 void RbmDecoder::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
+  if (eventId == inputId && getAutoDecode()) {
+    execute(0);
+    writeResults();
+  }
 }
 
 void RbmDecoder::writeResults() {

@@ -12,6 +12,8 @@
 
 #include "sampling.hpp"
 
+#include <iostream>
+
 namespace gapputils {
 
 namespace ml {
@@ -19,6 +21,8 @@ namespace ml {
 namespace ublas = boost::numeric::ublas;
 
 void RbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+  using namespace thrust::placeholders;
+
   if (!data)
     data = new RbmEncoder();
 
@@ -34,14 +38,21 @@ void RbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   const unsigned visibleCount = rbm.getVisibleBiases()->size();
   const unsigned hiddenCount = rbm.getHiddenBiases()->size();
   const unsigned sampleCount = getVisibleVector()->size() / visibleCount;
+//  std::cout << "Encode: " << sampleCount << std::endl;
 
   ublas::matrix<float> visibles(sampleCount, visibleCount);
   std::copy(getVisibleVector()->begin(), getVisibleVector()->end(), visibles.data().begin());
-
-  // normalize visible variables -> X (design matrix with one sample per row)
-  boost::shared_ptr<ublas::matrix<float> > normalizedVisibles = getRbmModel()->encodeDesignMatrix(visibles, !getIsGaussian());
   tbblas::device_matrix<float> X(sampleCount, visibleCount);
-  X = *normalizedVisibles;
+  X = visibles;
+
+  if (rbm.getIsGaussian()) {
+    assert (rbm.getVisibleMeans() && rbm.getVisibleMeans()->size());
+    assert (rbm.getVisibleStds() && rbm.getVisibleStds()->size());
+
+    const float mean = rbm.getVisibleMeans()->data()[0];
+    const float stddev = rbm.getVisibleStds()->data()[0];
+    thrust::transform(X.data().begin(), X.data().end(), X.data().begin(), (_1 - mean) / stddev);
+  }
 
   tbblas::device_matrix<float>& W = *rbm.getWeightMatrix();
   tbblas::device_vector<float>& c = *rbm.getHiddenBiases();

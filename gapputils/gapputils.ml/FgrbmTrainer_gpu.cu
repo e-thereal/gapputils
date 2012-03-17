@@ -216,6 +216,16 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
   const int epochCount = getEpochCount();
 
+  const int wCount = visibleCount * factorCount;
+  boost::shared_ptr<std::vector<float> > vWx(new std::vector<float>(wCount));
+  boost::shared_ptr<std::vector<float> > vWy(new std::vector<float>(wCount));
+
+  ublas::matrix<double, ublas::column_major> mWx = Wx;
+  ublas::matrix<double, ublas::column_major> mWy = Wy;
+
+  data->setWx(vWx);
+  data->setWy(vWy);
+
   std::cout << "[Info] Preparation finished after " << timer.elapsed() << " s" << std::endl;
   std::cout << "[Info] Starting training" << std::endl;
   timer.restart();
@@ -349,21 +359,22 @@ void FgrbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const
     int hours = eta / 3600;
     std::cout << "Epoch " << iEpoch << " error " << (error / sampleCount) << " after " << timer.elapsed() << "s. ETA: "
         << hours << " h " << minutes << " min " << sec << " s" << std::endl;
+
+    mWx = Wx;
+    mWy = Wy;
+    std::copy(mWx.data().begin(), mWx.data().end(), vWx->begin());
+    std::copy(mWy.data().begin(), mWy.data().end(), vWy->begin());
+
+    if (monitor)
+      monitor->reportProgress(100 * (iEpoch + 1) / epochCount, true);
   }
 
-  const int wCount = visibleCount * factorCount;
-  boost::shared_ptr<std::vector<float> > vWx(new std::vector<float>(wCount));
-  boost::shared_ptr<std::vector<float> > vWy(new std::vector<float>(wCount));
-
-  ublas::matrix<double, ublas::column_major> mWx = Wx;
-  ublas::matrix<double, ublas::column_major> mWy = Wy;
-
+  mWx = Wx;
+  mWy = Wy;
   std::copy(mWx.data().begin(), mWx.data().end(), vWx->begin());
   std::copy(mWy.data().begin(), mWy.data().end(), vWy->begin());
 
   data->setFgrbmModel(fgrbm);
-  data->setWx(vWx);
-  data->setWy(vWy);
 }
 
 }

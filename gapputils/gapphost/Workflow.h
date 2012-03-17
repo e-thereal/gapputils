@@ -207,7 +207,7 @@ private Q_SLOTS:
   void deleteEdge(CableItem* cable);
 
   void finalizeModuleUpdate(workflow::Node* node);
-  void showProgress(workflow::Node* node, int i);
+  void showProgress(workflow::Node* node, double progress, bool updateNode);
   void showWorkflow(workflow::Workflow* workflow);
   void showWorkflow(ToolItem* item);
   void showModuleDialog(ToolItem* item);

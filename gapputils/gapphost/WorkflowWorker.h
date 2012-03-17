@@ -33,7 +33,7 @@ public:
   virtual ~WorkflowWorker();
 
   virtual void run();
-  virtual void reportProgress(int i);
+  virtual void reportProgress(double progress, bool updateNode = false);
   virtual bool getAbortRequested() const;
 
   void abort();
@@ -43,7 +43,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
   void moduleUpdated(workflow::Node* node);
-  void progressed(workflow::Node* node, int i);
+  void progressed(workflow::Node* node, double progress, bool updateNode = false);
 
 };
 

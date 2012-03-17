@@ -18,7 +18,7 @@ class IProgressMonitor {
 public:
   virtual ~IProgressMonitor();
 
-  virtual void reportProgress(int i) = 0;
+  virtual void reportProgress(double progress, bool updateNode = false) = 0;
   virtual bool getAbortRequested() const = 0;
 };
 

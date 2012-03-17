@@ -21,9 +21,14 @@ class ImageSaver : public gapputils::workflow::WorkflowElement {
 
   Property(ImagePtr, boost::shared_ptr<QImage>)
   Property(ImageName, std::string)
+  Property(AutoSave, bool)
+  Property(AutoName, std::string)
+  Property(AutoSuffix, std::string)
 
 private:
   mutable ImageSaver* data;
+  static int imageId;
+  int imageNumber;
 
 public:
   ImageSaver();

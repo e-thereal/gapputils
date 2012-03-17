@@ -24,9 +24,12 @@ class ImageMatrix : public gapputils::workflow::WorkflowElement {
   Property(MinValue, float)
   Property(MaxValue, float)
   Property(ImageMatrix, boost::shared_ptr<culib::ICudaImage>)
+  Property(AutoScale, bool)
+  Property(CenterImages, bool)
 
 private:
   mutable ImageMatrix* data;
+  static int inputId;
 
 public:
   ImageMatrix();

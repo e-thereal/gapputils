@@ -24,6 +24,7 @@ class FromRgb : public workflow::WorkflowElement
 
 private:
   mutable FromRgb* data;
+  static int outputId;
 
 public:
   FromRgb(void);

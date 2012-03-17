@@ -29,15 +29,18 @@ namespace gapputils {
 
 namespace ml {
 
+int RbmWriter::inputId;
+
 BeginPropertyDefinitions(RbmWriter)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(RbmModel, Input("RBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(RbmModel, Input("RBM"), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Filename, Output("File"), Filename("RBM Model (*.rbm)"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(AutoSave, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-RbmWriter::RbmWriter() : data(0) {
+RbmWriter::RbmWriter() : _AutoSave(false), data(0) {
   WfeUpdateTimestamp
   setLabel("RbmWriter");
 
@@ -50,7 +53,10 @@ RbmWriter::~RbmWriter() {
 }
 
 void RbmWriter::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
+  if (eventId == inputId && getAutoSave()) {
+    execute(0);
+    writeResults();
+  }
 }
 
 void RbmWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {

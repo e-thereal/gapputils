@@ -31,11 +31,12 @@ class RbmDecoder : public gapputils::workflow::WorkflowElement {
   Property(RbmModel, boost::shared_ptr<RbmModel>)
   Property(HiddenVector, boost::shared_ptr<std::vector<float> >)
   Property(VisibleVector, boost::shared_ptr<std::vector<float> >)
-  Property(IsGaussian, bool)
   Property(UseWeightsOnly, bool)
+  Property(AutoDecode, bool)
 
 private:
   mutable RbmDecoder* data;
+  static int inputId;
 
 public:
   RbmDecoder();

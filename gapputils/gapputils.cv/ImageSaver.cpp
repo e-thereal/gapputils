@@ -20,6 +20,8 @@
 
 #include <gapputils/HideAttribute.h>
 
+#include <sstream>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -27,15 +29,20 @@ namespace gapputils {
 
 namespace cv {
 
+int ImageSaver::imageId;
+
 BeginPropertyDefinitions(ImageSaver)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(ImagePtr, Input("Img"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImagePtr, Input("Img"), Hide(), Volatile(), Observe(imageId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ImageName, Output("Name"), Filename("Images (*.jpg, *.png)"), NotEqual<std::string>(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(AutoSave, Observe(PROPERTY_ID))
+  DefineProperty(AutoName, Observe(PROPERTY_ID))
+  DefineProperty(AutoSuffix, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-ImageSaver::ImageSaver() : data(0) {
+ImageSaver::ImageSaver() : _AutoSave(false), data(0), imageNumber(0) {
   WfeUpdateTimestamp
   setLabel("ImageSaver");
 
@@ -48,7 +55,11 @@ ImageSaver::~ImageSaver() {
 }
 
 void ImageSaver::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
+  if (eventId == imageId && getAutoSave() && getImagePtr()) {
+    std::stringstream filename;
+    filename << getAutoName() << imageNumber++ << getAutoSuffix();
+    getImagePtr()->save(filename.str().c_str());
+  }
 }
 
 void ImageSaver::execute(gapputils::workflow::IProgressMonitor* monitor) const {

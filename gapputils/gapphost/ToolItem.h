@@ -95,7 +95,7 @@ protected:
   std::vector<MultiConnection*> outputs;
   QFont labelFont;
   bool deletable;
-  int progress;
+  double progress;
 
 public:
   ToolItem(const std::string& label, Workbench *bench = 0);
@@ -125,7 +125,7 @@ public:
   void updateCables();
 
   /// progess is in %
-  void setProgress(int progress);
+  void setProgress(double progress);
 
   virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
   virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
