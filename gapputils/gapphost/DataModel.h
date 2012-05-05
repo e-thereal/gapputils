@@ -75,7 +75,8 @@ public:
 
   static DataModel& getInstance();
 
-  void save();
+  void save() const;
+  void save(const std::string& filename) const;
 
   static std::string getConfigurationDirectory();
 };

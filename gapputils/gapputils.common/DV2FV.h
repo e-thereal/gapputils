@@ -20,9 +20,11 @@ class DV2FV : public gapputils::workflow::WorkflowElement {
 
   Property(Input, boost::shared_ptr<std::vector<double> >)
   Property(Output, boost::shared_ptr<std::vector<float> >)
+  Property(Auto, bool)
 
 private:
   mutable DV2FV* data;
+  static int inputId;
 
 public:
   DV2FV();

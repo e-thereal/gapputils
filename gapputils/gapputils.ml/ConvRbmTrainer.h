@@ -37,9 +37,10 @@ public:
   Property(SparsityPenalty, value_t)
   Property(UseRandomSamples, bool)
   Property(CalculateBaseline, bool)
+  Property(ShowProgress, bool)
 
   Property(Model, boost::shared_ptr<ConvRbmModel>)
-  Property(Filters, boost::shared_ptr<std::vector<float> >)
+  Property(Filters, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
 
 private:
   mutable ConvRbmTrainer* data;

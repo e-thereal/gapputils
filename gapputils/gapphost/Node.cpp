@@ -9,6 +9,7 @@
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 #include <boost/filesystem.hpp>
 
+#include <capputils/ScalarAttribute.h>
 #include <gapputils/LabelAttribute.h>
 #include <gapputils/CacheableAttribute.h>
 #include <capputils/VolatileAttribute.h>
@@ -22,6 +23,7 @@
 #include <capputils/EventHandler.h>
 #include <capputils/Serializer.h>
 #include <capputils/SerializeAttribute.h>
+#include <capputils/DescriptionAttribute.h>
 
 #include <iostream>
 #include <gapputils/WorkflowElement.h>
@@ -34,6 +36,7 @@
 #include <boost/iostreams/device/file_descriptor.hpp>
 
 #include "ToolItem.h"
+#include "HostInterface.h"
 
 using namespace std;
 using namespace capputils;
@@ -54,8 +57,8 @@ BeginPropertyDefinitions(Node)
   DefineProperty(X)
   DefineProperty(Y)
   ReflectableProperty(Module, Observe(moduleId = PROPERTY_ID))
-  DefineProperty(InputChecksum)
-  DefineProperty(OutputChecksum)
+  DefineProperty(InputChecksum, Description("Checksum calculated over all inputs and parameters."))
+  DefineProperty(OutputChecksum, Description("Set to InputsChecksum after update."))
   DefineProperty(ToolItem, Volatile())
   DefineProperty(Workflow, Volatile())
   DefineProperty(Expressions, Enumerable<TYPE_OF(Expressions), true>())
@@ -152,6 +155,7 @@ void Node::resume() {
 
   WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
   if (element) {
+    element->setHostInterface(gapputils::host::HostInterface::GetPointer());
     element->resume();
   }
 }
@@ -182,12 +186,22 @@ Node::checksum_type Node::getChecksum(const capputils::reflection::IClassPropert
     ReflectableClass* subobject = reflectable->getValuePtr(object, property);
     if (!subobject)
       return 0;
-    std::vector<IClassProperty*>& properties = subobject->getProperties();
-    for (unsigned i = 0; i < properties.size(); ++i) {
-      checksum = getChecksum(properties[i], *subobject);
-      valueSum.process_bytes(&checksum, sizeof(checksum));
+
+    if (subobject->getAttribute<ScalarAttribute>()) {
+      boost::crc_32_type valueSum;
+      const std::string& str = property->getStringValue(object);
+      valueSum.process_bytes(&str[0], str.size());
+      checksum_type cs = valueSum.checksum();
+//      std::cout << "[Checksum Module] Calculating checksum of scalar property: " << str << " = " << cs << std::endl;
+      return cs;
+    } else {
+      std::vector<IClassProperty*>& properties = subobject->getProperties();
+      for (unsigned i = 0; i < properties.size(); ++i) {
+        checksum = getChecksum(properties[i], *subobject);
+        valueSum.process_bytes(&checksum, sizeof(checksum));
+      }
+      return valueSum.checksum();
     }
-    return valueSum.checksum();
   } else if (enumerable) {
     boost::crc_32_type valueSum;
     checksum_type checksum;
@@ -228,10 +242,11 @@ void Node::updateChecksum(const std::vector<checksum_type>& inputChecksums) {
   if (module) {
     const std::vector<IClassProperty*>& properties = module->getProperties();
     for (unsigned i = 0; i < properties.size(); ++i) {
-//      std::cout << properties[i]->getName() << std::endl;
       if (properties[i]->getAttribute<NoParameterAttribute>())
         continue;
-      int cs = getChecksum(properties[i], *module);
+//      std::cout << properties[i]->getName() << ": ";
+      checksum_type cs = getChecksum(properties[i], *module);
+//      std::cout << cs << std::endl;
       checksums.push_back(cs);
     }
 

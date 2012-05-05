@@ -108,9 +108,33 @@ void InitializeConvRbmModel::execute(gapputils::workflow::IProgressMonitor* moni
   crbm->setPoolingBlockSize(getPoolingBlockSize());
   crbm->setIsGaussian(getIsGaussian());
 
+  std::vector<boost::shared_ptr<tensor_t> >& tensors = *getInputTensors();
+  std::vector<boost::shared_ptr<tensor_t> > X;
+
+  for (unsigned i = 0; i < tensors.size(); ++i) {
+    X.push_back(boost::shared_ptr<tensor_t>(new tensor_t(tbblas::copy(*tensors[i]))));
+  }
+
   if (getIsGaussian()) {
-    // calculate mean and stddev and normalize data
-    assert(0); //< Gaussian ConvRBM not yet implemented.
+    // Calculate the mean and normalize the data
+    value_t mean = 0;
+    for (unsigned i = 0; i < X.size(); ++i)
+      mean += tbblas::sum(*X[i]) / X[i]->data().size();
+    mean /= X.size();
+
+    for (unsigned i = 0; i < X.size(); ++i)
+      *X[i] += -mean;
+
+    // Calculate the stddev and normalize the data
+    value_t var = 0;
+    for (unsigned i = 0; i < X.size(); ++i)
+      var += tbblas::dot(*X[i], *X[i]) / X[i]->data().size();
+
+    value_t stddev = sqrt(var / X.size());
+    std::cout << "Stddev: " << stddev << std::endl;
+
+    crbm->setMean(mean);
+    crbm->setStddev(stddev);
   } else {
     crbm->setMean(0.0);
     crbm->setStddev(1.0);

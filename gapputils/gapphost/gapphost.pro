@@ -31,7 +31,8 @@ SOURCES = main.cpp \
 		  GlobalEdge.cpp \
 		  EditInterfaceDialog.cpp \
 		  Expression.cpp \
-		  trace.cpp
+		  trace.cpp \
+		  HostInterface.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \

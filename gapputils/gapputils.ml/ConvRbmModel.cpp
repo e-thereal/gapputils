@@ -9,19 +9,22 @@
 
 #include <algorithm>
 
+#include "tbblas_serialize.hpp"
+
 namespace gapputils {
 
 namespace ml {
 
 BeginPropertyDefinitions(ConvRbmModel)
+  using namespace capputils::attributes;
 
-  DefineProperty(Filters)
-  DefineProperty(VisibleBias)
-  DefineProperty(HiddenBiases)
-  DefineProperty(Mean)
-  DefineProperty(Stddev)
-  DefineProperty(PoolingBlockSize)
-  DefineProperty(IsGaussian)
+  DefineProperty(Filters, Serialize<TYPE_OF(Filters)>())
+  DefineProperty(VisibleBias, Serialize<TYPE_OF(VisibleBias)>())
+  DefineProperty(HiddenBiases, Serialize<TYPE_OF(HiddenBiases)>())
+  DefineProperty(Mean, Serialize<TYPE_OF(Mean)>())
+  DefineProperty(Stddev, Serialize<TYPE_OF(Stddev)>())
+  DefineProperty(PoolingBlockSize, Serialize<TYPE_OF(PoolingBlockSize)>())
+  DefineProperty(IsGaussian, Serialize<TYPE_OF(IsGaussian)>())
 
 EndPropertyDefinitions
 
