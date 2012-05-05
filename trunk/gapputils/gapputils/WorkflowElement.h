@@ -15,6 +15,7 @@
 #include <capputils/TimedClass.h>
 
 #include "IProgressMonitor.h"
+#include "IGapphostInterface.h"
 
 namespace gapputils {
 
@@ -27,6 +28,7 @@ class WorkflowElement : public capputils::reflection::ReflectableClass,
   InitAbstractReflectableClass(WorkflowElement)
 
   Property(Label, std::string)
+  Property(HostInterface, boost::shared_ptr<IGapphostInterface>)
 
 public:
   static int labelId;

@@ -30,15 +30,18 @@ namespace gapputils {
 
 namespace common {
 
+int DV2FV::inputId;
+
 BeginPropertyDefinitions(DV2FV)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Input, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Input, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(inputId = PROPERTY_ID))
   DefineProperty(Output, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Auto, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-DV2FV::DV2FV() : data(0) {
+DV2FV::DV2FV() : _Auto(false), data(0) {
   WfeUpdateTimestamp
   setLabel("DV2FV");
 
@@ -51,7 +54,10 @@ DV2FV::~DV2FV() {
 }
 
 void DV2FV::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
+  if (eventId == inputId && getAuto()) {
+    execute(0);
+    writeResults();
+  }
 }
 
 void DV2FV::execute(gapputils::workflow::IProgressMonitor* monitor) const {

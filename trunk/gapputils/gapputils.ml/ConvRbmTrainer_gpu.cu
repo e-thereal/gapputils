@@ -9,6 +9,7 @@
 #include "ConvRbmTrainer.h"
 
 #include <iostream>
+#include <sstream>
 
 #include <capputils/Verifier.h>
 
@@ -20,6 +21,8 @@
 #include "RbmModel.h"
 
 #include <curand.h>
+#include <culib/CulibException.h>
+#include <culib/util.h>
 
 namespace gapputils {
 
@@ -45,6 +48,17 @@ struct softmax : thrust::binary_function<T, unsigned, T> {
 private:
   unsigned blockSize, width;
 };
+
+void printMemoryAtLine(int line) {
+  std::stringstream stream;
+  stream << "line " << line;
+  culib::printMemoryStats(stream.str().c_str());
+  CULIB_CHECK_ERROR();
+}
+
+#define TRACE printMemoryAtLine(__LINE__);
+//#define TRACE
+
 
 void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace thrust::placeholders;
@@ -81,6 +95,8 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
   std::cout << "Building ConvRBM ..." << std::endl;
 
+  TRACE
+
   curandGenerator_t gen;
   curandStatus_t status;
   if ((status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT)) != CURAND_STATUS_SUCCESS) {
@@ -88,15 +104,10 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
     return;
   }
 
-  // Calculate the mean and the std of all features
   const unsigned sampleCount = getTensors()->size();
   const int batchSize = getBatchSize();
 
   boost::shared_ptr<ConvRbmModel> crbm = getInitialModel()->clone();
-
-  if (crbm->getIsGaussian()) {
-    assert(0); // Gaussian case not implemented yet.
-  }
 
   const unsigned dimCount = ConvRbmModel::dimCount;
   const unsigned filterCount = crbm->getFilters()->size();
@@ -117,11 +128,29 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
   assert((layerDim[0] % blockSize) == 0);
   assert((layerDim[1] % blockSize) == 0);
-  assert((layerVoxelCount % 2) == 0);
-  assert((inputVoxelCount % 2) == 0);
+  assert((layerVoxelCount % 2) == 0); // TODO: loosen this constrain. Means, use temporary array to generate
+  assert((inputVoxelCount % 2) == 0); //       random number (count must be a multiple of 2)
 
   // Train the RBM
-  std::vector<boost::shared_ptr<host_tensor_t> >& X = *getTensors();
+  std::vector<boost::shared_ptr<host_tensor_t> >& tensors = *getTensors();
+  std::vector<boost::shared_ptr<host_tensor_t> > X;
+
+  for (unsigned i = 0; i < tensors.size(); ++i) {
+    X.push_back(boost::shared_ptr<host_tensor_t>(new host_tensor_t(tbblas::copy(*tensors[i]))));
+  }
+
+  if (crbm->getIsGaussian()) {
+    // Calculate the mean and normalize the data
+    value_t mean = crbm->getMean();
+    value_t stddev = crbm->getStddev();
+
+    for (unsigned i = 0; i < X.size(); ++i)
+      *X[i] += -mean;
+
+    for (unsigned  i = 0; i < X.size(); ++i) {
+      *X[i] = tbblas::copy(*X[i] / stddev);
+    }
+  }
 
   // Copy filters to the device
   std::vector<boost::shared_ptr<host_tensor_t> >& filters = *crbm->getFilters();
@@ -147,6 +176,8 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   value_t finalmomentum = 0.9; // 65; // 0.9f;
   value_t momentum;
 
+  culib::printMemoryStats("ConvRbmTrainer initialized");
+
   device_tensor_t v(inputDim), vneg(inputDim), vtemp(inputDim), padded(paddedDim);
   thrust::fill(padded.begin(), padded.end(), value_t(0));
   std::vector<device_tensor_t> poshidprobs, poshidstates, posvishid, neghidprobs, neghidstates, negvishid, Finc, Fincbatch;
@@ -170,11 +201,22 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   const int epochCount = getEpochCount();
 
   std::cout << "[Info] Preparation finished after " << timer.elapsed() << " s" << std::endl;
+  CULIB_CHECK_ERROR();
+  culib::printMemoryStats("ConvRbmTrainer memory allocated");
   std::cout << "[Info] Starting training" << std::endl;
   timer.restart();
-  const int wCount = filterWeightCount * filterCount;
-  boost::shared_ptr<std::vector<float> > vFilters(new std::vector<float>(wCount));
-  data->setFilters(vFilters);
+
+  if (epochCount && getShowProgress()) {
+    boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
+        new std::vector<boost::shared_ptr<host_tensor_t> >());
+    for (unsigned i = 0; i < filterCount; ++i)
+      debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(tbblas::copy(F[i]))));
+    data->setFilters(debugFilters);
+  }
+
+  if (monitor)
+    monitor->reportProgress(0, getShowProgress());
+
   for (int iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
 
     double error = 0;
@@ -187,7 +229,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
       }
       bincbatch = 0;
 
-      for (int iSample = 0; iSample < batchSize; ++iSample) {
+      for (int iSample = 0; iSample < batchSize && (monitor ? !monitor->getAbortRequested() : true); ++iSample) {
 
         /*** START POSITIVE PHASE ***/
         const int randomSample = rand() % sampleCount;
@@ -199,7 +241,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
           thrust::copy(X[iSample + iBatch * batchSize]->begin(), X[iSample + iBatch * batchSize]->end(), v.begin());
 
         // For each filter (Could be written as a single 4D convolution in case of a 2D image and 3D filter))
-        for (unsigned k = 0; k < filterCount; ++k) {
+        for (unsigned k = 0; k < filterCount && (monitor ? !monitor->getAbortRequested() : true); ++k) {
 
           // Calculate p(h_k | v, F) = sigm((~F_k * v) + c_k)
           poshidstates[k] = tbblas::conv(tbblas::flip(F[k]), v, (k ? tbblas::ReuseFT2 : tbblas::ReuseFTNone));
@@ -231,6 +273,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
           }
 
           // Sample the hidden states
+          // TODO: sample correctly from the categorical.
           thrust::transform(
               poshidprobs[k].data().begin(), poshidprobs[k].data().end(), poshidstates[k].data().begin(),
               poshidstates[k].data().begin(), _1 > _2
@@ -313,8 +356,9 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
         /*** END OF NEGATIVE PHASE ***/
 
-        error += thrust::inner_product(vneg.begin(), vneg.end(), v.begin(), value_t(0),
+        double curerr = thrust::inner_product(vneg.begin(), vneg.end(), v.begin(), value_t(0),
             thrust::plus<value_t>(), (_1 - _2) * (_1 - _2));
+        error += curerr;
         momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
 
         /*** UPDATE WEIGHTS AND BIASES ***/
@@ -327,14 +371,14 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
         }
       }
       for (unsigned k = 0; k < filterCount; ++k) {
-        Finc[k] = momentum * Finc[k] + (epsilonw / batchSize) * Fincbatch[k];
-        cinc[k] = momentum * cinc[k] + (epsilonhb / batchSize) * cincbatch[k]
+        Finc[k] = momentum * Finc[k] + (epsilonw / batchSize / layerVoxelCount) * Fincbatch[k];
+        cinc[k] = momentum * cinc[k] + (epsilonhb / batchSize / layerVoxelCount) * cincbatch[k]
                   + getSparsityPenalty() * cspabatch[k] / batchSize;
 
         F[k] += Finc[k];
         c[k] += cinc[k];
       }
-      binc = momentum * binc + (epsilonvb / batchSize) * bincbatch;
+      binc = momentum * binc + (epsilonvb / batchSize / inputVoxelCount) * bincbatch;
       b += binc;
 
       /*** END OF UPDATES ***/
@@ -342,19 +386,23 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
       if (monitor)
         monitor->reportProgress(100. * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
     }
-    int eta = timer.elapsed() / (iEpoch + 1) * (epochCount - iEpoch - 1);
+    int eta = (int)(timer.elapsed() / (double)(iEpoch + 1) * (double)(epochCount - iEpoch - 1));
     int sec = eta % 60;
     int minutes = (eta / 60) % 60;
     int hours = eta / 3600;
     std::cout << "Epoch " << iEpoch << " error " << (error / sampleCount) << " after " << timer.elapsed() << "s. ETA: "
         << hours << " h " << minutes << " min " << sec << " s" << std::endl;
 
-    for (unsigned i = 0; i < filterCount; ++i) {
-      thrust::copy(F[i].begin(), F[i].end(), vFilters->begin() + i * filterWeightCount);
+    if (getShowProgress()){
+      boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
+          new std::vector<boost::shared_ptr<host_tensor_t> >());
+      for (unsigned i = 0; i < filterCount; ++i)
+        debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(tbblas::copy(F[i]))));
+      data->setFilters(debugFilters);
     }
 
     if (monitor)
-      monitor->reportProgress(100. * (iEpoch + 1) / epochCount, true);
+      monitor->reportProgress(100. * (iEpoch + 1) / epochCount, (iEpoch < epochCount - 1) && getShowProgress());
   }
 
   if ((status = curandDestroyGenerator(gen)) != CURAND_STATUS_SUCCESS)
@@ -363,18 +411,17 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
     return;
   }
 
-  thrust::device_vector<value_t> temp(filterWeightCount);
-
-  for (unsigned i = 0; i < filterCount; ++i) {
-    thrust::copy(F[i].begin(), F[i].end(), vFilters->begin() + i * filterWeightCount);
-//    thrust::transform(F[i].begin(), F[i].end(),
-//        thrust::make_counting_iterator(0),
-//        temp.begin(),
-//        block_sum<value_t>(filterDim[0], 4));
-//
-//    thrust::copy(temp.begin(), temp.end(), vFilters->begin() + i * filterWeightCount);
+  {
+  boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
+      new std::vector<boost::shared_ptr<host_tensor_t> >());
+    for (unsigned i = 0; i < filterCount; ++i)
+      debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(tbblas::copy(F[i]))));
+    data->setFilters(debugFilters);
   }
 
+  for (unsigned i = 0; i < filterCount; ++i) {
+    thrust::copy(F[i].begin(), F[i].end(), filters[i]->begin());
+  }
   data->setModel(crbm);
 }
 

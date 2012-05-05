@@ -1295,10 +1295,31 @@ void Workflow::updateChecksum(const std::vector<checksum_type>& inputChecksums, 
       // Collect checksums of all direct inputs
       std::vector<checksum_type> checksums;
       vector<Edge*>* edges = getEdges();
+      std::set<std::string> connectedProperties;
       for (int j = (int)edges->size() - 1; j >= 0; --j) {
         Edge* edge = edges->at(j);
         if (edge->getInputNodePtr() == node && edge->getOutputNodePtr()) {
           checksums.push_back(edge->getOutputNodePtr()->getInputChecksum());
+          connectedProperties.insert(edge->getInputProperty());
+        }
+      }
+
+      // Collect checksums of all unconnected input properties
+      ReflectableClass* module = node->getModule();
+      if (module) {
+        const std::vector<IClassProperty*>& properties = module->getProperties();
+        for (unsigned i = 0; i < properties.size(); ++i) {
+          // Ignore it if it is not an input or a connected input
+          if (!properties[i]->getAttribute<InputAttribute>() ||
+              properties[i]->getAttribute<FromEnumerableAttribute>() ||
+              connectedProperties.find(properties[i]->getName()) != connectedProperties.end())
+          {
+            continue;
+          }
+          std::cout << "[Checksum Module] Found unconnected input property: " << properties[i]->getName() << std::endl;
+
+          int cs = Node::getChecksum(properties[i], *module);
+          checksums.push_back(cs);
         }
       }
 

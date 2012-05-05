@@ -120,7 +120,11 @@ DataModel& DataModel::getInstance() {
   return *instance;
 }
 
-void DataModel::save() {
+void DataModel::save() const {
+  save(".gapphost/config.xml");
+}
+
+void DataModel::save(const std::string& filename) const {
   //TiXmlElement* modelElement = Xmlizer::CreateXml(*this);
   //TiXmlElement* mainWorkflowElement = new TiXmlElement("MainWorkflow");
   //TiXmlElement* workflowElement = getMainWorkflow()->getXml(false);
@@ -131,8 +135,7 @@ void DataModel::save() {
 
   //Xmlizer::ToFile(filename, modelElement);
 
-  Xmlizer::ToXml(".gapphost/config.xml", *this);
-
+  Xmlizer::ToXml(filename, *this);
 }
 
 std::string DataModel::getConfigurationDirectory() {

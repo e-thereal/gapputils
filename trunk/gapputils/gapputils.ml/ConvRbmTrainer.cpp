@@ -43,12 +43,17 @@ BeginPropertyDefinitions(ConvRbmTrainer)
   DefineProperty(SparsityPenalty, Observe(PROPERTY_ID))
   DefineProperty(UseRandomSamples, Observe(PROPERTY_ID))
   DefineProperty(CalculateBaseline, Observe(PROPERTY_ID))
+  DefineProperty(ShowProgress, Observe(PROPERTY_ID))
   DefineProperty(Model, Output("CRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
   DefineProperty(Filters, Output("F"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-ConvRbmTrainer::ConvRbmTrainer() : data(0) {
+ConvRbmTrainer::ConvRbmTrainer()
+ : _SampleVisibles(false), _EpochCount(50), _BatchSize(10), _LearningRate(0.01),
+   _SparsityTarget(0.001), _SparsityPenalty(0.01), _UseRandomSamples(false),
+   _CalculateBaseline(false), _ShowProgress(false), data(0)
+{
   WfeUpdateTimestamp
   setLabel("ConvRbmTrainer");
 
