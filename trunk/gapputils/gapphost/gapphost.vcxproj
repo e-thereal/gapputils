@@ -58,7 +58,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(CULA_LIB_PATH_32);$(BOOST_LIB_PATH);$(OutDir);$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BOOST_LIB_PATH);$(CULA_LIB_PATH_32);$(OutDir);$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>cudart.lib;cula.lib;cublas.lib;qtmaind.lib;QtCored4.lib;QtGuid4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -87,6 +87,7 @@
     <ClCompile Include="DefaultInterface.cpp" />
     <ClCompile Include="Edge.cpp" />
     <ClCompile Include="EditInterfaceDialog.cpp" />
+    <ClCompile Include="Expression.cpp" />
     <ClCompile Include="FilenameEdit.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_EditInterfaceDialog.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -175,6 +176,7 @@
     <ClCompile Include="GenericViewer.cpp" />
     <ClCompile Include="GlobalEdge.cpp" />
     <ClCompile Include="GlobalProperty.cpp" />
+    <ClCompile Include="HostInterface.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="ImageViewer.cpp" />
     <ClCompile Include="ImageViewerItem.cpp" />
@@ -231,6 +233,8 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I." "-I." "-I."</Command>
     </CustomBuild>
+    <ClInclude Include="Expression.h" />
+    <ClInclude Include="HostInterface.h" />
     <ClInclude Include="XslTransformation.h" />
     <CustomBuild Include="WorkflowItem.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

@@ -298,8 +298,6 @@ void Workbench::keyPressEvent(QKeyEvent *event)
   }
 
   switch (event->key()) {
-  case Qt::Key_Space:
-    break;
   case Qt::Key_Delete:
     Q_FOREACH(QGraphicsItem* item, scene()->selectedItems()) {
       ToolItem* toolItem = dynamic_cast<ToolItem*>(item);

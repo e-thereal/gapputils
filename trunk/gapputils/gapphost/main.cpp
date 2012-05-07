@@ -34,6 +34,7 @@ using namespace std;
 #include <boost/filesystem.hpp>
 
 #include <algorithm>
+#include <exception>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>

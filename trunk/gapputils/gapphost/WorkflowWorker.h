@@ -21,7 +21,7 @@ class Workflow;
 
 class WorkflowWorker : public QThread, public virtual IProgressMonitor {
   Q_OBJECT
-
+    
 private:
   Workflow* workflow;
   WorkflowWorker* worker;

@@ -5,6 +5,7 @@
  *      Author: tombr
  */
 #define BOOST_TYPEOF_COMPLIANT
+
 #include "ConvRbmDecoder.h"
 
 #include <capputils/Verifier.h>

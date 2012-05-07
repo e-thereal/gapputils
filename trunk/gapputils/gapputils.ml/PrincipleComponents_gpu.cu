@@ -4,7 +4,7 @@
  *  Created on: Jun 10, 2011
  *      Author: tombr
  */
-
+#define BOOST_TYPEOF_COMPLIANT
 #include <cuda_runtime.h>
 #include <culapackdevice.h>
 #include <thrust/device_vector.h>

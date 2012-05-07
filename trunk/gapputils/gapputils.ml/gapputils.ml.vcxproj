@@ -50,16 +50,16 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;GAPPUTILSML_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CudaToolkitIncludeDir);$(SolutionDir);$(BOOST_INC_PATH)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CudaToolkitIncludeDir);$(SolutionDir);$(CULA_INC_PATH);$(BOOST_INC_PATH);$(NVSDKCOMPUTE_ROOT)/C/common/inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(CudaToolkitLibDir);$(BOOST_LIB_PATH);$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>cudart.lib;cublas.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CULA_LIB_PATH_32);$(CudaToolkitLibDir);$(BOOST_LIB_PATH);$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cudart.lib;cublas.lib;curand.lib;cufft.lib;cula.lib;cuda.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CudaCompile>
-      <Include>$(SolutionDir);$(BOOST_INC_PATH)</Include>
+      <Include>$(SolutionDir);$(BOOST_INC_PATH);$(NVSDKCOMPUTE_ROOT)/C/common/inc;$(CULA_INC_PATH)</Include>
       <CodeGeneration>compute_20,sm_20</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
@@ -84,56 +84,107 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BinaryImageGenerator.h" />
+    <ClInclude Include="ConvRbmDecoder.h" />
+    <ClInclude Include="ConvRbmEncoder.h" />
+    <ClInclude Include="ConvRbmModel.h" />
+    <ClInclude Include="ConvRbmReader.h" />
+    <ClInclude Include="ConvRbmTrainer.h" />
+    <ClInclude Include="ConvRbmWriter.h" />
     <ClInclude Include="DiagonalMatrix.h" />
     <ClInclude Include="distributions.h" />
+    <ClInclude Include="FeatureCollages.h" />
+    <ClInclude Include="FeaturesToTensors.h" />
+    <ClInclude Include="FgrbmDecoder.h" />
     <ClInclude Include="FgrbmEncoder.h" />
     <ClInclude Include="FgrbmModel.h" />
     <ClInclude Include="FgrbmReader.h" />
     <ClInclude Include="FgrbmTrainer.h" />
     <ClInclude Include="FgrbmWriter.h" />
+    <ClInclude Include="GenerateShades.h" />
     <ClInclude Include="ImageMatrix.h" />
+    <ClInclude Include="InitializeConvRbmModel.h" />
+    <ClInclude Include="InitializeFgrbm.h" />
+    <ClInclude Include="Mean.h" />
     <ClInclude Include="MnistReader.h" />
     <ClInclude Include="OneOfN.h" />
+    <ClInclude Include="Pooling.h" />
+    <ClInclude Include="PrincipleComponents.h" />
     <ClInclude Include="RandomImageTransformation.h" />
+    <ClInclude Include="RbmConditional.h" />
     <ClInclude Include="RbmDecoder.h" />
     <ClInclude Include="RbmEncoder.h" />
     <ClInclude Include="RbmModel.h" />
     <ClInclude Include="RbmReader.h" />
     <ClInclude Include="RbmTrainer.h" />
     <ClInclude Include="RbmWriter.h" />
+    <ClInclude Include="ResampleFgrbmModel.h" />
+    <ClInclude Include="sampling.hpp" />
     <ClInclude Include="tbblas_io.hpp" />
     <ClInclude Include="tbblas_serialize.hpp" />
+    <ClInclude Include="TensorsToFeatures.h" />
+    <ClInclude Include="TensorTest.h" />
     <ClInclude Include="ublas_io.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BinaryImageGenerator.cpp" />
+    <ClCompile Include="ConvRbmDecoder.cpp" />
+    <ClCompile Include="ConvRbmEncoder.cpp" />
+    <ClCompile Include="ConvRbmModel.cpp" />
+    <ClCompile Include="ConvRbmReader.cpp" />
+    <ClCompile Include="ConvRbmTrainer.cpp" />
+    <ClCompile Include="ConvRbmWriter.cpp" />
     <ClCompile Include="DiagonalMatrix.cpp" />
     <ClCompile Include="distributions.cpp" />
+    <ClCompile Include="FeatureCollages.cpp" />
+    <ClCompile Include="FeaturesToTensors.cpp" />
+    <ClCompile Include="FgrbmDecoder.cpp" />
     <ClCompile Include="FgrbmEncoder.cpp" />
     <ClCompile Include="FgrbmModel.cpp" />
     <ClCompile Include="FgrbmReader.cpp" />
     <ClCompile Include="FgrbmTrainer.cpp" />
     <ClCompile Include="FgrbmWriter.cpp" />
+    <ClCompile Include="GenerateShades.cpp" />
     <ClCompile Include="ImageMatrix.cpp" />
+    <ClCompile Include="InitializeConvRbmModel.cpp" />
+    <ClCompile Include="InitializeFgrbm.cpp" />
+    <ClCompile Include="Mean.cpp" />
     <ClCompile Include="MnistReader.cpp" />
     <ClCompile Include="OneOfN.cpp" />
+    <ClCompile Include="Pooling.cpp" />
+    <ClCompile Include="PrincipleComponents.cpp" />
     <ClCompile Include="RandomImageTransformation.cpp" />
+    <ClCompile Include="RbmConditional.cpp" />
     <ClCompile Include="RbmDecoder.cpp" />
     <ClCompile Include="RbmEncoder.cpp" />
     <ClCompile Include="RbmModel.cpp" />
     <ClCompile Include="RbmReader.cpp" />
     <ClCompile Include="RbmTrainer.cpp" />
     <ClCompile Include="RbmWriter.cpp" />
+    <ClCompile Include="ResampleFgrbmModel.cpp" />
+    <ClCompile Include="TensorsToFeatures.cpp" />
+    <ClCompile Include="TensorTest.cpp" />
     <ClCompile Include="ublas_io.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="ConvRbmDecoder_gpu.cu" />
+    <CudaCompile Include="ConvRbmEncoder_gpu.cu" />
+    <CudaCompile Include="ConvRbmTrainer_gpu.cu" />
+    <CudaCompile Include="FgrbmDecoder_gpu.cu" />
     <CudaCompile Include="FgrbmEncoder_gpu.cu" />
+    <CudaCompile Include="FgrbmModel_gpu.cu" />
     <CudaCompile Include="FgrbmTrainer_gpu.cu" />
     <CudaCompile Include="ImageMatrix_gpu.cu" />
+    <CudaCompile Include="InitializeConvRbmModel_gpu.cu" />
+    <CudaCompile Include="InitializeFgrbm_gpu.cu" />
+    <CudaCompile Include="Mean_gpu.cu" />
+    <CudaCompile Include="PrincipleComponents_gpu.cu" />
+    <CudaCompile Include="RbmConditional_gpu.cu" />
     <CudaCompile Include="RbmDecoder_gpu.cu" />
     <CudaCompile Include="RbmEncoder_gpu.cu" />
     <CudaCompile Include="RbmTrainer_gpu.cu" />
+    <CudaCompile Include="ResampleFgrbmModel_gpu.cu" />
     <CudaCompile Include="tbblas_serialize_gpu.cu" />
+    <CudaCompile Include="TensorTest_gpu.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
