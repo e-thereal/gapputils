@@ -178,8 +178,9 @@ public:
   void removeGlobalProperty(GlobalProperty* gprop);
 
   // This method activates a global property. I.e. it fills the runtime values of the
-  // property object and updates the graphical appearance
-  void activateGlobalProperty(GlobalProperty* prop);
+  // property object and updates the graphical appearance. Returns false if property could
+  // not be activated
+  bool activateGlobalProperty(GlobalProperty* prop);
 
   // This method deactivates a global property. I.e. it updates the graphical
   // appearance in the property grid to reflect that a property is no longer global.
