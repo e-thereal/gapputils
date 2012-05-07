@@ -45,6 +45,21 @@
     <ClInclude Include="XslTransformation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RegEx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConcatenateVectors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DV2FV.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FV2DV.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringStack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Compare.cpp">
@@ -69,6 +84,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="XslTransformation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RegEx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConcatenateVectors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DV2FV.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FV2DV.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StringStack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

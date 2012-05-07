@@ -17,6 +17,7 @@
 #include <qformlayout.h>
 #include <qlabel.h>
 #include <qtextedit.h>
+#include <qclipboard.h>
 
 #include <cassert>
 
@@ -100,6 +101,31 @@ DefineProperty(ViewportPosition)
 DefineProperty(InputChecksums)
 
 EndPropertyDefinitions
+
+/**
+
+  TODOs:
+
+  - Context menu item of a property: "make workflow property"
+    This adds a property to the workflow. It opens a dialog where you can choice the name of the property and its attributes.
+    Default name is set to the name of the property where the action was initiated.
+    Type is always the type of the property, where the action was initiated.
+    Three button: Save & Apply, Save, and Cancel
+
+  - Copy action. Creates an XML Workflow containing the to be copied nodes + non dangling edges
+
+  - Insert action. Inserts nodes and edges from on an XML Workflow. Renames all uuids.
+    Parses for UUIDs. If replacement exists, apply replacement, otherwise create new UUID.
+
+  - Code snippets: Select nodes and drag and drop them to the code snippets window underneath the toolbox.
+    Dropping opens a Dialogbox where the user can enter the name of the snippet. (renaming later)
+    Drag a snippet from the snippets window and drop it into the workbench creates according nodes.
+    Code snippets act like named copy and paste
+
+  - Make Workflow Refactory: Puts selected nodes into a subworkflow.
+    Determines inputs and outputs automatically (all edges that are connected to non-subworkflow nodes create an input or output property)
+
+ */
 
 Workflow::Workflow()
  : _InputsPosition(0), _OutputsPosition(0), _ViewportScale(1.0), ownWidget(true), hasIONodes(false),
@@ -1367,6 +1393,28 @@ void Workflow::load(const string& filename) {
     interface->setName(getInterfaceName());
 
   gapputils::host::DataModel::getInstance().getMainWindow()->reload();
+}
+
+void Workflow::copySelectedNodesToClipboard() {
+  Workflow copyWorkflow;
+
+  // Temporarily add nodes to the node list for the xmlization.
+  // Nodes have to be removed afterwards in order to avoid a double free memory
+  std::vector<Node*>* nodes = copyWorkflow.getNodes();
+  Q_FOREACH(QGraphicsItem* item, workbench->scene()->selectedItems()) {
+    ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
+    if (toolItem) {
+      Node* node = getNode(toolItem);
+      nodes->push_back(node);
+    }
+  }
+
+  std::stringstream xmlStream;
+  Xmlizer::ToXml(xmlStream, copyWorkflow);
+
+  nodes->clear();
+
+  QApplication::clipboard()->setText(xmlStream.str().c_str());
 }
 
 void Workflow::setUiEnabled(bool enabled) {

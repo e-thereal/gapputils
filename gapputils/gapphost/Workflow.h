@@ -109,6 +109,8 @@ public:
   void buildStack(Node* node);
   void load(const std::string& filename);
 
+  void copySelectedNodesToClipboard();
+
   /**
    * \brief Recursively updates the checksums of all nodes in all sub workflows
    *

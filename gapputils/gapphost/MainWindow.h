@@ -52,6 +52,8 @@ public Q_SLOTS:
   void checkLibraryUpdates();
   void itemDoubleClickedHandler(QTreeWidgetItem *item, int column);
   void itemClickedHandler(QTreeWidgetItem *item, int column);
+  void copy();
+  void paste();
 
   void updateCurrentModule();
   void updateWorkflow();

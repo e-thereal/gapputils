@@ -81,22 +81,32 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Compare.h" />
+    <ClInclude Include="ConcatenateVectors.h" />
     <ClInclude Include="Concater.h" />
     <ClInclude Include="CsvReader.h" />
     <ClInclude Include="CsvWriter.h" />
+    <ClInclude Include="DV2FV.h" />
+    <ClInclude Include="FV2DV.h" />
     <ClInclude Include="PdfLatex.h" />
+    <ClInclude Include="RegEx.h" />
     <ClInclude Include="StringReplacer.h" />
+    <ClInclude Include="StringStack.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TextWriter.h" />
     <ClInclude Include="XslTransformation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Compare.cpp" />
+    <ClCompile Include="ConcatenateVectors.cpp" />
     <ClCompile Include="Concater.cpp" />
     <ClCompile Include="CsvReader.cpp" />
     <ClCompile Include="CsvWriter.cpp" />
+    <ClCompile Include="DV2FV.cpp" />
+    <ClCompile Include="FV2DV.cpp" />
     <ClCompile Include="PdfLatex.cpp" />
+    <ClCompile Include="RegEx.cpp" />
     <ClCompile Include="StringReplacer.cpp" />
+    <ClCompile Include="StringStack.cpp" />
     <ClCompile Include="TextWriter.cpp" />
     <ClCompile Include="XslTransformation.cpp" />
   </ItemGroup>

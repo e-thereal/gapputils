@@ -1,5 +1,5 @@
 /*
- * PrincipleComponentsToMif.h
+ * FeaturesToMif.h
  *
  *  Created on: Jun 10, 2011
  *      Author: tombr

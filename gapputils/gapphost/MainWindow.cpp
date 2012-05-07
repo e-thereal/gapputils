@@ -150,7 +150,10 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   changeInterfaceAction = editMenu->addAction("Change Workflow Interface", this, SLOT(editCurrentInterface()), QKeySequence(Qt::Key_F4));
   changeInterfaceAction->setEnabled(true);
   connect(editMenu, SIGNAL(aboutToShow()), this, SLOT(updateEditMenuStatus()));
-  connect(editMenu, SIGNAL(aboutToHide()), this, SLOT(enableEditMenuItems()));
+  connect(editMenu, SIGNAL(aboutToHide()), this, SLOT(enableEditMenuItems()));    // Needed so the shortcut is always active
+  editMenu->insertSeparator(editMenu->actions().last());
+  editMenu->addAction("Copy", this, SLOT(copy()), QKeySequence(Qt::CTRL + Qt::Key_C));
+  editMenu->addAction("Paste", this, SLOT(paste()), QKeySequence(Qt::CTRL + Qt::Key_V));
 
   runMenu = menuBar()->addMenu("&Run");
   runMenu->addAction("Update", this, SLOT(updateCurrentModule()), QKeySequence(Qt::Key_F5));
@@ -226,6 +229,13 @@ void MainWindow::itemDoubleClickedHandler(QTreeWidgetItem *item, int) {
     string classname = item->data(0, Qt::UserRole).toString().toAscii().data();
     //openWorkflows[tabWidget->currentIndex()]->newModule(classname);
   }
+}
+
+void MainWindow::copy() {
+  openWorkflows[tabWidget->currentIndex()]->copySelectedNodesToClipboard();
+}
+
+void MainWindow::paste() {
 }
 
 void MainWindow::loadWorkflow() {

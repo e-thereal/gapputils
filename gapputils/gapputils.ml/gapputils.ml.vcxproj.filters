@@ -84,6 +84,66 @@
     <ClInclude Include="ImageMatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ConvRbmDecoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvRbmEncoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvRbmModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvRbmReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvRbmTrainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConvRbmWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FeatureCollages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FeaturesToTensors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FgrbmDecoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GenerateShades.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InitializeConvRbmModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InitializeFgrbm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mean.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Pooling.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PrincipleComponents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RbmConditional.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResampleFgrbmModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TensorsToFeatures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TensorTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sampling.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MnistReader.cpp">
@@ -143,6 +203,63 @@
     <ClCompile Include="ImageMatrix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConvRbmDecoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvRbmEncoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvRbmModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvRbmReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvRbmTrainer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConvRbmWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FeatureCollages.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FeaturesToTensors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GenerateShades.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InitializeConvRbmModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InitializeFgrbm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Mean.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Pooling.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PrincipleComponents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RbmConditional.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResampleFgrbmModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TensorsToFeatures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TensorTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FgrbmDecoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="RbmTrainer_gpu.cu">
@@ -164,6 +281,42 @@
       <Filter>CUDA</Filter>
     </CudaCompile>
     <CudaCompile Include="ImageMatrix_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="ConvRbmDecoder_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="ConvRbmEncoder_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="ConvRbmTrainer_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="FgrbmDecoder_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="FgrbmModel_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="InitializeConvRbmModel_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="InitializeFgrbm_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Mean_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="PrincipleComponents_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="RbmConditional_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="ResampleFgrbmModel_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="TensorTest_gpu.cu">
       <Filter>CUDA</Filter>
     </CudaCompile>
   </ItemGroup>

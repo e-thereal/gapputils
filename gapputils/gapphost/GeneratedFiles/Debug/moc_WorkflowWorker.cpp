@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'WorkflowWorker.h'
 **
-** Created: Wed Dec 28 18:58:42 2011
+** Created: Sat Mar 17 13:00:48 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,19 +23,20 @@ static const uint qt_meta_data_gapputils__workflow__WorkflowWorker[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-       3,   14, // methods
+       4,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
-       2,       // signalCount
+       3,       // signalCount
 
  // signals: signature, parameters, type, tag, flags
       42,   37,   36,   36, 0x05,
-      80,   73,   36,   36, 0x05,
+      98,   73,   36,   36, 0x05,
+     152,  138,   36,   36, 0x25,
 
  // slots: signature, parameters, type, tag, flags
-     112,   37,   36,   36, 0x0a,
+     198,  187,   36,   36, 0x0a,
 
        0        // eod
 };
@@ -43,8 +44,10 @@ static const uint qt_meta_data_gapputils__workflow__WorkflowWorker[] = {
 static const char qt_meta_stringdata_gapputils__workflow__WorkflowWorker[] = {
     "gapputils::workflow::WorkflowWorker\0"
     "\0node\0moduleUpdated(workflow::Node*)\0"
-    "node,i\0progressed(workflow::Node*,int)\0"
-    "updateModule(workflow::Node*)\0"
+    "node,progress,updateNode\0"
+    "progressed(workflow::Node*,double,bool)\0"
+    "node,progress\0progressed(workflow::Node*,double)\0"
+    "node,force\0updateModule(workflow::Node*,bool)\0"
 };
 
 const QMetaObject gapputils::workflow::WorkflowWorker::staticMetaObject = {
@@ -79,11 +82,12 @@ int gapputils::workflow::WorkflowWorker::qt_metacall(QMetaObject::Call _c, int _
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
         case 0: moduleUpdated((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
-        case 1: progressed((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 2: updateModule((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
+        case 1: progressed((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< double(*)>(_a[2])),(*reinterpret_cast< bool(*)>(_a[3]))); break;
+        case 2: progressed((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< double(*)>(_a[2]))); break;
+        case 3: updateModule((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< bool(*)>(_a[2]))); break;
         default: ;
         }
-        _id -= 3;
+        _id -= 4;
     }
     return _id;
 }
@@ -96,9 +100,9 @@ void gapputils::workflow::WorkflowWorker::moduleUpdated(workflow::Node * _t1)
 }
 
 // SIGNAL 1
-void gapputils::workflow::WorkflowWorker::progressed(workflow::Node * _t1, int _t2)
+void gapputils::workflow::WorkflowWorker::progressed(workflow::Node * _t1, double _t2, bool _t3)
 {
-    void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)), const_cast<void*>(reinterpret_cast<const void*>(&_t2)) };
+    void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)), const_cast<void*>(reinterpret_cast<const void*>(&_t2)), const_cast<void*>(reinterpret_cast<const void*>(&_t3)) };
     QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }
 QT_END_MOC_NAMESPACE

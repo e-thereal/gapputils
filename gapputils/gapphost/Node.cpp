@@ -32,7 +32,9 @@
 #include <algorithm>
 
 #include <boost/iostreams/filtering_stream.hpp>
+#ifdef GAPPHOST_HAVE_ZLIB
 #include <boost/iostreams/filter/gzip.hpp>
+#endif
 #include <boost/iostreams/device/file_descriptor.hpp>
 
 #include "ToolItem.h"
@@ -335,7 +337,9 @@ void Node::updateCache() {
 
   boost::filesystem::create_directories(cacheDirectory);
   bio::filtering_ostream cacheFile;
+#ifdef GAPPHOST_HAVE_ZLIB
   cacheFile.push(boost::iostreams::gzip_compressor());
+#endif
   cacheFile.push(bio::file_descriptor_sink(cacheName.str().c_str()));
   if (!cacheFile)
     return;
@@ -381,7 +385,9 @@ bool Node::restoreFromCache() {
   }
 
   boost::iostreams::filtering_istream cacheFile;
+#ifdef GAPPHOST_HAVE_ZLIB
   cacheFile.push(boost::iostreams::gzip_decompressor());
+#endif
   cacheFile.push(bio::file_descriptor_source(cacheName.str().c_str()));
   if (!cacheFile) {
     std::cout << "[Warning] Can't open cache file for module '" << getUuid() << "'." << std::endl;
