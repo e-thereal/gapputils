@@ -443,14 +443,14 @@ void Workflow::makePropertyGlobal(const std::string& name, const PropertyReferen
   activateGlobalProperty(globalProperty);
 }
 
-void Workflow::activateGlobalProperty(GlobalProperty* prop) {
+bool Workflow::activateGlobalProperty(GlobalProperty* prop) {
   Node* node = getNode(prop->getModuleUuid());
 
   unsigned id;
   if (!node->getModule()->getPropertyIndex(id, prop->getPropertyName())) {
     // TODO: Error handling
-    cout << "Error in line " << __LINE__ << endl;
-    return;
+    cout << "[Warning] Property " << prop->getPropertyName() << " could not be found." << endl;
+    return false;
   }
   prop->setPropertyId(id);
   prop->setNodePtr(node);
@@ -462,8 +462,10 @@ void Workflow::activateGlobalProperty(GlobalProperty* prop) {
     font.setUnderline(true);
     item->setFont(font);
   } else {
-    cout << "no such item" << endl;
+    cout << "no such item, " << __FILE__ << ", " << __LINE__ << endl;
   }
+
+  return true;
 }
 
 void Workflow::connectProperty(const std::string& name, const PropertyReference& propertyReference) {
@@ -505,9 +507,6 @@ void Workflow::activateGlobalEdge(GlobalEdge* edge) {
 }
 
 void Workflow::removeGlobalProperty(GlobalProperty* gprop) {
-  QStandardItem* item = getItem(gprop->getNodePtr()->getModule(), gprop->getProperty());
-  assert(item);
-
   // remove edges and expressions to that property first
   while(gprop->getEdges()->size()) {
     removeGlobalEdge((GlobalEdge*)gprop->getEdges()->at(0));
@@ -524,6 +523,12 @@ void Workflow::removeGlobalProperty(GlobalProperty* gprop) {
     }
   }
   delete gprop;
+
+  if (!gprop->getNodePtr() || !gprop->getNodePtr()->getModule())
+    return;
+
+  QStandardItem* item = getItem(gprop->getNodePtr()->getModule(), gprop->getProperty());
+  assert(item);
 
   QFont font = item->font();
   font.setUnderline(false);
@@ -897,8 +902,13 @@ void Workflow::resume() {
     }
   }
 
-  for (unsigned i = 0; i < globals->size(); ++i)
-    activateGlobalProperty(globals->at(i));
+  for (unsigned i = 0; i < globals->size(); ++i) {
+    if (!activateGlobalProperty(globals->at(i))) {
+      cout << "[Info] Removing global property." << endl;
+      removeGlobalProperty(globals->at(i));
+      --i; // because there is now one less gprob
+    }
+  }
 
   for (unsigned i = 0; i < gedges->size(); ++i)
     activateGlobalEdge(gedges->at(i));
