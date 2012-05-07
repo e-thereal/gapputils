@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workbench.h'
 **
-** Created: Wed Dec 28 18:58:48 2011
+** Created: Sat May 5 19:00:09 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
