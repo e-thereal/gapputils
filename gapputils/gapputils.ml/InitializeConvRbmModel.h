@@ -26,7 +26,8 @@ private:
 
   Property(InputTensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(FilterCount, int)
-  Property(FilterSize, int)
+  Property(FilterWidth, int)
+  Property(FilterHeight, int)
   Property(PoolingBlockSize, unsigned)
   Property(WeightMean, value_t)
   Property(WeightStddev, value_t)

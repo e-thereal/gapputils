@@ -80,6 +80,8 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
   int poolingChannels = 1;
   if (getPooling() == PoolingMethod::PositionalMaxPooling)
     poolingChannels = 3;
+  else if (getPooling() == PoolingMethod::StackPooling)
+    poolingChannels = blockSize * blockSize;
 
   host_tensor_t::dim_t layerDim, visibleDim, hiddenDim, paddedDim, start;
 
@@ -200,8 +202,8 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
               host_tensor_t::value_t poolingValue = 0;
               if (getPooling() == PoolingMethod::MaxPooling || getPooling() == PoolingMethod::PositionalMaxPooling)
                 poolingValue = input.data()[(z * hiddenDim[1] + y) * hiddenDim[0] + x];
-              for (int dy = 0; dy < blockSize; ++dy) {
-                for (int dx = 0; dx < blockSize; ++dx) {
+              for (int dy = 0, dz = 0; dy < blockSize; ++dy) {
+                for (int dx = 0; dx < blockSize; ++dx, ++dz) {
                   host_tensor_t::value_t value = input.data()[(z * hiddenDim[1] + y + dy) * hiddenDim[0] + x + dx];
                   switch (getPooling()) {
                   case PoolingMethod::AvgPooling:
@@ -216,19 +218,27 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
                       ymax = dy;
                     }
                     break;
+
+                  case PoolingMethod::StackPooling:
+                    output->data()[((z * poolingChannels + dz) * size2[1] + y / blockSize) * size2[0] + x / blockSize] = value;
+                    break;
                   }
 
                 }
               }
               if (getPooling() == PoolingMethod::AvgPooling)
                 poolingValue /= (blockSize * blockSize);
-              output->data()[(z * poolingChannels * size2[1] + y / blockSize) * size2[0] + x / blockSize] = poolingValue;
 
-              if (getPooling() == PoolingMethod::PositionalMaxPooling) {
+              switch (getPooling()) {
+              case PoolingMethod::PositionalMaxPooling:
                 output->data()[((z * poolingChannels + 1) * size2[1] + y / blockSize) * size2[0] + x / blockSize] =
                     (host_tensor_t::value_t)xmax / (host_tensor_t::value_t)(blockSize - 1);
                 output->data()[((z * poolingChannels + 2) * size2[1] + y / blockSize) * size2[0] + x / blockSize] =
                     (host_tensor_t::value_t)ymax / (host_tensor_t::value_t)(blockSize - 1);
+
+              case PoolingMethod::AvgPooling: case PoolingMethod::MaxPooling:
+                  output->data()[(z * poolingChannels * size2[1] + y / blockSize) * size2[0] + x / blockSize] = poolingValue;
+                  break;
               }
             }
           }
@@ -239,9 +249,11 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
       }
     } else { /*** DECODING ***/
       host_tensor_t unpooled(hiddenDim);
-
+//      std::cout << "Filter " << iSample + 1 << ": " << std::flush;
       if (getPooling()) {
         host_tensor_t& input = *X[iSample];
+
+//        std::cout << tbblas::dot(input, input) << ", " << std::flush;
 
         for (unsigned z = 0; z < inputDim[2]; z += poolingChannels) {
           for (unsigned y = 0; y < inputDim[1]; ++y) {
@@ -250,21 +262,33 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
               unsigned xmax = 0;
               unsigned ymax = 0;
 
-              if (getPooling() == PoolingMethod::PositionalMaxPooling) {
-                xmax = input.data()[((z + 1) * inputDim[1] + y) * inputDim[0] + x] * (blockSize - 1);
-                ymax = input.data()[((z + 2) * inputDim[1] + y) * inputDim[0] + x] * (blockSize - 1);
+              switch (getPooling()) {
+              case PoolingMethod::PositionalMaxPooling:
+                xmax = input.data()[((z + 1) * inputDim[1] + y) * inputDim[0] + x] * (double)(blockSize - 1) + 0.5;
+                ymax = input.data()[((z + 2) * inputDim[1] + y) * inputDim[0] + x] * (double)(blockSize - 1) + 0.5;
                 xmax = max(0, min(blockSize - 1, xmax));
                 ymax = max(0, min(blockSize - 1, ymax));
-              }
 
-              if (getPooling() == PoolingMethod::AvgPooling) {
+              case PoolingMethod::MaxPooling:
+                unpooled.data()[(z / poolingChannels * hiddenDim[1] + y * blockSize + ymax) * hiddenDim[0] + x * blockSize + xmax] = poolingValue;
+                break;
+
+              case PoolingMethod::AvgPooling:
                 for (int dy = 0; dy < blockSize; ++dy) {
                   for (int dx = 0; dx < blockSize; ++dx) {
                     unpooled.data()[(z / poolingChannels * hiddenDim[1] + y * blockSize + dy) * hiddenDim[0] + x * blockSize + dx] = poolingValue;
                   }
                 }
-              } else {
-                unpooled.data()[(z / poolingChannels * hiddenDim[1] + y * blockSize + ymax) * hiddenDim[0] + x * blockSize + xmax] = poolingValue;
+                break;
+
+              case PoolingMethod::StackPooling:
+                for (int dy = 0, dz = 0; dy < blockSize; ++dy) {
+                  for (int dx = 0; dx < blockSize; ++dx, ++dz) {
+                    unpooled.data()[(z / poolingChannels * hiddenDim[1] + y * blockSize + dy) * hiddenDim[0] + x * blockSize + dx] =
+                        input.data()[((z + dz) * inputDim[1] + y) * inputDim[0] + x];
+                  }
+                }
+                break;
               }
             }
           }
@@ -272,6 +296,9 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
       } else {
         unpooled = tbblas::copy(*X[iSample]);
       }
+
+//      std::cout << tbblas::dot(unpooled, unpooled) << ", " << std::flush;
+
       /*** START NEGATIVE PHASE ***/
 
       // Calculate p(v | H, F) = sigm(sum(W_k * h_k) + b)
@@ -283,9 +310,17 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
             unpooled.data().begin() + (k + 1) * layerVoxelCount, paddedProxy.begin());
 
         vtemp = tbblas::conv(F[k], padded);
+
+//        if (k == 0) {
+//          std::cout << tbblas::dot(F[k], F[k]) << ", " << std::flush;
+//          std::cout << tbblas::dot(padded, padded) << ", " << std::flush;
+//        }
+
         vneg += vtemp;
       }
+//      std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
       vneg += b;
+//      std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
 
       // For the binary case
       if (!crbm->getIsGaussian()) {
@@ -323,11 +358,13 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
         value_t mean = crbm->getMean();
         value_t stddev = crbm->getStddev();
 
-  //      std::cout << "[Encoding] Mean = " << mean << "; Stddev = " << stddev << std::endl;
+//        std::cout << "[Encoding] Mean = " << mean << "; Stddev = " << stddev << std::endl;
         vneg = tbblas::copy(vneg * stddev);
+//        std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
         vneg += mean;
+//        std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
       }
-
+//      std::cout << tbblas::dot(vneg, vneg) << std::endl;
       Y->push_back(boost::shared_ptr<host_tensor_t>(new host_tensor_t(tbblas::copy(vneg))));
     }
     if (monitor) monitor->reportProgress(iSample * 100 / X.size());
