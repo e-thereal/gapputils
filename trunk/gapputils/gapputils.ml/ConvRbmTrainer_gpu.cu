@@ -23,6 +23,7 @@
 #include <curand.h>
 #include <culib/CulibException.h>
 #include <culib/util.h>
+#include <ctime>
 
 namespace gapputils {
 
@@ -59,11 +60,28 @@ void printMemoryAtLine(int line) {
 #define TRACE printMemoryAtLine(__LINE__);
 //#define TRACE
 
+class timer {
+private:
+  time_t start;
+
+public:
+  timer() {
+    start = time(0);
+  }
+
+  time_t elapsed() const {
+    return time(0) - start;
+  }
+
+  void restart() {
+    start = time(0);
+  }
+};
 
 void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace thrust::placeholders;
 
-  boost::timer timer;
+  ml::timer timer;
 
   typedef tbblas::tensor_proxy<device_tensor_t::iterator, 3> device_proxy_t;
 
@@ -95,7 +113,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
   std::cout << "Building ConvRBM ..." << std::endl;
 
-  TRACE
+
 
   curandGenerator_t gen;
   curandStatus_t status;
@@ -118,6 +136,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
   int filterWeightCount = 1, layerVoxelCount = 1, inputVoxelCount = 1;
   for (unsigned i = 0; i < dimCount; ++i) {
+    assert(inputDim[i] >= filterDim[i]);
     layerDim[i] = inputDim[i] - filterDim[i] + 1;
     paddedDim[i] = inputDim[i] + filterDim[i] - 1;
     start[i] = filterDim[i] - 1;
@@ -171,7 +190,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   value_t epsilonw =  getLearningRate();      // Learning rate for weights
   value_t epsilonvb = getLearningRate();      // Learning rate for biases of visible units
   value_t epsilonhb = getLearningRate();      // Learning rate for biases of hidden units
-  value_t weightcost = 0; // 0.0002;
+  value_t weightcost = 0.0002;
   value_t initialmomentum = 0.5; //65; // 0.5f;
   value_t finalmomentum = 0.9; // 65; // 0.9f;
   value_t momentum;
@@ -179,12 +198,26 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   culib::printMemoryStats("ConvRbmTrainer initialized");
 
   device_tensor_t v(inputDim), vneg(inputDim), vtemp(inputDim), padded(paddedDim);
+
   thrust::fill(padded.begin(), padded.end(), value_t(0));
+
   std::vector<device_tensor_t> poshidprobs, poshidstates, posvishid, neghidprobs, neghidstates, negvishid, Finc, Fincbatch;
+
+
+  std::cout << "layer dim = " << layerDim[0] << ", " << layerDim[1] << ", " << layerDim[2] << std::endl;
   for (unsigned i = 0; i < filterCount; ++i) {
-    poshidprobs.push_back(device_tensor_t(layerDim));
-    poshidstates.push_back(device_tensor_t(layerDim));
-    posvishid.push_back(device_tensor_t(filterDim));
+
+    device_tensor_t tens = device_tensor_t(layerDim);
+
+    poshidprobs.push_back(tens);
+
+    tens = device_tensor_t(layerDim);
+
+    poshidstates.push_back(tens);
+
+    tens = device_tensor_t(filterDim);
+
+    posvishid.push_back(tens);
 
     neghidprobs.push_back(device_tensor_t(layerDim));
     neghidstates.push_back(device_tensor_t(layerDim));
@@ -193,6 +226,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
     thrust::fill(Finc[i].begin(), Finc[i].end(), value_t(0));
     Fincbatch.push_back(device_tensor_t(filterDim));
   }
+
   value_t posvisact, negvisact, binc = 0, bincbatch;
   std::vector<value_t> poshidact(filterCount), neghidact(filterCount),
       cinc(filterCount, 0), cincbatch(filterCount, 0),
@@ -372,6 +406,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
       }
       for (unsigned k = 0; k < filterCount; ++k) {
         Finc[k] = momentum * Finc[k] + (epsilonw / batchSize / layerVoxelCount) * Fincbatch[k];
+        Finc[k] = Finc[k] + (-epsilonw * weightcost) * F[k];
         cinc[k] = momentum * cinc[k] + (epsilonhb / batchSize / layerVoxelCount) * cincbatch[k]
                   + getSparsityPenalty() * cspabatch[k] / batchSize;
 
@@ -412,21 +447,24 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   }
 
   {
-  boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
-      new std::vector<boost::shared_ptr<host_tensor_t> >());
-    for (unsigned i = 0; i < filterCount; ++i)
+    boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
+        new std::vector<boost::shared_ptr<host_tensor_t> >());
+    for (unsigned i = 0; i < filterCount; ++i) {
       debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(tbblas::copy(F[i]))));
+//      std::cout << "Filter " << i + 1 << ": "
+//                << tbblas::dot(*debugFilters->at(i), *debugFilters->at(i)) << std::endl;
+    }
     data->setFilters(debugFilters);
   }
 
   for (unsigned i = 0; i < filterCount; ++i) {
     thrust::copy(F[i].begin(), F[i].end(), filters[i]->begin());
+//    std::cout << "Filter " << i + 1 << ": " << tbblas::dot(F[i], F[i]) << std::endl;
   }
+
   data->setModel(crbm);
 }
 
 }
 
 }
-
-

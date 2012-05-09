@@ -38,7 +38,8 @@ BeginPropertyDefinitions(InitializeConvRbmModel)
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(InputTensors, Input("Imgs"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
   DefineProperty(FilterCount, Observe(PROPERTY_ID))
-  DefineProperty(FilterSize, Observe(PROPERTY_ID))
+  DefineProperty(FilterWidth, Observe(PROPERTY_ID))
+  DefineProperty(FilterHeight, Observe(PROPERTY_ID))
   DefineProperty(PoolingBlockSize, Observe(PROPERTY_ID))
   DefineProperty(WeightMean, Observe(PROPERTY_ID))
   DefineProperty(WeightStddev, Observe(PROPERTY_ID))
@@ -50,7 +51,10 @@ EndPropertyDefinitions
 
 #define LOCATE(a,b) std::cout << #b": " << (char*)&a._##b - (char*)&a << std::endl
 
-InitializeConvRbmModel::InitializeConvRbmModel() : data(0) {
+InitializeConvRbmModel::InitializeConvRbmModel()
+ : _FilterCount(20), _FilterWidth(9), _FilterHeight(9), _PoolingBlockSize(2),
+   _WeightMean(0), _WeightStddev(0.003), _IsGaussian(true), data(0)
+{
   WfeUpdateTimestamp
   setLabel("InitializeConvRbmModel");
 
@@ -100,7 +104,8 @@ void InitializeConvRbmModel::execute(gapputils::workflow::IProgressMonitor* moni
 
   // Calculate the mean and the std of all features
   const unsigned filterCount = getFilterCount();
-  const unsigned filterSize = getFilterSize();
+  const unsigned filterWidth = getFilterWidth();
+  const unsigned filterHeight = getFilterHeight();
   const unsigned filterDepth = getInputTensors()->at(0)->size()[2];
   const unsigned sampleCount = getInputTensors()->size();
 
@@ -148,10 +153,10 @@ void InitializeConvRbmModel::execute(gapputils::workflow::IProgressMonitor* moni
   // Initialize filters and bias terms
   boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > filters(new std::vector<boost::shared_ptr<tensor_t> >());
 
-  const int filterVoxelCount = filterSize * filterSize * filterDepth;
+  const int filterVoxelCount = filterWidth * filterHeight * filterDepth;
   std::vector<value_t> values(filterVoxelCount + (filterVoxelCount % 2));
   for (unsigned i = 0; i < filterCount; ++i) {
-    boost::shared_ptr<tensor_t> filter(new tensor_t(filterSize, filterSize, filterDepth));
+    boost::shared_ptr<tensor_t> filter(new tensor_t(filterWidth, filterHeight, filterDepth));
 
     if ((status = curandGenerateNormalDouble(gen,
         &values[0],
