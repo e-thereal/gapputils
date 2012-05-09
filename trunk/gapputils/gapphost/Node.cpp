@@ -67,13 +67,9 @@ BeginPropertyDefinitions(Node)
 EndPropertyDefinitions
 
 Node::Node(void)
- : _X(0), _Y(0), _Module(0), _InputChecksum(0), _OutputChecksum(0), _ToolItem(0), _Workflow(0),
+ : _Uuid(Node::CreateUuid()), _X(0), _Y(0), _Module(0), _InputChecksum(0), _OutputChecksum(0), _ToolItem(0), _Workflow(0),
    _Expressions(new std::vector<boost::shared_ptr<Expression> >()), harmonizer(0), readFromCache(false)
 {
-  boost::uuids::uuid uuid = boost::uuids::random_generator()();
-  std::stringstream stream;
-  stream << uuid;
-  _Uuid = stream.str();
   Changed.connect(EventHandler<Node>(this, &Node::changedHandler));
 }
 
@@ -82,6 +78,13 @@ Node::~Node(void)
   if (_Module) {
     delete _Module;
   }
+}
+
+std::string Node::CreateUuid() {
+  boost::uuids::uuid uuid = boost::uuids::random_generator()();
+  std::stringstream stream;
+  stream << uuid;
+  return stream.str();
 }
 
 Expression* Node::getExpression(const std::string& propertyName) {

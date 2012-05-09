@@ -65,10 +65,11 @@ int main(int argc, char *argv[])
   int ret = 0;
   QApplication a(argc, argv);
   DataModel& model = DataModel::getInstance();
+  ArgumentsParser::Parse(model, argc, argv);      // need to be here to read the configuration filename
   try {
     Xmlizer::FromXml(model, DataModel::getConfigurationDirectory() + "/config.xml");
     Xmlizer::FromXml(model, "gapphost.conf.xml"); // compatibility to old versions
-    Xmlizer::FromXml(model, ".gapphost/config.xml");
+    Xmlizer::FromXml(model, model.getConfiguration());
   } catch (capputils::exceptions::FactoryException ex) {
     cout << ex.what() << endl;
     return 1;
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
 
   reflection::ReflectableClass& wfModule = *model.getMainWorkflow()->getModule();
 
-  ArgumentsParser::Parse(model, argc, argv);
+  ArgumentsParser::Parse(model, argc, argv);    // Needs to be here again to override configuration file parameters
   ArgumentsParser::Parse(wfModule, argc, argv);
   if (model.getHelp()) {
     ArgumentsParser::PrintDefaultUsage("gapphost", model);
@@ -100,15 +101,18 @@ int main(int argc, char *argv[])
 
   try {
     MainWindow w;
-    if (model.getNoGui()) {
-      // TODO: wait until update has finished.
-      model.getMainWorkflow()->resume();
-      model.getMainWorkflow()->updateOutputs();
-    } else {
-      w.show();
-      w.resume();
-      ret = a.exec();
+    w.show();
+    std::cout << "[Info] Start resuming ..." << std::endl;
+    w.resume();
+    std::cout << "[Info] Resuming done." << std::endl;
+    if (model.getRun()) {
+      w.setAutoQuit(true);
+      std::cout << "[Info] Update main workflow." << std::endl;
+      w.updateMainWorkflow();
     }
+    std::cout << "[Info] Entering event loop." << std::endl;
+    ret = a.exec();
+    std::cout << "[Info] Quitting." << std::endl;
   } catch (char const* error) {
     cout << error << endl;
     return 1;

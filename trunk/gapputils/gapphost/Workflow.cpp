@@ -48,6 +48,7 @@
 #include <boost/units/detail/utility.hpp>
 
 #include <set>
+#include <map>
 
 #include "PropertyGridDelegate.h"
 #include "CustomToolItemAttribute.h"
@@ -883,17 +884,10 @@ void Workflow::resume() {
   vector<Edge*>* edges = getEdges();
   vector<GlobalProperty*>* globals = getGlobalProperties();
   vector<GlobalEdge*>* gedges = getGlobalEdges();
-  for (unsigned i = 0; i < nodes->size(); ++i) {
-    Node* node = nodes->at(i);
-    node->setWorkflow(this);
-    node->resume();
-    Workflow* workflow = dynamic_cast<Workflow*>(node);
-    if (workflow) {
-      connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
-      connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
-    }
-    newItem(node);
-  }
+
+  for (unsigned i = 0; i < nodes->size(); ++i)
+    resumeNode(nodes->at(i));
+
   for (unsigned i = 0; i < edges->size(); ++i) {
     if (!newCable(edges->at(i))) {
       removeEdge(edges->at(i));
@@ -915,6 +909,17 @@ void Workflow::resume() {
 
   for (unsigned i = 0; i < nodes->size(); ++i)
     nodes->at(i)->resumeExpressions();
+}
+
+void Workflow::resumeNode(Node* node) {
+  node->setWorkflow(this);
+  node->resume();
+  Workflow* workflow = dynamic_cast<Workflow*>(node);
+  if (workflow) {
+    connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
+    connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
+  }
+  newItem(node);
 }
 
 QWidget* Workflow::dispenseWidget() {
@@ -1341,21 +1346,23 @@ void Workflow::updateChecksum(const std::vector<checksum_type>& inputChecksums, 
       }
 
       // Collect checksums of all unconnected input properties
-      ReflectableClass* module = node->getModule();
-      if (module) {
-        const std::vector<IClassProperty*>& properties = module->getProperties();
-        for (unsigned i = 0; i < properties.size(); ++i) {
-          // Ignore it if it is not an input or a connected input
-          if (!properties[i]->getAttribute<InputAttribute>() ||
-              properties[i]->getAttribute<FromEnumerableAttribute>() ||
-              connectedProperties.find(properties[i]->getName()) != connectedProperties.end())
-          {
-            continue;
-          }
-          std::cout << "[Checksum Module] Found unconnected input property: " << properties[i]->getName() << std::endl;
+      if (node != &outputsNode) {
+        ReflectableClass* module = node->getModule();
+        if (module) {
+          const std::vector<IClassProperty*>& properties = module->getProperties();
+          for (unsigned i = 0; i < properties.size(); ++i) {
+            // Ignore it if it is not an input or a connected input
+            if (!properties[i]->getAttribute<InputAttribute>() ||
+                properties[i]->getAttribute<FromEnumerableAttribute>() ||
+                connectedProperties.find(properties[i]->getName()) != connectedProperties.end())
+            {
+              continue;
+            }
+            std::cout << "[Checksum Module] Found unconnected input property: " << properties[i]->getName() << std::endl;
 
-          int cs = Node::getChecksum(properties[i], *module);
-          checksums.push_back(cs);
+            int cs = Node::getChecksum(properties[i], *module);
+            checksums.push_back(cs);
+          }
         }
       }
 
@@ -1415,7 +1422,8 @@ void Workflow::copySelectedNodesToClipboard() {
     ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
     if (toolItem) {
       Node* node = getNode(toolItem);
-      nodes->push_back(node);
+      if (toolItem->isDeletable())
+        nodes->push_back(node);
     }
   }
 
@@ -1425,6 +1433,45 @@ void Workflow::copySelectedNodesToClipboard() {
   nodes->clear();
 
   QApplication::clipboard()->setText(xmlStream.str().c_str());
+}
+
+void renewUuids(Workflow& workflow) {
+  std::map<std::string, std::string> uuidMap;
+
+  // Go through edges, nodes, global properties, global edges
+  std::vector<Node*>& nodes = *workflow.getNodes();
+  for (unsigned i = 0; i < nodes.size(); ++i) {
+    Node& node = *nodes[i];
+    const std::string uuid = node.getUuid();
+    if (uuidMap.find(uuid) == uuidMap.end())
+      uuidMap[uuid] = Node::CreateUuid();
+    node.setUuid(uuidMap[uuid]);
+
+    Workflow* subworkflow = dynamic_cast<Workflow*>(&node);
+    if (subworkflow) {
+      renewUuids(*subworkflow);
+    }
+  }
+
+  // TODO: replace UUIDs of other parts as well
+}
+
+void Workflow::addNodesFromClipboard() {
+  Workflow pasteWorkflow;
+  const std::string clipboardText = QApplication::clipboard()->text().toUtf8().data();
+  Xmlizer::FromXmlString(pasteWorkflow, clipboardText);
+
+  Q_FOREACH(QGraphicsItem* item, workbench->scene()->selectedItems())
+    item->setSelected(false);
+
+  renewUuids(pasteWorkflow);
+  std::vector<Node*>& nodes = *pasteWorkflow.getNodes();
+  for (unsigned i = 0; i < nodes.size(); ++i) {
+    getNodes()->push_back(nodes[i]);
+    resumeNode(nodes[i]);
+    nodes[i]->getToolItem()->setSelected(true);
+  }
+  nodes.clear(); // avoid double free memory
 }
 
 void Workflow::setUiEnabled(bool enabled) {

@@ -29,7 +29,7 @@ private:
   QTabWidget* tabWidget;
   QTreeWidget* toolBox;
   QTimer reloadTimer;
-  bool libsChanged;
+  bool libsChanged, autoQuit;  ///< quits the problem when the workflow has been updated.
   std::vector<workflow::Workflow*> openWorkflows;
   QAction* changeInterfaceAction;
   workflow::Workflow* workingWorkflow;
@@ -41,12 +41,14 @@ public:
   virtual void closeEvent(QCloseEvent *event);
   void setGuiEnabled(bool enabled);
   void resume();
+  void setAutoQuit(bool autoQuit);
 
 public Q_SLOTS:
   void quit();
   void loadWorkflow();
   void saveWorkflow();
   void save();
+  void saveAs();
   void loadLibrary();
   void reload();
   void checkLibraryUpdates();
@@ -57,6 +59,7 @@ public Q_SLOTS:
 
   void updateCurrentModule();
   void updateWorkflow();
+  void updateMainWorkflow();
   void terminateUpdate();
   void editCurrentInterface();
   void updateEditMenuStatus();

@@ -83,7 +83,7 @@ XsltSettings::XsltSettings()
 XsltSettings::~XsltSettings() { }
 
 BeginPropertyDefinitions(DataModel)
-  DefineProperty(NoGui, Flag(), Volatile())
+  DefineProperty(Run, Flag(), Volatile())
   DefineProperty(Help, Flag(), Volatile())
   DefineProperty(AutoReload, Flag(), Volatile())
   DefineProperty(WindowX)
@@ -96,17 +96,19 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(OpenWorkflows, Enumerable<boost::shared_ptr<std::vector<std::string> >, false>())
   DefineProperty(CurrentWorkflow)
   DefineProperty(MainWindow, Volatile())
+  DefineProperty(Configuration, Volatile())
 EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;
 
-DataModel::DataModel(void) : _NoGui(false), _Help(false), _AutoReload(false),
+DataModel::DataModel(void) : _Run(false), _Help(false), _AutoReload(false),
     _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600),
     _BuilderSettings(new BuilderSettings()),
     _XsltSettings(new XsltSettings()),
     _MainWorkflow(0),
     _OpenWorkflows(new std::vector<std::string>()),
-    _WorkflowMap(new std::map<std::string, workflow::Workflow*>)
+    _WorkflowMap(new std::map<std::string, workflow::Workflow*>),
+    _Configuration(".gapphost/config.xml")
 {
 }
 
@@ -121,7 +123,7 @@ DataModel& DataModel::getInstance() {
 }
 
 void DataModel::save() const {
-  save(".gapphost/config.xml");
+  save(getConfiguration());
 }
 
 void DataModel::save(const std::string& filename) const {
