@@ -30,6 +30,8 @@ public:
   virtual ~StringReplacer();
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
+
+  virtual void writeResults();
 };
 
 }
