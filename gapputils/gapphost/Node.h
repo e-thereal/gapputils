@@ -46,6 +46,8 @@ public:
   Node();
   virtual ~Node(void);
 
+  static std::string CreateUuid();
+
   /**
    * \brief Returns the expression object of the named property if the property is associated to one.
    *

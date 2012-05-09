@@ -110,6 +110,10 @@ void Expression::resume() {
       }
     }
   }
+
+  ReflectableClass* object = getNode()->getModule();
+  assert(object);
+  object->findProperty(getPropertyName())->setStringValue(*object, evaluate());
 }
 
 void Expression::disconnect(GlobalProperty* gprop) {

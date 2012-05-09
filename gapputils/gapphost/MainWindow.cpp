@@ -105,13 +105,13 @@ void updateToolBox(QTreeWidget* toolBox) {
 }
 
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
-    : QMainWindow(parent, flags), libsChanged(false), workingWorkflow(0)
+    : QMainWindow(parent, flags), libsChanged(false), autoQuit(false), workingWorkflow(0)
 {
   DataModel& model = DataModel::getInstance();
 
   model.setMainWindow(this);
 
-  setWindowTitle("Application Host");
+  setWindowTitle(QString("Application Host - ") + model.getConfiguration().c_str());
   this->setGeometry(model.getWindowX(), model.getWindowY(), model.getWindowWidth(), model.getWindowHeight());
 
   newObjectDialog = new NewObjectDialog();
@@ -140,7 +140,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   fileMenu->addAction("Open", this, SLOT(loadWorkflow()), QKeySequence(Qt::CTRL + Qt::Key_O));
   fileMenu->insertSeparator(fileMenu->actions().last());
   fileMenu->addAction("Save", this, SLOT(save()), QKeySequence(Qt::CTRL + Qt::Key_S));
-  fileMenu->addAction("Save as", this, SLOT(saveWorkflow()));
+  fileMenu->addAction("Save as", this, SLOT(saveAs()));
   fileMenu->addAction("Reload", this, SLOT(reload()), QKeySequence(Qt::CTRL + Qt::Key_R));
 
   fileMenu->addAction("Quit", this, SLOT(quit()));
@@ -151,8 +151,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   changeInterfaceAction->setEnabled(true);
   connect(editMenu, SIGNAL(aboutToShow()), this, SLOT(updateEditMenuStatus()));
   connect(editMenu, SIGNAL(aboutToHide()), this, SLOT(enableEditMenuItems()));    // Needed so the shortcut is always active
-  editMenu->insertSeparator(editMenu->actions().last());
   editMenu->addAction("Copy", this, SLOT(copy()), QKeySequence(Qt::CTRL + Qt::Key_C));
+  editMenu->insertSeparator(editMenu->actions().last());
   editMenu->addAction("Paste", this, SLOT(paste()), QKeySequence(Qt::CTRL + Qt::Key_V));
 
   runMenu = menuBar()->addMenu("&Run");
@@ -213,6 +213,10 @@ void MainWindow::resume() {
     showWorkflow(model.getWorkflowMap()->at(currentUuid));
 }
 
+void MainWindow::setAutoQuit(bool autoQuit) {
+  this->autoQuit = autoQuit;
+}
+
 void MainWindow::quit() {
   this->close();
 }
@@ -236,16 +240,33 @@ void MainWindow::copy() {
 }
 
 void MainWindow::paste() {
+  openWorkflows[tabWidget->currentIndex()]->addNodesFromClipboard();
 }
 
 void MainWindow::loadWorkflow() {
-  QFileDialog fileDialog(this);
+//  QFileDialog fileDialog(this);
+//
+//  if (fileDialog.exec() == QDialog::Accepted) {
+//    QStringList filenames = fileDialog.selectedFiles();
+//    if (filenames.size()) {
+//      openWorkflows[tabWidget->currentIndex()]->load(filenames[0].toUtf8().data());
+//    }
+//  }
 
-  if (fileDialog.exec() == QDialog::Accepted) {
-    QStringList filenames = fileDialog.selectedFiles();
-    if (filenames.size()) {
-      openWorkflows[tabWidget->currentIndex()]->load(filenames[0].toUtf8().data());
-    }
+  QString filename = QFileDialog::getOpenFileName(this, "Load configuration", "", "Host Configuration (*.xml *.config)");
+  if (!filename.isNull()) {
+    DataModel& model = DataModel::getInstance();
+    model.setConfiguration(filename.toAscii().data());
+    Workflow* workflow = model.getMainWorkflow();
+    delete workflow;
+    workflow = 0;
+    openWorkflows.clear();    // All tabs should now be closed. Either because they were closed due to delete or because they were removed manually
+    tabWidget->removeTab(0);  // First tab is never automatically removed
+
+    setWindowTitle(QString("Application Host - ") + model.getConfiguration().c_str());
+    Xmlizer::FromXml(model, model.getConfiguration());
+    resume();
+    updateToolBox(toolBox);
   }
 }
 
@@ -279,8 +300,6 @@ void MainWindow::reload() {
   DataModel& model = DataModel::getInstance();
   Workflow* workflow = model.getMainWorkflow();
 
-  Xmlizer::ToXml("reload1.xml", model);
-
   TiXmlElement* modelElement = Xmlizer::CreateXml(model);
   delete workflow;
   workflow = 0;
@@ -288,7 +307,6 @@ void MainWindow::reload() {
   tabWidget->removeTab(0);  // First tab is never automatically removed
 
   Xmlizer::FromXml(model, *modelElement);
-  Xmlizer::ToXml("reload2.xml", model);
   resume();
   updateToolBox(toolBox);
 }
@@ -332,6 +350,14 @@ void MainWindow::updateWorkflow() {
   workingWorkflow->updateOutputs();
 }
 
+void MainWindow::updateMainWorkflow() {
+  setGuiEnabled(false);
+
+  workingWorkflow = openWorkflows[0];
+  connect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
+  workingWorkflow->updateOutputs();
+}
+
 void MainWindow::terminateUpdate() {
   workingWorkflow->abortUpdate();
 }
@@ -341,10 +367,23 @@ void MainWindow::updateFinished(Node* node) {
   assert(workingWorkflow == dynamic_cast<Workflow*>(node));
   if (workingWorkflow)
     disconnect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
+
+  if (autoQuit)
+    quit();
 }
 
 void MainWindow::save() {
   DataModel::getInstance().save();
+}
+
+void MainWindow::saveAs() {
+  QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "Host Configuration (*.xml)");
+  if (!filename.isNull()) {
+    DataModel& model = DataModel::getInstance();
+    model.setConfiguration(filename.toUtf8().data());
+    model.save();
+    setWindowTitle(QString("Application Host - ") + model.getConfiguration().c_str());
+  }
 }
 
 void MainWindow::showWorkflow(workflow::Workflow* workflow, bool addUuid) {

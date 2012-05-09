@@ -49,7 +49,7 @@ class DataModel : public capputils::reflection::ReflectableClass
 {
   InitReflectableClass(DataModel)
 
-  Property(NoGui, bool)
+  Property(Run, bool)
   Property(Help, bool)
   Property(AutoReload, bool)
   Property(WindowX, int)
@@ -63,6 +63,7 @@ class DataModel : public capputils::reflection::ReflectableClass
   Property(CurrentWorkflow, std::string)
   Property(WorkflowMap, boost::shared_ptr<std::map<std::string CAPPUTILS_COMMA() workflow::Workflow*> >)     ///< Getter and setters only. No DefineProperty in the cpp file
   Property(MainWindow, MainWindow*)
+  Property(Configuration, std::string)
 
 private:
   static DataModel* instance;

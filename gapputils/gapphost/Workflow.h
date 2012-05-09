@@ -88,6 +88,7 @@ public:
   bool newCable(Edge* edge);
   virtual void resume();
   void resumeViewport();
+  void resumeNode(Node* node);
 
   /// The workflow loses ownership of the widget when calling this method
   QWidget* dispenseWidget();
@@ -110,6 +111,7 @@ public:
   void load(const std::string& filename);
 
   void copySelectedNodesToClipboard();
+  void addNodesFromClipboard();
 
   /**
    * \brief Recursively updates the checksums of all nodes in all sub workflows
