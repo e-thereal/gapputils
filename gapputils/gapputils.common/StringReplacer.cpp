@@ -70,6 +70,10 @@ void StringReplacer::changedHandler(capputils::ObservableClass* sender, int even
   }
 }
 
+void StringReplacer::writeResults() {
+  setOutput(getOutput());
+}
+
 }
 
 }

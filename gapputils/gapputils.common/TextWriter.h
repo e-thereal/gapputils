@@ -15,10 +15,16 @@ class TextWriter : public workflow::WorkflowElement
 
   Property(Text, std::string)
   Property(Filename, std::string)
+  Property(Auto, bool)
+
+private:
+  static int inputId;
 
 public:
   TextWriter();
   virtual ~TextWriter();
+
+  void changedHandler(capputils::ObservableClass* sender, int eventId);
 
   virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
   virtual void writeResults();
