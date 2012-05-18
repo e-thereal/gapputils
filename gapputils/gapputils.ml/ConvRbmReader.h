@@ -23,7 +23,9 @@ class ConvRbmReader : public gapputils::workflow::WorkflowElement {
   Property(Filename, std::string)
   Property(Model, boost::shared_ptr<ConvRbmModel>)
   Property(FilterCount, int)
-  Property(FilterSize, int)
+  Property(FilterWidth, int)
+  Property(FilterHeight, int)
+  Property(FilterDepth, int)
   Property(PoolingSize, int)
 
 private:

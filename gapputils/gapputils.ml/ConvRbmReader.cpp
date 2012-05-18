@@ -36,12 +36,14 @@ BeginPropertyDefinitions(ConvRbmReader)
   DefineProperty(Filename, Input("File"), Filename("CRBM Model (*.crbm)"), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Model, Output("CRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(FilterCount, NoParameter(), Observe(PROPERTY_ID))
-  DefineProperty(FilterSize, NoParameter(), Observe(PROPERTY_ID))
+  DefineProperty(FilterWidth, NoParameter(), Observe(PROPERTY_ID))
+  DefineProperty(FilterHeight, NoParameter(), Observe(PROPERTY_ID))
+  DefineProperty(FilterDepth, NoParameter(), Observe(PROPERTY_ID))
   DefineProperty(PoolingSize, NoParameter(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-ConvRbmReader::ConvRbmReader() : data(0) {
+ConvRbmReader::ConvRbmReader() : _FilterWidth(0), _FilterHeight(0), _FilterDepth(0), data(0) {
   WfeUpdateTimestamp
   setLabel("Reader");
 
@@ -69,7 +71,11 @@ void ConvRbmReader::execute(gapputils::workflow::IProgressMonitor* monitor) cons
 
   data->setModel(crbm);
   data->setFilterCount(crbm->getFilters()->size());
-  data->setFilterSize(crbm->getFilters()->at(1)->size()[0]);
+  if (crbm->getFilters()->size()) {
+    data->setFilterWidth(crbm->getFilters()->at(0)->size()[0]);
+    data->setFilterHeight(crbm->getFilters()->at(0)->size()[1]);
+    data->setFilterDepth(crbm->getFilters()->at(0)->size()[2]);
+  }
   data->setPoolingSize(crbm->getPoolingBlockSize());
 }
 
@@ -79,7 +85,9 @@ void ConvRbmReader::writeResults() {
 
   setModel(data->getModel());
   setFilterCount(data->getFilterCount());
-  setFilterSize(data->getFilterSize());
+  setFilterWidth(data->getFilterWidth());
+  setFilterHeight(data->getFilterHeight());
+  setFilterDepth(data->getFilterDepth());
   setPoolingSize(data->getPoolingSize());
 }
 

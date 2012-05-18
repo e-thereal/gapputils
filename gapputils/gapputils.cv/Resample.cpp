@@ -70,7 +70,7 @@ void Resample::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   if (getInputImage()) {
     culib::ICudaImage* input = getInputImage().get();
-    boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(getWidth(), getHeight())));
+    boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(getWidth(), getHeight(), input->getSize().z)));
     fmatrix4 scalingMatrix = make_fmatrix4_scaling(
         (float)input->getSize().x / (float)output->getSize().x,
         (float)input->getSize().y / (float)output->getSize().y,
@@ -87,7 +87,7 @@ void Resample::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > > outputs(new std::vector<boost::shared_ptr<culib::ICudaImage> >());
     for (unsigned i = 0; i < getInputImages()->size(); ++i) {
       culib::ICudaImage* input = getInputImages()->at(i).get();
-      boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(getWidth(), getHeight())));
+      boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(getWidth(), getHeight(), input->getSize().z)));
       fmatrix4 scalingMatrix = make_fmatrix4_scaling(
           (float)input->getSize().x / (float)output->getSize().x,
           (float)input->getSize().y / (float)output->getSize().y,
