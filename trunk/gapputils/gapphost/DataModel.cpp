@@ -7,6 +7,7 @@
 #include <capputils/Xmlizer.h>
 #include <capputils/EnumerableAttribute.h>
 #include <capputils/ReuseAttribute.h>
+#include <capputils/DescriptionAttribute.h>
 
 #include <qdir.h>
 
@@ -21,11 +22,18 @@ namespace host {
 
 BeginPropertyDefinitions(BuilderSettings)
 
-  DefineProperty(CompilerName)
-  DefineProperty(IncludeSwitch)
-  DefineProperty(OutputSwitch)
-  DefineProperty(IncludeDirectories, Enumerable<TYPE_OF(IncludeDirectories), false>())
-  DefineProperty(CompilerFlags, Enumerable<TYPE_OF(CompilerFlags), false>())
+  DefineProperty(CompilerName,
+      Description("Name of the compiler (e.g. 'gcc', 'cl')"))
+  DefineProperty(IncludeSwitch,
+      Description("Name of the switch used to add a new include director (e.g. '-I')"))
+  DefineProperty(OutputSwitch,
+      Description("Name of the switch used to specify the output name. (e.g. '-o ')"))
+  DefineProperty(IncludeDirectories,
+      Enumerable<TYPE_OF(IncludeDirectories), false>(),
+      Description("List of additional include directories"))
+  DefineProperty(CompilerFlags,
+      Enumerable<TYPE_OF(CompilerFlags), false>(),
+      Description("List of additional compiler flags"))
 
 EndPropertyDefinitions
 
@@ -83,20 +91,34 @@ XsltSettings::XsltSettings()
 XsltSettings::~XsltSettings() { }
 
 BeginPropertyDefinitions(DataModel)
-  DefineProperty(Run, Flag(), Volatile())
-  DefineProperty(Help, Flag(), Volatile())
-  DefineProperty(AutoReload, Flag(), Volatile())
-  DefineProperty(WindowX)
-  DefineProperty(WindowY)
-  DefineProperty(WindowWidth)
-  DefineProperty(WindowHeight)
-  ReflectableProperty(BuilderSettings, Reuse())
-  ReflectableProperty(XsltSettings, Reuse())
-  ReflectableProperty(MainWorkflow)
-  DefineProperty(OpenWorkflows, Enumerable<boost::shared_ptr<std::vector<std::string> >, false>())
-  DefineProperty(CurrentWorkflow)
-  DefineProperty(MainWindow, Volatile())
-  DefineProperty(Configuration, Volatile())
+  DefineProperty(Run, Flag(), Volatile(),
+      Description("Automatically update the workflow and quit aftwards"))
+  DefineProperty(Help, Flag(), Volatile(),
+      Description("Shows this help"))
+  DefineProperty(AutoReload, Flag(), Volatile(),
+      Description("Automatically reloads the workflow if one of the loaded libraries has been changend"))
+  DefineProperty(WindowX,
+      Description("X position of the top left corner of the main window"))
+  DefineProperty(WindowY,
+      Description("Y position of the top left corner of the main window"))
+  DefineProperty(WindowWidth,
+      Description("Width of the main window"))
+  DefineProperty(WindowHeight,
+      Description("Height of the main window"))
+  ReflectableProperty(BuilderSettings, Reuse(),
+      Description(""))
+  ReflectableProperty(XsltSettings, Reuse(),
+      Description(""))
+  ReflectableProperty(MainWorkflow,
+      Description(""))
+  DefineProperty(OpenWorkflows, Enumerable<boost::shared_ptr<std::vector<std::string> >, false>(),
+      Description(""))
+  DefineProperty(CurrentWorkflow,
+      Description(""))
+  DefineProperty(MainWindow, Volatile(),
+      Description(""))
+  DefineProperty(Configuration, Volatile(),
+      Description("Name of the workflow configuration file"))
 EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;

@@ -11,6 +11,7 @@
 #include <capputils/Enumerator.h>
 #include <capputils/IReflectableAttribute.h>
 #include <capputils/ScalarAttribute.h>
+#include <capputils/EventHandler.h>
 #include <iostream>
 #include <sstream>
 #include <gapputils/LabelAttribute.h>
@@ -71,14 +72,19 @@ void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node)
     if (reflectable) {
       ReflectableClass* subObject = reflectable->getValuePtr(*object, properties[i]);
 
+      // If the type of the reflectable object has changed, the subtree needs to be rebuild.
+      // You need to know the previous type in order to detect a changed. ScalarAttributes are
+      // no longer supported in order to garantee, that the string value is always set to the
+      // previous type name.
+
       Enumerator* enumerator = dynamic_cast<Enumerator*>(subObject);
       if (!enumerator && subObject) {
-        if (!subObject->getAttribute<ScalarAttribute>()) {
-          value->setText(subObject->getClassName().c_str());
-          value->setEnabled(false);
-        } else {
-          value->setText(properties[i]->getStringValue(*object).c_str());
-        }
+        //if (!subObject->getAttribute<ScalarAttribute>()) {
+        value->setText(subObject->getClassName().c_str());
+        value->setEnabled(false);
+        //} else {
+        //  value->setText(properties[i]->getStringValue(*object).c_str());
+        //}
         buildModel(key, subObject, node);
       } else {
         value->setText(properties[i]->getStringValue(*object).c_str());
@@ -92,7 +98,7 @@ void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node)
   }
 }
 
-void updateModel(QStandardItem* parentItem, ReflectableClass& object) {
+void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node) {
   vector<IClassProperty*> properties = object.getProperties();
 
   for (unsigned i = 0, gridPos = 0; i < properties.size(); ++i) {
@@ -115,14 +121,23 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object) {
     if (reflectable) {
       ReflectableClass* subObject = reflectable->getValuePtr(object, properties[i]);
 
+      // If the type of the reflectable object has changed, the subtree needs to be rebuild.
+      // You need to know the previous type in order to detect a changed. ScalarAttributes are
+      // no longer supported in order to garantee, that the string value is always set to the
+      // previous type name.
       Enumerator* enumerator = dynamic_cast<Enumerator*>(subObject);
       if (!enumerator && subObject) {
-        if (!subObject->getAttribute<ScalarAttribute>()) {
+        std::string oldClassName(value->text().toAscii().data());
+        if (oldClassName.compare(subObject->getClassName())) {
           value->setText(subObject->getClassName().c_str());
+          buildModel(parentItem->child(gridPos, 0), subObject, node);
         } else {
-          value->setText(properties[i]->getStringValue(object).c_str());
+          updateModel(parentItem->child(gridPos, 0), *subObject, node);
         }
-        updateModel(parentItem->child(gridPos, 0), *subObject);
+        //if (!subObject->getAttribute<ScalarAttribute>()) {
+        //} else {
+        //  value->setText(properties[i]->getStringValue(object).c_str());
+        //}
       } else {
         value->setText(properties[i]->getStringValue(object).c_str());
       }
@@ -133,12 +148,8 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object) {
   }
 }
 
-void ModelHarmonizer::ObjectChangedHandler::operator()(capputils::ObservableClass* /*sender*/, int /*eventId*/) {
-  updateModel(parent->model->invisibleRootItem(), *parent->node->getModule());
-}
-
 ModelHarmonizer::ModelHarmonizer(gapputils::workflow::Node* node)
- : QObject(), objectChanged(this), node(node)
+ : QObject(), node(node), modelLocked(false)
 {
   model = new QStandardItemModel(0, 2);
   model->setHorizontalHeaderItem(0, new QStandardItem("Property"));
@@ -151,7 +162,7 @@ ModelHarmonizer::ModelHarmonizer(gapputils::workflow::Node* node)
   connect(model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(itemChanged(QStandardItem*)));
   ObservableClass* observable = dynamic_cast<ObservableClass*>(node->getModule());
   if (observable) {
-    observable->Changed.connect(objectChanged);
+    observable->Changed.connect(capputils::EventHandler<ModelHarmonizer>(this, &ModelHarmonizer::changedHandler));
   }
 }
 
@@ -163,11 +174,20 @@ QStandardItemModel* ModelHarmonizer::getModel() const {
   return model;
 }
 
+void ModelHarmonizer::changedHandler(capputils::ObservableClass* sender, int eventId) {
+  modelLocked = true;
+  updateModel(model->invisibleRootItem(), *node->getModule(), node);
+  modelLocked = false;
+}
+
 void ModelHarmonizer::itemChanged(QStandardItem* item) {
+  if (modelLocked)
+    return;
+
   // Update model if necessary
   if (item->data(Qt::UserRole).canConvert<PropertyReference>()) {
     const PropertyReference& reference = item->data(Qt::UserRole).value<PropertyReference>();
-    ReflectableClass* object = reference.getNode()->getModule();
+    ReflectableClass* object = reference.getObject();
     IClassProperty* prop = reference.getProperty();
     QString qstr = item->text();
     std::string str(qstr.toUtf8().data());
@@ -175,11 +195,16 @@ void ModelHarmonizer::itemChanged(QStandardItem* item) {
       IReflectableAttribute* reflectable = prop->getAttribute<IReflectableAttribute>();
       if (reflectable) {
         ReflectableClass* subObject = reflectable->getValuePtr(*object, prop);
-        if (subObject->getAttribute<ScalarAttribute>()) {
+        if (dynamic_cast<Enumerator*>(subObject)) {
           stringstream stream(str);
           subObject->fromStream(stream);
           reflectable->setValuePtr(*object, prop, subObject);
         }
+        //if (subObject->getAttribute<ScalarAttribute>()) {
+        //  stringstream stream(str);
+        //  subObject->fromStream(stream);
+        //  reflectable->setValuePtr(*object, prop, subObject);
+        //}
       } else {
         prop->setStringValue(*object, str);
       }

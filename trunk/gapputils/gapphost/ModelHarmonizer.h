@@ -22,23 +22,18 @@ namespace workflow {
 class ModelHarmonizer : public QObject {
   Q_OBJECT
 
-  class ObjectChangedHandler {
-    ModelHarmonizer* parent;
-  public:
-    ObjectChangedHandler(ModelHarmonizer* parent) : parent(parent) { }
-
-    void operator()(capputils::ObservableClass* sender, int eventId);
-  } objectChanged;
-
 private:
   gapputils::workflow::Node* node;
   QStandardItemModel* model;
+  bool modelLocked;
 
 public:
   ModelHarmonizer(gapputils::workflow::Node* node);
   virtual ~ModelHarmonizer();
 
   QStandardItemModel* getModel() const;
+
+  void changedHandler(capputils::ObservableClass* sender, int eventId);
 
 private Q_SLOTS:
   void itemChanged(QStandardItem* item);

@@ -206,19 +206,12 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
   std::cout << "layer dim = " << layerDim[0] << ", " << layerDim[1] << ", " << layerDim[2] << std::endl;
   for (unsigned i = 0; i < filterCount; ++i) {
-
     device_tensor_t tens = device_tensor_t(layerDim);
-
     poshidprobs.push_back(tens);
-
     tens = device_tensor_t(layerDim);
-
     poshidstates.push_back(tens);
-
     tens = device_tensor_t(filterDim);
-
     posvishid.push_back(tens);
-
     neghidprobs.push_back(device_tensor_t(layerDim));
     neghidstates.push_back(device_tensor_t(layerDim));
     negvishid.push_back(device_tensor_t(filterDim));
