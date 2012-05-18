@@ -45,7 +45,8 @@ SOURCES = FromRgb.cpp \
           ImageToMif.cpp \
           StackImages.cpp \
           Checkerboard.cpp \
-          ImageRepeater.cpp
+          ImageRepeater.cpp \
+          ImageAggregator.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \

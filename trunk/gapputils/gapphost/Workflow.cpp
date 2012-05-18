@@ -965,8 +965,10 @@ void Workflow::updateInterfaceTimeStamp() {
 
 void Workflow::itemSelected(ToolItem* item) {
   Node* node = getNode(item);
-  if (node)
+  if (node) {
     propertyGrid->setModel(node->getModel());
+    propertyGrid->expandAll();
+  }
 }
 
 void Workflow::itemChangedHandler(ToolItem* item) {
