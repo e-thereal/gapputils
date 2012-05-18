@@ -63,6 +63,9 @@ public:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 };
 
+// wrapper around the boost version
+float binomial(int n, int k);
+
 }
 
 }

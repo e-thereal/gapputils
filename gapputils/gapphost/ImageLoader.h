@@ -28,37 +28,22 @@ namespace gapputils {
 
 class ImageLoader : public gapputils::workflow::WorkflowElement
 {
-  class ChangeEventHandler {
-  private:
-    ImageLoader* loader;
-  public:
-    ChangeEventHandler(ImageLoader* loader) : loader(loader) { }
-
-    void operator()(capputils::ObservableClass*, int eventId) {
-      if (eventId == 1)
-        loader->loadImage();
-    }
-  } changeHandler;
-
   InitReflectableClass(ImageLoader)
 
-  Property(Label, std::string)
   Property(ImageName, std::string)
   Property(ImagePtr, boost::shared_ptr<QImage>)
   Property(Width, int)
   Property(Height, int)
 
 private:
-  QImage* image;
+  mutable ImageLoader* data;
 
 public:
   ImageLoader(void);
   virtual ~ImageLoader(void);
 
-  void loadImage();
-  virtual void execute(workflow::IProgressMonitor* monitor) const { }
-  virtual void writeResults() { }
-
+  virtual void execute(workflow::IProgressMonitor* monitor) const;
+  virtual void writeResults();
 };
 
 }

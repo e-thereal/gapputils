@@ -11,6 +11,7 @@
 
 #include <capputils/Verifier.h>
 #include <culib/CudaImage.h>
+#include <culib/math3d.h>
 
 #include <thrust/transform.h>
 
@@ -34,6 +35,21 @@ struct gpu_sqrt {
     else
       return sqrtf(x);
   }
+};
+
+struct gpu_bernstein {
+  float coefficient, e1, e2;
+
+  gpu_bernstein(float k, float n) {
+    e1 = k;
+    e2 = n - k;
+    coefficient = binomial(n, k);
+  }
+
+  __device__ float operator()(const float& x) const {
+    return coefficient * pow(x, e1) * pow(1.f - x, e2);
+  }
+
 };
 
 void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
@@ -64,6 +80,16 @@ void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) con
   case FilterFunction::Sqrt:
     thrust::transform(inputPtr, inputPtr + count, outputPtr, gpu_sqrt());
     break;
+
+  case FilterFunction::Bernstein: {
+    BernsteinParameters* params = dynamic_cast<BernsteinParameters*>(getParameters().get());
+    if (params) {
+      thrust::transform(inputPtr, inputPtr + count, outputPtr,
+          gpu_bernstein(params->getIndex(), params->getDegree()));
+    } else {
+
+    }
+    } break;
   }
 
   output->saveDeviceToOriginalImage();

@@ -21,6 +21,8 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
+#include <boost/math/special_functions/binomial.hpp>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -91,6 +93,10 @@ void FunctionFilter::writeResults() {
     return;
 
   setOutputImage(data->getOutputImage());
+}
+
+float binomial(int n, int k) {
+  return boost::math::binomial_coefficient<float>(n, k);
 }
 
 }
