@@ -57,6 +57,8 @@ ConvRbmTrainer::ConvRbmTrainer()
   WfeUpdateTimestamp
   setLabel("ConvRbmTrainer");
 
+//  std::cout << "[Info] host size: " << sizeof(*this) << std::endl;
+
   Changed.connect(capputils::EventHandler<ConvRbmTrainer>(this, &ConvRbmTrainer::changedHandler));
 }
 

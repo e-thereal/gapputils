@@ -38,10 +38,25 @@ private:
   unsigned blockSize, width;
 };
 
+#define LOCATE(a,b) std::cout << #b": " << (char*)&a._##b - (char*)&a << std::endl
+#define LOCATE2(a,b) std::cout << #b": " << (char*)&a.b - (char*)&a << std::endl
+
 void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace thrust::placeholders;
   typedef tbblas::tensor_proxy<host_tensor_t::iterator, 3> host_proxy_t;
   typedef tbblas::tensor_proxy<device_tensor_t::iterator, 3> device_proxy_t;
+  
+  /*ConvRbmEncoder test;
+  std::cout << std::endl << "ConvRbmEncoder (device): " << sizeof(test) << std::endl;
+  LOCATE(test, Model);
+  LOCATE(test, Inputs);
+  LOCATE(test, Outputs);
+  LOCATE(test, Direction);
+  LOCATE(test, Sampling);
+  LOCATE(test, Pooling);
+  LOCATE(test, Auto);
+  LOCATE(test, OutputDimension);
+  LOCATE2(test, data);*/
 
   if (!data)
     data = new ConvRbmEncoder();
@@ -104,16 +119,36 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
       layerDim[i] = (i < dimCount - 1 ? hiddenDim[i] : 1);
       visibleDim[i] = layerDim[i] + filterDim[i] - 1;
     }
-
+    
     paddedDim[i] = visibleDim[i] + filterDim[i] - 1;
     start[i] = filterDim[i] - 1;
     filterWeightCount *= filterDim[i];
     layerVoxelCount *= layerDim[i];
     visibleVoxelCount *= visibleDim[i];
   }
+  
+  std::vector<int> outputDim(3);
+  if (getDirection() == CodingDirection::Encode) {
+    if (getPooling()) {
+      outputDim[0] = hiddenDim[0] / blockSize;
+      outputDim[1] = hiddenDim[1] / blockSize;
+      outputDim[2] = hiddenDim[2] * poolingChannels;
+    } else {
+      outputDim[0] = hiddenDim[0];
+      outputDim[1] = hiddenDim[1];
+      outputDim[2] = hiddenDim[2];
+    }
+  } else {
+    outputDim[0] = visibleDim[0];
+    outputDim[1] = visibleDim[1];
+    outputDim[2] = visibleDim[2];
+  }
+  data->setOutputDimension(outputDim);
 
-  assert((layerDim[0] % blockSize) == 0);
-  assert((layerDim[1] % blockSize) == 0);
+  //if (getDirection() == CodingDirection::Encode) {
+    assert((layerDim[0] % blockSize) == 0);
+    assert((layerDim[1] % blockSize) == 0);
+  //}
   assert((layerVoxelCount % 2) == 0);
   assert((visibleVoxelCount % 2) == 0);
 

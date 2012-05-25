@@ -112,8 +112,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   }
 
   std::cout << "Building ConvRBM ..." << std::endl;
-
-
+//  std::cout << "[Info] device size: " << sizeof(*this) << std::endl;
 
   curandGenerator_t gen;
   curandStatus_t status;

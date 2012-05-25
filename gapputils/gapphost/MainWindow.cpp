@@ -10,6 +10,7 @@
 #include <capputils/LibraryLoader.h>
 #include <qtoolbox.h>
 #include <qtreewidget.h>
+#include <qstatusbar.h>
 
 #include "DataModel.h"
 #include "Controller.h"
@@ -168,6 +169,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
     reloadTimer.setInterval(1000);
     reloadTimer.start();
   }
+
+  statusBar()->showMessage("Ready.");
 }
 
 MainWindow::~MainWindow()

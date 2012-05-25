@@ -35,7 +35,7 @@ BeginPropertyDefinitions(ImageSaver)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(ImagePtr, Input("Img"), Hide(), Volatile(), Observe(imageId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ImageName, Output("Name"), Filename("Images (*.jpg, *.png)"), NotEqual<std::string>(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImageName, Output("Name"), Filename("Images (*.jpg *.png)"), NotEqual<std::string>(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(AutoSave, Observe(PROPERTY_ID))
   DefineProperty(AutoName, Observe(PROPERTY_ID))
   DefineProperty(AutoSuffix, Observe(PROPERTY_ID))
