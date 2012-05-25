@@ -117,6 +117,10 @@ BeginPropertyDefinitions(DataModel)
       Description(""))
   DefineProperty(MainWindow, Volatile(),
       Description(""))
+  DefineProperty(PassedLabel, Volatile())
+  DefineProperty(RemainingLabel, Volatile())
+  DefineProperty(TotalLabel, Volatile())
+  DefineProperty(FinishedLabel, Volatile())
   DefineProperty(Configuration, Volatile(),
       Description("Name of the workflow configuration file"))
 EndPropertyDefinitions

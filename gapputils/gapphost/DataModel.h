@@ -9,6 +9,8 @@
 
 #include "Workflow.h"
 
+class QLabel;
+
 namespace gapputils {
 
 namespace host {
@@ -63,6 +65,10 @@ class DataModel : public capputils::reflection::ReflectableClass
   Property(CurrentWorkflow, std::string)
   Property(WorkflowMap, boost::shared_ptr<std::map<std::string CAPPUTILS_COMMA() workflow::Workflow*> >)     ///< Getter and setters only. No DefineProperty in the cpp file
   Property(MainWindow, MainWindow*)
+  Property(PassedLabel, QLabel*)
+  Property(RemainingLabel, QLabel*)
+  Property(TotalLabel, QLabel*)
+  Property(FinishedLabel, QLabel*)
   Property(Configuration, std::string)
 
 private:

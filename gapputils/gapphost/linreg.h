@@ -73,6 +73,7 @@ virtual double getB() const { return b; }
         double getCoefCorrel() const { return coefC; }
         double getStdErrorEst() const { return stdError; }
 virtual double estimateY(double x) const { return (a + b * x); }
+        void clear();
 
     protected:
         long n;             // number of data points input so far

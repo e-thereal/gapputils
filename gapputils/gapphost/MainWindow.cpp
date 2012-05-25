@@ -11,6 +11,7 @@
 #include <qtoolbox.h>
 #include <qtreewidget.h>
 #include <qstatusbar.h>
+#include <qlabel.h>
 
 #include "DataModel.h"
 #include "Controller.h"
@@ -171,6 +172,30 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   }
 
   statusBar()->showMessage("Ready.");
+
+  statusBar()->addPermanentWidget(new QLabel("Passed:"), 0);
+  QLabel* label = new QLabel();
+  label->setFixedWidth(130);
+  statusBar()->addPermanentWidget(label, 0);
+  model.setPassedLabel(label);
+
+  statusBar()->addPermanentWidget(new QLabel("Remaining:"), 0);
+  label = new QLabel();
+  label->setFixedWidth(130);
+  statusBar()->addPermanentWidget(label, 0);
+  model.setRemainingLabel(label);
+
+  statusBar()->addPermanentWidget(new QLabel("Total:"), 0);
+  label = new QLabel();
+  label->setFixedWidth(130);
+  statusBar()->addPermanentWidget(label, 0);
+  model.setTotalLabel(label);
+
+  statusBar()->addPermanentWidget(new QLabel("Finished by:"), 0);
+  label = new QLabel();
+  label->setFixedWidth(150);
+  statusBar()->addPermanentWidget(label, 0);
+  model.setFinishedLabel(label);
 }
 
 MainWindow::~MainWindow()
