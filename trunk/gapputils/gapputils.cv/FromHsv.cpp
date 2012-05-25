@@ -80,31 +80,42 @@ void FromHsv::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   int width = 0;
   int height = 0;
+  int pixelWidth = 1000, pixelHeight = 1000;
 
   if (hue) {
     width = hue->getSize().x;
     height = hue->getSize().y;
+    pixelWidth = hue->getVoxelSize().x;
+    pixelHeight = hue->getVoxelSize().y;
   } else if (saturation) {
     width = saturation->getSize().x;
     height = saturation->getSize().y;
+    pixelWidth = saturation->getVoxelSize().x;
+    pixelHeight = saturation->getVoxelSize().y;
   } else if (value) {
     width = value->getSize().x;
     height = value->getSize().y;
+    pixelWidth = value->getVoxelSize().x;
+    pixelHeight = value->getVoxelSize().y;
   }
 
   if (width <= 0 || height <= 0)
     return;
 
   if (saturation) {
-    if (saturation->getSize().x != width || saturation->getSize().y != height)
+    if (saturation->getSize().x != width || saturation->getSize().y != height ||
+        saturation->getVoxelSize().x != pixelWidth || saturation->getVoxelSize().y != pixelHeight)
       return;
   }
   if (value) {
-    if (value->getSize().x != width || value->getSize().y != height)
+    if (value->getSize().x != width || value->getSize().y != height ||
+        value->getVoxelSize().x != pixelWidth || value->getVoxelSize().y != pixelHeight)
       return;
   }
 
   boost::shared_ptr<QImage> image(new QImage(width, height, QImage::Format_ARGB32));
+  image->setDotsPerMeterX(1000000/pixelWidth);
+  image->setDotsPerMeterY(1000000/pixelHeight);
   float* hueBuffer = (hue ? hue->getWorkingCopy() : 0);
   float* saturationBuffer = (saturation ? saturation->getWorkingCopy() : 0);
   float* valueBuffer = (value ? value->getWorkingCopy() : 0);

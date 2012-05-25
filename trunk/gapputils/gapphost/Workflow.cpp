@@ -1294,6 +1294,10 @@ void Workflow::showProgress(Node* node, double progress, bool updateNode) {
   if (updateNode) {
     node->writeResults();
   }
+
+  // TODO: Implement the ETA feature. A timer updates passed time and remaining time.
+  //       This function updates estimates total time and time and date when the operation
+  //       will have finished.
 }
 
 void Workflow::showWorkflow(Workflow* workflow) {

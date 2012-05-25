@@ -11,6 +11,7 @@
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
 #include <capputils/InputAttribute.h>
+#include <capputils/NoParameterAttribute.h>
 #include <capputils/NotEqualAssertion.h>
 #include <capputils/ObserveAttribute.h>
 #include <capputils/OutputAttribute.h>
@@ -20,6 +21,8 @@
 
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
+
+#include <iostream>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -43,6 +46,7 @@ BeginPropertyDefinitions(ConvRbmEncoder)
   DefineProperty(Sampling, Observe(PROPERTY_ID))
   ReflectableProperty(Pooling, Observe(PROPERTY_ID))
   DefineProperty(Auto, Observe(PROPERTY_ID))
+  DefineProperty(OutputDimension, NoParameter(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
@@ -65,11 +69,38 @@ void ConvRbmEncoder::changedHandler(capputils::ObservableClass* sender, int even
   }
 }
 
+#define LOCATE(a,b) std::cout << #b": " << (char*)&a._##b - (char*)&a << std::endl
+#define LOCATE2(a,b) std::cout << #b": " << (char*)&a.b - (char*)&a << std::endl
+
+/*
+ * Model, boost::shared_ptr<ConvRbmModel>)
+  Property(Inputs, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+  Property(Outputs, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+  Property(Direction, CodingDirection)
+  Property(Sampling, bool)
+  Property(Pooling, PoolingMethod)
+  Property(Auto, bool)
+  Property(OutputDimension
+ */
+
 void ConvRbmEncoder::writeResults() {
   if (!data)
     return;
 
+  /*ConvRbmEncoder test;
+  std::cout << std::endl << "ConvRbmEncoder (host): " << sizeof(test) << std::endl;
+  LOCATE(test, Model);
+  LOCATE(test, Inputs);
+  LOCATE(test, Outputs);
+  LOCATE(test, Direction);
+  LOCATE(test, Sampling);
+  LOCATE(test, Pooling);
+  LOCATE(test, Auto);
+  LOCATE(test, OutputDimension);
+  LOCATE2(test, data);*/
+
   setOutputs(data->getOutputs());
+  setOutputDimension(data->getOutputDimension());
 }
 
 }

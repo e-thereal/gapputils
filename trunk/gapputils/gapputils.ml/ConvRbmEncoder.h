@@ -37,6 +37,7 @@ public:
   Property(Sampling, bool)
   Property(Pooling, PoolingMethod)
   Property(Auto, bool)
+  Property(OutputDimension, std::vector<int>)
 
 private:
   mutable ConvRbmEncoder* data;

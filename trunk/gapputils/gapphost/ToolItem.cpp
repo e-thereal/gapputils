@@ -537,7 +537,7 @@ void ToolItem::drawBox(QPainter* painter) {
   if (progress >=0) {
     painter->save();
     painter->setClipping(true);
-    painter->setClipRect(0, 0, width * min(100., progress) / 100., height);
+    painter->setClipRect(QRectF(0, 0, width * min(100., progress) / 100., height));
     painter->setBrush(progressGradient);
     painter->drawRoundedRect(0, 0, width, height, 4, 4);
     painter->restore();

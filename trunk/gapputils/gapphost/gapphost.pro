@@ -32,7 +32,8 @@ SOURCES = main.cpp \
 		  EditInterfaceDialog.cpp \
 		  Expression.cpp \
 		  trace.cpp \
-		  HostInterface.cpp
+		  HostInterface.cpp \
+		  linreg.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
