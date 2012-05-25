@@ -18,6 +18,7 @@
 #include <qlabel.h>
 #include <qtextedit.h>
 #include <qclipboard.h>
+#include <qstatusbar.h>
 
 #include <cassert>
 
@@ -49,6 +50,7 @@
 
 #include <set>
 #include <map>
+#include <iomanip>
 
 #include "PropertyGridDelegate.h"
 #include "CustomToolItemAttribute.h"
@@ -130,7 +132,7 @@ EndPropertyDefinitions
 
 Workflow::Workflow()
  : _InputsPosition(0), _OutputsPosition(0), _ViewportScale(1.0), ownWidget(true), hasIONodes(false),
-   processingCombination(false), dryrun(false), worker(0)
+   processingCombination(false), dryrun(false), worker(0), progressNode(0)
 {
   _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
@@ -1270,6 +1272,9 @@ void Workflow::processStack() {
 }
 
 void Workflow::finalizeModuleUpdate(Node* node) {
+  progressNode = 0;
+  host::DataModel::getInstance().getMainWindow()->statusBar()->showMessage("Ready.");
+
   Workflow* workflow = dynamic_cast<Workflow*>(node);
   if (workflow) {
     disconnect(workflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(finalizeModuleUpdate(workflow::Node*)));
@@ -1289,6 +1294,40 @@ void Workflow::finalizeModuleUpdate(Node* node) {
   processStack();
 }
 
+std::string formatTime(int seconds) {
+  int minutes = 0, hours = 0, days = 0;
+  minutes = seconds / 60;
+  seconds -= 60 * minutes;
+
+  hours = minutes / 60;
+  minutes -= 60 * hours;
+
+  days = hours / 24;
+  hours -= 24 * days;
+
+  std::stringstream out;
+
+  out << setfill('0');
+  if (days) {
+    out << days << "d ";
+    out << setw(2) << hours << "h ";
+    out << setw(2) << minutes << "min ";
+    out << setw(2) << seconds << "s";
+  } else if (hours) {
+    out << hours << "h ";
+    out << setw(2) << minutes << "min ";
+    out << setw(2) << seconds << "s";
+  } else if (minutes) {
+    out << minutes << "min ";
+    out << setw(2) << seconds << "s";
+  } else {
+    out << seconds << "s";
+  }
+
+  // maximum length is 19.
+  return out.str() + std::string(25 - out.str().size(), ' ');
+}
+
 void Workflow::showProgress(Node* node, double progress, bool updateNode) {
   node->getToolItem()->setProgress(progress);
   if (updateNode) {
@@ -1298,6 +1337,39 @@ void Workflow::showProgress(Node* node, double progress, bool updateNode) {
   // TODO: Implement the ETA feature. A timer updates passed time and remaining time.
   //       This function updates estimates total time and time and date when the operation
   //       will have finished.
+
+  if (dynamic_cast<Workflow*>(node))    // no progress for workflows
+    return;
+
+  if (node != progressNode) {           // new progress
+    etaRegression.clear();
+    startTime = time(0);
+  }
+
+  int passedSeconds = time(0) - startTime;
+  etaRegression.addXY(progress, passedSeconds);
+  if (etaRegression.haveData()) {
+    int totalSeconds = etaRegression.estimateY(100.0);
+    int remainingSeconds = totalSeconds - passedSeconds;
+
+    struct tm* timeinfo;
+    char buffer[256];
+    time_t finishTime = startTime + totalSeconds;
+
+    timeinfo = localtime(&finishTime);
+    strftime(buffer, 256, "%b %d %Y %H:%M:%S", timeinfo);
+
+    host::DataModel& model = host::DataModel::getInstance();
+    if (model.getPassedLabel())
+      model.getPassedLabel()->setText(formatTime(passedSeconds).c_str());
+    if (model.getRemainingLabel())
+      model.getRemainingLabel()->setText(formatTime(remainingSeconds).c_str());
+    if (model.getTotalLabel())
+      model.getTotalLabel()->setText(formatTime(totalSeconds).c_str());
+    if (model.getFinishedLabel())
+      model.getFinishedLabel()->setText(buffer);
+  }
+  progressNode = node;
 }
 
 void Workflow::showWorkflow(Workflow* workflow) {

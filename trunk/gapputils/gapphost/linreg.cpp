@@ -34,6 +34,11 @@ LinearRegression::LinearRegression(double *x, double *y, long size)
             addXY(x[i], y[i]);
 }
 
+void LinearRegression::clear() {
+  a = b = sumX = sumY = sumXsquared = sumYsquared = sumXY = 0.0;
+  n = 0L;
+}
+
 void LinearRegression::addXY(const double& x, const double& y)
 {
     n++;

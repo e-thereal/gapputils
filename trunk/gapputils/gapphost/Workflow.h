@@ -26,6 +26,8 @@
 #include "PropertyReference.h"
 #include <stack>
 #include <capputils/TimedClass.h>
+#include "linreg.h"
+#include <ctime>
 
 #include "Workbench.h"
 
@@ -79,6 +81,9 @@ private:
   std::stack<Node*> processedStack;
   static int librariesId, interfaceId;
   QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal;
+  Node* progressNode;
+  LinearRegression etaRegression;
+  time_t startTime;
 
 public:
   Workflow();
