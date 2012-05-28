@@ -43,7 +43,9 @@ public:
 class GammaParameters : public FunctionParameters {
   InitReflectableClass(GammaParameters)
 
+  Property(Slope, float)
   Property(Gamma, float)
+  Property(Intercept, float)
 
 public:
   GammaParameters();

@@ -53,10 +53,12 @@ BernsteinParameters::BernsteinParameters() : _Index(0), _Degree(0) { }
 BernsteinParameters::~BernsteinParameters() { }
 
 BeginPropertyDefinitions(GammaParameters)
+  DefineProperty(Slope, Observe(PROPERTY_ID))
   DefineProperty(Gamma, Observe(PROPERTY_ID))
+  DefineProperty(Intercept, Observe(PROPERTY_ID))
 EndPropertyDefinitions
 
-GammaParameters::GammaParameters() : _Gamma(1.f) { }
+GammaParameters::GammaParameters() : _Slope(1.f), _Gamma(1.f), _Intercept(0.f) { }
 GammaParameters::~GammaParameters() { }
 
 int FunctionFilter::functionId;
