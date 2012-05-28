@@ -28,6 +28,8 @@
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/if.hpp>
 
+#include <culib/CudaImage.h>
+
 #include "distributions.h"
 
 using namespace capputils::attributes;

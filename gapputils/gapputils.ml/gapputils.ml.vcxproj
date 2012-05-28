@@ -100,6 +100,7 @@
     <ClInclude Include="FgrbmReader.h" />
     <ClInclude Include="FgrbmTrainer.h" />
     <ClInclude Include="FgrbmWriter.h" />
+    <ClInclude Include="FunctionFilter.h" />
     <ClInclude Include="GenerateShades.h" />
     <ClInclude Include="ImageMatrix.h" />
     <ClInclude Include="InitializeConvRbmModel.h" />
@@ -143,6 +144,7 @@
     <ClCompile Include="FgrbmReader.cpp" />
     <ClCompile Include="FgrbmTrainer.cpp" />
     <ClCompile Include="FgrbmWriter.cpp" />
+    <ClCompile Include="FunctionFilter.cpp" />
     <ClCompile Include="GenerateShades.cpp" />
     <ClCompile Include="ImageMatrix.cpp" />
     <ClCompile Include="InitializeConvRbmModel.cpp" />
@@ -173,6 +175,7 @@
     <CudaCompile Include="FgrbmEncoder_gpu.cu" />
     <CudaCompile Include="FgrbmModel_gpu.cu" />
     <CudaCompile Include="FgrbmTrainer_gpu.cu" />
+    <CudaCompile Include="FunctionFilter_gpu.cu" />
     <CudaCompile Include="ImageMatrix_gpu.cu" />
     <CudaCompile Include="InitializeConvRbmModel_gpu.cu" />
     <CudaCompile Include="InitializeFgrbm_gpu.cu" />

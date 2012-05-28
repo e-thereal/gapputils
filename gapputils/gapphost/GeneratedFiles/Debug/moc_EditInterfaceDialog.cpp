@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'EditInterfaceDialog.h'
 **
-** Created: Wed Dec 28 18:58:40 2011
+** Created: Mon May 21 12:24:29 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__host__EditInterfaceDialog[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-       7,   14, // methods
+       8,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -38,6 +38,7 @@ static const uint qt_meta_data_gapputils__host__EditInterfaceDialog[] = {
      110,   37,   37,   37, 0x08,
      130,   37,   37,   37, 0x08,
      143,   37,   37,   37, 0x08,
+     167,  161,   37,   37, 0x08,
 
        0        // eod
 };
@@ -47,7 +48,8 @@ static const char qt_meta_stringdata_gapputils__host__EditInterfaceDialog[] = {
     "\0propertySelectionChanged()\0nameChanged()\0"
     "typeChanged()\0defaultChanged()\0"
     "attributesChanged()\0deleteItem()\0"
-    "includesChanged()\0"
+    "includesChanged()\0state\0"
+    "combinerStatusChanged(int)\0"
 };
 
 const QMetaObject gapputils::host::EditInterfaceDialog::staticMetaObject = {
@@ -86,9 +88,10 @@ int gapputils::host::EditInterfaceDialog::qt_metacall(QMetaObject::Call _c, int 
         case 4: attributesChanged(); break;
         case 5: deleteItem(); break;
         case 6: includesChanged(); break;
+        case 7: combinerStatusChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
-        _id -= 7;
+        _id -= 8;
     }
     return _id;
 }

@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workflow.h'
 **
-** Created: Sun May 6 09:35:22 2012
+** Created: Sun May 27 16:51:53 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!

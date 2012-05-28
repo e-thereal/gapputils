@@ -78,10 +78,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AamMatchFunction.h" />
+    <ClInclude Include="aggregate.h" />
     <ClInclude Include="image_matrix.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="AamMatchFunction.cu" />
+    <CudaCompile Include="aggregate_gpu.cu" />
     <CudaCompile Include="image_matrix.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

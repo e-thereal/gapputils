@@ -19,8 +19,10 @@
 #include <capputils/VolatileAttribute.h>
 
 #include <gapputils/HideAttribute.h>
+#include <gapputils/ReadOnlyAttribute.h>
 
 #include <culib/CudaImage.h>
+#include <iostream>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -34,9 +36,9 @@ DefineEnum(CombinerMode)
 BeginPropertyDefinitions(ImageCombiner)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage1, Input("Img1"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InputImage2, Input("Img2"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage1, Input("Img1"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage2, Input("Img2"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   ReflectableProperty(Mode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
@@ -68,15 +70,16 @@ void ImageCombiner::execute(gapputils::workflow::IProgressMonitor* monitor) cons
   boost::shared_ptr<culib::ICudaImage> input2 = getInputImage2();
 
   if (!input1 || !input2 || input1->getSize().x != input2->getSize().x ||
-      input1->getSize().y != input2->getSize().y)
+      input1->getSize().y != input2->getSize().y ||
+      input1->getSize().z != input2->getSize().z)
   {
+    std::cout << "[Warning] No input image given or dimensions don't match. Abording!" << std::endl;
     return;
   }
 
-  const int width = input1->getSize().x;
-  const int height = input1->getSize().y;
+  const int count = input1->getSize().x * input1->getSize().y * input1->getSize().z;
 
-  boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(width, height)));
+  boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(input1->getSize(), input1->getVoxelSize()));
 
   input1->saveDeviceToWorkingCopy();
   input2->saveDeviceToWorkingCopy();
@@ -86,12 +89,24 @@ void ImageCombiner::execute(gapputils::workflow::IProgressMonitor* monitor) cons
   float* buffer = output->getOriginalImage();
 
   switch (getMode()) {
+  case CombinerMode::Add:
+    for (int i = 0; i < count; ++i)
+      buffer[i] = buffer1[i] + buffer2[i];
+    break;
+
   case CombinerMode::Subtract:
-    for (int y = 0, i = 0; y < height; ++y) {
-      for (int x = 0; x < width; ++x, ++i) {
-        buffer[i] = buffer1[i] - buffer2[i];
-      }
-    }
+    for (int i = 0; i < count; ++i)
+      buffer[i] = buffer1[i] - buffer2[i];
+    break;
+
+  case CombinerMode::Multiply:
+    for (int i = 0; i < count; ++i)
+      buffer[i] = buffer1[i] * buffer2[i];
+    break;
+
+  case CombinerMode::Divide:
+    for (int i = 0; i < count; ++i)
+      buffer[i] = buffer1[i] / buffer2[i];
     break;
   }
 
