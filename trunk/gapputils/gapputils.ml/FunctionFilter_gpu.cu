@@ -54,12 +54,12 @@ struct gpu_bernstein {
 };
 
 struct gpu_gamma {
-  float gamma;
+  float slope, gamma, intercept;
 
-  gpu_gamma(const float& gamma) : gamma(gamma) { }
+  gpu_gamma(const float& slope, const float& gamma, const float& intercept) : slope(slope), gamma(gamma), intercept(intercept) { }
 
   __device__ float operator()(const float& x) const {
-    return powf(x, gamma);
+    return slope * powf(x, gamma) + intercept;
   }
 };
 
@@ -102,7 +102,7 @@ void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) con
     GammaParameters* params = dynamic_cast<GammaParameters*>(getParameters().get());
     if (params) {
       thrust::transform(inputPtr, inputPtr + count, outputPtr,
-          gpu_gamma(params->getGamma()));
+        gpu_gamma(params->getSlope(), params->getGamma(), params->getIntercept()));
     }
     } break;
   }
