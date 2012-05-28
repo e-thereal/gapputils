@@ -24,9 +24,13 @@
     <ClInclude Include="image_matrix.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="aggregate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="AamMatchFunction.cu" />
     <CudaCompile Include="image_matrix.cu" />
+    <CudaCompile Include="aggregate_gpu.cu" />
   </ItemGroup>
 </Project>

@@ -181,6 +181,7 @@
     <ClCompile Include="ImageViewer.cpp" />
     <ClCompile Include="ImageViewerItem.cpp" />
     <ClCompile Include="InputsItem.cpp" />
+    <ClCompile Include="linreg.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_MainWindow.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -235,6 +236,7 @@
     </CustomBuild>
     <ClInclude Include="Expression.h" />
     <ClInclude Include="HostInterface.h" />
+    <ClInclude Include="linreg.h" />
     <ClInclude Include="XslTransformation.h" />
     <CustomBuild Include="WorkflowItem.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

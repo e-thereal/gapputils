@@ -144,6 +144,9 @@
     <ClInclude Include="sampling.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FunctionFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MnistReader.cpp">
@@ -260,6 +263,9 @@
     <ClCompile Include="FgrbmDecoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FunctionFilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="RbmTrainer_gpu.cu">
@@ -317,6 +323,9 @@
       <Filter>CUDA</Filter>
     </CudaCompile>
     <CudaCompile Include="TensorTest_gpu.cu">
+      <Filter>CUDA</Filter>
+    </CudaCompile>
+    <CudaCompile Include="FunctionFilter_gpu.cu">
       <Filter>CUDA</Filter>
     </CudaCompile>
   </ItemGroup>

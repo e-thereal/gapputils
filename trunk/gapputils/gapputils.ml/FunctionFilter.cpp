@@ -23,6 +23,9 @@
 
 #include <boost/math/special_functions/binomial.hpp>
 
+#include <culib/CudaImage.h>
+#include <iostream>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -49,6 +52,13 @@ BernsteinParameters::BernsteinParameters() : _Index(0), _Degree(0) { }
 
 BernsteinParameters::~BernsteinParameters() { }
 
+BeginPropertyDefinitions(GammaParameters)
+  DefineProperty(Gamma, Observe(PROPERTY_ID))
+EndPropertyDefinitions
+
+GammaParameters::GammaParameters() : _Gamma(1.f) { }
+GammaParameters::~GammaParameters() { }
+
 int FunctionFilter::functionId;
 
 BeginPropertyDefinitions(FunctionFilter)
@@ -60,6 +70,8 @@ BeginPropertyDefinitions(FunctionFilter)
   DefineProperty(OutputImage, Output(""), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
+
+
 
 FunctionFilter::FunctionFilter() : _Parameters(new NoParameters()), data(0) {
   WfeUpdateTimestamp
@@ -83,6 +95,10 @@ void FunctionFilter::changedHandler(capputils::ObservableClass* sender, int even
 
     case FilterFunction::Bernstein:
       setParameters(boost::shared_ptr<FunctionParameters>(new BernsteinParameters()));
+      break;
+
+    case FilterFunction::Gamma:
+      setParameters(boost::shared_ptr<GammaParameters>(new GammaParameters()));
       break;
     }
   }

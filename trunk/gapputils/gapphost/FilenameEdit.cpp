@@ -69,12 +69,12 @@ void FilenameEdit::clickedHandler() {
     if (multiSelection)
       filenames = QFileDialog::getOpenFileNames(this, "Open Files", "", filenameAttribute->getPattern().c_str());
     else {
-      QString filename = QFileDialog::getOpenFileName(this, "Open File", QDir::currentPath() + "/" + edit->text(), filenameAttribute->getPattern().c_str());
+      QString filename = QFileDialog::getOpenFileName(this, "Open File", QDir(edit->text()).absolutePath(), filenameAttribute->getPattern().c_str());
       if (!filename.isNull())
         filenames.append(filename);
     }
   } else {
-    QString filename = QFileDialog::getSaveFileName(this, "Save File", QDir::currentPath() + "/" + edit->text(), filenameAttribute->getPattern().c_str());
+    QString filename = QFileDialog::getSaveFileName(this, "Save File", QDir(edit->text()).absolutePath(), filenameAttribute->getPattern().c_str());
     if (!filename.isNull())
       filenames.append(filename);
   }

@@ -22,6 +22,8 @@ class StackImages : public gapputils::workflow::WorkflowElement {
   Property(InputImages, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
   Property(InputImage1, boost::shared_ptr<culib::ICudaImage>)
   Property(InputImage2, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage3, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage4, boost::shared_ptr<culib::ICudaImage>)
   Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
 
 private:

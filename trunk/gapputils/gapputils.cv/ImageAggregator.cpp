@@ -21,6 +21,9 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
+#include <gapputils.cv.cuda/aggregate.h>
+#include <culib/CudaImage.h>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -62,13 +65,35 @@ void ImageAggregator::execute(gapputils::workflow::IProgressMonitor* monitor) co
   if (!capputils::Verifier::Valid(*this))
     return;
 
+  if (!getInputImage())
+    return;
 
+  culib::ICudaImage& input = *getInputImage();
+
+  switch (getFunction()) {
+  case AggregatorFunction::Average: {
+    boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(input.getSize().x, input.getSize().y)));
+    cuda::average(&input, output.get());
+    output->saveDeviceToWorkingCopy();
+    output->freeCaches();
+    data->setOutputImage(output);
+    } break;
+
+  case AggregatorFunction::Sum: {
+    boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(input.getSize().x, input.getSize().y)));
+    cuda::sum(&input, output.get());
+    output->saveDeviceToWorkingCopy();
+    output->freeCaches();
+    data->setOutputImage(output);
+    } break;
+  }
 }
 
 void ImageAggregator::writeResults() {
   if (!data)
     return;
 
+  setOutputImage(data->getOutputImage());
 }
 
 }

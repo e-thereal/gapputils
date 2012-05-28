@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'WorkflowWorker.h'
 **
-** Created: Sat Mar 17 13:00:48 2012
+** Created: Mon May 21 12:24:31 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!

@@ -14,6 +14,8 @@
 #include <culib/math3d.h>
 
 #include <thrust/transform.h>
+#include <thrust/device_ptr.h>
+#include <iostream>
 
 namespace gapputils {
 
@@ -49,12 +51,19 @@ struct gpu_bernstein {
   __device__ float operator()(const float& x) const {
     return coefficient * pow(x, e1) * pow(1.f - x, e2);
   }
+};
 
+struct gpu_gamma {
+  float gamma;
+
+  gpu_gamma(const float& gamma) : gamma(gamma) { }
+
+  __device__ float operator()(const float& x) const {
+    return powf(x, gamma);
+  }
 };
 
 void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
-  using namespace thrust::placeholders;
-
   if (!data)
     data = new FunctionFilter();
 
@@ -86,8 +95,14 @@ void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) con
     if (params) {
       thrust::transform(inputPtr, inputPtr + count, outputPtr,
           gpu_bernstein(params->getIndex(), params->getDegree()));
-    } else {
+    }
+    } break;
 
+  case FilterFunction::Gamma: {
+    GammaParameters* params = dynamic_cast<GammaParameters*>(getParameters().get());
+    if (params) {
+      thrust::transform(inputPtr, inputPtr + count, outputPtr,
+          gpu_gamma(params->getGamma()));
     }
     } break;
   }
@@ -97,7 +112,7 @@ void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
   input.freeCaches();
   output->freeCaches();
-
+  
   data->setOutputImage(output);
 }
 

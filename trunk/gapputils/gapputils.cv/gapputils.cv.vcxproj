@@ -79,6 +79,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Blurring.cpp" />
     <ClCompile Include="Cropper.cpp" />
     <ClCompile Include="FeaturesToImage.cpp" />
     <ClCompile Include="FromHsv.cpp" />
@@ -87,6 +88,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_GridWidget.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_ImageViewerDialog.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_RectangleDialog.cpp">
@@ -99,6 +103,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_GridWidget.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_ImageViewerDialog.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_RectangleDialog.cpp">
@@ -116,16 +123,27 @@
     <ClCompile Include="GridPointItem.cpp" />
     <ClCompile Include="GridWidget.cpp" />
     <ClCompile Include="HistogramEqualization.cpp" />
+    <ClCompile Include="ImageAggregator.cpp" />
+    <ClCompile Include="ImageCombiner.cpp" />
+    <ClCompile Include="ImageRepeater.cpp" />
     <ClCompile Include="ImageSaver.cpp" />
     <ClCompile Include="ImageToDicom.cpp" />
+    <ClCompile Include="ImageViewer.cpp" />
+    <ClCompile Include="ImageViewerDialog.cpp" />
     <ClCompile Include="ImageWarp.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="RectangleDialog.cpp" />
     <ClCompile Include="RectangleItem.cpp" />
     <ClCompile Include="RectangleModel.cpp" />
     <ClCompile Include="RectangleWidget.cpp" />
+    <ClCompile Include="Register.cpp" />
+    <ClCompile Include="Resample.cpp" />
+    <ClCompile Include="StackImages.cpp" />
     <ClCompile Include="ToHsv.cpp" />
     <ClCompile Include="ToRgb.cpp" />
+    <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Transformation.cpp" />
+    <ClCompile Include="Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AamBuilder.h" />
@@ -136,12 +154,28 @@
     <ClInclude Include="AamTester.h" />
     <ClInclude Include="AamWriter.h" />
     <ClInclude Include="ActiveAppearanceModel.h" />
+    <ClInclude Include="Blurring.h" />
     <ClInclude Include="Cropper.h" />
     <ClInclude Include="FeaturesToImage.h" />
     <ClInclude Include="FromHsv.h" />
     <ClInclude Include="FromRgb.h" />
     <ClInclude Include="gapputils.cv_global.h" />
     <ClInclude Include="Grid.h" />
+    <ClInclude Include="ImageViewer.h" />
+    <CustomBuild Include="ImageViewerDialog.h">
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DGAPPUTILSCVEXPORTS -DQT_GUI_LIB -DQT_NO_KEYWORDS -D_WINDLL "-I." "-I$(NVSDKCOMPUTE_ROOT)\C\common\inc" "-I$(BOOST_INC_PATH)\." "-I$(SolutionDir)\." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I." "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I."</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DGAPPUTILS.CV_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I." "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I."</Command>
+    </CustomBuild>
+    <ClInclude Include="Register.h" />
+    <ClInclude Include="Transform.h" />
+    <ClInclude Include="Transformation.h" />
+    <ClInclude Include="Vector.h" />
     <CustomBuild Include="GridDialog.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing %(Identity)...</Message>
@@ -168,6 +202,9 @@
     </CustomBuild>
     <ClInclude Include="GridPointItem.h" />
     <ClInclude Include="HistogramEqualization.h" />
+    <ClInclude Include="ImageAggregator.h" />
+    <ClInclude Include="ImageCombiner.h" />
+    <ClInclude Include="ImageRepeater.h" />
     <ClInclude Include="ImageSaver.h" />
     <ClInclude Include="ImageToDicom.h" />
     <ClInclude Include="ImageWarp.h" />
@@ -194,8 +231,13 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DGAPPUTILS.CV_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I." "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I."</Command>
     </CustomBuild>
+    <ClInclude Include="Resample.h" />
+    <ClInclude Include="StackImages.h" />
     <ClInclude Include="ToHsv.h" />
     <ClInclude Include="ToRgb.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="test_gpu.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
