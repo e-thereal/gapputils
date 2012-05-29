@@ -46,7 +46,6 @@ namespace gapputils {
 
 namespace cv {
 
-DefineEnum(SimilarityMeasure);
 DefineEnum(OptimizerType);
 
 BeginPropertyDefinitions(Register)

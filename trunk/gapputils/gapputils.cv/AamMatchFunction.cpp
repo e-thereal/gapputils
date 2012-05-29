@@ -27,8 +27,6 @@ namespace gapputils {
 
 namespace cv {
 
-DefineEnum(SimilarityMeasure)
-
 AamMatchFunction::AamMatchFunction(boost::shared_ptr<ICudaImage> image,
     boost::shared_ptr<ActiveAppearanceModel> model, bool inReferenceFrame,
     SimilarityMeasure measure, bool useAm)
