@@ -15,12 +15,11 @@
 #include "ActiveAppearanceModel.h"
 
 #include <capputils/Enumerators.h>
+#include "SimilarityMeasure.h"
 
 namespace gapputils {
 
 namespace cv {
-
-ReflectableEnum(SimilarityMeasure, SSD, MI);
 
 class AamMatchFunction : public virtual optlib::IFunction<optlib::IMultiDimensionOptimizer::DomainType>
 {

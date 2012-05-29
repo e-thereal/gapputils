@@ -15,12 +15,13 @@
 
 #include <capputils/Enumerators.h>
 
+#include "SimilarityMeasure.h"
+
 namespace gapputils {
 
 namespace cv {
 
 ReflectableEnum(OptimizerType, Powell, Simplex);
-ReflectableEnum(SimilarityMeasure, SSD, NCC, MI);
 
 class Register : public gapputils::workflow::WorkflowElement {
 

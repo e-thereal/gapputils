@@ -173,7 +173,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   statusBar()->showMessage("Ready.");
 
-  statusBar()->addPermanentWidget(new QLabel("Passed:"), 0);
+  statusBar()->addPermanentWidget(new QLabel("Elapsed:"), 0);
   QLabel* label = new QLabel();
   label->setFixedWidth(130);
   statusBar()->addPermanentWidget(label, 0);
