@@ -14,11 +14,11 @@
 
 #include <capputils/Enumerators.h>
 
+#include "AggregatorFunction.h"
+
 namespace gapputils {
 
 namespace cv {
-
-ReflectableEnum(AggregatorFunction, Minimum, Maximum, Sum, Average, Median, SumToOne);
 
 class ImageAggregator : public gapputils::workflow::WorkflowElement {
 

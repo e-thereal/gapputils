@@ -70,8 +70,18 @@ void Workbench::removeToolItem(ToolItem* item) {
       removeCableItem(outputs[i]->cable);
   }
 
+  bool wasCurrent = item->isCurrentItem();
   scene()->removeItem(item);
   delete item;
+
+  if (wasCurrent) {
+    ToolItem* tool = 0;
+    Q_FOREACH (QGraphicsItem *item, scene()->items()) {
+      if ((tool = dynamic_cast<ToolItem*>(item)))
+        break;
+    }
+    setCurrentItem(tool);
+  }
 }
 
 void Workbench::addCableItem(CableItem* cable) {
@@ -92,6 +102,8 @@ bool Workbench::isDependent(QGraphicsItem* item) {
 }
 
 void addAllInputs(set<QGraphicsItem*>& items, ToolItem* item) {
+  if (!item)
+    return;
   vector<ToolConnection*>& inputs = item->getInputs();
   for(unsigned i = 0; i < inputs.size(); ++i) {
     if (inputs[i]->cable) {
@@ -105,6 +117,8 @@ void addAllInputs(set<QGraphicsItem*>& items, ToolItem* item) {
 }
 
 void addAllOutputs(set<QGraphicsItem*>& items, ToolItem* item) {
+  if (!item)
+    return;
   vector<ToolConnection*> outputs;
   item->getOutputs(outputs);
   for(unsigned i = 0; i < outputs.size(); ++i) {
