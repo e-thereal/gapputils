@@ -31,8 +31,6 @@ namespace gapputils {
 
 namespace cv {
 
-DefineEnum(AggregatorFunction)
-
 BeginPropertyDefinitions(ImageAggregator)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)

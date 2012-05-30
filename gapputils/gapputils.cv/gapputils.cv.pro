@@ -53,7 +53,9 @@ SOURCES = FromRgb.cpp \
           Transform.cpp \
           Transformation.cpp \
           Register.cpp \
-          SimilarityMeasure.cpp
+          SimilarityMeasure.cpp \
+          AggregatorFunction.cpp \
+          SlidingWindowFilter.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \

@@ -970,6 +970,8 @@ void Workflow::itemSelected(ToolItem* item) {
   if (node) {
     propertyGrid->setModel(node->getModel());
     propertyGrid->expandAll();
+  } else {
+    propertyGrid->setModel(0);
   }
 }
 
