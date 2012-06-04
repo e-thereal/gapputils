@@ -61,6 +61,13 @@ EndPropertyDefinitions
 GammaParameters::GammaParameters() : _Slope(1.f), _Gamma(1.f), _Intercept(0.f) { }
 GammaParameters::~GammaParameters() { }
 
+BeginPropertyDefinitions(SigmoidParameters)
+  DefineProperty(Slope)
+  DefineProperty(Inflection)
+EndPropertyDefinitions
+
+SigmoidParameters::SigmoidParameters() : _Slope(1.f), _Inflection(0.5) { }
+
 int FunctionFilter::functionId;
 
 BeginPropertyDefinitions(FunctionFilter)
@@ -72,8 +79,6 @@ BeginPropertyDefinitions(FunctionFilter)
   DefineProperty(OutputImage, Output(""), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
-
-
 
 FunctionFilter::FunctionFilter() : _Parameters(new NoParameters()), data(0) {
   WfeUpdateTimestamp
@@ -101,6 +106,10 @@ void FunctionFilter::changedHandler(capputils::ObservableClass* sender, int even
 
     case FilterFunction::Gamma:
       setParameters(boost::shared_ptr<GammaParameters>(new GammaParameters()));
+      break;
+
+    case FilterFunction::Sigmoid:
+      setParameters(boost::shared_ptr<SigmoidParameters>(new SigmoidParameters()));
       break;
     }
   }

@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
 #include <capputils/FilenameAttribute.h>
 #include <capputils/ObserveAttribute.h>
 #include <capputils/NotEqualAssertion.h>
@@ -11,9 +12,12 @@
 #include <capputils/VolatileAttribute.h>
 #include <capputils/TimeStampAttribute.h>
 
+#include <gapputils/HideAttribute.h>
+
 #include <iostream>
 
 using namespace capputils::attributes;
+using namespace gapputils::attributes;
 using namespace std;
 
 namespace gapputils {
@@ -25,8 +29,8 @@ int TextWriter::inputId;
 BeginPropertyDefinitions(TextWriter)
 
 ReflectableBase(workflow::WorkflowElement)
-DefineProperty(Text, Input(), Observe(inputId = PROPERTY_ID), Volatile(), TimeStamp(PROPERTY_ID))
-DefineProperty(Filename, Filename(), NotEqual<string>(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+DefineProperty(Text, Input(), Observe(inputId = PROPERTY_ID), Volatile(), Hide(), TimeStamp(PROPERTY_ID))
+DefineProperty(Filename, Output(""), Filename(), NotEqual<string>(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 DefineProperty(Auto, Observe(PROPERTY_ID))
 
 EndPropertyDefinitions

@@ -310,18 +310,21 @@ void MainWindow::saveWorkflow() {
 }
 
 void MainWindow::loadLibrary() {
-  QFileDialog fileDialog(this);
-  if (fileDialog.exec() == QDialog::Accepted) {
-    QStringList filenames = fileDialog.selectedFiles();
-    if (filenames.size()) {
-      //Workflow* workflow = DataModel::getInstance().getMainWorkflow();
-      Workflow* workflow = openWorkflows[tabWidget->currentIndex()];
-      vector<string>* libs = workflow->getLibraries();
-      libs->push_back(filenames[0].toUtf8().data());
-      workflow->setLibraries(libs);
-    }
-    updateToolBox(toolBox);
-  }
+  //QFileDialog fileDialog(this);
+#ifdef _WIN32
+  QString filename = QFileDialog::getOpenFileName(this, "Open Library", "", "Library (*.dll)");
+#else
+  QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Library (*.so)");
+#endif
+  if (filename.isNull())
+    return;
+
+  //Workflow* workflow = DataModel::getInstance().getMainWorkflow();
+  Workflow* workflow = openWorkflows[tabWidget->currentIndex()];
+  vector<string>* libs = workflow->getLibraries();
+  libs->push_back(filename.toUtf8().data());
+  workflow->setLibraries(libs);
+  updateToolBox(toolBox);
 }
 
 void MainWindow::reload() {

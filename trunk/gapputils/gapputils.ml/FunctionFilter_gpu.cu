@@ -63,6 +63,20 @@ struct gpu_gamma {
   }
 };
 
+struct gpu_sigmoid {
+  float slope, inflection, minimum, invContrast;
+
+  gpu_sigmoid(const float& slope, const float& inflection) : slope(slope), inflection(inflection) {
+    minimum = 1.f / (1.f + expf(slope * inflection));
+    const float maximum = 1.f / (1.f + expf(-slope * (1.f - inflection)));
+    invContrast = 1.f / (maximum - minimum);
+  }
+
+  __device__ float operator()(const float& x) const {
+    return (1.f / (1.f + expf(-slope * (x - inflection))) - minimum) * invContrast;
+  }
+};
+
 void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!data)
     data = new FunctionFilter();
@@ -103,6 +117,14 @@ void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) con
     if (params) {
       thrust::transform(inputPtr, inputPtr + count, outputPtr,
         gpu_gamma(params->getSlope(), params->getGamma(), params->getIntercept()));
+    }
+    } break;
+
+  case FilterFunction::Sigmoid: {
+    SigmoidParameters* params = dynamic_cast<SigmoidParameters*>(getParameters().get());
+    if (params) {
+      thrust::transform(inputPtr, inputPtr + count, outputPtr,
+        gpu_sigmoid(params->getSlope(), params->getInflection()));
     }
     } break;
   }

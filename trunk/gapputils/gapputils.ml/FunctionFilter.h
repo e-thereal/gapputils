@@ -17,7 +17,7 @@ namespace gapputils {
 
 namespace ml {
 
-ReflectableEnum(FilterFunction, Log, Sqrt, Bernstein, Gamma);
+ReflectableEnum(FilterFunction, Log, Sqrt, Bernstein, Gamma, Sigmoid);
 
 class FunctionParameters : public capputils::reflection::ReflectableClass,
                            public capputils::ObservableClass
@@ -50,6 +50,16 @@ class GammaParameters : public FunctionParameters {
 public:
   GammaParameters();
   virtual ~GammaParameters();
+};
+
+class SigmoidParameters : public FunctionParameters {
+  InitReflectableClass(SigmoidParameters)
+
+  Property(Slope, float)
+  Property(Inflection, float)
+
+public:
+  SigmoidParameters();
 };
 
 class FunctionFilter : public gapputils::workflow::WorkflowElement {
