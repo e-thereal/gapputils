@@ -79,6 +79,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AggregatorFunction.cpp" />
     <ClCompile Include="Blurring.cpp" />
     <ClCompile Include="Cropper.cpp" />
     <ClCompile Include="FeaturesToImage.cpp" />
@@ -128,9 +129,11 @@
     <ClCompile Include="ImageRepeater.cpp" />
     <ClCompile Include="ImageSaver.cpp" />
     <ClCompile Include="ImageToDicom.cpp" />
+    <ClCompile Include="ImageToFeatures.cpp" />
     <ClCompile Include="ImageViewer.cpp" />
     <ClCompile Include="ImageViewerDialog.cpp" />
     <ClCompile Include="ImageWarp.cpp" />
+    <ClCompile Include="Plot.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="RectangleDialog.cpp" />
     <ClCompile Include="RectangleItem.cpp" />
@@ -138,6 +141,8 @@
     <ClCompile Include="RectangleWidget.cpp" />
     <ClCompile Include="Register.cpp" />
     <ClCompile Include="Resample.cpp" />
+    <ClCompile Include="SimilarityMeasure.cpp" />
+    <ClCompile Include="SlidingWindowFilter.cpp" />
     <ClCompile Include="StackImages.cpp" />
     <ClCompile Include="ToHsv.cpp" />
     <ClCompile Include="ToRgb.cpp" />
@@ -154,6 +159,7 @@
     <ClInclude Include="AamTester.h" />
     <ClInclude Include="AamWriter.h" />
     <ClInclude Include="ActiveAppearanceModel.h" />
+    <ClInclude Include="AggregatorFunction.h" />
     <ClInclude Include="Blurring.h" />
     <ClInclude Include="Cropper.h" />
     <ClInclude Include="FeaturesToImage.h" />
@@ -161,6 +167,7 @@
     <ClInclude Include="FromRgb.h" />
     <ClInclude Include="gapputils.cv_global.h" />
     <ClInclude Include="Grid.h" />
+    <ClInclude Include="ImageToFeatures.h" />
     <ClInclude Include="ImageViewer.h" />
     <CustomBuild Include="ImageViewerDialog.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
@@ -172,7 +179,10 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DGAPPUTILS.CV_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I." "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I."</Command>
     </CustomBuild>
+    <ClInclude Include="Plot.h" />
     <ClInclude Include="Register.h" />
+    <ClInclude Include="SimilarityMeasure.h" />
+    <ClInclude Include="SlidingWindowFilter.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Transformation.h" />
     <ClInclude Include="Vector.h" />

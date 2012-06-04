@@ -24,6 +24,7 @@ class SlidingWindowFilter : public gapputils::workflow::WorkflowElement {
 
   Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
   Property(Filter, AggregatorFunction)
+  Property(FilterSize, int)
   Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
 
 private:
