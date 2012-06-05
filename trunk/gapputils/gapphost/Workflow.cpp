@@ -1494,6 +1494,7 @@ void Workflow::load(const string& filename) {
 
 void Workflow::copySelectedNodesToClipboard() {
   Workflow copyWorkflow;
+  std::set<Node*> copied;
 
   // Temporarily add nodes to the node list for the xmlization.
   // Nodes have to be removed afterwards in order to avoid a double free memory
@@ -1502,8 +1503,21 @@ void Workflow::copySelectedNodesToClipboard() {
     ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
     if (toolItem) {
       Node* node = getNode(toolItem);
-      if (toolItem->isDeletable())
+      if (toolItem->isDeletable()) {
         nodes->push_back(node);
+        copied.insert(node);
+      }
+    }
+  }
+
+  // Add all edges to the workflow where both ends nodes are about to be copied
+  std::vector<Edge*>* edges = copyWorkflow.getEdges();
+  for (unsigned i = 0; i < getEdges()->size(); ++i) {
+    Edge* edge = getEdges()->at(i);
+    if (copied.find(edge->getInputNodePtr()) != copied.end() &&
+        copied.find(edge->getOutputNodePtr()) != copied.end())
+    {
+      edges->push_back(edge);
     }
   }
 
@@ -1511,6 +1525,7 @@ void Workflow::copySelectedNodesToClipboard() {
   Xmlizer::ToXml(xmlStream, copyWorkflow);
 
   nodes->clear();
+  edges->clear();
 
   QApplication::clipboard()->setText(xmlStream.str().c_str());
 }
@@ -1533,6 +1548,18 @@ void renewUuids(Workflow& workflow) {
     }
   }
 
+  std::vector<Edge*>& edges = *workflow.getEdges();
+  for (unsigned i = 0; i < edges.size(); ++i) {
+    Edge& edge = *edges[i];
+
+    // Change IDs only if mapping is available. If no mapping is availabe,
+    // the ID will likely not need a change (input or output node IDs)
+    if (uuidMap.find(edge.getInputNode()) != uuidMap.end())
+      edge.setInputNode(uuidMap[edge.getInputNode()]);
+    if (uuidMap.find(edge.getOutputNode()) != uuidMap.end())
+      edge.setOutputNode(uuidMap[edge.getOutputNode()]);
+  }
+
   // TODO: replace UUIDs of other parts as well
 }
 
@@ -1541,6 +1568,7 @@ void Workflow::addNodesFromClipboard() {
   const std::string clipboardText = QApplication::clipboard()->text().toUtf8().data();
   Xmlizer::FromXmlString(pasteWorkflow, clipboardText);
 
+  // Unselect selected items
   Q_FOREACH(QGraphicsItem* item, workbench->scene()->selectedItems())
     item->setSelected(false);
 
@@ -1552,6 +1580,17 @@ void Workflow::addNodesFromClipboard() {
     nodes[i]->getToolItem()->setSelected(true);
   }
   nodes.clear(); // avoid double free memory
+
+  std::vector<Edge*>& edges = *pasteWorkflow.getEdges();
+  for (unsigned i = 0; i < edges.size(); ++i) {
+    getEdges()->push_back(edges[i]);
+    if (!newCable(edges[i])) {
+      removeEdge(edges[i]);
+      cout << "[Info] Edge has been removed from the model." << endl;
+    }
+  }
+
+  edges.clear(); // avoid double free memory
 }
 
 void Workflow::setUiEnabled(bool enabled) {
