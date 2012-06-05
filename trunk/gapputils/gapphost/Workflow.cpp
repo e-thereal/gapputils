@@ -1503,7 +1503,8 @@ void Workflow::copySelectedNodesToClipboard() {
     ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
     if (toolItem) {
       Node* node = getNode(toolItem);
-      if (toolItem->isDeletable()) {
+      // TODO: Workflows are not copied unless renewUuid() is fully implemented
+      if (toolItem->isDeletable() && !dynamic_cast<Workflow*>(node)) {
         nodes->push_back(node);
         copied.insert(node);
       }
@@ -1542,10 +1543,11 @@ void renewUuids(Workflow& workflow) {
       uuidMap[uuid] = Node::CreateUuid();
     node.setUuid(uuidMap[uuid]);
 
-    Workflow* subworkflow = dynamic_cast<Workflow*>(&node);
-    if (subworkflow) {
-      renewUuids(*subworkflow);
-    }
+    // Not implemented unless the ID change is applied to all
+    // occurances of an UUID in the workflow
+//    Workflow* subworkflow = dynamic_cast<Workflow*>(&node);
+//    if (subworkflow)
+//      renewUuids(*subworkflow);
   }
 
   std::vector<Edge*>& edges = *workflow.getEdges();
