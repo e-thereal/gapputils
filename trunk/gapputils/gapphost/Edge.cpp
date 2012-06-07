@@ -40,6 +40,9 @@ Edge::~Edge(void)
 }
 
 bool Edge::activate(Node* outputNode, Node* inputNode) {
+  // TODO: re-think how to activate an edge. How do I activate an edge that connects
+  //       a node with an interface node of a workflow?
+
   // Get property IDs and use them for the rest.
 
   setOutputNodePtr(outputNode);

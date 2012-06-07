@@ -14,25 +14,15 @@
 #include <QStyleOptionGraphicsItem>
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
-#include <capputils/ObserveAttribute.h>
-#include <capputils/EventHandler.h>
 #include <qapplication.h>
 #include <QFontMetrics>
 #include <qstylepainter.h>
 #include "Workbench.h"
 
-#include <gapputils/LabelAttribute.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <capputils/ShortNameAttribute.h>
 #include <qpicture.h>
 #include "CableItem.h"
 #include <qgraphicseffect.h>
 
-using namespace capputils;
-using namespace capputils::reflection;
-using namespace capputils::attributes;
-using namespace gapputils::attributes;
 using namespace std;
 
 namespace gapputils {
