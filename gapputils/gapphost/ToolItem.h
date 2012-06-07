@@ -35,7 +35,7 @@ public:
   ToolItem* parent;
   MultiConnection* multi;
   CableItem* cable;
-  int id;
+  int id;                 ///< PropertyId
 
 public:
   ToolConnection(const QString& label, Direction direction, ToolItem* parent,

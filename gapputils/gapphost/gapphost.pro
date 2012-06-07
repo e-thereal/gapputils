@@ -33,7 +33,8 @@ SOURCES = main.cpp \
 		  Expression.cpp \
 		  trace.cpp \
 		  HostInterface.cpp \
-		  linreg.cpp
+		  linreg.cpp \
+		  Filename.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \

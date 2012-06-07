@@ -3,7 +3,6 @@
 #include "ToolItem.h"
 #include <qpainter.h>
 #include "Workbench.h"
-#include <capputils/ObservableClass.h>
 #include <iostream>
 
 #include <qgraphicseffect.h>

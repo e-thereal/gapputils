@@ -604,6 +604,9 @@ void Workflow::createModule(int x, int y, QString classname) {
   node->setY(y);
   getNodes()->push_back(node);
 
+  // TODO: if node == interface node then add to interface nodes and add a new tool connection
+  //       to the ToolItem of this workflow
+
   newItem(node);
 }
 
@@ -656,6 +659,8 @@ void Workflow::newItem(Node* node) {
       if (prop->getAttribute<OutputAttribute>() && !prop->getAttribute<ToEnumerableAttribute>())
         item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
     }
+
+    // TODO: Add tool connections for interface modules
   } else if (node == &inputsNode) {
     item = new ToolItem("Inputs");
     item->setDeletable(false);
@@ -744,6 +749,9 @@ bool Workflow::newCable(Edge* edge) {
   ToolConnection *outputConnection = 0, *inputConnection = 0;
   if (outputNode && inputNode) {
 
+    // TODO: try to find the correct propertyId. If the property is not a property
+    //       of the module, go through the list of interface nodes and try to find
+    //       the property there. PropertyNames of interface nodes are the node ID.
     unsigned outputPropertyId, inputPropertyId;
     if (outputNode->getModule()->getPropertyIndex(outputPropertyId, edge->getOutputProperty()) &&
         inputNode->getModule()->getPropertyIndex(inputPropertyId, edge->getInputProperty()))
@@ -1006,6 +1014,11 @@ void Workflow::deleteModule(ToolItem* item) {
     return;
   }
 
+  // TODO: check if it is an interface node. If so:
+  //       - remove it from the list of interface nodes
+  //       - request parent workflow to remove edges connected to this node
+  //       - remove tool connection from this workflow's ToolItem
+
   // delete global edges connected to the node
   vector<GlobalEdge*>* gedges = getGlobalEdges();
   for (int j = (int)gedges->size() - 1; j >= 0; --j) {
@@ -1059,6 +1072,9 @@ void Workflow::createEdge(CableItem* cable) {
   Edge* edge = new Edge();
 
   edge->setOutputNode(outputNode->getUuid());
+
+  // Only if tool connection ID indicates that it is a property of the node's module.
+  // Otherwise get the UUID of the according interface node
   edge->setOutputProperty(outputNode->getModule()->getProperties()[cable->getInput()->id]->getName());
   edge->setInputNode(inputNode->getUuid());
   edge->setInputProperty(inputNode->getModule()->getProperties()[cable->getOutput()->id]->getName());
