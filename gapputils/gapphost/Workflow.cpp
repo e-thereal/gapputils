@@ -294,6 +294,13 @@ void Workflow::addInterfaceNode(Node* node) {
     return;
 
   if (prop->getAttribute<InputAttribute>()) {
+    ToolItem* item = getToolItem();
+    if (!item) {
+      std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
+    } else {
+      item->addConnection(QString(object->getProperty("Label").c_str()), interfaceNodes.size() + getModule()->getProperties().size() - 1, ToolConnection::Output);
+//      std::cout << "[Info] New connection added with id " << interfaceNodes.size() + getModule()->getProperties().size() - 1 << std::endl;
+    }
   }
   if (prop->getAttribute<OutputAttribute>()) {
     ToolItem* item = getToolItem();
@@ -301,7 +308,7 @@ void Workflow::addInterfaceNode(Node* node) {
       std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
     } else {
       item->addConnection(QString(object->getProperty("Label").c_str()), interfaceNodes.size() + getModule()->getProperties().size() - 1, ToolConnection::Input);
-      std::cout << "[Info] New connection added with id " << interfaceNodes.size() + getModule()->getProperties().size() << std::endl;
+//      std::cout << "[Info] New connection added with id " << interfaceNodes.size() + getModule()->getProperties().size() - 1 << std::endl;
     }
   }
 }
@@ -337,7 +344,14 @@ void Workflow::removeInterfaceNode(Node* node) {
       // remove connection with ID = module->propertyCount() + i
       if (prop) {
         if (prop->getAttribute<InputAttribute>()) {
-          // TODO: Implement
+          ToolItem* item = getToolItem();
+          if (!item) {
+            std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
+          } else {
+            deletedId = getModule()->getProperties().size() + i;
+//            std::cout << "[Info] removedId = " << deletedId << std::endl;
+            item->deleteConnection(deletedId, ToolConnection::Output);
+          }
         }
 
         if (prop->getAttribute<OutputAttribute>()) {
@@ -361,23 +375,34 @@ void Workflow::removeInterfaceNode(Node* node) {
   if (!item) {
 //    std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
   } else {
-    if (prop->getAttribute<InputAttribute>()) {
-      // TODO: Implement
-    }
-    if (prop->getAttribute<OutputAttribute>()) {
-      std::vector<ToolConnection*>& inputs = item->getInputs();
+    std::vector<ToolConnection*> outputs;
+    item->getOutputs(outputs);
 
-      for (unsigned i = 0; i < inputs.size(); ++i) {
-//        std::cout << "[Info] Id = " << inputs[i]->id << std::endl;
-        if (inputs[i]->id > deletedId) {
-//          std::cout << "[Info] Found toolconnection. Current Id = " << inputs[i]->id << std::endl;
-          --(inputs[i]->id);
-//          std::cout << "[Info] New id = " << inputs[i]->id << std::endl;
-          if (inputs[i]->multi) {
-//            std::cout << "[Info] Changed multi id from " << inputs[i]->multi->id;
-            inputs[i]->multi->id = inputs[i]->id;
-//            std::cout << " to " << inputs[i]->multi->id << std::endl;
-          }
+    for (unsigned i = 0; i < outputs.size(); ++i) {
+//      std::cout << "[Info] Id = " << outputs[i]->id << std::endl;
+      if (outputs[i]->id > deletedId) {
+//        std::cout << "[Info] Found toolconnection. Current Id = " << outputs[i]->id << std::endl;
+        --(outputs[i]->id);
+//        std::cout << "[Info] New id = " << outputs[i]->id << std::endl;
+        if (outputs[i]->multi) {
+//          std::cout << "[Info] Changed multi id from " << outputs[i]->multi->id;
+          outputs[i]->multi->id = outputs[i]->id;
+//          std::cout << " to " << outputs[i]->multi->id << std::endl;
+        }
+      }
+    }
+    std::vector<ToolConnection*>& inputs = item->getInputs();
+
+    for (unsigned i = 0; i < inputs.size(); ++i) {
+//      std::cout << "[Info] Id = " << inputs[i]->id << std::endl;
+      if (inputs[i]->id > deletedId) {
+//        std::cout << "[Info] Found toolconnection. Current Id = " << inputs[i]->id << std::endl;
+        --(inputs[i]->id);
+//        std::cout << "[Info] New id = " << inputs[i]->id << std::endl;
+        if (inputs[i]->multi) {
+//          std::cout << "[Info] Changed multi id from " << inputs[i]->multi->id;
+          inputs[i]->multi->id = inputs[i]->id;
+//          std::cout << " to " << inputs[i]->multi->id << std::endl;
         }
       }
     }

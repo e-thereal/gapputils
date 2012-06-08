@@ -34,7 +34,8 @@ SOURCES = main.cpp \
 		  trace.cpp \
 		  HostInterface.cpp \
 		  linreg.cpp \
-		  Filename.cpp
+		  Filename.cpp \
+		  String.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
