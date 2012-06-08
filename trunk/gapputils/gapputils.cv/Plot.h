@@ -20,8 +20,10 @@ class Plot : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(Plot)
 
+  Property(OldPlot, std::string)
   Property(X, boost::shared_ptr<std::vector<float> >)
   Property(Y, boost::shared_ptr<std::vector<float> >)
+  Property(Image, boost::shared_ptr<culib::ICudaImage>)
   Property(Format, std::string)
   Property(Plot, std::string)
 

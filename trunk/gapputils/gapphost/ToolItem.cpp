@@ -558,6 +558,29 @@ void ToolItem::addConnection(const QString& label, int id, ToolConnection::Direc
   update();
 }
 
+void ToolItem::deleteConnection(int id, ToolConnection::Direction direction) {
+  if (direction == ToolConnection::Input) {
+    for (unsigned i = 0; i < inputs.size(); ++i) {
+      if (inputs[i]->id == id) {
+        delete inputs[i];
+        inputs.erase(inputs.begin() + i);
+        break;
+      }
+    }
+  } else {
+    for (unsigned i = 0; i < outputs.size(); ++i) {
+      if (outputs[i]->id == id) {
+        delete outputs[i];
+        outputs.erase(outputs.begin() + i);
+        break;
+      }
+    }
+  }
+  updateConnectionPositions();
+  updateSize();
+  update();
+}
+
 void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
   Q_UNUSED(option)

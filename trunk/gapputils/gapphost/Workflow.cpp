@@ -44,6 +44,7 @@
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/WorkflowInterface.h>
 #include <gapputils/LabelAttribute.h>
+#include <gapputils/InterfaceAttribute.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/units/detail/utility.hpp>
@@ -280,6 +281,90 @@ Workflow::~Workflow() {
     workflowMap->erase(getUuid());
 
 //  std::cout << "[Info] Finished deleting " << className << " (" << uuid << ")" << std::endl;
+}
+
+void Workflow::addInterfaceNode(Node* node) {
+  interfaceNodes.push_back(node);
+
+  ReflectableClass* object = node->getModule();
+  assert(object);
+
+  IClassProperty* prop = object->findProperty("Value");
+  if (!prop)
+    return;
+
+  if (prop->getAttribute<InputAttribute>()) {
+  }
+  if (prop->getAttribute<OutputAttribute>()) {
+    ToolItem* item = getToolItem();
+    if (!item) {
+      std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
+    } else {
+      item->addConnection(QString(object->getProperty("Label").c_str()), interfaceNodes.size() + getModule()->getProperties().size(), ToolConnection::Input);
+    }
+  }
+}
+  
+void Workflow::removeInterfaceNode(Node* node) {
+  int deletedId = -1;
+  ReflectableClass* object = node->getModule();
+  assert(object);
+
+  IClassProperty* prop = object->findProperty("Value");
+
+  for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+    if (interfaceNodes[i] == node) {
+      interfaceNodes.erase(interfaceNodes.begin() + i);
+
+      // remove connection with ID = module->propertyCount() + i + 1  
+      if (prop) {
+        if (prop->getAttribute<InputAttribute>()) {
+          // TODO: Implement
+        }
+
+        if (prop->getAttribute<OutputAttribute>()) {
+          ToolItem* item = getToolItem();
+          if (!item) {
+            std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
+          } else {
+            deletedId = getModule()->getProperties().size() + i + 1;
+            item->deleteConnection(deletedId, ToolConnection::Input);
+          }
+        }
+      }
+      break;
+    }
+  }
+
+  // decrement all IDs of all connections whoes IDs are greater then the deleted ID
+  ToolItem* item = getToolItem();
+  if (!item) {
+    std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
+  } else {
+    if (prop->getAttribute<InputAttribute>()) {
+      // TODO: Implement
+    }
+    if (prop->getAttribute<OutputAttribute>()) {
+      std::vector<ToolConnection*> outputs;
+      item->getOutputs(outputs);
+
+      for (unsigned i = 0; i < outputs.size(); ++i) {
+        if (outputs[i]->id > deletedId) {
+          --(outputs[i]->id);
+          if (outputs[i]->multi)
+            outputs[i]->multi->id = outputs[i]->id;
+        }
+      }
+    }
+  }
+}
+
+const Node* Workflow::getInterfaceNode(int id) const {
+  assert(getModule());
+  const int pos = id - getModule()->getProperties().size() - 1;
+  if (pos < interfaceNodes.size())
+    return interfaceNodes[pos];
+  return 0;
 }
 
 QLabel* createTopAlignedLabel(const std::string& text) {
@@ -604,8 +689,9 @@ void Workflow::createModule(int x, int y, QString classname) {
   node->setY(y);
   getNodes()->push_back(node);
 
-  // TODO: if node == interface node then add to interface nodes and add a new tool connection
-  //       to the ToolItem of this workflow
+  if (object->getAttribute<InterfaceAttribute>()) {
+    addInterfaceNode(node);
+  }
 
   newItem(node);
 }
@@ -659,8 +745,6 @@ void Workflow::newItem(Node* node) {
       if (prop->getAttribute<OutputAttribute>() && !prop->getAttribute<ToEnumerableAttribute>())
         item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
     }
-
-    // TODO: Add tool connections for interface modules
   } else if (node == &inputsNode) {
     item = new ToolItem("Inputs");
     item->setDeletable(false);
@@ -923,13 +1007,16 @@ void Workflow::resume() {
 
 void Workflow::resumeNode(Node* node) {
   node->setWorkflow(this);
+  newItem(node);
   node->resume();
   Workflow* workflow = dynamic_cast<Workflow*>(node);
   if (workflow) {
     connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
     connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
   }
-  newItem(node);
+
+  if (node->getModule() && node->getModule()->getAttribute<InterfaceAttribute>())
+    addInterfaceNode(node);
 }
 
 QWidget* Workflow::dispenseWidget() {
@@ -1018,6 +1105,9 @@ void Workflow::deleteModule(ToolItem* item) {
   //       - remove it from the list of interface nodes
   //       - request parent workflow to remove edges connected to this node
   //       - remove tool connection from this workflow's ToolItem
+  if (node->getModule() && node->getModule()->getAttribute<InterfaceAttribute>()) {
+    removeInterfaceNode(node);
+  }
 
   // delete global edges connected to the node
   vector<GlobalEdge*>* gedges = getGlobalEdges();
@@ -1092,9 +1182,36 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
   assert(input);
 
   const Node* outputNode = getNode(output->parent);
-  const Node* inputNode = getNode(input->parent);
+  unsigned outputId = output->id;
+  if (output->id >= outputNode->getModule()->getProperties().size()) {
+    // Get interface node and ID of value property
+    const Workflow* workflow = dynamic_cast<const Workflow*>(outputNode);
+    if (workflow) {
+      outputNode = workflow->getInterfaceNode(output->id);
+      assert(outputNode->getModule());
+      if (!outputNode->getModule()->getPropertyIndex(outputId, "Value"))
+        outputNode = 0;
+    } else {
+      outputNode = 0;
+    }
+  }
 
-  return Edge::areCompatible(outputNode, output->id, inputNode, input->id);
+  const Node* inputNode = getNode(input->parent);
+  unsigned inputId = input->id;
+  if (input->id >= inputNode->getModule()->getProperties().size()) {
+    // Get interface node and ID of Value property
+    const Workflow* workflow = dynamic_cast<const Workflow*>(inputNode);
+    if (workflow) {
+      inputNode = workflow->getInterfaceNode(input->id);
+      assert(inputNode->getModule());
+      if (!inputNode->getModule()->getPropertyIndex(inputId, "Value"))
+        inputNode = 0;
+    } else {
+      inputNode = 0;
+    }
+  }
+
+  return Edge::areCompatible(outputNode, outputId, inputNode, inputId);
 }
 
 void Workflow::deleteEdge(CableItem* cable) {

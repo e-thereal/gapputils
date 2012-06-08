@@ -80,6 +80,7 @@
     <ClCompile Include="CombinerInterface.cpp" />
     <ClCompile Include="DefaultWorkflowElement.cpp" />
     <ClCompile Include="HideAttribute.cpp" />
+    <ClCompile Include="InterfaceAttribute.cpp" />
     <ClCompile Include="InterfaceDescription.cpp" />
     <ClCompile Include="IProgressMonitor.cpp" />
     <ClCompile Include="LabelAttribute.cpp" />
@@ -96,6 +97,7 @@
     <ClInclude Include="gapputils.h" />
     <ClInclude Include="HideAttribute.h" />
     <ClInclude Include="IGapphostInterface.h" />
+    <ClInclude Include="InterfaceAttribute.h" />
     <ClInclude Include="InterfaceDescription.h" />
     <ClInclude Include="IProgressMonitor.h" />
     <ClInclude Include="LabelAttribute.h" />

@@ -148,7 +148,6 @@
     <ClCompile Include="ToRgb.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Transformation.cpp" />
-    <ClCompile Include="Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AamBuilder.h" />
@@ -185,7 +184,6 @@
     <ClInclude Include="SlidingWindowFilter.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Transformation.h" />
-    <ClInclude Include="Vector.h" />
     <CustomBuild Include="GridDialog.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing %(Identity)...</Message>

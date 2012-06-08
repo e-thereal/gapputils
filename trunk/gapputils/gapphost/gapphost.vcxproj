@@ -88,6 +88,7 @@
     <ClCompile Include="Edge.cpp" />
     <ClCompile Include="EditInterfaceDialog.cpp" />
     <ClCompile Include="Expression.cpp" />
+    <ClCompile Include="Filename.cpp" />
     <ClCompile Include="FilenameEdit.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_EditInterfaceDialog.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -235,6 +236,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I." "-I." "-I."</Command>
     </CustomBuild>
     <ClInclude Include="Expression.h" />
+    <ClInclude Include="Filename.h" />
     <ClInclude Include="HostInterface.h" />
     <ClInclude Include="linreg.h" />
     <ClInclude Include="XslTransformation.h" />
