@@ -11,6 +11,8 @@
 #include "ModelHarmonizer.h"
 #include "Expression.h"
 
+class PropertyReference;
+
 namespace gapputils {
 
 class ToolItem;
@@ -98,9 +100,12 @@ public:
   /**
    * \brief Tries to restore the state of a module from the module cache
    *
-   * \return True, iff the state could be sucessfully restored from the cache
+   * \return True, iff the state could be successfully restored from the cache
    */
   virtual bool restoreFromCache();
+
+  /// Returns false if reference could not be determined
+  virtual PropertyReference* getPropertyReference(const std::string& propertyName);
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);

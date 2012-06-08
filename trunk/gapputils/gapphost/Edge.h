@@ -9,6 +9,8 @@
 
 #include "Node.h"
 
+class PropertyReference;
+
 namespace gapputils {
 
 class CableItem;
@@ -25,15 +27,18 @@ class Edge : public capputils::reflection::ReflectableClass
   Property(OutputNode, std::string)
   Property(OutputProperty, std::string)
   Property(OutputNodePtr, Node*)
+  Property(OutputReference, PropertyReference*)
 
   Property(InputNode, std::string)
   Property(InputProperty, std::string)
   Property(InputNodePtr, Node*)
+  Property(InputReference, PropertyReference*)
+
   Property(CableItem, CableItem*)
 
 private:
   capputils::EventHandler<Edge> handler;
-  unsigned inputId, outputId;
+  int outputId;
 
 public:
   Edge(void);
