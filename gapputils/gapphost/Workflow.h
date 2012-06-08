@@ -84,6 +84,7 @@ private:
   Node* progressNode;
   LinearRegression etaRegression;
   time_t startTime;
+  std::vector<Node*> interfaceNodes;
 
 public:
   Workflow();
@@ -117,6 +118,12 @@ public:
 
   void copySelectedNodesToClipboard();
   void addNodesFromClipboard();
+
+  void addInterfaceNode(Node* node);
+  void removeInterfaceNode(Node* node);
+
+  // id is as set by ToolItem (propertyCount + pos + 1)
+  const Node* getInterfaceNode(int id) const;
 
   /**
    * \brief Recursively updates the checksums of all nodes in all sub workflows

@@ -233,6 +233,9 @@
     <ClCompile Include="linreg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Filename.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
@@ -349,6 +352,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="linreg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Filename.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

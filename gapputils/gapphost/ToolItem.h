@@ -52,7 +52,7 @@ public:
 class MultiConnection {
   friend class ToolItem;
 
-private:
+public:
   QString label;
   ToolConnection::Direction direction;
   ToolItem* parent;
@@ -115,6 +115,7 @@ public:
 
   void updateConnectionPositions();
   void addConnection(const QString& label, int id, ToolConnection::Direction direction);
+  void deleteConnection(int id, ToolConnection::Direction direction);
   void drawConnections(QPainter* painter, bool showLabel = true);
   void drawBox(QPainter* painter);
   virtual std::string getLabel() const;
