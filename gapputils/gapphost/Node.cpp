@@ -39,6 +39,7 @@
 
 #include "ToolItem.h"
 #include "HostInterface.h"
+#include "PropertyReference.h"
 
 using namespace std;
 using namespace capputils;
@@ -421,6 +422,18 @@ bool Node::restoreFromCache() {
   std::cout << "[Info] Reading value from cache for module '" << getUuid() << "'." << std::endl;
 
   return true;
+}
+
+PropertyReference* Node::getPropertyReference(const std::string& propertyName) {
+  ReflectableClass* object = getModule();
+  if (!object)
+    return 0;
+
+  IClassProperty* prop = object->findProperty(propertyName);
+  if (!prop)
+    return 0;
+
+  return new PropertyReference(object, prop, 0);
 }
 
 }

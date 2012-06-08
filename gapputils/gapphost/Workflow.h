@@ -125,6 +125,16 @@ public:
   // id is as set by ToolItem (propertyCount + pos + 1)
   const Node* getInterfaceNode(int id) const;
 
+  /// Returns the name of the property if connectionId refers to a property of the
+  /// workflows module. Otherwise, it is assumed that connectionId refers to an
+  /// interface node. In that case, the Uuid of the interface node is return.
+  /// If the connectionId is not valid, an empty string is returned.
+  std::string getPropertyName(const Node* node, int connectionId) const;
+  virtual PropertyReference* getPropertyReference(const std::string& propertyName);
+
+  /// Returns the true if the propertyName was found
+  bool getToolConnectionId(const Node* node, const std::string& propertyName, unsigned& id) const;
+
   /**
    * \brief Recursively updates the checksums of all nodes in all sub workflows
    *

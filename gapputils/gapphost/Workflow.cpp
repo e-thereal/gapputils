@@ -300,12 +300,15 @@ void Workflow::addInterfaceNode(Node* node) {
     if (!item) {
       std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
     } else {
-      item->addConnection(QString(object->getProperty("Label").c_str()), interfaceNodes.size() + getModule()->getProperties().size(), ToolConnection::Input);
+      item->addConnection(QString(object->getProperty("Label").c_str()), interfaceNodes.size() + getModule()->getProperties().size() - 1, ToolConnection::Input);
+      std::cout << "[Info] New connection added with id " << interfaceNodes.size() + getModule()->getProperties().size() << std::endl;
     }
   }
 }
   
 void Workflow::removeInterfaceNode(Node* node) {
+//  std::cout << "[Info] removing interface node" << std::endl;
+
   int deletedId = -1;
   ReflectableClass* object = node->getModule();
   assert(object);
@@ -315,8 +318,23 @@ void Workflow::removeInterfaceNode(Node* node) {
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
     if (interfaceNodes[i] == node) {
       interfaceNodes.erase(interfaceNodes.begin() + i);
+//      std::cout << "[Info] removed idx = " << i << std::endl;
 
-      // remove connection with ID = module->propertyCount() + i + 1  
+      // delete edges connected to the node/tool connection
+      Workflow* parent = getWorkflow();
+      if (parent) {
+        vector<Edge*>* edges = parent->getEdges();
+        for (int j = (int)edges->size() - 1; j >= 0; --j) {
+          Edge* edge = edges->at(j);
+          if (edge->getInputProperty() == node->getUuid() || edge->getOutputProperty() == node->getUuid()) {
+            if (edge->getCableItem())
+              parent->workbench->removeCableItem(edge->getCableItem());
+            parent->removeEdge(edge);
+          }
+        }
+      }
+
+      // remove connection with ID = module->propertyCount() + i
       if (prop) {
         if (prop->getAttribute<InputAttribute>()) {
           // TODO: Implement
@@ -327,7 +345,8 @@ void Workflow::removeInterfaceNode(Node* node) {
           if (!item) {
             std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
           } else {
-            deletedId = getModule()->getProperties().size() + i + 1;
+            deletedId = getModule()->getProperties().size() + i;
+//            std::cout << "[Info] removedId = " << deletedId << std::endl;
             item->deleteConnection(deletedId, ToolConnection::Input);
           }
         }
@@ -337,22 +356,28 @@ void Workflow::removeInterfaceNode(Node* node) {
   }
 
   // decrement all IDs of all connections whoes IDs are greater then the deleted ID
+//  std::cout << "[Info] Decrementing Ids which are greater than " << deletedId << std::endl;
   ToolItem* item = getToolItem();
   if (!item) {
-    std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
+//    std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
   } else {
     if (prop->getAttribute<InputAttribute>()) {
       // TODO: Implement
     }
     if (prop->getAttribute<OutputAttribute>()) {
-      std::vector<ToolConnection*> outputs;
-      item->getOutputs(outputs);
+      std::vector<ToolConnection*>& inputs = item->getInputs();
 
-      for (unsigned i = 0; i < outputs.size(); ++i) {
-        if (outputs[i]->id > deletedId) {
-          --(outputs[i]->id);
-          if (outputs[i]->multi)
-            outputs[i]->multi->id = outputs[i]->id;
+      for (unsigned i = 0; i < inputs.size(); ++i) {
+//        std::cout << "[Info] Id = " << inputs[i]->id << std::endl;
+        if (inputs[i]->id > deletedId) {
+//          std::cout << "[Info] Found toolconnection. Current Id = " << inputs[i]->id << std::endl;
+          --(inputs[i]->id);
+//          std::cout << "[Info] New id = " << inputs[i]->id << std::endl;
+          if (inputs[i]->multi) {
+//            std::cout << "[Info] Changed multi id from " << inputs[i]->multi->id;
+            inputs[i]->multi->id = inputs[i]->id;
+//            std::cout << " to " << inputs[i]->multi->id << std::endl;
+          }
         }
       }
     }
@@ -361,8 +386,8 @@ void Workflow::removeInterfaceNode(Node* node) {
 
 const Node* Workflow::getInterfaceNode(int id) const {
   assert(getModule());
-  const int pos = id - getModule()->getProperties().size() - 1;
-  if (pos < interfaceNodes.size())
+  const int pos = id - getModule()->getProperties().size();
+  if (pos >= 0 && (unsigned)pos < interfaceNodes.size())
     return interfaceNodes[pos];
   return 0;
 }
@@ -496,7 +521,7 @@ void Workflow::connectProperty() {
     if (Edge::areCompatible(globals->at(i)->getProperty(), reference.getProperty())) {
       list.getList()->addItem(globals->at(i)->getName().c_str());
     } else {
-      GlobalProperty* gprop = globals->at(i);
+//      GlobalProperty* gprop = globals->at(i);
       //cout << gprop->getName() << " is not compatible." << endl;
       //cout << gprop->getProperty()->getType().name() << " != " << reference.getProperty()->getType().name() << endl;
     }
@@ -624,6 +649,7 @@ void Workflow::removeGlobalProperty(GlobalProperty* gprop) {
 }
 
 void Workflow::removeGlobalEdge(GlobalEdge* edge) {
+  // TODO: need a better getItem method
   QStandardItem* item = getItem(edge->getInputNodePtr()->getModule(),
     edge->getInputNodePtr()->getModule()->findProperty(edge->getInputProperty()));
 
@@ -837,8 +863,8 @@ bool Workflow::newCable(Edge* edge) {
     //       of the module, go through the list of interface nodes and try to find
     //       the property there. PropertyNames of interface nodes are the node ID.
     unsigned outputPropertyId, inputPropertyId;
-    if (outputNode->getModule()->getPropertyIndex(outputPropertyId, edge->getOutputProperty()) &&
-        inputNode->getModule()->getPropertyIndex(inputPropertyId, edge->getInputProperty()))
+    if (getToolConnectionId(outputNode, edge->getOutputProperty(), outputPropertyId) &&
+        getToolConnectionId(inputNode, edge->getInputProperty(), inputPropertyId))
     {
       outputConnection = outputNode->getToolItem()->getConnection(outputPropertyId, ToolConnection::Output);
       inputConnection = inputNode->getToolItem()->getConnection(inputPropertyId, ToolConnection::Input);
@@ -1101,10 +1127,6 @@ void Workflow::deleteModule(ToolItem* item) {
     return;
   }
 
-  // TODO: check if it is an interface node. If so:
-  //       - remove it from the list of interface nodes
-  //       - request parent workflow to remove edges connected to this node
-  //       - remove tool connection from this workflow's ToolItem
   if (node->getModule() && node->getModule()->getAttribute<InterfaceAttribute>()) {
     removeInterfaceNode(node);
   }
@@ -1113,7 +1135,7 @@ void Workflow::deleteModule(ToolItem* item) {
   vector<GlobalEdge*>* gedges = getGlobalEdges();
   for (int j = (int)gedges->size() - 1; j >= 0; --j) {
     GlobalEdge* edge = gedges->at(j);
-    if (edge->getInputNodePtr() == node) {
+    if (edge->getInputNode() == node->getUuid()) {
       removeGlobalEdge(edge);
     }
   }
@@ -1131,7 +1153,7 @@ void Workflow::deleteModule(ToolItem* item) {
   vector<Edge*>* edges = getEdges();
   for (int j = (int)edges->size() - 1; j >= 0; --j) {
     Edge* edge = edges->at(j);
-    if (edge->getInputNodePtr() == node || edge->getOutputNodePtr() == node) {
+    if (edge->getInputNode() == node->getUuid() || edge->getOutputNode() == node->getUuid()) {
       removeEdge(edge);
     }
   }
@@ -1139,6 +1161,46 @@ void Workflow::deleteModule(ToolItem* item) {
   // remove and delete node
   delete node;
   _Nodes->erase(_Nodes->begin() + i);
+}
+
+std::string Workflow::getPropertyName(const Node* node, int connectionId) const {
+  const ReflectableClass* object = node->getModule();
+  assert(object);
+  if (connectionId < 0)
+    return "";
+
+  int propertyCount = object->getProperties().size();
+  const Workflow* workflow = dynamic_cast<const Workflow*>(node);
+
+  if (connectionId < propertyCount) {
+    return object->getProperties()[connectionId]->getName();
+  } else if (workflow && (unsigned)connectionId < propertyCount + workflow->interfaceNodes.size()) {
+    return workflow->interfaceNodes[connectionId - propertyCount]->getUuid();
+  } else {
+    return "";
+  }
+}
+
+bool Workflow::getToolConnectionId(const Node* node, const std::string& propertyName, unsigned& id) const {
+  assert(node);
+  ReflectableClass* object = node->getModule();
+  assert(object);
+
+  if (object->getPropertyIndex(id, propertyName))
+    return true;
+
+  const Workflow* workflow = dynamic_cast<const Workflow*>(node);
+  if (workflow) {
+    const std::vector<Node*>& interfaceNodes = workflow->interfaceNodes;
+    for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+      if (interfaceNodes[i]->getUuid() == propertyName) {
+        id = object->getProperties().size() + i;
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 void Workflow::removeEdge(Edge* edge) {
@@ -1156,18 +1218,15 @@ void Workflow::createEdge(CableItem* cable) {
   Node* inputNode = getNode(cable->getOutput()->parent);
 
   // Sanity check. Should never fail
-  if (!outputNode || !outputNode->getModule() || !inputNode || !inputNode->getModule())
-    return;
+  assert(outputNode && outputNode->getModule() && inputNode && inputNode->getModule());
 
   Edge* edge = new Edge();
 
   edge->setOutputNode(outputNode->getUuid());
-
-  // Only if tool connection ID indicates that it is a property of the node's module.
-  // Otherwise get the UUID of the according interface node
-  edge->setOutputProperty(outputNode->getModule()->getProperties()[cable->getInput()->id]->getName());
+  edge->setOutputProperty(getPropertyName(outputNode, cable->getInput()->id));
   edge->setInputNode(inputNode->getUuid());
-  edge->setInputProperty(inputNode->getModule()->getProperties()[cable->getOutput()->id]->getName());
+  edge->setInputProperty(getPropertyName(inputNode, cable->getOutput()->id));
+
   edge->setCableItem(cable);
   if (!edge->activate(outputNode, inputNode)) {
     delete edge;
@@ -1183,7 +1242,7 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
 
   const Node* outputNode = getNode(output->parent);
   unsigned outputId = output->id;
-  if (output->id >= outputNode->getModule()->getProperties().size()) {
+  if (output->id >= (int)outputNode->getModule()->getProperties().size()) {
     // Get interface node and ID of value property
     const Workflow* workflow = dynamic_cast<const Workflow*>(outputNode);
     if (workflow) {
@@ -1198,7 +1257,7 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
 
   const Node* inputNode = getNode(input->parent);
   unsigned inputId = input->id;
-  if (input->id >= inputNode->getModule()->getProperties().size()) {
+  if (input->id >= (int)inputNode->getModule()->getProperties().size()) {
     // Get interface node and ID of Value property
     const Workflow* workflow = dynamic_cast<const Workflow*>(inputNode);
     if (workflow) {
@@ -1244,8 +1303,8 @@ void Workflow::buildStack(Node* node) {
   vector<Edge*>* edges = getEdges();
   for (int j = (int)edges->size() - 1; j >= 0; --j) {
     Edge* edge = edges->at(j);
-    if (edge->getInputNodePtr() == node) {
-      buildStack(edge->getOutputNodePtr());
+    if (edge->getInputNode() == node->getUuid()) {
+      buildStack(getNode(edge->getOutputNode()));
     }
   }
 }
@@ -1525,7 +1584,7 @@ void Workflow::showModuleDialog(ToolItem* item) {
     element->show();
 }
 
-void Workflow::update(IProgressMonitor* monitor, bool force) {
+void Workflow::update(IProgressMonitor*, bool) {
 }
 
 void Workflow::writeResults() {
@@ -1552,9 +1611,12 @@ void Workflow::updateChecksum(const std::vector<checksum_type>& inputChecksums, 
       std::set<std::string> connectedProperties;
       for (int j = (int)edges->size() - 1; j >= 0; --j) {
         Edge* edge = edges->at(j);
-        if (edge->getInputNodePtr() == node && edge->getOutputNodePtr()) {
-          checksums.push_back(edge->getOutputNodePtr()->getInputChecksum());
-          connectedProperties.insert(edge->getInputProperty());
+        if (edge->getInputNode() == node->getUuid()) {
+          Node* outputNode = getNode(edge->getOutputNode());
+          if (outputNode) {
+            checksums.push_back(outputNode->getInputChecksum());
+            connectedProperties.insert(edge->getInputProperty());
+          }
         }
       }
 
@@ -1627,7 +1689,7 @@ void Workflow::load(const string& filename) {
 
 void Workflow::copySelectedNodesToClipboard() {
   Workflow copyWorkflow;
-  std::set<Node*> copied;
+  std::set<std::string> copied;
 
   // Temporarily add nodes to the node list for the xmlization.
   // Nodes have to be removed afterwards in order to avoid a double free memory
@@ -1639,7 +1701,7 @@ void Workflow::copySelectedNodesToClipboard() {
       // TODO: Workflows are not copied unless renewUuid() is fully implemented
       if (toolItem->isDeletable() && !dynamic_cast<Workflow*>(node)) {
         nodes->push_back(node);
-        copied.insert(node);
+        copied.insert(node->getUuid());
       }
     }
   }
@@ -1648,8 +1710,8 @@ void Workflow::copySelectedNodesToClipboard() {
   std::vector<Edge*>* edges = copyWorkflow.getEdges();
   for (unsigned i = 0; i < getEdges()->size(); ++i) {
     Edge* edge = getEdges()->at(i);
-    if (copied.find(edge->getInputNodePtr()) != copied.end() &&
-        copied.find(edge->getOutputNodePtr()) != copied.end())
+    if (copied.find(edge->getInputNode()) != copied.end() &&
+        copied.find(edge->getOutputNode()) != copied.end())
     {
       edges->push_back(edge);
     }
@@ -1909,6 +1971,7 @@ GlobalProperty* Workflow::getGlobalProperty(capputils::reflection::ReflectableCl
   return 0;
 }
 
+// TODO: re-think how to identify a global edge
 GlobalEdge* Workflow::getGlobalEdge(capputils::reflection::ReflectableClass* object,
   capputils::reflection::IClassProperty* prop)
 {
@@ -1926,6 +1989,21 @@ void Workflow::updateCache() {
 
 bool Workflow::restoreFromCache() {
   return false;
+}
+
+PropertyReference* Workflow::getPropertyReference(const std::string& propertyName) {
+  PropertyReference* ref = Node::getPropertyReference(propertyName);
+
+  if (ref)
+    return ref;
+
+  for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+    if (interfaceNodes[i]->getUuid() == propertyName) {
+      return interfaceNodes[i]->getPropertyReference("Value");
+    }
+  }
+
+  return 0;
 }
 
 }
