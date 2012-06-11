@@ -433,7 +433,7 @@ PropertyReference* Node::getPropertyReference(const std::string& propertyName) {
   if (!prop)
     return 0;
 
-  return new PropertyReference(object, prop, 0);
+  return new PropertyReference(object, prop, this);
 }
 
 }

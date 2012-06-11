@@ -110,12 +110,6 @@ EndPropertyDefinitions
 
   TODOs:
 
-  - Context menu item of a property: "make workflow property"
-    This adds a property to the workflow. It opens a dialog where you can choice the name of the property and its attributes.
-    Default name is set to the name of the property where the action was initiated.
-    Type is always the type of the property, where the action was initiated.
-    Three button: Save & Apply, Save, and Cancel
-
   - Copy action. Creates an XML Workflow containing the to be copied nodes + non dangling edges
 
   - Insert action. Inserts nodes and edges from on an XML Workflow. Renames all uuids.
@@ -2024,7 +2018,9 @@ PropertyReference* Workflow::getPropertyReference(const std::string& propertyNam
 
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
     if (interfaceNodes[i]->getUuid() == propertyName) {
-      return interfaceNodes[i]->getPropertyReference("Value");
+      ref = interfaceNodes[i]->getPropertyReference("Value");
+      ref->setNode(this);
+      return ref;
     }
   }
 
@@ -2034,3 +2030,4 @@ PropertyReference* Workflow::getPropertyReference(const std::string& propertyNam
 }
 
 }
+
