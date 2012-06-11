@@ -28,6 +28,7 @@ public:
   capputils::reflection::ReflectableClass* getObject() const;
   capputils::reflection::IClassProperty* getProperty() const;
   gapputils::workflow::Node* getNode() const;
+  void setNode(gapputils::workflow::Node* node);
 };
 
 Q_DECLARE_METATYPE(PropertyReference)

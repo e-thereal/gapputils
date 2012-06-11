@@ -26,5 +26,8 @@ IClassProperty* PropertyReference::getProperty() const {
 }
 
 gapputils::workflow::Node* PropertyReference::getNode() const {
-  return node;
+  return node;}
+void PropertyReference::setNode(gapputils::workflow::Node* node) {
+  this->node = node;
 }
+
