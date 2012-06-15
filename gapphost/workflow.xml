@@ -1,0 +1,100 @@
+<?xml version="1.0" ?>
+<TestWorkflow>
+  <Edges>
+      <Collection>
+          <Item>
+              <Edge>
+                  <OutputNode value="a1695024-438e-4fcb-8683-5c78cef6f0a3" />
+                  <OutputProperty value="ImagePtr" />
+                  <InputNode value="34c0e1a0-74e4-42b6-9cdc-e056ca5de093" />
+                  <InputProperty value="ImagePtr" />
+              </Edge>
+          </Item>
+          <Item>
+              <Edge>
+                  <OutputNode value="Inputs" />
+                  <OutputProperty value="In1" />
+                  <InputNode value="e3d02929-295c-4967-b84d-adccbd37c170" />
+                  <InputProperty value="Name" />
+              </Edge>
+          </Item>
+          <Item>
+              <Edge>
+                  <OutputNode value="Inputs" />
+                  <OutputProperty value="Name" />
+                  <InputNode value="e3d02929-295c-4967-b84d-adccbd37c170" />
+                  <InputProperty value="FirstName" />
+              </Edge>
+          </Item>
+          <Item>
+              <Edge>
+                  <OutputNode value="e3d02929-295c-4967-b84d-adccbd37c170" />
+                  <OutputProperty value="Name" />
+                  <InputNode value="Outputs" />
+                  <InputProperty value="Out1" />
+              </Edge>
+          </Item>
+      </Collection>
+  </Edges>
+  <Nodes>
+      <Collection>
+          <Item>
+              <Node>
+                  <Uuid value="a1695024-438e-4fcb-8683-5c78cef6f0a3" />
+                  <X value="-119" />
+                  <Y value="-180" />
+                  <Module>
+                      <ImageLoader>
+                          <Label value="Image" />
+                          <ImageName value="/home/tombr/Desktop/1.jpg" />
+                      </ImageLoader>
+                  </Module>
+              </Node>
+          </Item>
+          <Item>
+              <Node>
+                  <Uuid value="34c0e1a0-74e4-42b6-9cdc-e056ca5de093" />
+                  <X value="14" />
+                  <Y value="-236" />
+                  <Module>
+                      <ImageViewer>
+                          <Label value="Viewer" />
+                      </ImageViewer>
+                  </Module>
+              </Node>
+          </Item>
+          <Item>
+              <Node>
+                  <Uuid value="e3d02929-295c-4967-b84d-adccbd37c170" />
+                  <X value="-69" />
+                  <Y value="-10" />
+                  <Module>
+                      <Person>
+                          <!--Persons given name.-->
+                          <FirstName value="Tom" />
+                          <!--Name of our parents.-->
+                          <Name value="Brosch" />
+                          <!--Age in years.-->
+                          <Age value="3" />
+                          <!--Address with everything.-->
+                          <Address>
+                              <Address>
+                                  <Street value="W 11th Ave" />
+                                  <City value="Vancouver" />
+                                  <StreetNumber value="1065" />
+                                  <AppartmentNumber value="207" />
+                              </Address>
+                          </Address>
+                          <Gender value="Male" />
+                      </Person>
+                  </Module>
+              </Node>
+          </Item>
+      </Collection>
+  </Nodes>
+  <InputsPosition value="-233 -79" />
+  <OutputsPosition value="173 -77" />
+  <Name value="Tom" />
+  <In1 value="Brosch" />
+  <Out1 value="Brosch" />
+</TestWorkflow>

@@ -1,0 +1,22 @@
+[Edge.cpp:28]: (warning) Member variable 'Edge::inputId' is not initialized in the constructor.
+[Edge.cpp:28]: (warning) Member variable 'Edge::outputId' is not initialized in the constructor.
+[ImageLoader.cpp:31]: (warning) Member variable 'ImageLoader::image' is not initialized in the constructor.
+[MainWindow.cpp:200]: (style) Variable 'model' is assigned a value that is never used
+[PropertyReference.cpp:5]: (warning) Member variable 'PropertyReference::object' is not initialized in the constructor.
+[PropertyReference.cpp:5]: (warning) Member variable 'PropertyReference::prop' is not initialized in the constructor.
+[ToolItem.cpp:68]: (error) Possible null pointer dereference: currentCable - otherwise it is redundant to check if currentCable is null at line 73
+[ToolItem.cpp:89]: (error) Possible null pointer dereference: currentCable - otherwise it is redundant to check if currentCable is null at line 94
+[ToolItem.cpp:153]: (performance) Possible inefficient checking for 'connections' emptiness.
+[Workbench.cpp:139]: (performance) Possible inefficient checking for 'currentCables' emptiness.
+[Workbench.cpp:186]: (performance) Possible inefficient checking for 'currentCables' emptiness.
+[Workbench.cpp:215]: (performance) Possible inefficient checking for 'connections' emptiness.
+[Workflow.cpp:1058]: (information) The scope of the variable 'pos' can be reduced
+[Workflow.cpp:1122]: (information) The scope of the variable 'pos' can be reduced
+[WorkflowWorker.cpp:21]: (warning) Member variable 'WorkflowWorker::currentNode' is not initialized in the constructor.
+[XslTransformation.cpp:92]: (information) The scope of the variable 'ch' can be reduced
+[main.cpp:59]: (style) Exception should be caught by reference.
+[NewObjectDialog.cpp:1]: (style) The function 'getSelectedClass' is never used
+[Workflow.cpp:1]: (style) The function 'replaceAll' is never used
+[ToolItem.cpp:1]: (style) The function 'shape' is never used
+[PropertyGridDelegate.cpp:1]: (style) The function 'updateEditorGeometry' is never used
+(information) Cppcheck cannot find all the include files (use --check-config for details)
