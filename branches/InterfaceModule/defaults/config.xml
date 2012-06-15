@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<gapputils-host-DataModel>
+    <BuilderSettings>
+        <gapputils-host-BuilderSettings>
+            <CompilerName value="gcc" />
+            <IncludeSwitch value="-I" />
+            <OutputSwitch value="-o " />
+            <IncludeDirectories>
+                <Collection>
+                    <Item value="/home/tombr/Projects" />
+                    <Item value="/home/tombr/include" />
+                    <Item value="/res1/software/cuda/include" />
+                    <Item value="/home/tombr/Programs/Qt-4.7.3/include" />
+                    <Item value="/home/tombr/Programs/Qt-4.7.3/include/QtCore" />
+                    <Item value="/home/tombr/Programs/Qt-4.7.3/include/QtGui" />
+                </Collection>
+            </IncludeDirectories>
+            <CompilerFlags>
+                <Collection>
+                    <Item value="-shared" />
+                    <Item value="-std=c++0x" />
+                </Collection>
+            </CompilerFlags>
+        </gapputils-host-BuilderSettings>
+    </BuilderSettings>
+    <XsltSettings>
+        <gapputils-host-XsltSettings>
+            <CombinerInterfaceStyleSheetName value="combiner_interface.xslt" />
+            <StandardInterfaceStyleSheetName value="standard_interface.xslt" />
+            <CommandName value="java -jar ~/tools/saxon9he.jar" />
+            <InputSwitch value="-s:" />
+            <OutputSwitch value="-o:" />
+            <XsltSwitch value="-xsl:" />
+        </gapputils-host-XsltSettings>
+    </XsltSettings>
+</gapputils-host-DataModel>
+
