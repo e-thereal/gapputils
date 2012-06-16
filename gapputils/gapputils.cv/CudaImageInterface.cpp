@@ -1,11 +1,11 @@
 /*
- * String.cpp
+ * CudaImage.cpp
  *
  *  Created on: Jun 8, 2012
  *      Author: tombr
  */
 
-#include "String.h"
+#include "CudaImageInterface.h"
 
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
@@ -31,32 +31,32 @@ namespace host {
 
 namespace inputs {
 
-BeginPropertyDefinitions(String, Interface())
+BeginPropertyDefinitions(CudaImage, Interface())
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Value, Output(""), Observe(PROPERTY_ID))
+  DefineProperty(Value, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-String::String() : data(0) {
+CudaImage::CudaImage() : data(0) {
   WfeUpdateTimestamp
-  setLabel("String");
+  setLabel("CudaImage");
 
-  Changed.connect(capputils::EventHandler<String>(this, &String::changedHandler));
+  Changed.connect(capputils::EventHandler<CudaImage>(this, &CudaImage::changedHandler));
 }
 
-String::~String() {
+CudaImage::~CudaImage() {
   if (data)
     delete data;
 }
 
-void String::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void CudaImage::changedHandler(capputils::ObservableClass* sender, int eventId) {
 
 }
 
-void String::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+void CudaImage::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!data)
-    data = new String();
+    data = new CudaImage();
 
   if (!capputils::Verifier::Valid(*this))
     return;
@@ -64,7 +64,7 @@ void String::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
 }
 
-void String::writeResults() {
+void CudaImage::writeResults() {
   if (!data)
     return;
 
@@ -74,32 +74,32 @@ void String::writeResults() {
 
 namespace outputs {
 
-BeginPropertyDefinitions(String, Interface())
+BeginPropertyDefinitions(CudaImage, Interface())
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Value, Input(""), Observe(PROPERTY_ID))
+  DefineProperty(Value, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 
-String::String() : data(0) {
+CudaImage::CudaImage() : data(0) {
   WfeUpdateTimestamp
-  setLabel("String");
+  setLabel("CudaImage");
 
-  Changed.connect(capputils::EventHandler<String>(this, &String::changedHandler));
+  Changed.connect(capputils::EventHandler<CudaImage>(this, &CudaImage::changedHandler));
 }
 
-String::~String() {
+CudaImage::~CudaImage() {
   if (data)
     delete data;
 }
 
-void String::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void CudaImage::changedHandler(capputils::ObservableClass* sender, int eventId) {
 
 }
 
-void String::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+void CudaImage::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!data)
-    data = new String();
+    data = new CudaImage();
 
   if (!capputils::Verifier::Valid(*this))
     return;
@@ -107,7 +107,7 @@ void String::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
 }
 
-void String::writeResults() {
+void CudaImage::writeResults() {
   if (!data)
     return;
 

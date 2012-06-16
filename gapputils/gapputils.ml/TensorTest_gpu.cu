@@ -16,6 +16,10 @@ namespace gapputils {
 
 namespace ml {
 
+namespace tensors {
+
+namespace test {
+
 void TensorTest::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!data)
     data = new TensorTest();
@@ -28,6 +32,10 @@ void TensorTest::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   }
 
   std::cout << "tensor test end" << std::endl;
+}
+
+}
+
 }
 
 }

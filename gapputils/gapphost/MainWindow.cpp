@@ -45,6 +45,10 @@ QTreeWidgetItem* newCategory(const string& name) {
   item->setText(0, name.c_str());
   item->setTextAlignment(0, Qt::AlignHCenter);
 
+  //QFont font = item->font(0);
+  //font.setBold(true);
+  //item->setFont(0, font);
+
   return item;
 }
 
@@ -57,17 +61,22 @@ QTreeWidgetItem* newTool(const string& name, const string& classname) {
 }
 
 void updateToolBox(QTreeWidget* toolBox) {
-  toolBox->setIndentation(5);
+  toolBox->setIndentation(10);
   toolBox->setHeaderHidden(true);
+#if TREEVIEW
+  toolBox->setRootIsDecorated(true);
+#else
   toolBox->setRootIsDecorated(false);
+#endif
   toolBox->clear();
 
   reflection::ReflectableClassFactory& factory = reflection::ReflectableClassFactory::getInstance();
   vector<string> classNames = factory.getClassNames();
   sort(classNames.begin(), classNames.end());
 
-  QTreeWidgetItem* item = newCategory("");
+  QTreeWidgetItem* item = 0;
   string groupString("");
+  //toolBox->addTopLevelItem(item);
 
   for (unsigned i = 0; i < classNames.size(); ++i) {
     string name = classNames[i];
@@ -95,13 +104,93 @@ void updateToolBox(QTreeWidget* toolBox) {
       continue;
     }
 
+#ifdef TREEVIEW
+
+    // search for the longest match
+    cout << "GroupString: " << groupString << std::endl;
+    cout << "CurrentString: " << currentGroupString << std::endl;
+
+    int maxPos1 = currentGroupString.find("::");
+    int maxPos2 = groupString.find("::");
+    int maxPos = 0;
+
+    if (maxPos1 == string::npos)
+      maxPos1 = currentGroupString.size();
+
+    if (maxPos2 == string::npos)
+      maxPos2 = groupString.size();
+
+    cout << "Comparing: '" << currentGroupString.substr(0, maxPos1) << "' to '" << groupString.substr(0, maxPos2) << "'" << std::endl;
+
+    while (currentGroupString.substr(0, maxPos1) == groupString.substr(0, maxPos2))
+    {
+      maxPos = maxPos1;
+      if (maxPos1 == currentGroupString.size() ||
+          maxPos2 == groupString.size())
+      {
+        break;
+      }
+
+      maxPos1 = currentGroupString.find("::", maxPos1 + 1);
+      maxPos2 = groupString.find("::", maxPos2 + 1);
+
+      if (maxPos1 == string::npos)
+        maxPos1 = currentGroupString.size();
+
+      if (maxPos2 == string::npos)
+        maxPos2 = groupString.size();
+
+      cout << "Comparing: '" << currentGroupString.substr(0, maxPos1) << "' to '" << groupString.substr(0, maxPos2) << "'" << std::endl;
+    }
+
+    cout << "LongestMatch: " << currentGroupString.substr(0, maxPos) << std::endl;
+
+    // Wie viele colons sind noch im current string drin. Ergo wie oft muss ich zurueck?
+    maxPos2 = maxPos;
+    int backSteps = (groupString.size() == maxPos2 ? 0 : 1);
+    while ((maxPos2 = groupString.find("::", maxPos2 + 1)) != string::npos)
+      ++backSteps;
+    cout << "BackSteps: " << backSteps << std::endl;
+
+    for (int i = 0; i < backSteps && item; ++i)
+      item = item->parent();
+
+    // 
+    maxPos1 = maxPos;
+    if (maxPos1 < currentGroupString.size()) {
+      while ((maxPos1 = currentGroupString.find("::", maxPos1 + 1)) != string::npos) {
+        cout << "New dir: " << currentGroupString.substr(0, maxPos1) << std::endl;
+        QTreeWidgetItem* newItem = newCategory(currentGroupString.substr(0, maxPos1));
+        if (item == 0)
+          toolBox->addTopLevelItem(newItem);
+        else
+          item->addChild(newItem);
+        item = newItem;
+      }
+      cout << "New dir: " << currentGroupString << std::endl;
+      QTreeWidgetItem* newItem = newCategory(currentGroupString);
+      if (item == 0)
+        toolBox->addTopLevelItem(newItem);
+      else
+        item->addChild(newItem);
+      item = newItem;
+    }
+
+    cout << std::endl;
+    groupString = currentGroupString;
+
+#else
     if (currentGroupString.compare(groupString)) {
       groupString = currentGroupString;
       item = newCategory(groupString);
       toolBox->addTopLevelItem(item);
     }
+#endif
 
-    item->addChild(newTool(name.substr(pos+1), name));
+    if (item)
+      item->addChild(newTool(name.substr(pos+1), name));
+    else
+      toolBox->addTopLevelItem(newTool(name.substr(pos+1), name));
   }
   //toolBox->expandAll();
 }
@@ -114,7 +203,6 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   model.setMainWindow(this);
 
   setWindowTitle(QString("Application Host - ") + model.getConfiguration().c_str());
-  this->setGeometry(model.getWindowX(), model.getWindowY(), model.getWindowWidth(), model.getWindowHeight());
 
   newObjectDialog = new NewObjectDialog();
 
@@ -211,12 +299,21 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   model.setWindowY(y());
   model.setWindowWidth(width());
   model.setWindowHeight(height());
+  std::cout << "Save: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
 
   QMainWindow::closeEvent(event);
 }
 
 void MainWindow::resume() {
   DataModel& model = DataModel::getInstance();
+  int left = model.getWindowX(), top = model.getWindowY(), w = model.getWindowWidth(), h = model.getWindowHeight();
+  this->setGeometry(left, top, w, h);
+  std::cout << "Target: " << left << ", " << top << ", " << w << ", " << h << std::endl;
+  std::cout << "Current: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
+  left += left - x();
+  top += top - y();
+  this->setGeometry(left, top, w, h);
+  std::cout << "Corrected: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
   Workflow* workflow = model.getMainWorkflow();
   string currentUuid = model.getCurrentWorkflow();
 

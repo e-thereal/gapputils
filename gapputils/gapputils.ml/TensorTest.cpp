@@ -28,6 +28,10 @@ namespace gapputils {
 
 namespace ml {
 
+namespace tensors {
+
+namespace test {
+
 BeginPropertyDefinitions(TensorTest)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
@@ -53,6 +57,10 @@ void TensorTest::changedHandler(capputils::ObservableClass* sender, int eventId)
 void TensorTest::writeResults() {
   if (!data)
     return;
+
+}
+
+}
 
 }
 

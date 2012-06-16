@@ -313,8 +313,8 @@ void Workbench::keyPressEvent(QKeyEvent *event)
 
   switch (event->key()) {
   case Qt::Key_Delete:
-    Q_FOREACH(QGraphicsItem* item, scene()->selectedItems()) {
-      ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
+    while (scene()->selectedItems().size()) {
+      ToolItem* toolItem = dynamic_cast<ToolItem*>(scene()->selectedItems().first());
       if (toolItem && toolItem->isDeletable()) {
         Q_EMIT preItemDeleted(toolItem);
         removeToolItem(toolItem);

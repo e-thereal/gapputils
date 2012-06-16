@@ -201,6 +201,7 @@
     <ClCompile Include="PropertyGridDelegate.cpp" />
     <ClCompile Include="PropertyReference.cpp" />
     <ClCompile Include="ShowImageDialog.cpp" />
+    <ClCompile Include="StringInterface.cpp" />
     <ClCompile Include="TestWorkflow.cpp" />
     <ClCompile Include="ToolItem.cpp" />
     <ClCompile Include="Workbench.cpp" />
@@ -239,6 +240,7 @@
     <ClInclude Include="Filename.h" />
     <ClInclude Include="HostInterface.h" />
     <ClInclude Include="linreg.h" />
+    <ClInclude Include="StringInterface.h" />
     <ClInclude Include="XslTransformation.h" />
     <CustomBuild Include="WorkflowItem.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

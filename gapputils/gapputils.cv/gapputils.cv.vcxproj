@@ -82,6 +82,7 @@
     <ClCompile Include="AggregatorFunction.cpp" />
     <ClCompile Include="Blurring.cpp" />
     <ClCompile Include="Cropper.cpp" />
+    <ClCompile Include="CudaImageInterface.cpp" />
     <ClCompile Include="FeaturesToImage.cpp" />
     <ClCompile Include="FromHsv.cpp" />
     <ClCompile Include="FromRgb.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="AggregatorFunction.h" />
     <ClInclude Include="Blurring.h" />
     <ClInclude Include="Cropper.h" />
+    <ClInclude Include="CudaImageInterface.h" />
     <ClInclude Include="FeaturesToImage.h" />
     <ClInclude Include="FromHsv.h" />
     <ClInclude Include="FromRgb.h" />
