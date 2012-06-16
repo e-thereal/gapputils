@@ -654,10 +654,11 @@ void Workflow::removeGlobalProperty(GlobalProperty* gprop) {
       break;
     }
   }
-  delete gprop;
-
-  if (!gprop->getNodePtr() || !gprop->getNodePtr()->getModule())
+  
+  if (!gprop->getNodePtr() || !gprop->getNodePtr()->getModule()) {
+    delete gprop;
     return;
+  }
 
   QStandardItem* item = getItem(gprop->getNodePtr()->getModule(), gprop->getProperty());
   assert(item);
@@ -665,6 +666,8 @@ void Workflow::removeGlobalProperty(GlobalProperty* gprop) {
   QFont font = item->font();
   font.setUnderline(false);
   item->setFont(font);
+
+  delete gprop;
 }
 
 void Workflow::removeGlobalEdge(GlobalEdge* edge) {
@@ -1425,6 +1428,12 @@ void Workflow::updateNodes() {
     }
   }
   buildStack(&outputsNode);
+  for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+    // TODO: check if this builds a correct stack
+    if (interfaceNodes[i]->getModule()->findProperty("Value")->getAttribute<InputAttribute>())
+      buildStack(interfaceNodes[i]);
+  }
+
   processStack();
 }
 

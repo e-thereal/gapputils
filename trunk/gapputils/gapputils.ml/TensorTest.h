@@ -14,6 +14,10 @@ namespace gapputils {
 
 namespace ml {
 
+namespace tensors {
+
+namespace test {
+
 class TensorTest : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(TensorTest)
@@ -30,6 +34,10 @@ public:
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 };
+
+}
+
+}
 
 }
 

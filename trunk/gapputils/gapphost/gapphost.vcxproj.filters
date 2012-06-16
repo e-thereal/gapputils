@@ -236,6 +236,9 @@
     <ClCompile Include="Filename.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StringInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
@@ -355,6 +358,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Filename.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
