@@ -255,6 +255,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
             currentCables[0]->setOutput(connection);
             currentCables[0]->endDrag();
             if (oldCable) {
+              Q_EMIT connectionRemoved(oldCable);
               removeCableItem(oldCable);
             }
             Q_EMIT connectionCompleted(currentCables[0]);
@@ -273,8 +274,10 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
                 CableItem* oldCable = connection->cable;
                 currentCables[0]->setInput(connection);
                 currentCables[0]->endDrag();
-                if (oldCable)
+                if (oldCable) {
+                  Q_EMIT connectionRemoved(oldCable);
                   removeCableItem(oldCable);
+                }
                 Q_EMIT connectionCompleted(currentCables[0]);
                 break;
               }

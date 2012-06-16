@@ -102,17 +102,17 @@ int main(int argc, char *argv[])
   try {
     MainWindow w;
     w.show();
-    std::cout << "[Info] Start resuming ..." << std::endl;
+    //std::cout << "[Info] Start resuming ..." << std::endl;
     w.resume();
-    std::cout << "[Info] Resuming done." << std::endl;
+    //std::cout << "[Info] Resuming done." << std::endl;
     if (model.getRun()) {
       w.setAutoQuit(true);
-      std::cout << "[Info] Update main workflow." << std::endl;
+      //std::cout << "[Info] Update main workflow." << std::endl;
       w.updateMainWorkflow();
     }
-    std::cout << "[Info] Entering event loop." << std::endl;
+    //std::cout << "[Info] Entering event loop." << std::endl;
     ret = a.exec();
-    std::cout << "[Info] Quitting." << std::endl;
+    //std::cout << "[Info] Quitting." << std::endl;
   } catch (char const* error) {
     cout << error << endl;
     return 1;

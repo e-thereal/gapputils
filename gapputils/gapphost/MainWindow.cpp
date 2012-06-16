@@ -299,7 +299,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   model.setWindowY(y());
   model.setWindowWidth(width());
   model.setWindowHeight(height());
-  std::cout << "Save: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
+  //std::cout << "Save: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
 
   QMainWindow::closeEvent(event);
 }
@@ -308,12 +308,12 @@ void MainWindow::resume() {
   DataModel& model = DataModel::getInstance();
   int left = model.getWindowX(), top = model.getWindowY(), w = model.getWindowWidth(), h = model.getWindowHeight();
   this->setGeometry(left, top, w, h);
-  std::cout << "Target: " << left << ", " << top << ", " << w << ", " << h << std::endl;
-  std::cout << "Current: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
+  //std::cout << "Target: " << left << ", " << top << ", " << w << ", " << h << std::endl;
+  //std::cout << "Current: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
   left += left - x();
   top += top - y();
   this->setGeometry(left, top, w, h);
-  std::cout << "Corrected: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
+  //std::cout << "Corrected: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
   Workflow* workflow = model.getMainWorkflow();
   string currentUuid = model.getCurrentWorkflow();
 
