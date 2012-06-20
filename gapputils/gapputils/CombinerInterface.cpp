@@ -37,6 +37,10 @@ CombinerInterface::CombinerInterface() {
 }
 
 CombinerInterface::~CombinerInterface() {
+  for (unsigned i = 0; i < inputIterators.size(); ++i)
+    delete inputIterators[i];
+  for (unsigned i = 0; i < outputIterators.size(); ++i)
+    delete outputIterators[i];
 }
 
 bool CombinerInterface::resetCombinations() {
@@ -46,7 +50,13 @@ bool CombinerInterface::resetCombinations() {
 
   inputProperties.clear();
   outputProperties.clear();
+
+  for (unsigned i = 0; i < inputIterators.size(); ++i)
+    delete inputIterators[i];
   inputIterators.clear();
+
+  for (unsigned i = 0; i < outputIterators.size(); ++i)
+    delete outputIterators[i];
   outputIterators.clear();
 
   maxIterations = 0;
@@ -68,8 +78,10 @@ bool CombinerInterface::resetCombinations() {
         maxIterations = max(maxIterations, count);
         iterator->reset();
 
-        if (iterator->eof(*this))
+        if (iterator->eof(*this)) {
+          delete iterator;
           return false;
+        }
         properties[i]->setValue(*this, *this, iterator);
         inputProperties.push_back(properties[i]);
         inputIterators.push_back(iterator);
