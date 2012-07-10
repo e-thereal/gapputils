@@ -11,8 +11,6 @@ SOURCES = main.cpp \
 		  ImageLoader.cpp \
 		  ImageViewer.cpp \
 		  ImageViewerItem.cpp \
-		  InputsItem.cpp \
-		  OutputsItem.cpp \
 		  NewObjectDialog.cpp \
 		  ShowImageDialog.cpp \
 		  DataModel.cpp \
@@ -22,7 +20,6 @@ SOURCES = main.cpp \
 		  TestWorkflow.cpp \
 		  Controller.cpp \
 		  DefaultInterface.cpp \
-		  WorkflowWorker.cpp \
 		  GenericViewer.cpp \
 		  WorkflowItem.cpp \
 		  MakeGlobalDialog.cpp \
@@ -35,7 +32,12 @@ SOURCES = main.cpp \
 		  HostInterface.cpp \
 		  linreg.cpp \
 		  Filename.cpp \
-		  String.cpp
+		  StringInterface.cpp \
+		  ChecksumUpdater.cpp \
+		  WorkflowController.cpp \
+		  WorkflowUpdater.cpp \
+		  Filenames.cpp \
+		  NodeCache.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -48,13 +50,13 @@ HEADERS = MainWindow.h \
           NewObjectDialog.h \
           ShowImageDialog.h \
           Workflow.h \
-          WorkflowWorker.h \
           WorkflowItem.h \
           GenericViewer.h \
           MakeGlobalDialog.h \
           PopUpList.h \
           ToolItem.h \
-          EditInterfaceDialog.h
+          EditInterfaceDialog.h \
+          WorkflowUpdater.h
           
 CONFIG += no_keywords debug console
 QMAKE_CXXFLAGS += -std=c++0x -pg

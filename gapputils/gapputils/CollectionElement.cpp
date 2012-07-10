@@ -51,7 +51,7 @@ bool CollectionElement::resetCombinations() {
   inputIterators.clear();
   outputIterators.clear();
 
-  maxIterations = 0;
+  iterationCount = -1;
   currentIteration = 0;
   int count = 0;
 
@@ -67,7 +67,10 @@ bool CollectionElement::resetCombinations() {
         IPropertyIterator* iterator = enumerable->getPropertyIterator(properties[enumId]);
         iterator->reset();
         for (count = 0; !iterator->eof(*this); iterator->next(), ++count);
-        maxIterations = max(maxIterations, count);
+        if (iterationCount == -1)
+          iterationCount = count;
+        else
+          iterationCount = min(iterationCount, count);
         iterator->reset();
 
         if (iterator->eof(*this))
@@ -118,9 +121,9 @@ bool CollectionElement::advanceCombinations() {
 }
 
 double CollectionElement::getProgress() const {
-  if (maxIterations < 1)
+  if (iterationCount < 1)
     return -2;
-  return 100. * currentIteration / maxIterations;
+  return 100. * currentIteration / iterationCount;
 }
 
 }

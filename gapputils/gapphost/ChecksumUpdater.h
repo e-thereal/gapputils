@@ -19,6 +19,13 @@ namespace host {
 /// Updates checksums
 class ChecksumUpdater
 {
+public:
+  enum ChecksumFlags {
+    NoExclude = 0,
+    ExcludeNoParameters = 1,
+    ExcludeDependent = 2,
+    OnlyNondependentParameters = ExcludeNoParameters | ExcludeDependent
+  };
 private:
   std::stack<workflow::Node*> nodesStack;
 
@@ -32,6 +39,8 @@ public:
    * The workflow checksum is then build from the checksums of the output nodes
    */
   void update(workflow::Node* node);
+
+  static checksum_t GetChecksum(workflow::Node* node, int flags = OnlyNondependentParameters);
 
 private:
   void buildStack(workflow::Node* node);

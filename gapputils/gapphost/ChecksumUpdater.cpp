@@ -27,7 +27,8 @@ using namespace attributes;
 
 namespace host {
 
-checksum_t getChecksum(ReflectableClass* object, workflow::Node* node = 0);
+checksum_t getChecksum(ReflectableClass* object, workflow::Node* node = 0,
+    int flags = ChecksumUpdater::OnlyNondependentParameters);
 
 checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
     const capputils::reflection::ReflectableClass& object)
@@ -66,7 +67,7 @@ checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
   return 0;
 }
 
-checksum_t getChecksum(ReflectableClass* object, workflow::Node* node) {
+checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags) {
   boost::crc_32_type checksum;
   assert(object);
 
@@ -80,13 +81,17 @@ checksum_t getChecksum(ReflectableClass* object, workflow::Node* node) {
 
   // Add more for each parameter
   for (unsigned i = 0; i < properties.size(); ++i) {
-    if (properties[i]->getAttribute<NoParameterAttribute>()) {
+    if ((flags & ChecksumUpdater::ExcludeNoParameters) ==  ChecksumUpdater::ExcludeNoParameters
+        && properties[i]->getAttribute<NoParameterAttribute>())
+    {
       //std::cout << "No parameter: " << properties[i]->getName() << std::endl;
       continue;
     }
 
     // Check if the property depends on something else
-    if (node && node->isDependentProperty(properties[i]->getName())) {
+    if ((flags & ChecksumUpdater::ExcludeDependent) == ChecksumUpdater::ExcludeDependent
+        && node && node->isDependentProperty(properties[i]->getName()))
+    {
       //std::cout << "Dependent: " << properties[i]->getName() << std::endl;
       continue;
     }
@@ -183,6 +188,11 @@ void ChecksumUpdater::update(workflow::Node* node) {
     //if (workflow->getInputChecksum() != workflow->getOutputChecksum())
     //  std::cout << "checksum changed!" << std::endl;
   }
+}
+
+checksum_t ChecksumUpdater::GetChecksum(workflow::Node* node, int flags) {
+  assert(node);
+  return getChecksum(node->getModule(), node, flags);
 }
 
 void ChecksumUpdater::buildStack(workflow::Node* node) {

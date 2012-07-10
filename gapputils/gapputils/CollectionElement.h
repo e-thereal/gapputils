@@ -24,7 +24,7 @@ class CollectionElement : public WorkflowElement {
 private:
   std::vector<capputils::reflection::IPropertyIterator*> inputIterators, outputIterators;
   std::vector<capputils::reflection::IClassProperty*> inputProperties, outputProperties;
-  int maxIterations, currentIteration;
+  int iterationCount, currentIteration;
 
 public:
   CollectionElement();
@@ -47,6 +47,9 @@ public:
   bool advanceCombinations();
 
   double getProgress() const;
+
+  int getIterationCount() const { return iterationCount; }
+  int getCurrentIteration() const { return currentIteration; }
 };
 
 }

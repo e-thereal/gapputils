@@ -3,6 +3,7 @@
 #include "Node.h"
 #include "Workflow.h"
 #include "ToolItem.h"
+#include "NodeCache.h"
 
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/CollectionElement.h>
@@ -10,12 +11,14 @@
 #include <cassert>
 #include <iostream>
 
+#include <ChecksumUpdater.h>
+
 namespace gapputils {
 
 namespace host {
 
 WorkflowUpdater::WorkflowUpdater(WorkflowUpdater* rootThread)
-  : node(0), currentNode(0), rootThread(rootThread), abortRequested(false), collectionInterfaceMode(false), updater(0)
+  : node(0), currentNode(0), rootThread(rootThread), abortRequested(false), updater(0)
 {
   if (!rootThread) {
     updater = new WorkflowUpdater(this);
@@ -56,13 +59,13 @@ void WorkflowUpdater::run() {
   //       1. Combiner case: workflow + CollectionElement interface nodes
   //       2. Workflow case: workflow
   //       3. Single node case: else
+
+  ChecksumUpdater checksumUpdater;
   workflow::Workflow* workflow = dynamic_cast<workflow::Workflow*>(node);
   if (workflow) {
     if (workflow->hasCollectionElementInterface()) {
 
       /*** Combiner case ***/
-
-      collectionInterfaceMode = true;
 
       // reset collection
       // while advance all collections
@@ -73,6 +76,7 @@ void WorkflowUpdater::run() {
       std::vector<workflow::CollectionElement*> collectionElements;
 
       bool needsUpdate = true;
+      bool lastIteration = false;
 
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
         workflow::CollectionElement* collection = dynamic_cast<workflow::CollectionElement*>(interfaceNodes[i]->getModule());
@@ -80,12 +84,21 @@ void WorkflowUpdater::run() {
           if (!collection->resetCombinations())
             needsUpdate = false;
           collectionElements.push_back(collection);
+          collection->setCalculateCombinations(false);
+          if (collection->getCurrentIteration() + 1 == collection->getIterationCount())
+            lastIteration = true;
         }
       }
 
       while (needsUpdate) {
         
+        if (lastIteration) {
+          for (unsigned i = 0; i < collectionElements.size(); ++i)
+            collectionElements[i]->setCalculateCombinations(true);
+        }
+
         // build stacks
+        checksumUpdater.update(node);
         for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
           if (workflow->isOutputNode(interfaceNodes[i]))
             buildStack(interfaceNodes[i]);
@@ -100,16 +113,18 @@ void WorkflowUpdater::run() {
           collectionElements[i]->appendResults();
 
         // advance collections
-        for (unsigned i = 0; i < collectionElements.size(); ++i)
+        for (unsigned i = 0; i < collectionElements.size(); ++i) {
           if (!collectionElements[i]->advanceCombinations())
             needsUpdate = false;
+          if (collectionElements[i]->getCurrentIteration() + 1 == collectionElements[i]->getIterationCount())
+            lastIteration = true;
+        }
       }
     } else {
 
       /*** Workflow case ***/
 
-      collectionInterfaceMode = false;
-
+      checksumUpdater.update(node);
       std::vector<workflow::Node*>& interfaceNodes = workflow->getInterfaceNodes();
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
         if (workflow->isOutputNode(interfaceNodes[i]))
@@ -121,8 +136,7 @@ void WorkflowUpdater::run() {
 
     /*** Single update case ***/
 
-    collectionInterfaceMode = false;
-
+    checksumUpdater.update(node);
     buildStack(node);
     updateNodes();
   }
@@ -167,7 +181,7 @@ void WorkflowUpdater::buildStack(workflow::Node* node) {
   }
 
   // Only add it if it needs an update or if it is the first node
-  if (node->getInputChecksum() != node->getOutputChecksum() || nodesStack.empty() || collectionInterfaceMode) {
+  if (node->getInputChecksum() != node->getOutputChecksum() || nodesStack.empty()) {
     reportProgress(node, 0, false);
     nodesStack.push(node);
   } else {
@@ -209,7 +223,9 @@ void WorkflowUpdater::updateNodes() {
     } else {
       // update node
       // TODO: check if value could be read from cache. Never read it from cache if it is the last node
-      if (currentNode->getInputChecksum() != currentNode->getOutputChecksum() || nodesStack.empty() || collectionInterfaceMode) {
+      if (nodesStack.empty() || (currentNode->getInputChecksum() != currentNode->getOutputChecksum()
+          && !NodeCache::Restore(currentNode)))
+      {
         workflow::WorkflowElement* element = dynamic_cast<workflow::WorkflowElement*>(currentNode->getModule());
         if (element) {
           element->execute(this);
@@ -234,6 +250,9 @@ void WorkflowUpdater::handleNodeUpdateFinished(workflow::Node* node) {
   if (element) {
     element->writeResults();
   }
+
+  // TODO: Avoid update if state was read from cache
+  NodeCache::Update(node);
 }
 
 // The root thread does not only delegate the event, it also in charge of calling writeResults if requested
@@ -244,7 +263,7 @@ void WorkflowUpdater::handleAndDelegateProgressedEvent(workflow::Node* node, dou
       element->writeResults();
     }
   }
-  Q_EMIT progressed(node, progress, updateNode);
+  Q_EMIT progressed(node, progress);
 }
 
 void WorkflowUpdater::delegateUpdateFinished() {
