@@ -318,7 +318,7 @@ void Workbench::keyPressEvent(QKeyEvent *event)
   case Qt::Key_Delete:
     while (scene()->selectedItems().size()) {
       ToolItem* toolItem = dynamic_cast<ToolItem*>(scene()->selectedItems().first());
-      if (toolItem && toolItem->isDeletable()) {
+      if (toolItem /*&& toolItem->isDeletable()*/) {
         Q_EMIT preItemDeleted(toolItem);
         removeToolItem(toolItem);
       }
@@ -391,7 +391,7 @@ void Workbench::drawBackground(QPainter *painter, const QRectF &rect) {
   // Text
   QRectF textRect(sceneRect.left() + 8, sceneRect.top() + 4,
       sceneRect.width() - 16, sceneRect.height() - 8);
-  QString message(tr("Application Host Workbench"));
+  QString message(tr("grapevine Workbench"));
 
   QFont font = painter->font();
   font.setBold(true);

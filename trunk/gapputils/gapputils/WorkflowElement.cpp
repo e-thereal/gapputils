@@ -7,6 +7,7 @@
 
 #include "WorkflowElement.h"
 
+#include <capputils/NoParameterAttribute.h>
 #include <capputils/ObserveAttribute.h>
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/VolatileAttribute.h>
@@ -26,7 +27,7 @@ int WorkflowElement::labelId;
 BeginAbstractPropertyDefinitions(WorkflowElement)
 
   DefineProperty(Label, Label(), Observe(labelId = PROPERTY_ID))
-  DefineProperty(HostInterface, Volatile(), Hide(), Observe(PROPERTY_ID))
+  DefineProperty(HostInterface, Volatile(), Hide(), NoParameter(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions
 

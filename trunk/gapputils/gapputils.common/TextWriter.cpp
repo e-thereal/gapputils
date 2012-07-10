@@ -47,8 +47,8 @@ void TextWriter::changedHandler(capputils::ObservableClass* sender, int eventId)
     execute(0);
   }
 
-  std::cout << getProperties()[eventId]->getName() << " changed to "
-            << getProperties()[eventId]->getStringValue(*this) << std::endl;
+  /*std::cout << getProperties()[eventId]->getName() << " changed to "
+            << getProperties()[eventId]->getStringValue(*this) << std::endl;*/
 }
 
 void TextWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {

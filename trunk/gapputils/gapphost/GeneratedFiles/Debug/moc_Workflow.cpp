@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workflow.h'
 **
-** Created: Fri Jun 8 17:29:29 2012
+** Created: Fri Jun 22 22:51:31 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-      24,   14, // methods
+      25,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -57,6 +57,7 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
      734,   30,   30,   30, 0x08,
      761,   30,   30,   30, 0x08,
      779,   30,   30,   30, 0x08,
+     800,   30,   30,   30, 0x08,
 
        0        // eod
 };
@@ -84,6 +85,7 @@ static const char qt_meta_stringdata_gapputils__workflow__Workflow[] = {
     "index\0gridClicked(QModelIndex)\0"
     "makePropertyGlobal()\0removePropertyFromGlobal()\0"
     "connectProperty()\0disconnectProperty()\0"
+    "workflowUpdateFinished()\0"
 };
 
 const QMetaObject gapputils::workflow::Workflow::staticMetaObject = {
@@ -145,9 +147,10 @@ int gapputils::workflow::Workflow::qt_metacall(QMetaObject::Call _c, int _id, vo
         case 21: removePropertyFromGlobal(); break;
         case 22: connectProperty(); break;
         case 23: disconnectProperty(); break;
+        case 24: workflowUpdateFinished(); break;
         default: ;
         }
-        _id -= 24;
+        _id -= 25;
     }
     return _id;
 }

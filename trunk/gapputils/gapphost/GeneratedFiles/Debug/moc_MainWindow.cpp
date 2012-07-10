@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'MainWindow.h'
 **
-** Created: Mon May 21 12:24:26 2012
+** Created: Mon Jul 2 19:13:50 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-      25,   14, // methods
+      23,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -40,22 +40,20 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
       96,   28,   28,   28, 0x0a,
      105,   28,   28,   28, 0x0a,
      139,  127,   28,   28, 0x0a,
-     186,  127,   28,   28, 0x0a,
-     227,   28,   28,   28, 0x0a,
-     234,   28,   28,   28, 0x0a,
-     242,   28,   28,   28, 0x0a,
-     264,   28,   28,   28, 0x0a,
-     281,   28,   28,   28, 0x0a,
-     302,   28,   28,   28, 0x0a,
-     320,   28,   28,   28, 0x0a,
-     343,   28,   28,   28, 0x0a,
-     366,   28,   28,   28, 0x0a,
-     393,  388,   28,   28, 0x0a,
-     442,  425,   28,   28, 0x0a,
-     490,  481,   28,   28, 0x2a,
-     524,  481,   28,   28, 0x0a,
-     568,  559,   28,   28, 0x0a,
-     593,  587,   28,   28, 0x0a,
+     180,   28,   28,   28, 0x0a,
+     187,   28,   28,   28, 0x0a,
+     195,   28,   28,   28, 0x0a,
+     214,  209,   28,   28, 0x0a,
+     237,   28,   28,   28, 0x0a,
+     259,   28,   28,   28, 0x0a,
+     276,   28,   28,   28, 0x0a,
+     297,   28,   28,   28, 0x0a,
+     320,  315,   28,   28, 0x0a,
+     369,  352,   28,   28, 0x0a,
+     417,  408,   28,   28, 0x2a,
+     451,  408,   28,   28, 0x0a,
+     495,  486,   28,   28, 0x0a,
+     520,  514,   28,   28, 0x0a,
 
        0        // eod
 };
@@ -65,13 +63,12 @@ static const char qt_meta_stringdata_gapputils__host__MainWindow[] = {
     "loadWorkflow()\0saveWorkflow()\0save()\0"
     "saveAs()\0loadLibrary()\0reload()\0"
     "checkLibraryUpdates()\0item,column\0"
-    "itemDoubleClickedHandler(QTreeWidgetItem*,int)\0"
     "itemClickedHandler(QTreeWidgetItem*,int)\0"
-    "copy()\0paste()\0updateCurrentModule()\0"
+    "copy()\0paste()\0focusFilter()\0text\0"
+    "filterToolBox(QString)\0updateCurrentModule()\0"
     "updateWorkflow()\0updateMainWorkflow()\0"
-    "terminateUpdate()\0editCurrentInterface()\0"
-    "updateEditMenuStatus()\0enableEditMenuItems()\0"
-    "node\0updateFinished(workflow::Node*)\0"
+    "terminateUpdate()\0node\0"
+    "updateFinished(workflow::Node*)\0"
     "workflow,addUuid\0"
     "showWorkflow(workflow::Workflow*,bool)\0"
     "workflow\0showWorkflow(workflow::Workflow*)\0"
@@ -117,26 +114,24 @@ int gapputils::host::MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void
         case 5: loadLibrary(); break;
         case 6: reload(); break;
         case 7: checkLibraryUpdates(); break;
-        case 8: itemDoubleClickedHandler((*reinterpret_cast< QTreeWidgetItem*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 9: itemClickedHandler((*reinterpret_cast< QTreeWidgetItem*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 10: copy(); break;
-        case 11: paste(); break;
-        case 12: updateCurrentModule(); break;
-        case 13: updateWorkflow(); break;
-        case 14: updateMainWorkflow(); break;
-        case 15: terminateUpdate(); break;
-        case 16: editCurrentInterface(); break;
-        case 17: updateEditMenuStatus(); break;
-        case 18: enableEditMenuItems(); break;
-        case 19: updateFinished((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
-        case 20: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1])),(*reinterpret_cast< bool(*)>(_a[2]))); break;
-        case 21: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 22: closeWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 23: closeWorkflow((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 24: currentTabChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 8: itemClickedHandler((*reinterpret_cast< QTreeWidgetItem*(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 9: copy(); break;
+        case 10: paste(); break;
+        case 11: focusFilter(); break;
+        case 12: filterToolBox((*reinterpret_cast< const QString(*)>(_a[1]))); break;
+        case 13: updateCurrentModule(); break;
+        case 14: updateWorkflow(); break;
+        case 15: updateMainWorkflow(); break;
+        case 16: terminateUpdate(); break;
+        case 17: updateFinished((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
+        case 18: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1])),(*reinterpret_cast< bool(*)>(_a[2]))); break;
+        case 19: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 20: closeWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 21: closeWorkflow((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 22: currentTabChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
-        _id -= 25;
+        _id -= 23;
     }
     return _id;
 }

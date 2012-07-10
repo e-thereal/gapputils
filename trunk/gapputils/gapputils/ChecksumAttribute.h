@@ -21,7 +21,7 @@ class IChecksumAttribute : public virtual capputils::attributes::IAttribute {
 public:
   virtual ~IChecksumAttribute() { }
 
-  virtual checksum_type getChecksum(const capputils::reflection::IClassProperty* property,
+  virtual checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
         const capputils::reflection::ReflectableClass& object) const = 0;
 };
 
@@ -30,7 +30,7 @@ class ChecksumAttribute : public virtual IChecksumAttribute {
 public:
   virtual ~ChecksumAttribute() { }
 
-  virtual checksum_type getChecksum(const capputils::reflection::IClassProperty* property,
+  virtual checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
           const capputils::reflection::ReflectableClass& object) const
   {
     return 0;

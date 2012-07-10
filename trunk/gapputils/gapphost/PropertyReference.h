@@ -33,4 +33,29 @@ public:
 
 Q_DECLARE_METATYPE(PropertyReference)
 
+class ConstPropertyReference /*: public QObject*/
+{
+  //Q_OBJECT
+
+private:
+  const capputils::reflection::ReflectableClass* object;
+  const capputils::reflection::IClassProperty* prop;
+  const gapputils::workflow::Node* node;
+
+public:
+  ConstPropertyReference();
+  ConstPropertyReference(const capputils::reflection::ReflectableClass* object,
+      const capputils::reflection::IClassProperty* prop,
+      const gapputils::workflow::Node* node);
+  virtual ~ConstPropertyReference();
+
+public:
+  const capputils::reflection::ReflectableClass* getObject() const;
+  const capputils::reflection::IClassProperty* getProperty() const;
+  const gapputils::workflow::Node* getNode() const;
+  void setNode(const gapputils::workflow::Node* node);
+};
+
+Q_DECLARE_METATYPE(ConstPropertyReference)
+
 #endif // PROPERTYREFERENCE_H

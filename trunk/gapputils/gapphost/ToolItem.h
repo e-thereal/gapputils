@@ -94,7 +94,7 @@ protected:
   std::vector<ToolConnection*> inputs;
   std::vector<MultiConnection*> outputs;
   QFont labelFont;
-  bool deletable;
+  //bool deletable;
   double progress;
 
 public:
@@ -120,8 +120,8 @@ public:
   void drawBox(QPainter* painter);
   virtual std::string getLabel() const;
   void setLabel(const std::string& label);
-  virtual bool isDeletable() const;
-  void setDeletable(bool deletable);
+  //virtual bool isDeletable() const;
+  //void setDeletable(bool deletable);
 
   void updateCables();
 

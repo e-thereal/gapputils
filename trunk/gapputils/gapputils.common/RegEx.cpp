@@ -69,9 +69,6 @@ void RegEx::changedHandler(capputils::ObservableClass* sender, int eventId) {
 }
 
 void RegEx::execute(gapputils::workflow::IProgressMonitor* monitor) const {
-
-
-
 }
 
 void RegEx::writeResults() {

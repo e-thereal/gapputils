@@ -236,7 +236,7 @@ int MultiConnection::getHeight() const {
 
 ToolItem::ToolItem(const std::string& label, Workbench *bench)
  : QObject(), label(label), bench(bench), width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
-   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), deletable(true),
+   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), /*deletable(true),*/
    progress(Neutral)
 {
   setFlag(ItemIsMovable);
@@ -274,13 +274,13 @@ void ToolItem::setWorkbench(Workbench* bench) {
   this->bench = bench;
 }
 
-bool ToolItem::isDeletable() const {
-  return deletable;
-}
+//bool ToolItem::isDeletable() const {
+//  return deletable;
+//}
 
-void ToolItem::setDeletable(bool deletable) {
-  this->deletable = deletable;
-}
+//void ToolItem::setDeletable(bool deletable) {
+//  this->deletable = deletable;
+//}
 
 void ToolItem::setProgress(double progress) {
   this->progress = progress;

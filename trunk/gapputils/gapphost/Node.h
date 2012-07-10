@@ -12,6 +12,7 @@
 #include "Expression.h"
 
 class PropertyReference;
+class ConstPropertyReference;
 
 namespace gapputils {
 
@@ -25,16 +26,14 @@ class Node : public capputils::reflection::ReflectableClass,
              public capputils::ObservableClass
 {
 public:
-  typedef boost::crc_32_type::value_type checksum_type;
-
   InitReflectableClass(Node)
 
   Property(Uuid, std::string)
   Property(X, int)
   Property(Y, int)
   Property(Module, capputils::reflection::ReflectableClass*)
-  Property(InputChecksum, checksum_type)
-  Property(OutputChecksum, checksum_type)
+  Property(InputChecksum, checksum_t)
+  Property(OutputChecksum, checksum_t)
   Property(ToolItem, ToolItem*)
   Property(Workflow, Workflow*)
   Property(Expressions, boost::shared_ptr<std::vector<boost::shared_ptr<Expression> > >)
@@ -49,6 +48,8 @@ public:
   virtual ~Node(void);
 
   static std::string CreateUuid();
+
+  void getDependentNodes(std::vector<Node*>& dependendNodes);
 
   /**
    * \brief Returns the expression object of the named property if the property is associated to one.
@@ -73,22 +74,9 @@ public:
   virtual void writeResults();
   virtual void resume();
   void resumeExpressions();
+  bool isDependentProperty(const std::string& propertyName) const;
 
   QStandardItemModel* getModel();
-
-  /**
-   * \brief Updates the checksum of the current node
-   *
-   * \param[in] inputChecksums  String containing the concatenation of all direct input checksums
-   *
-   * \remark
-   * - Workflows overload this method in order to update the checksum of all nodes first before
-   *   calculating the input checksum
-   */
-  virtual void updateChecksum(const std::vector<checksum_type>& inputChecksums);
-
-  static checksum_type getChecksum(const capputils::reflection::IClassProperty* property,
-      const capputils::reflection::ReflectableClass& object);
 
   /**
    * \brief Caches the state of the module if possible
@@ -106,6 +94,7 @@ public:
 
   /// Returns false if reference could not be determined
   virtual PropertyReference* getPropertyReference(const std::string& propertyName);
+  virtual ConstPropertyReference* getPropertyReference(const std::string& propertyName) const;
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);

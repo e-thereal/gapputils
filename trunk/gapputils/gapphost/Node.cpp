@@ -40,6 +40,10 @@
 #include "ToolItem.h"
 #include "HostInterface.h"
 #include "PropertyReference.h"
+#include "Workflow.h"
+
+// TODO: shouldn't need to use the controller
+#include "WorkflowController.h"
 
 using namespace std;
 using namespace capputils;
@@ -155,8 +159,6 @@ void Node::resume() {
 
   for (unsigned i = 0; i < expressions.size(); ++i) {
     expressions[i]->setNode(this);
-    // TODO: may resume expressions here. But make sure that global properties are available
-    //       for connecting stuff.
   }
 
   WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
@@ -173,101 +175,9 @@ void Node::resumeExpressions() {
     expressions[i]->resume();
 }
 
-// TODO: Need better method to get the checksum of a property
-Node::checksum_type Node::getChecksum(const capputils::reflection::IClassProperty* property,
-      const capputils::reflection::ReflectableClass& object)
-{
-  IEnumerableAttribute* enumerable = property->getAttribute<IEnumerableAttribute>();
-  IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
-  IChecksumAttribute* checksumAttribute = property->getAttribute<IChecksumAttribute>();
-
-  if (checksumAttribute) {
-    return checksumAttribute->getChecksum(property, object);
-  } else if (reflectable) {
-    // TODO: Replace it with getChecksum(ReflectableClass&) method
-
-    boost::crc_32_type valueSum;
-    checksum_type checksum;
-
-    ReflectableClass* subobject = reflectable->getValuePtr(object, property);
-    if (!subobject)
-      return 0;
-
-    if (subobject->getAttribute<ScalarAttribute>()) {
-      boost::crc_32_type valueSum;
-      const std::string& str = property->getStringValue(object);
-      valueSum.process_bytes(&str[0], str.size());
-      checksum_type cs = valueSum.checksum();
-//      std::cout << "[Checksum Module] Calculating checksum of scalar property: " << str << " = " << cs << std::endl;
-      return cs;
-    } else {
-      std::vector<IClassProperty*>& properties = subobject->getProperties();
-      for (unsigned i = 0; i < properties.size(); ++i) {
-        checksum = getChecksum(properties[i], *subobject);
-        valueSum.process_bytes(&checksum, sizeof(checksum));
-      }
-      return valueSum.checksum();
-    }
-  } else if (enumerable) {
-    boost::crc_32_type valueSum;
-    checksum_type checksum;
-    IPropertyIterator* iterator = enumerable->getPropertyIterator(property);
-    for (iterator->reset(); !iterator->eof(object); iterator->next()) {
-      checksum = getChecksum(iterator, object);
-      valueSum.process_bytes(&checksum, sizeof(checksum));
-    }
-    return valueSum.checksum();
-  } else {
-    boost::crc_32_type valueSum;
-    const std::string& str = property->getStringValue(object);
-    valueSum.process_bytes(&str[0], str.size());
-
-    if (property->getAttribute<FilenameAttribute>() && boost::filesystem::exists(str)) {
-      time_t modifiedTime = boost::filesystem::last_write_time(str);
-      valueSum.process_bytes(&modifiedTime, sizeof(modifiedTime));
-    }
-    return valueSum.checksum();
-  }
-}
-
-void Node::updateChecksum(const std::vector<checksum_type>& inputChecksums) {
-  boost::crc_32_type checksum;
-
-  vector<IClassProperty*>& properties = getModule()->getProperties();
-  for (unsigned i = 0; i < properties.size(); ++i) {
-    if (properties[i]->getAttribute<LabelAttribute>()) {
-//      std::cout << std::endl << "Updating checksum of " << properties[i]->getStringValue(*getModule()) << std::endl;
-      break;
-    }
-  }
-
-  std::vector<checksum_type> checksums = inputChecksums;
-
-  // Add more for each parameter
-  ReflectableClass* module = getModule();
-  if (module) {
-    const std::vector<IClassProperty*>& properties = module->getProperties();
-    for (unsigned i = 0; i < properties.size(); ++i) {
-      if (properties[i]->getAttribute<NoParameterAttribute>())
-        continue;
-//      std::cout << properties[i]->getName() << ": ";
-      checksum_type cs = getChecksum(properties[i], *module);
-//      std::cout << cs << std::endl;
-      checksums.push_back(cs);
-    }
-
-    // Add the class name
-    std::string className = module->getClassName();
-    boost::crc_32_type valueChecksum;
-    valueChecksum.process_bytes((void*)&className[0], className.size());
-    checksums.push_back(valueChecksum.checksum());
-  }
-  checksum.process_bytes((void*)&checksums[0], sizeof(checksum_type) * checksums.size());
-
-
-//  std::cout << "Input checksum is " << checksum.checksum() << std::endl;
-//  std::cout << module->getClassName() << ": " << checksum.checksum() << std::endl;
-  setInputChecksum(checksum.checksum());
+void Node::getDependentNodes(std::vector<Node*>& dependendNodes) {
+  if (getWorkflow())
+    getWorkflow()->getDependentNodes(this, dependendNodes);
 }
 
 QStandardItemModel* Node::getModel() {
@@ -281,11 +191,6 @@ void Node::changedHandler(capputils::ObservableClass*, int eventId) {
     if (!getToolItem() || !getModule())
       return;
 
-    // TODO: don't change labels of input and output nodes
-    // these nodes are identified by their deletable property (bad hack)
-    if (!getToolItem()->isDeletable())
-      return;
-
     vector<IClassProperty*>& properties = getModule()->getProperties();
     for (unsigned i = 0; i < properties.size(); ++i) {
       if (properties[i]->getAttribute<LabelAttribute>()) {
@@ -294,6 +199,12 @@ void Node::changedHandler(capputils::ObservableClass*, int eventId) {
       }
     }
   }
+}
+
+bool Node::isDependentProperty(const std::string& propertyName) const {
+  if (getWorkflow())
+    return getWorkflow()->isDependentProperty(this, propertyName);
+  return false;
 }
 
 void Node::updateCache() {
@@ -312,9 +223,12 @@ void Node::updateCache() {
   if (!module->getAttribute<CacheableAttribute>())
     return;
 
+  
   std::vector<IClassProperty*>& properties = module->getProperties();
   boost::crc_32_type crc32, totalCrc32;
-  checksum_type checksum;
+  checksum_t checksum;
+  // TODO: use full checksum method from ChecksumUpdater
+  /*
   for (unsigned i = 0; i < properties.size(); ++i) {
     IClassProperty* prop = properties[i];
     if (prop->getAttribute<NoParameterAttribute>() &&
@@ -328,12 +242,12 @@ void Node::updateCache() {
     }
 
     if (!prop->getAttribute<NoParameterAttribute>() || prop->getAttribute<InputAttribute>()) {
-      checksum = getChecksum(prop, *module);
+      checksum = host::WorkflowController::getChecksum(prop, *module);
       crc32.process_bytes(&checksum, sizeof(checksum));
     }
-    checksum = getChecksum(prop, *module);
+    checksum = host::WorkflowController::getChecksum(prop, *module);
     totalCrc32.process_bytes(&checksum, sizeof(checksum));
-  }
+  }*/
 
   std::string cacheDirectory = ".gapphost/cache/" + getUuid();
   std::stringstream cacheName;
@@ -370,16 +284,19 @@ bool Node::restoreFromCache() {
 
   std::vector<IClassProperty*>& properties = module->getProperties();
   boost::crc_32_type crc32;
-  checksum_type checksum;
+  checksum_t checksum;
 
+  // TODO: use full checksum method from ChecksumUpdater
+  /*
   for (unsigned i = 0; i < properties.size(); ++i) {
     IClassProperty* prop = properties[i];
 
     if (!prop->getAttribute<NoParameterAttribute>() || prop->getAttribute<InputAttribute>()) {
-      checksum = getChecksum(prop, *module);
+      checksum = host::WorkflowController::getChecksum(prop, *module);
       crc32.process_bytes(&checksum, sizeof(checksum));
     }
   }
+  */
 
   std::stringstream cacheName;
   cacheName << ".gapphost/cache/" << getUuid() << "/" << crc32.checksum() << ".cache";
@@ -401,15 +318,17 @@ bool Node::restoreFromCache() {
   Serializer::readFromFile(*module, cacheFile);
 
   boost::crc_32_type totalCrc32;
+  // TODO: use total checksum method from ChecksumUpdater
+  /*
   for (unsigned i = 0; i < properties.size(); ++i) {
     IClassProperty* prop = properties[i];
-    checksum = getChecksum(prop, *module);
+    checksum = host::WorkflowController::getChecksum(prop, *module);
     totalCrc32.process_bytes(&checksum, sizeof(checksum));
   }
-
-  checksum_type currentChecksum = totalCrc32.checksum();
+  */
+  checksum_t currentChecksum = totalCrc32.checksum();
   cacheFile.read((char*)&checksum, sizeof(checksum));
-
+  
   if (cacheFile.bad()) {
     std::cout << "[Info] Can't read checksum for module '" << getUuid() << "'." << std::endl;
     return false;
@@ -434,6 +353,18 @@ PropertyReference* Node::getPropertyReference(const std::string& propertyName) {
     return 0;
 
   return new PropertyReference(object, prop, this);
+}
+
+ConstPropertyReference* Node::getPropertyReference(const std::string& propertyName) const {
+  const ReflectableClass* object = getModule();
+  if (!object)
+    return 0;
+
+  const IClassProperty* prop = object->findProperty(propertyName);
+  if (!prop)
+    return 0;
+
+  return new ConstPropertyReference(object, prop, this);
 }
 
 }
