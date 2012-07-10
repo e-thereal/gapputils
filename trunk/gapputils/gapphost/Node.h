@@ -21,6 +21,8 @@ class ToolItem;
 namespace workflow {
 
 class Workflow;
+class GlobalProperty;
+class GlobalEdge;
 
 class Node : public capputils::reflection::ReflectableClass,
              public capputils::ObservableClass
@@ -74,6 +76,9 @@ public:
   bool isDependentProperty(const std::string& propertyName) const;
 
   QStandardItemModel* getModel();
+
+  virtual GlobalProperty* getGlobalProperty(const PropertyReference& reference);
+  virtual GlobalEdge* getGlobalEdge(const PropertyReference& reference);
 
   /// Returns false if reference could not be determined
   virtual PropertyReference* getPropertyReference(const std::string& propertyName);

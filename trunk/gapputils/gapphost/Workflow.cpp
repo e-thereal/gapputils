@@ -19,6 +19,7 @@
 #include <qtextedit.h>
 #include <qclipboard.h>
 #include <qstatusbar.h>
+#include <qapplication.h>
 
 #include <cassert>
 
@@ -134,40 +135,7 @@ Workflow::Workflow()
   workbench = new Workbench();
   workbench->setGeometry(0, 0, 600, 600);
   workbench->setChecker(this);
-
-  propertyGrid = new QTreeView();
-  propertyGrid->setAllColumnsShowFocus(false);
-  propertyGrid->setAlternatingRowColors(true);
-  propertyGrid->setSelectionBehavior(QAbstractItemView::SelectItems);
-  propertyGrid->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::CurrentChanged);
-  propertyGrid->setItemDelegate(new PropertyGridDelegate());
-
-  // Context Menu
-  makeGlobal = new QAction("Make Global", propertyGrid);
-  removeGlobal = new QAction("Remove Global", propertyGrid);
-  connectToGlobal = new QAction("Connect", propertyGrid);
-  disconnectFromGlobal = new QAction("Disconnect", propertyGrid);
-  connect(makeGlobal, SIGNAL(triggered()), this, SLOT(makePropertyGlobal()));
-  connect(removeGlobal, SIGNAL(triggered()), this, SLOT(removePropertyFromGlobal()));
-  connect(connectToGlobal, SIGNAL(triggered()), this, SLOT(connectProperty()));
-  connect(disconnectFromGlobal, SIGNAL(triggered()), this, SLOT(disconnectProperty()));
-
-  propertyGrid->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(propertyGrid, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
-  connect(propertyGrid, SIGNAL(clicked(const QModelIndex&)), this, SLOT(gridClicked(const QModelIndex&)));
-  QSplitter* gridSplitter = new QSplitter(Qt::Vertical);
-  gridSplitter->addWidget(propertyGrid);
-
-  QWidget* infoWidget = new QWidget();
-  infoLayout = new QFormLayout();
-  infoWidget->setLayout(infoLayout);
-  gridSplitter->addWidget(infoWidget);
-
-  QSplitter* splitter = new QSplitter(Qt::Horizontal);
-  splitter->addWidget(workbench);
-  splitter->addWidget(gridSplitter);
-  splitter->setSizes(QList<int>() << 900 << 260);
-  widget = splitter;
+  widget = workbench;
 
   connect(workbench, SIGNAL(createItemRequest(int, int, QString)), this, SLOT(createModule(int, int, QString)));
   connect(workbench, SIGNAL(currentItemSelected(ToolItem*)), this, SLOT(itemSelected(ToolItem*)));
@@ -391,158 +359,6 @@ std::vector<Node*>& Workflow::getInterfaceNodes() {
   return interfaceNodes;
 }
 
-QLabel* createTopAlignedLabel(const std::string& text) {
-  QLabel* label = new QLabel(text.c_str());
-  label->setAlignment(Qt::AlignTop);
-  return label;
-}
-
-void Workflow::gridClicked(const QModelIndex& index) {
-  const QModelIndex& valueIndex = index.sibling(index.row(), 1);
-  if (!valueIndex.isValid())
-    return;
-
-  QVariant varient = valueIndex.data(Qt::UserRole);
-  if (!varient.canConvert<PropertyReference>())
-   return;
-
-  const PropertyReference& reference = varient.value<PropertyReference>();
-  IClassProperty* prop = reference.getProperty();
-
-  while (infoLayout->count()) {
-    QLayoutItem *item = infoLayout->takeAt(0);
-    if (item) {
-      delete item->widget();
-      delete item;
-    } else {
-      break;
-    }
-  }
-
-  QLabel* description;
-  DescriptionAttribute* descAttr = prop->getAttribute<DescriptionAttribute>();
-  if (descAttr)
-    description = new QLabel((std::string("<b>") + descAttr->getDescription() + "</b>").c_str());
-  else
-    description = new QLabel((std::string("<b>") + prop->getName() + "</b>").c_str());
-  description->setWordWrap(true);
-  infoLayout->addRow(description);
-  QLabel* typeLabel = new QLabel(boost::units::detail::demangle(prop->getType().name()).c_str());
-  typeLabel->setWordWrap(true);
-  typeLabel->setMinimumSize(10, 10);
-  infoLayout->addRow(createTopAlignedLabel("Type:"), typeLabel);
-
-  // check if global and check if connected and fill actions list accordingly
-  GlobalProperty* gprop = getGlobalProperty(reference.getObject(), reference.getProperty());
-  if (gprop)
-    infoLayout->addRow("Name:", new QLabel(gprop->getName().c_str()));
-
-  GlobalEdge* edge = getGlobalEdge(reference.getObject(), reference.getProperty());
-  if (edge)
-    infoLayout->addRow("Connection:", new QLabel(edge->getGlobalProperty().c_str()));
-
-  Node* node = getNode(workbench->getCurrentItem());
-  if (node) {
-    QLabel* uuidLabel = new QLabel(node->getUuid().c_str());
-    uuidLabel->setMinimumSize(10, 10);
-    infoLayout->addRow("Uuid:", uuidLabel);
-  }
-
-  if (reference.getObject()) {
-    QLabel* moduleTypeLabel = new QLabel(reference.getObject()->getClassName().c_str());
-    moduleTypeLabel->setWordWrap(true);
-    moduleTypeLabel->setMinimumSize(10, 10);
-    infoLayout->addRow(createTopAlignedLabel("Module:"), moduleTypeLabel);
-  }
-}
-
-void Workflow::showContextMenu(const QPoint& point) {
-  QList<QAction*> actions;
-  QModelIndex index = propertyGrid->indexAt(point);
-  if (!index.isValid())
-    return;
-
-  QVariant varient = index.data(Qt::UserRole);
-  if (!varient.canConvert<PropertyReference>())
-    return;
-
-  const PropertyReference& reference = varient.value<PropertyReference>();
-
-  // check if global and check if connected and fill actions list accordingly
-  GlobalProperty* gprop = getGlobalProperty(reference.getObject(), reference.getProperty());
-  if (gprop)
-    actions.append(removeGlobal);
-  else
-    actions.append(makeGlobal);
-  
-
-  GlobalEdge* edge = getGlobalEdge(reference.getObject(), reference.getProperty());
-  if (edge)
-    actions.append(disconnectFromGlobal);
-  else
-    actions.append(connectToGlobal);
-
-  QMenu::exec(actions, propertyGrid->mapToGlobal(point));
-}
-
-void Workflow::makePropertyGlobal() {
-  host::MakeGlobalDialog dialog(propertyGrid);
-  if (dialog.exec() == QDialog::Accepted) {
-    QString text = dialog.getText();
-    if (text.length()) {
-      QModelIndex index = propertyGrid->currentIndex();
-      makePropertyGlobal(text.toAscii().data(), index.data(Qt::UserRole).value<PropertyReference>());
-    } else {
-      QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for a global property!");
-    }
-  }
-}
-
-void Workflow::removePropertyFromGlobal() {
-  QModelIndex index = propertyGrid->currentIndex();
-  PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
-
-  GlobalProperty* gprop = getGlobalProperty(reference.getObject(), reference.getProperty());
-  if (gprop)
-    removeGlobalProperty(gprop);
-}
-
-void Workflow::connectProperty() {
-  // Get list of compatible global properties.
-  // Show list windows.
-  // establish connection.
-  QModelIndex index = propertyGrid->currentIndex();
-  PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
-
-  host::PopUpList list;
-  vector<GlobalProperty*>* globals = getGlobalProperties();
-  for (unsigned i = 0; i < globals->size(); ++i) {
-    if (Edge::areCompatible(globals->at(i)->getProperty(), reference.getProperty())) {
-      list.getList()->addItem(globals->at(i)->getName().c_str());
-    } else {
-//      GlobalProperty* gprop = globals->at(i);
-      //cout << gprop->getName() << " is not compatible." << endl;
-      //cout << gprop->getProperty()->getType().name() << " != " << reference.getProperty()->getType().name() << endl;
-    }
-  }
-  if (list.getList()->count() == 0) {
-    QMessageBox::information(0, "No Compatible Global Connection", "There are no compatible global connections to connect to.");
-    return;
-  }
-
-  if (list.exec() == QDialog::Accepted) {
-    connectProperty(list.getList()->selectedItems()[0]->text().toAscii().data(), reference);
-  }
-}
-
-void Workflow::disconnectProperty() {
-  QModelIndex index = propertyGrid->currentIndex();
-  PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
-
-  GlobalEdge* edge = getGlobalEdge(reference.getObject(), reference.getProperty());
-  if (edge)
-    removeGlobalEdge(edge);
-}
 
 void Workflow::makePropertyGlobal(const std::string& name, const PropertyReference& propertyReference) {
   GlobalProperty* globalProperty = new GlobalProperty();
@@ -964,12 +780,7 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
 
 void Workflow::itemSelected(ToolItem* item) {
   Node* node = getNode(item);
-  if (node) {
-    propertyGrid->setModel(node->getModel());
-    propertyGrid->expandAll();
-  } else {
-    propertyGrid->setModel(0);
-  }
+  Q_EMIT currentModuleChanged(node);
 }
 
 void Workflow::itemChangedHandler(ToolItem* item) {
@@ -1285,6 +1096,10 @@ Workflow* Workflow::getCurrentWorkflow() {
   return dynamic_cast<Workflow*>(node);
 }
 
+Node* Workflow::getCurrentNode() {
+  return getNode(workbench->getCurrentItem());
+}
+
 void Workflow::updateOutputs() {
   workflowUpdater->update(this);
 }
@@ -1495,7 +1310,6 @@ void Workflow::addNodesFromClipboard() {
 }
 
 void Workflow::setUiEnabled(bool enabled) {
-  propertyGrid->setEnabled(enabled);
   workbench->setModifiable(enabled);
 
   vector<Node*>* nodes = getNodes();

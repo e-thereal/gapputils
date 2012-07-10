@@ -181,6 +181,18 @@ bool Node::isDependentProperty(const std::string& propertyName) const {
   return false;
 }
 
+GlobalProperty* Node::getGlobalProperty(const PropertyReference& reference) {
+  if (getWorkflow()) {
+    getWorkflow()->getGlobalProperty(reference.getObject(), reference.getProperty());
+  }
+}
+
+GlobalEdge* Node::getGlobalEdge(const PropertyReference& reference) {
+  if (getWorkflow()) {
+    getWorkflow()->getGlobalEdge(reference.getObject(), reference.getProperty());
+  }
+}
+
 PropertyReference* Node::getPropertyReference(const std::string& propertyName) {
   ReflectableClass* object = getModule();
   if (!object)
