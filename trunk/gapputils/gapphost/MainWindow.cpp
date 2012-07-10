@@ -23,6 +23,7 @@
 #include <gapputils/WorkflowInterface.h>
 
 #include <iostream>
+#include <boost/typeof/std/utility.hpp>
 
 using namespace std;
 using namespace capputils;
@@ -318,10 +319,10 @@ void MainWindow::filterToolBox(const QString& text) {
   // Do the filtering stuff here
 
   if (text.length()) {
-    for (auto item = toolBoxItems.begin(); item != toolBoxItems.end(); ++item) {
+    for (BOOST_AUTO(item, toolBoxItems.begin()); item != toolBoxItems.end(); ++item) {
       item->first->takeChildren();
       int count = 0;
-      for (auto child = item->second->begin(); child != item->second->end(); ++child) {
+      for (BOOST_AUTO(child, item->second->begin()); child != item->second->end(); ++child) {
         if ((*child)->text(0).contains(text)) {
           ++count;
           item->first->addChild(*child);
@@ -333,10 +334,10 @@ void MainWindow::filterToolBox(const QString& text) {
       item->first->setText(0, label + " (" + QString::number(count) + ")");
     }
   } else {
-    for (auto item = toolBoxItems.begin(); item != toolBoxItems.end(); ++item) {
+    for (BOOST_AUTO(item, toolBoxItems.begin()); item != toolBoxItems.end(); ++item) {
       item->first->takeChildren();
       int count = 0;
-      for (auto child = item->second->begin(); child != item->second->end(); ++child) {
+      for (BOOST_AUTO(child, item->second->begin()); child != item->second->end(); ++child) {
         item->first->addChild(*child);
         ++count;
       }

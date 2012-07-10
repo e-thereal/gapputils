@@ -26,7 +26,7 @@ private:
   workflow::Node* node;
   workflow::Node* currentNode;
   WorkflowUpdater* rootThread;
-  bool abortRequested, collectionInterfaceMode;
+  bool abortRequested;
 
   std::stack<workflow::Node*> nodesStack;
   WorkflowUpdater* updater;
@@ -61,6 +61,9 @@ public Q_SLOTS:
   void delegateUpdateFinished();
 
 Q_SIGNALS:
+  void progressed(workflow::Node* node, double progress);
+
+  /// Used internally
   void progressed(workflow::Node* node, double progress, bool updateNode);
   void nodeUpdateFinished(workflow::Node* node);
   void updateFinished();

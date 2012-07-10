@@ -67,7 +67,6 @@
 
 // TODO: shouldn't reference the controller
 #include "WorkflowController.h"
-#include "ChecksumUpdater.h"
 #include "WorkflowUpdater.h"
 
 using namespace capputils;
@@ -121,7 +120,7 @@ EndPropertyDefinitions
 
 Workflow::Workflow()
  : _ViewportScale(1.0), ownWidget(true),
-   processingCombination(false), dryrun(false), worker(0), progressNode(0), workflowUpdater(new host::WorkflowUpdater())
+   progressNode(0), workflowUpdater(new host::WorkflowUpdater())
 {
   _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
@@ -178,11 +177,8 @@ Workflow::Workflow()
   connect(workbench, SIGNAL(connectionRemoved(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
   connect(workbench, SIGNAL(viewportChanged()), this, SLOT(handleViewportChanged()));
 
-  connect(workflowUpdater.get(), SIGNAL(progressed(workflow::Node*, double, bool)), this, SLOT(showProgress(workflow::Node*, double, bool)));
+  connect(workflowUpdater.get(), SIGNAL(progressed(workflow::Node*, double)), this, SLOT(showProgress(workflow::Node*, double)));
   connect(workflowUpdater.get(), SIGNAL(updateFinished()), this, SLOT(workflowUpdateFinished()));
-
-  worker = new WorkflowWorker(this);
-  worker->start();
 
   this->Changed.connect(EventHandler<Workflow>(this, &Workflow::changedHandler));
 }
@@ -196,12 +192,6 @@ Workflow::~Workflow() {
   Q_EMIT deleteCalled(this);
 
   LibraryLoader& loader = LibraryLoader::getInstance();
-
-  if (worker) {
-    worker->quit();
-    worker->wait();
-    delete worker;
-  }
 
   if (ownWidget) {
     delete widget;
@@ -569,7 +559,7 @@ bool Workflow::activateGlobalProperty(GlobalProperty* prop) {
   Node* node = getNode(prop->getModuleUuid());
 
   unsigned id;
-  if (!node->getModule()->getPropertyIndex(id, prop->getPropertyName())) {
+  if (!node || !node->getModule() || !node->getModule()->getPropertyIndex(id, prop->getPropertyName())) {
     // TODO: Error handling
     cout << "[Warning] Property " << prop->getPropertyName() << " could not be found." << endl;
     return false;
@@ -1271,33 +1261,6 @@ bool Workflow::isDependentProperty(const Node* node, const std::string& property
   return false;
 }
 
-void Workflow::buildStack(Node* node) {
-  // Rebuild the stack without node, thus guaranteeing that node appears only once
-  stack<Node*> oldStack;
-  while (!nodeStack.empty()) {
-    oldStack.push(nodeStack.top());
-    nodeStack.pop();
-  }
-  while (!oldStack.empty()) {
-    Node* n = oldStack.top();
-    if (n != node)
-      nodeStack.push(n);
-    oldStack.pop();
-  }
-
-  nodeStack.push(node);
-  node->getToolItem()->setProgress(-3);
-
-  // call build stack for all output nodes
-  vector<Edge*>* edges = getEdges();
-  for (int j = (int)edges->size() - 1; j >= 0; --j) {
-    Edge* edge = edges->at(j);
-    if (edge->getInputNode() == node->getUuid()) {
-      buildStack(getNode(edge->getOutputNode()));
-    }
-  }
-}
-
 void Workflow::updateCurrentModule() {
   
   // build stack
@@ -1306,8 +1269,6 @@ void Workflow::updateCurrentModule() {
     return;
 
   // update checksums before updating the workflow
-  host::ChecksumUpdater updater;
-  updater.update(node);
   workflowUpdater->update(node);
 }
 
@@ -1324,130 +1285,12 @@ Workflow* Workflow::getCurrentWorkflow() {
   return dynamic_cast<Workflow*>(node);
 }
 
-void Workflow::updateOutputs(bool updateNodes) {
-  // if multiple interface
-  //  - clear multiple outputs
-  //  - reset combinations iterator
-
-  // update checksums before updating workflow
-  host::ChecksumUpdater updater;
-  updater.update(this);
+void Workflow::updateOutputs() {
   workflowUpdater->update(this);
-
-  /*if (!updateNodes && isUpToDate()) {
-    processStack();         ///< This emits the finished signal
-    return;
-  }
-
-  this->updateNodes();*/
 }
 
 void Workflow::abortUpdate() {
-  // Set the abort flag to true of the progress monitor of the current module
-  processingCombination = false;
-  while (!nodeStack.empty()) {
-    Node* node = nodeStack.top();
-    nodeStack.pop();
-
-    processedStack.push(node);
-  }
-  worker->abort();
   workflowUpdater->abort();
-}
-
-void Workflow::updateNodes() {
-  CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
-  if (combiner) {
-    if (combiner->resetCombinations())
-      processingCombination = true;
-    else {
-      processStack();
-      return;
-    }
-  }
-  for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-    // TODO: check if this builds a correct stack
-    if (interfaceNodes[i]->getModule()->findProperty("Value")->getAttribute<InputAttribute>())
-      buildStack(interfaceNodes[i]);
-  }
-
-  processStack();
-}
-
-void Workflow::processStack() {
-  CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(getModule());
-
-  while (!nodeStack.empty()) {
-    Node* node = nodeStack.top();
-    nodeStack.pop();
-
-    processedStack.push(node);
-
-    // TODO: Single update in a combiner interface is not handled correctly.
-    //       It is unclear how to determine if a module is up-to-date or not.
-
-    // Update the node, if it needs update or if it is the last one
-    if (nodeStack.empty() || !node->isUpToDate() || processingCombination || combiner)
-    {
-      node->getToolItem()->setProgress(-2);
-      Workflow* workflow = dynamic_cast<Workflow*>(node);
-      if (workflow) {
-        connect(workflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(finalizeModuleUpdate(workflow::Node*)));
-        workflow->updateNodes();
-      } else {
-        Q_EMIT processModule(node, nodeStack.empty());
-      }
-      return;
-    } else {
-      node->getToolItem()->setProgress(100);
-    }
-  }
-
-  // set all back
-  for(; !processedStack.empty(); processedStack.pop())
-    processedStack.top()->getToolItem()->setProgress(-1);
-
-  // if multiple interface:
-  //  - Add single results to multiple outputs
-  //  - if not done
-  //     * advance to next calculation
-  //     * Rebuild stack
-  //     * Start calculation (process stack)
-
-  if (combiner && processingCombination) {
-    combiner->appendResults();
-    if (combiner->advanceCombinations()) {
-      ToolItem* item = getToolItem();
-      if (item)
-        item->setProgress(combiner->getProgress());
-      // TODO: rethink combiner stuff
-//      buildStack(&outputsNode);
-      processStack();
-      return;       // return here. otherwise update finished is emitted.
-    }
-    processingCombination = false;
-  }
-
-  Q_EMIT updateFinished(this);
-}
-
-void Workflow::finalizeModuleUpdate(Node* node) {
-  progressNode = 0;
-  host::DataModel::getInstance().getMainWindow()->statusBar()->showMessage("Ready.");
-
-  Workflow* workflow = dynamic_cast<Workflow*>(node);
-  if (workflow) {
-    disconnect(workflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(finalizeModuleUpdate(workflow::Node*)));
-  } else {
-    node->writeResults();
-  }
-  node->getToolItem()->setProgress(100);
-  
-  // Set output checksum of node to its input checksum
-  node->setOutputChecksum(node->getInputChecksum());
-
-  // processStack (will emit updateFinished signal)
-  processStack();
 }
 
 std::string formatTime(int seconds) {
@@ -1484,11 +1327,8 @@ std::string formatTime(int seconds) {
   return out.str() + std::string(25 - out.str().size(), ' ');
 }
 
-void Workflow::showProgress(Node* node, double progress, bool updateNode) {
+void Workflow::showProgress(Node* node, double progress) {
   node->getToolItem()->setProgress(progress);
-  if (updateNode) {
-    node->writeResults();
-  }
   processedNodes.insert(node);
 
   // TODO: Implement the ETA feature. A timer updates passed time and remaining time.
@@ -1545,12 +1385,6 @@ void Workflow::showModuleDialog(ToolItem* item) {
   WorkflowElement* element = dynamic_cast<WorkflowElement*>(node->getModule());
   if (element)
     element->show();
-}
-
-void Workflow::update(IProgressMonitor*, bool) {
-}
-
-void Workflow::writeResults() {
 }
 
 void Workflow::delegateDeleteCalled(workflow::Workflow* workflow) {
@@ -1830,13 +1664,6 @@ GlobalEdge* Workflow::getGlobalEdge(capputils::reflection::ReflectableClass* obj
       return edge;
   }
   return 0;
-}
-
-void Workflow::updateCache() {
-}
-
-bool Workflow::restoreFromCache() {
-  return false;
 }
 
 PropertyReference* Workflow::getPropertyReference(const std::string& propertyName) {

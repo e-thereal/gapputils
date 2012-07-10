@@ -69,28 +69,11 @@ public:
    */
   bool removeExpression(const std::string& propertyName);
 
-  virtual bool isUpToDate() const;
-  virtual void update(IProgressMonitor* monitor, bool force);
-  virtual void writeResults();
   virtual void resume();
   void resumeExpressions();
   bool isDependentProperty(const std::string& propertyName) const;
 
   QStandardItemModel* getModel();
-
-  /**
-   * \brief Caches the state of the module if possible
-   *
-   * Caching is only possible if all non-parameters (except inputs) are serializable
-   */
-  virtual void updateCache();
-
-  /**
-   * \brief Tries to restore the state of a module from the module cache
-   *
-   * \return True, iff the state could be successfully restored from the cache
-   */
-  virtual bool restoreFromCache();
 
   /// Returns false if reference could not be determined
   virtual PropertyReference* getPropertyReference(const std::string& propertyName);

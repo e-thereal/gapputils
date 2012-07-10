@@ -22,7 +22,6 @@
 #include "Node.h"
 #include "GlobalProperty.h"
 #include "GlobalEdge.h"
-#include "WorkflowWorker.h"
 #include "PropertyReference.h"
 #include <stack>
 #include <capputils/TimedClass.h>
@@ -30,8 +29,6 @@
 #include <ctime>
 
 #include "Workbench.h"
-
-#include <gapputils/InterfaceDescription.h>
 
 namespace gapputils {
 
@@ -66,16 +63,8 @@ private:
   QFormLayout* infoLayout;
   QWidget* widget;
   std::set<std::string> loadedLibraries;
-  bool ownWidget,                         ///< True at the beginning. False if widget has been dispensed
-       processingCombination,             ///< True if in combination mode of a CombinerInterface
-       dryrun;                            ///< True if in dry-run mode. This mode calculates checksums only
-                                          ///  in order the check if an update of the output parameters is
-                                          ///  necessary. Intermediate nodes are not updated when the outputs
-                                          ///  don't require an update
+  bool ownWidget;                         ///< True at the beginning. False if widget has been dispensed
 
-  WorkflowWorker* worker;
-  std::stack<Node*> nodeStack;
-  std::stack<Node*> processedStack;
   std::set<Node*> processedNodes;
   static int librariesId;
   QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal;
@@ -108,16 +97,9 @@ public:
 
   /**
    * \brief Updates all outputs
-   *
-   * \param[in] updateNodes If true, all nodes that require an update are updated,
-   *                        otherwise an update is only performed if the output parameters
-   *                        need an update.
    */
-  void updateOutputs(bool updateNodes = false);
+  void updateOutputs();
   void abortUpdate();
-  void processStack();
-  void buildStack(Node* node);
-  //void load(const std::string& filename);
 
   void copySelectedNodesToClipboard();
   void addNodesFromClipboard();
@@ -140,25 +122,6 @@ public:
 
   /// Returns the true if the propertyName was found
   bool getToolConnectionId(const Node* node, const std::string& propertyName, unsigned& id) const;
-
-  virtual void updateCache();
-  virtual bool restoreFromCache();
-
-  /**
-   * \brief Updates all nodes that need an update.
-   *
-   * This method assumes that updateChecksum was called before.
-   */
-  void updateNodes();
-
-  /// Workflows are never up-to-date unless all modules are up-to-date
-  /**
-   * Checking if a workflow is up-to-date involves individual checks of each module
-   * Checking each modules is the same as if you would recalculate the workflow. Thus,
-   * workflows are always assumed not to be up to date.
-   */
-  virtual void update(IProgressMonitor* monitor, bool force);
-  virtual void writeResults();
 
   void setUiEnabled(bool enabled);
 
@@ -221,8 +184,7 @@ private Q_SLOTS:
   void createEdge(CableItem* cable);
   void deleteEdge(CableItem* cable);
 
-  void finalizeModuleUpdate(workflow::Node* node);
-  void showProgress(workflow::Node* node, double progress, bool updateNode);
+  void showProgress(workflow::Node* node, double progress);
   void showWorkflow(workflow::Workflow* workflow);
   void showWorkflow(ToolItem* item);
   void showModuleDialog(ToolItem* item);
@@ -240,7 +202,6 @@ private Q_SLOTS:
 
 Q_SIGNALS:
   void updateFinished(workflow::Node* node);
-  void processModule(workflow::Node* node, bool force);
   void showWorkflowRequest(workflow::Workflow* workflow);
   void deleteCalled(workflow::Workflow* workflow);
 };
