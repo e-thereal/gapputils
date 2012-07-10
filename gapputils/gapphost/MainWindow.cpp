@@ -60,7 +60,9 @@ QTreeWidgetItem* newTool(const string& name, const string& classname) {
   return item;
 }
 
-void updateToolBox(QTreeWidget* toolBox) {
+void updateToolBox(QTreeWidget* toolBox, std::map<QTreeWidgetItem*, boost::shared_ptr<std::vector<QTreeWidgetItem*> > >& toolBoxItems) {
+  toolBoxItems.clear();
+
   toolBox->setIndentation(10);
   toolBox->setHeaderHidden(true);
 #if TREEVIEW
@@ -184,13 +186,17 @@ void updateToolBox(QTreeWidget* toolBox) {
       groupString = currentGroupString;
       item = newCategory(groupString);
       toolBox->addTopLevelItem(item);
+      toolBoxItems[item] = boost::shared_ptr<std::vector<QTreeWidgetItem*> >(new std::vector<QTreeWidgetItem*>());
     }
 #endif
 
-    if (item)
-      item->addChild(newTool(name.substr(pos+1), name));
-    else
+    if (item) {
+      QTreeWidgetItem* toolItem = newTool(name.substr(pos+1), name);
+      toolBoxItems[item]->push_back(toolItem);
+      item->addChild(toolItem);
+    } else {
       toolBox->addTopLevelItem(newTool(name.substr(pos+1), name));
+    }
   }
   //toolBox->expandAll();
 }
@@ -202,7 +208,8 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   model.setMainWindow(this);
 
-  setWindowTitle(QString("Application Host - ") + model.getConfiguration().c_str());
+  setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
+  setWindowIcon(QIcon(":/icons/icon.png"));
 
   newObjectDialog = new NewObjectDialog();
 
@@ -211,12 +218,23 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeWorkflow(int)));
   connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 
+  toolBoxFilterEdit = new QLineEdit();
+
   toolBox = new QTreeWidget();
   toolBox->setDragEnabled(true);
-  updateToolBox(toolBox);
+  updateToolBox(toolBox, toolBoxItems);
+  filterToolBox("");
+
+  QVBoxLayout* toolBoxLayout = new QVBoxLayout();
+  //toolBoxLayout->setMargin(5);
+  toolBoxLayout->addWidget(toolBoxFilterEdit);
+  toolBoxLayout->addWidget(toolBox);
+
+  QWidget* toolBoxWidget = new QWidget();
+  toolBoxWidget->setLayout(toolBoxLayout);
   
   QSplitter* splitter = new QSplitter(Qt::Horizontal);
-  splitter->addWidget(toolBox);
+  splitter->addWidget(toolBoxWidget);
   splitter->addWidget(tabWidget);
   QList<int> sizes = splitter->sizes();
   sizes[0] = 180;
@@ -237,22 +255,20 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   fileMenu->insertSeparator(fileMenu->actions().last());
 
   editMenu = menuBar()->addMenu("&Edit");
-  changeInterfaceAction = editMenu->addAction("Change Workflow Interface", this, SLOT(editCurrentInterface()), QKeySequence(Qt::Key_F4));
-  changeInterfaceAction->setEnabled(true);
-  connect(editMenu, SIGNAL(aboutToShow()), this, SLOT(updateEditMenuStatus()));
-  connect(editMenu, SIGNAL(aboutToHide()), this, SLOT(enableEditMenuItems()));    // Needed so the shortcut is always active
   editMenu->addAction("Copy", this, SLOT(copy()), QKeySequence(Qt::CTRL + Qt::Key_C));
   editMenu->insertSeparator(editMenu->actions().last());
   editMenu->addAction("Paste", this, SLOT(paste()), QKeySequence(Qt::CTRL + Qt::Key_V));
+  editMenu->addAction("Filter", this, SLOT(focusFilter()), QKeySequence(Qt::CTRL + Qt::Key_F));
 
   runMenu = menuBar()->addMenu("&Run");
   runMenu->addAction("Update", this, SLOT(updateCurrentModule()), QKeySequence(Qt::Key_F5));
   runMenu->addAction("Update All", this, SLOT(updateWorkflow()), QKeySequence(Qt::Key_F9));
-  runMenu->addAction("Abort", this, SLOT(terminateUpdate()), QKeySequence(Qt::Key_Escape));
+  abortAction = runMenu->addAction("Abort", this, SLOT(terminateUpdate()), QKeySequence(Qt::Key_Escape));
+  abortAction->setEnabled(false);
 
   connect(&reloadTimer, SIGNAL(timeout()), this, SLOT(checkLibraryUpdates()));
   connect(toolBox, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(itemClickedHandler(QTreeWidgetItem*, int)));
-  connect(toolBox, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(itemDoubleClickedHandler(QTreeWidgetItem*, int)));
+  connect(toolBoxFilterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(filterToolBox(const QString&)));
 
   if (DataModel::getInstance().getAutoReload()) {
     reloadTimer.setInterval(1000);
@@ -291,6 +307,45 @@ MainWindow::~MainWindow()
   delete fileMenu;
   delete runMenu;
   delete editMenu;
+}
+
+void MainWindow::focusFilter() {
+  toolBoxFilterEdit->setFocus();
+  toolBoxFilterEdit->selectAll();
+}
+
+void MainWindow::filterToolBox(const QString& text) {
+  // Do the filtering stuff here
+
+  if (text.length()) {
+    for (auto item = toolBoxItems.begin(); item != toolBoxItems.end(); ++item) {
+      item->first->takeChildren();
+      int count = 0;
+      for (auto child = item->second->begin(); child != item->second->end(); ++child) {
+        if ((*child)->text(0).contains(text)) {
+          ++count;
+          item->first->addChild(*child);
+        }
+      }
+      QString label = item->first->text(0);
+      if (label.contains(' '))
+        label.remove(label.indexOf(' '), label.length());
+      item->first->setText(0, label + " (" + QString::number(count) + ")");
+    }
+  } else {
+    for (auto item = toolBoxItems.begin(); item != toolBoxItems.end(); ++item) {
+      item->first->takeChildren();
+      int count = 0;
+      for (auto child = item->second->begin(); child != item->second->end(); ++child) {
+        item->first->addChild(*child);
+        ++count;
+      }
+      QString label = item->first->text(0);
+      if (label.contains(' '))
+        label.remove(label.indexOf(' '), label.length());
+      item->first->setText(0, label + " (" + QString::number(count) + ")");
+    }
+  }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
@@ -352,14 +407,6 @@ void MainWindow::itemClickedHandler(QTreeWidgetItem *item, int) {
   }
 }
 
-void MainWindow::itemDoubleClickedHandler(QTreeWidgetItem *item, int) {
-  if (!item->childCount()) {
-    // new tool
-    string classname = item->data(0, Qt::UserRole).toString().toAscii().data();
-    //openWorkflows[tabWidget->currentIndex()]->newModule(classname);
-  }
-}
-
 void MainWindow::copy() {
   openWorkflows[tabWidget->currentIndex()]->copySelectedNodesToClipboard();
 }
@@ -369,15 +416,6 @@ void MainWindow::paste() {
 }
 
 void MainWindow::loadWorkflow() {
-//  QFileDialog fileDialog(this);
-//
-//  if (fileDialog.exec() == QDialog::Accepted) {
-//    QStringList filenames = fileDialog.selectedFiles();
-//    if (filenames.size()) {
-//      openWorkflows[tabWidget->currentIndex()]->load(filenames[0].toUtf8().data());
-//    }
-//  }
-
   QString filename = QFileDialog::getOpenFileName(this, "Load configuration", "", "Host Configuration (*.xml *.config)");
   if (!filename.isNull()) {
     DataModel& model = DataModel::getInstance();
@@ -388,10 +426,11 @@ void MainWindow::loadWorkflow() {
     openWorkflows.clear();    // All tabs should now be closed. Either because they were closed due to delete or because they were removed manually
     tabWidget->removeTab(0);  // First tab is never automatically removed
 
-    setWindowTitle(QString("Application Host - ") + model.getConfiguration().c_str());
+    setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
     Xmlizer::FromXml(model, model.getConfiguration());
     resume();
-    updateToolBox(toolBox);
+    updateToolBox(toolBox, toolBoxItems);
+    filterToolBox("");
   }
 }
 
@@ -407,7 +446,6 @@ void MainWindow::saveWorkflow() {
 }
 
 void MainWindow::loadLibrary() {
-  //QFileDialog fileDialog(this);
 #ifdef _WIN32
   QString filename = QFileDialog::getOpenFileName(this, "Open Library", "", "Library (*.dll)");
 #else
@@ -416,12 +454,12 @@ void MainWindow::loadLibrary() {
   if (filename.isNull())
     return;
 
-  //Workflow* workflow = DataModel::getInstance().getMainWorkflow();
   Workflow* workflow = openWorkflows[tabWidget->currentIndex()];
   vector<string>* libs = workflow->getLibraries();
   libs->push_back(filename.toUtf8().data());
   workflow->setLibraries(libs);
-  updateToolBox(toolBox);
+  updateToolBox(toolBox, toolBoxItems);
+  filterToolBox("");
 }
 
 void MainWindow::reload() {
@@ -436,7 +474,8 @@ void MainWindow::reload() {
 
   Xmlizer::FromXml(model, *modelElement);
   resume();
-  updateToolBox(toolBox);
+  updateToolBox(toolBox, toolBoxItems);
+  filterToolBox("");
 }
 
 void MainWindow::checkLibraryUpdates() {
@@ -456,8 +495,6 @@ void MainWindow::setGuiEnabled(bool enabled) {
   fileMenu->setEnabled(enabled);
   editMenu->setEnabled(enabled);
   toolBox->setEnabled(enabled);
-  //for (int i = 0; i < tabWidget->count(); ++i)
-  //  tabWidget->widget(i)->setEnabled(enabled);
   for (unsigned i = 0; i < openWorkflows.size(); ++i)
     openWorkflows[i]->setUiEnabled(enabled);
 }
@@ -468,6 +505,7 @@ void MainWindow::updateCurrentModule() {
   workingWorkflow = openWorkflows[tabWidget->currentIndex()];
   connect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
   workingWorkflow->updateCurrentModule();
+  abortAction->setEnabled(true);
 }
 
 void MainWindow::updateWorkflow() {
@@ -476,6 +514,7 @@ void MainWindow::updateWorkflow() {
   workingWorkflow = openWorkflows[tabWidget->currentIndex()];
   connect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
   workingWorkflow->updateOutputs();
+  abortAction->setEnabled(true);
 }
 
 void MainWindow::updateMainWorkflow() {
@@ -484,6 +523,7 @@ void MainWindow::updateMainWorkflow() {
   workingWorkflow = openWorkflows[0];
   connect(workingWorkflow, SIGNAL(updateFinished(workflow::Node*)), this, SLOT(updateFinished(workflow::Node*)));
   workingWorkflow->updateOutputs();
+  abortAction->setEnabled(true);
 }
 
 void MainWindow::terminateUpdate() {
@@ -491,6 +531,7 @@ void MainWindow::terminateUpdate() {
 }
 
 void MainWindow::updateFinished(Node* node) {
+  abortAction->setEnabled(false);
   setGuiEnabled(true);
   assert(workingWorkflow == dynamic_cast<Workflow*>(node));
   if (workingWorkflow)
@@ -510,7 +551,7 @@ void MainWindow::saveAs() {
     DataModel& model = DataModel::getInstance();
     model.setConfiguration(filename.toUtf8().data());
     model.save();
-    setWindowTitle(QString("Application Host - ") + model.getConfiguration().c_str());
+    setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
   }
 }
 
@@ -560,35 +601,6 @@ void MainWindow::closeWorkflow(int tabIndex) {
 void MainWindow::currentTabChanged(int index) {
   if (index >= 0 && index < (int)openWorkflows.size())
     DataModel::getInstance().setCurrentWorkflow(openWorkflows[index]->getUuid());
-}
-
-void MainWindow::updateEditMenuStatus() {
-  changeInterfaceAction->setEnabled(openWorkflows[tabWidget->currentIndex()]->getCurrentWorkflow());
-}
-
-void MainWindow::enableEditMenuItems() {
-  changeInterfaceAction->setEnabled(true);
-}
-
-void MainWindow::editCurrentInterface() {
-  Workflow* currentWorkflow = openWorkflows[tabWidget->currentIndex()]->getCurrentWorkflow();
-  if (!currentWorkflow)
-    return;
-
-  bool newInterface = false;
-
-  // If no current interface -> create interface, compile interface, load library, load interface class
-  if(!currentWorkflow->getInterface()) {
-    boost::shared_ptr<InterfaceDescription> interface(new InterfaceDescription());
-    interface->setName(currentWorkflow->getInterfaceName());
-    currentWorkflow->setInterface(interface);
-    newInterface = true;
-  }
-  EditInterfaceDialog dialog(currentWorkflow->getInterface().get(), this);
-  if (dialog.exec() == QDialog::Accepted) {
-    currentWorkflow->updateInterfaceTimeStamp();
-    reload();
-  }
 }
 
 }

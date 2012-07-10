@@ -6,6 +6,7 @@
 #include <qmenu.h>
 #include "NewObjectDialog.h"
 #include <qtabwidget.h>
+#include <qlineedit.h>
 #include <qtimer.h>
 #include <qtreewidget.h>
 #include <qsplitter.h>
@@ -25,14 +26,16 @@ private:
   QMenu* fileMenu;
   QMenu* editMenu;
   QMenu* runMenu;
+  QAction* abortAction;
   NewObjectDialog* newObjectDialog;
   QTabWidget* tabWidget;
+  QLineEdit* toolBoxFilterEdit;
   QTreeWidget* toolBox;
   QTimer reloadTimer;
   bool libsChanged, autoQuit;  ///< quits the problem when the workflow has been updated.
   std::vector<workflow::Workflow*> openWorkflows;
-  QAction* changeInterfaceAction;
   workflow::Workflow* workingWorkflow;
+  std::map<QTreeWidgetItem*, boost::shared_ptr<std::vector<QTreeWidgetItem* > > > toolBoxItems;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
@@ -52,18 +55,16 @@ public Q_SLOTS:
   void loadLibrary();
   void reload();
   void checkLibraryUpdates();
-  void itemDoubleClickedHandler(QTreeWidgetItem *item, int column);
   void itemClickedHandler(QTreeWidgetItem *item, int column);
   void copy();
   void paste();
+  void focusFilter();
+  void filterToolBox(const QString& text);
 
   void updateCurrentModule();
   void updateWorkflow();
   void updateMainWorkflow();
   void terminateUpdate();
-  void editCurrentInterface();
-  void updateEditMenuStatus();
-  void enableEditMenuItems();
   void updateFinished(workflow::Node* node);
   void showWorkflow(workflow::Workflow* workflow, bool addUuid = true);
   void closeWorkflow(workflow::Workflow* workflow);

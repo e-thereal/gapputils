@@ -39,7 +39,7 @@ BeginPropertyDefinitions(GenerateVector)
 
 EndPropertyDefinitions
 
-GenerateVector::GenerateVector() : _From(0.f), _Step(0.1), _To(1.0), data(0) {
+GenerateVector::GenerateVector() : _From(0.f), _Step(0.1f), _To(1.0f), data(0) {
   WfeUpdateTimestamp
   setLabel("Gen");
 

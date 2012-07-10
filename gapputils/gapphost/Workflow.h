@@ -39,6 +39,10 @@ class ToolItem;
 class CableItem;
 class ToolConnection;
 
+namespace host {
+class WorkflowUpdater;
+}
+
 namespace workflow {
 
 class Workflow : public QObject, public Node, public CompatibilityChecker, public capputils::TimedClass
@@ -53,23 +57,16 @@ class Workflow : public QObject, public Node, public CompatibilityChecker, publi
   Property(GlobalProperties, std::vector<GlobalProperty*>*)
   Property(GlobalEdges, std::vector<GlobalEdge*>*)
 
-  Property(InputsPosition, std::vector<int>)
-  Property(OutputsPosition, std::vector<int>)
   Property(ViewportScale, double)
   Property(ViewportPosition, std::vector<double>)
-
-  Property(Interface, boost::shared_ptr<gapputils::InterfaceDescription>)
-  Property(InputChecksums, std::vector<checksum_type>)
 
 private:
   Workbench* workbench;
   QTreeView* propertyGrid;
   QFormLayout* infoLayout;
   QWidget* widget;
-  Node inputsNode, outputsNode;
   std::set<std::string> loadedLibraries;
   bool ownWidget,                         ///< True at the beginning. False if widget has been dispensed
-       hasIONodes,                        ///< True if IO nodes are already present.
        processingCombination,             ///< True if in combination mode of a CombinerInterface
        dryrun;                            ///< True if in dry-run mode. This mode calculates checksums only
                                           ///  in order the check if an update of the output parameters is
@@ -79,12 +76,14 @@ private:
   WorkflowWorker* worker;
   std::stack<Node*> nodeStack;
   std::stack<Node*> processedStack;
-  static int librariesId, interfaceId;
+  std::set<Node*> processedNodes;
+  static int librariesId;
   QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal;
   Node* progressNode;
   LinearRegression etaRegression;
   time_t startTime;
   std::vector<Node*> interfaceNodes;
+  boost::shared_ptr<host::WorkflowUpdater> workflowUpdater;
 
 public:
   Workflow();
@@ -96,9 +95,13 @@ public:
   void resumeViewport();
   void resumeNode(Node* node);
 
+  bool isInputNode(const Node* node) const;
+  bool isOutputNode(const Node* node) const;
+  void getDependentNodes(Node* node, std::vector<Node*>& dependendNodes);
+  bool isDependentProperty(const Node* node, const std::string& propertyName) const;
+
   /// The workflow loses ownership of the widget when calling this method
   QWidget* dispenseWidget();
-  //TiXmlElement* getXml(bool addEmptyModule = true) const;
 
   /// This call is asynchronous. updateFinished signal is emitted when done.
   void updateCurrentModule();
@@ -114,16 +117,18 @@ public:
   void abortUpdate();
   void processStack();
   void buildStack(Node* node);
-  void load(const std::string& filename);
+  //void load(const std::string& filename);
 
   void copySelectedNodesToClipboard();
   void addNodesFromClipboard();
 
   void addInterfaceNode(Node* node);
   void removeInterfaceNode(Node* node);
+  bool hasCollectionElementInterface() const;
 
   // id is as set by ToolItem (propertyCount + pos + 1)
   const Node* getInterfaceNode(int id) const;
+  std::vector<Node*>& getInterfaceNodes();
 
   /// Returns the name of the property if connectionId refers to a property of the
   /// workflows module. Otherwise, it is assumed that connectionId refers to an
@@ -131,20 +136,10 @@ public:
   /// If the connectionId is not valid, an empty string is returned.
   std::string getPropertyName(const Node* node, int connectionId) const;
   virtual PropertyReference* getPropertyReference(const std::string& propertyName);
+  virtual ConstPropertyReference* getPropertyReference(const std::string& propertyName) const;
 
   /// Returns the true if the propertyName was found
   bool getToolConnectionId(const Node* node, const std::string& propertyName, unsigned& id) const;
-
-  /**
-   * \brief Recursively updates the checksums of all nodes in all sub workflows
-   *
-   * \param[in] inputChecksums  String containing the concatenation of all direct input checksums
-   *
-   * This method builds a stack of nodes and updates the checksums of all nodes in this order.
-   * It calls the node's updateChecksums(string) method.
-   */
-  virtual void updateChecksum(const std::vector<checksum_type>& inputChecksums);
-  void updateChecksum(const std::vector<checksum_type>& inputChecksums, Node* node);
 
   virtual void updateCache();
   virtual bool restoreFromCache();
@@ -212,15 +207,8 @@ public:
 
   void activateGlobalEdge(GlobalEdge* edge);
 
-  std::string getPrefix();
-  std::string getLibraryName();
-  std::string getInterfaceName();
-  void updateInterfaceTimeStamp();
-
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
-  void createAndLoadAdhocModule();
-
 
 private Q_SLOTS:
   void createModule(int x, int y, QString classname);
@@ -247,6 +235,8 @@ private Q_SLOTS:
   void removePropertyFromGlobal();
   void connectProperty();
   void disconnectProperty();
+
+  void workflowUpdateFinished();
 
 Q_SIGNALS:
   void updateFinished(workflow::Node* node);

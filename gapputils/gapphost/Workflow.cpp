@@ -45,6 +45,7 @@
 #include <gapputils/WorkflowInterface.h>
 #include <gapputils/LabelAttribute.h>
 #include <gapputils/InterfaceAttribute.h>
+#include <gapputils/CollectionElement.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/units/detail/utility.hpp>
@@ -54,19 +55,20 @@
 #include <iomanip>
 
 #include "PropertyGridDelegate.h"
-#include "CustomToolItemAttribute.h"
-#include "InputsItem.h"
-#include "OutputsItem.h"
 #include "CableItem.h"
 #include "Workbench.h"
 #include "WorkflowItem.h"
 #include "PropertyReference.h"
 #include "MakeGlobalDialog.h"
 #include "PopUpList.h"
-#include "XslTransformation.h"
 
 #include "DataModel.h"
 #include "MainWindow.h"
+
+// TODO: shouldn't reference the controller
+#include "WorkflowController.h"
+#include "ChecksumUpdater.h"
+#include "WorkflowUpdater.h"
 
 using namespace capputils;
 using namespace capputils::reflection;
@@ -80,16 +82,11 @@ using namespace attributes;
 namespace workflow {
 
 int Workflow::librariesId;
-int Workflow::interfaceId;
 
 BeginPropertyDefinitions(Workflow)
 
 // Libraries must be the first property since libraries must be loaded before all other modules
 DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Observe(librariesId = PROPERTY_ID))
-
-// Same is true for interfaces, since interfaces are used to build libraries which must be loaded before
-// all other modules
-ReflectableProperty(Interface, Observe(interfaceId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 // Add Properties of node after libraries (module could be an object of a class of one of the libraries)
 ReflectableBase(Node)
@@ -98,11 +95,8 @@ DefineProperty(Edges, Enumerable<vector<Edge*>*, true>())
 DefineProperty(Nodes, Enumerable<vector<Node*>*, true>())
 DefineProperty(GlobalProperties, Enumerable<vector<GlobalProperty*>*, true>())
 DefineProperty(GlobalEdges, Enumerable<vector<GlobalEdge*>*, true>())
-DefineProperty(InputsPosition)
-DefineProperty(OutputsPosition)
 DefineProperty(ViewportScale)
 DefineProperty(ViewportPosition)
-DefineProperty(InputChecksums)
 
 EndPropertyDefinitions
 
@@ -126,8 +120,8 @@ EndPropertyDefinitions
  */
 
 Workflow::Workflow()
- : _InputsPosition(0), _OutputsPosition(0), _ViewportScale(1.0), ownWidget(true), hasIONodes(false),
-   processingCombination(false), dryrun(false), worker(0), progressNode(0)
+ : _ViewportScale(1.0), ownWidget(true),
+   processingCombination(false), dryrun(false), worker(0), progressNode(0), workflowUpdater(new host::WorkflowUpdater())
 {
   _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
@@ -135,17 +129,8 @@ Workflow::Workflow()
   _GlobalProperties = new vector<GlobalProperty*>();
   _GlobalEdges = new vector<GlobalEdge*>();
 
-  _InputsPosition.push_back(500);
-  _InputsPosition.push_back(200);
-
-  _OutputsPosition.push_back(1400);
-  _OutputsPosition.push_back(200);
-
   _ViewportPosition.push_back(0);
   _ViewportPosition.push_back(0);
-
-  inputsNode.setUuid("Inputs");
-  outputsNode.setUuid("Outputs");
 
   workbench = new Workbench();
   workbench->setGeometry(0, 0, 600, 600);
@@ -193,6 +178,9 @@ Workflow::Workflow()
   connect(workbench, SIGNAL(connectionRemoved(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
   connect(workbench, SIGNAL(viewportChanged()), this, SLOT(handleViewportChanged()));
 
+  connect(workflowUpdater.get(), SIGNAL(progressed(workflow::Node*, double, bool)), this, SLOT(showProgress(workflow::Node*, double, bool)));
+  connect(workflowUpdater.get(), SIGNAL(updateFinished()), this, SLOT(workflowUpdateFinished()));
+
   worker = new WorkflowWorker(this);
   worker->start();
 
@@ -217,8 +205,6 @@ Workflow::~Workflow() {
 
   if (ownWidget) {
     delete widget;
-    inputsNode.setToolItem(0);
-    outputsNode.setToolItem(0);
   }
 
   for (unsigned i = 0; i < _Edges->size(); ++i)
@@ -243,9 +229,6 @@ Workflow::~Workflow() {
     delete _GlobalProperties->at(i);
   delete _GlobalProperties;
 
-  inputsNode.setModule(0);
-  outputsNode.setModule(0);
-
   // Don't delete module before setting it to zero
   // The module property is observed and reflectable. Thus, when resetting
   // the module, the event listener is disconnected from the old module.
@@ -255,11 +238,6 @@ Workflow::~Workflow() {
   setModule(0);
   if (module)
     delete module;
-
-  // Unload interface library
-  if (getInterface()) {
-    loader.freeLibrary(getLibraryName());
-  }
 
   // Unload libraries
   for (unsigned i = 0; i < _Libraries->size(); ++i) {
@@ -403,12 +381,24 @@ void Workflow::removeInterfaceNode(Node* node) {
   }
 }
 
+bool Workflow::hasCollectionElementInterface() const {
+  CollectionElement* collection = 0;
+  for (unsigned i = 0; i < interfaceNodes.size(); ++i)
+    if ((collection = dynamic_cast<CollectionElement*>(interfaceNodes[i]->getModule())) && collection->getCalculateCombinations())
+      return true;
+  return false;
+}
+
 const Node* Workflow::getInterfaceNode(int id) const {
   assert(getModule());
   const int pos = id - getModule()->getProperties().size();
   if (pos >= 0 && (unsigned)pos < interfaceNodes.size())
     return interfaceNodes[pos];
   return 0;
+}
+
+std::vector<Node*>& Workflow::getInterfaceNodes() {
+  return interfaceNodes;
 }
 
 QLabel* createTopAlignedLabel(const std::string& text) {
@@ -744,21 +734,6 @@ void Workflow::createModule(int x, int y, QString classname) {
   newItem(node);
 }
 
-/*TiXmlElement* Workflow::getXml(bool addEmptyModule) const {
-  TiXmlElement* element = new TiXmlElement(makeXmlName(getClassName()));
-  Xmlizer::AddPropertyToXml(*element, *this, findProperty("Libraries"));
-  Xmlizer::AddPropertyToXml(*element, *this, findProperty("Edges"));
-  Xmlizer::AddPropertyToXml(*element, *this, findProperty("Nodes"));
-  Xmlizer::AddPropertyToXml(*element, *this, findProperty("InputsPosition"));
-  Xmlizer::AddPropertyToXml(*element, *this, findProperty("OutputsPosition"));
-  if (addEmptyModule) {
-    TiXmlElement* moduleElement = new TiXmlElement("Module");
-    moduleElement->LinkEndChild(new TiXmlElement(makeXmlName(getModule()->getClassName())));
-    element->LinkEndChild(moduleElement);
-  }
-  return element;
-}*/
-
 const std::string& getPropertyLabel(IClassProperty* prop) {
   ShortNameAttribute* shortName = prop->getAttribute<ShortNameAttribute>();
   if (shortName) {
@@ -769,7 +744,7 @@ const std::string& getPropertyLabel(IClassProperty* prop) {
 
 void Workflow::newItem(Node* node) {
   ToolItem* item;
-  ICustomToolItemAttribute* customToolItem = node->getModule()->getAttribute<ICustomToolItemAttribute>();
+  assert(node->getModule());
 
   // Get the label
   string label = string("[") + node->getModule()->getClassName() + "]";
@@ -793,47 +768,21 @@ void Workflow::newItem(Node* node) {
       if (prop->getAttribute<OutputAttribute>() && !prop->getAttribute<ToEnumerableAttribute>())
         item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
     }
-  } else if (node == &inputsNode) {
-    item = new ToolItem("Inputs");
-    item->setDeletable(false);
+  } else if (node->getModule()->getAttribute<InterfaceAttribute>()) {
+    item = new ToolItem(label);
+    connect(item, SIGNAL(showDialogRequested(ToolItem*)), this, SLOT(showModuleDialog(ToolItem*)));
 
-    std::set<int> linkedEnumerables;
-
-    if (dynamic_cast<CombinerInterface*>(getModule())) {
-      FromEnumerableAttribute* fromEnum = 0;
-      for (unsigned i = 0; i < properties.size(); ++i) {
-        IClassProperty* prop = properties[i];
-        if ((fromEnum = prop->getAttribute<FromEnumerableAttribute>())) {
-          linkedEnumerables.insert(fromEnum->getEnumerablePropertyId());
-        }
-      }
-    }
-
+    // Search for the value property and add it. Don't add any other stuff
     for (unsigned i = 0; i < properties.size(); ++i) {
       IClassProperty* prop = properties[i];
-      if (prop->getAttribute<InputAttribute>() && linkedEnumerables.find(i) == linkedEnumerables.end())
-        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
-    }
-  } else if (node == &outputsNode) {
-    item = new ToolItem("Outputs");
-    item->setDeletable(false);
-
-    std::set<int> linkedEnumerables;
-    ToEnumerableAttribute* toEnum = 0;
-    for (unsigned i = 0; i < properties.size(); ++i) {
-      IClassProperty* prop = properties[i];
-      if ((toEnum = prop->getAttribute<ToEnumerableAttribute>())) {
-        linkedEnumerables.insert(toEnum->getEnumerablePropertyId());
-      }
-    }
-
-    for (unsigned i = 0; i < properties.size(); ++i) {
-      IClassProperty* prop = properties[i];
-      if (prop->getAttribute<OutputAttribute>() && linkedEnumerables.find(i) == linkedEnumerables.end())
+      //if (prop->getName() != "Value")
+      //  continue;
+      if (prop->getAttribute<InputAttribute>())
         item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
+      if (prop->getAttribute<OutputAttribute>())
+        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
+      //break;
     }
-  } else if (customToolItem) {
-    item = customToolItem->createToolItem(label);
   } else {
     item = new ToolItem(label);
     connect(item, SIGNAL(showDialogRequested(ToolItem*)), this, SLOT(showModuleDialog(ToolItem*)));
@@ -865,11 +814,6 @@ bool Workflow::newCable(Edge* edge) {
   vector<Node*>* nodes = getNodes();
 
   Node *outputNode = 0, *inputNode = 0;
-
-  if (inputsNode.getUuid().compare(outputNodeUuid) == 0)
-    outputNode = &inputsNode;
-  if (outputsNode.getUuid().compare(inputNodeUuid) == 0)
-    inputNode = &outputsNode;
 
   for (unsigned i = 0; i < nodes->size(); ++i) {
     if (nodes->at(i)->getUuid().compare(outputNodeUuid) == 0)
@@ -928,99 +872,11 @@ string replaceAll(const string& context, const string& from, const string& to)
   return str;
 }
 
-std::string Workflow::getPrefix() {
-  if (getInterface())
-    return string(".gapphost/") + getInterface()->getName();
-  return string(".gapphost/") + getUuid();
-}
-
-std::string Workflow::getLibraryName() {
-  return getPrefix() + ".so";
-}
-
-std::string Workflow::getInterfaceName() {
-  return string("Interface_") + replaceAll(getUuid(), "-", "");
-}
-
-void Workflow::createAndLoadAdhocModule() {
-  using namespace gapputils::host::internal;
-  time_t libTime, interfaceTime;
-  gapputils::host::DataModel& model = gapputils::host::DataModel::getInstance();
-  gapputils::host::BuilderSettings& builderSettings = *model.getBuilderSettings();
-  gapputils::host::XsltSettings& xsltSettings = *model.getXsltSettings();
-
-  if (!boost::filesystem::exists(getLibraryName().c_str()) ||
-      ((libTime = boost::filesystem::last_write_time(getLibraryName().c_str())) < (interfaceTime = getTime(interfaceId))))
-  {
-    //getInterface()->setName(getInterfaceName());
-    string prefix = getPrefix();
-    Xmlizer::ToXml(prefix + ".xml", *getInterface());
-
-    capputils::Executer xslt;
-    xslt.getCommand() << xsltSettings.getCommandName() << " "
-                      << xsltSettings.getInputSwitch() << "\"" << prefix << ".xml\" "
-                      << xsltSettings.getOutputSwitch() << "\"" << prefix << ".cpp\" "
-                      << xsltSettings.getXsltSwitch() << "\"" << model.getConfigurationDirectory() << "/";
-    if (getInterface()->getIsCombinerInterface())
-      xslt.getCommand() << xsltSettings.getCombinerInterfaceStyleSheetName() << "\"";
-    else
-      xslt.getCommand() << xsltSettings.getStandardInterfaceStyleSheetName() << "\"";
-    cout << "[Info] " << xslt.getCommandString() << endl;
-    if (xslt.execute()) {
-      cout << "[Error] Xsl transformation failed: " << xslt.getOutput() << endl;
-      return;
-    }
-
-    capputils::Executer build;
-    build.getCommand() << builderSettings.getCompilerName();
-
-    std::vector<std::string>& flags = *builderSettings.getCompilerFlags();
-    for (unsigned i = 0; i < flags.size(); ++i)
-      build.getCommand() << " " << flags[i];
-
-    std::vector<std::string>& includeDirs = *builderSettings.getIncludeDirectories();
-    for (unsigned i = 0; i < includeDirs.size(); ++i)
-      build.getCommand() << " " << builderSettings.getIncludeSwitch() << "\"" << includeDirs[i] << "\"";
-
-    build.getCommand() << " " << prefix << ".cpp " << builderSettings.getOutputSwitch() << getLibraryName();
-
-    cout << "[Info] " << build.getCommandString() << endl;
-    if (build.execute()) {
-      // TODO: report error
-      cout << "[Error] Compilation failed: " << build.getOutput() << endl;
-      return;
-    }
-  }
-
-  LibraryLoader::getInstance().loadLibrary(getLibraryName());
-  ReflectableClass* module = getModule();
-  setModule(ReflectableClassFactory::getInstance().newInstance(string("gapputils::host::internal::") + getInterface()->getName()));
-  inputsNode.setModule(getModule());
-  outputsNode.setModule(getModule());
-  if (module)
-    delete module;
-}
-
 void Workflow::resume() {
   map<string, Workflow*>* workflowMap = host::DataModel::getInstance().getWorkflowMap().get();
   //assert(workflowMap->find(getUuid()) == workflowMap->end());
   if (workflowMap->find(getUuid()) == workflowMap->end())
     workflowMap->insert(pair<string, Workflow*>(getUuid(), this));
-
-  if (!hasIONodes) {
-    hasIONodes = true;
-    inputsNode.setModule(getModule());
-    inputsNode.setX(getInputsPosition()[0]);
-    inputsNode.setY(getInputsPosition()[1]);
-    inputsNode.setWorkflow(this);
-    outputsNode.setModule(getModule());
-    outputsNode.setX(getOutputsPosition()[0]);
-    outputsNode.setY(getOutputsPosition()[1]);
-    outputsNode.setWorkflow(this);
-
-    newItem(&inputsNode);
-    newItem(&outputsNode);
-  }
 
   vector<Node*>* nodes = getNodes();
   vector<Edge*>* edges = getEdges();
@@ -1042,7 +898,7 @@ void Workflow::resume() {
     if (!activateGlobalProperty(globals->at(i))) {
       cout << "[Info] Removing global property." << endl;
       removeGlobalProperty(globals->at(i));
-      --i; // because there is now one less gprob
+      --i; // because there are now one less gprob
     }
   }
 
@@ -1051,6 +907,20 @@ void Workflow::resume() {
 
   for (unsigned i = 0; i < nodes->size(); ++i)
     nodes->at(i)->resumeExpressions();
+
+  // reset output checksum if at least one volatile output node
+  for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+    IClassProperty* prop = interfaceNodes[i]->getModule()->findProperty("Value");
+    if (prop && prop->getAttribute<InputAttribute>() && prop->getAttribute<VolatileAttribute>()) {
+      setOutputChecksum(0);
+      break;
+    }
+    prop = interfaceNodes[i]->getModule()->findProperty("Values");
+    if (prop && prop->getAttribute<InputAttribute>() && prop->getAttribute<VolatileAttribute>()) {
+      setOutputChecksum(0);
+      break;
+    }
+  }
 }
 
 void Workflow::resumeNode(Node* node) {
@@ -1099,13 +969,7 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
     {
       loader.freeLibrary(*pos);
     }
-  } else if (eventId == interfaceId && getInterface()) {
-    createAndLoadAdhocModule();
   }
-}
-
-void Workflow::updateInterfaceTimeStamp() {
-  setCurrentTime(interfaceId);
 }
 
 void Workflow::itemSelected(ToolItem* item) {
@@ -1123,18 +987,6 @@ void Workflow::itemChangedHandler(ToolItem* item) {
   if (node) {
     node->setX(item->x());
     node->setY(item->y());
-  }
-
-  if (node == &inputsNode) {
-    vector<int> pos;
-    pos.push_back(item->x());
-    pos.push_back(item->y());
-    setInputsPosition(pos);
-  } else if (node == &outputsNode) {
-    vector<int> pos;
-    pos.push_back(item->x());
-    pos.push_back(item->y());
-    setOutputsPosition(pos);
   }
 }
 
@@ -1270,8 +1122,13 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
     if (workflow) {
       outputNode = workflow->getInterfaceNode(output->id);
       assert(outputNode->getModule());
-      if (!outputNode->getModule()->getPropertyIndex(outputId, "Value"))
-        outputNode = 0;
+      if (dynamic_cast<CollectionElement*>(outputNode->getModule())) {
+        if (!outputNode->getModule()->getPropertyIndex(outputId, "Values"))
+          outputNode = 0;
+      } else {
+        if (!outputNode->getModule()->getPropertyIndex(outputId, "Value"))
+          outputNode = 0;
+      }
     } else {
       outputNode = 0;
     }
@@ -1285,8 +1142,13 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
     if (workflow) {
       inputNode = workflow->getInterfaceNode(input->id);
       assert(inputNode->getModule());
-      if (!inputNode->getModule()->getPropertyIndex(inputId, "Value"))
-        inputNode = 0;
+      if (dynamic_cast<CollectionElement*>(outputNode->getModule())) {
+        if (!inputNode->getModule()->getPropertyIndex(inputId, "Values"))
+          inputNode = 0;
+      } else {
+        if (!inputNode->getModule()->getPropertyIndex(inputId, "Value"))
+          inputNode = 0;
+      }
     } else {
       inputNode = 0;
     }
@@ -1302,6 +1164,111 @@ void Workflow::deleteEdge(CableItem* cable) {
     delete edge;
     _Edges->erase(_Edges->begin() + pos);
   }
+}
+
+bool Workflow::isInputNode(const Node* node) const {
+  if (!node)
+    return false;
+
+  ReflectableClass* module = node->getModule();
+
+  if (!module)
+    return false;
+
+  return module->getAttribute<InterfaceAttribute>() && module->findProperty("Value")->getAttribute<OutputAttribute>();
+}
+
+bool Workflow::isOutputNode(const Node* node) const {
+  if (!node)
+    return false;
+
+  ReflectableClass* module = node->getModule();
+
+  if (!module)
+    return false;
+
+  return module->getAttribute<InterfaceAttribute>() && module->findProperty("Value")->getAttribute<InputAttribute>();
+}
+
+void Workflow::getDependentNodes(Node* node, std::vector<Node*>& dependendNodes) {
+  // If input node see to which node of the parent workflow this node is connected
+  if (isInputNode(node)) {
+    Workflow* workflow = getWorkflow();
+    if (workflow) {
+      {vector<Edge*>* edges = workflow->getEdges();
+      for (unsigned i = 0; i < edges->size(); ++i) {
+        Edge* edge = edges->at(i);
+        if (edge->getInputNode() == getUuid() && edge->getInputProperty() == node->getUuid())
+          dependendNodes.push_back(workflow->getNode(edge->getOutputNode()));
+      }}
+
+      {vector<GlobalEdge*>* gedges = workflow->getGlobalEdges();
+      for (unsigned i = 0; i < gedges->size(); ++i) {
+        GlobalEdge* gedge = gedges->at(i);
+        if (gedge->getInputNode() == getUuid() && gedge->getInputProperty() == node->getUuid())
+          dependendNodes.push_back(workflow->getNode(gedge->getOutputNode()));
+      }}
+    }
+  } else {
+    vector<Edge*>* edges = getEdges();
+    for (unsigned i = 0; i < edges->size(); ++i) {
+      Edge* edge = edges->at(i);
+      if (edge->getInputNode() == node->getUuid()) {
+        // TODO: check that the property does not have the NoParameter attribute
+        dependendNodes.push_back(getNode(edge->getOutputNode()));
+      }
+    }
+
+    vector<GlobalEdge*>* gedges = getGlobalEdges();
+    for (unsigned i = 0; i < gedges->size(); ++i) {
+      GlobalEdge* gedge = gedges->at(i);
+      if (gedge->getInputNode() == node->getUuid()) {
+        // TODO: check that the property does not have the NoParameter attribute
+        dependendNodes.push_back(getNode(gedge->getOutputNode()));
+      }
+    }
+  }
+}
+
+bool Workflow::isDependentProperty(const Node* node, const std::string& propertyName) const {
+  if (isInputNode(node)) {
+    Workflow* workflow = getWorkflow();
+    if (workflow && propertyName == "Value") {
+      vector<Edge*>* edges = workflow->getEdges();
+      for (unsigned i = 0; i < edges->size(); ++i) {
+        Edge* edge = edges->at(i);
+        if (edge->getInputNode() == getUuid() && edge->getInputProperty() == node->getUuid())
+          return true;
+      }
+
+      vector<GlobalEdge*>* gedges = workflow->getGlobalEdges();
+      for (unsigned i = 0; i < gedges->size(); ++i) {
+        GlobalEdge* gedge = gedges->at(i);
+        if (gedge->getInputNode() == getUuid() && gedge->getInputProperty() == node->getUuid())
+          return true;
+      }
+    }
+  } else {
+    vector<Edge*>* edges = getEdges();
+    for (unsigned i = 0; i < edges->size(); ++i) {
+      Edge* edge = edges->at(i);
+      if (edge->getInputNode() == node->getUuid() && edge->getInputProperty() == propertyName)
+        return true;
+    }
+
+    vector<GlobalEdge*>* gedges = getGlobalEdges();
+    for (unsigned i = 0; i < gedges->size(); ++i) {
+      GlobalEdge* gedge = gedges->at(i);
+      if (gedge->getInputNode() == node->getUuid() && gedge->getInputProperty() == propertyName)
+        return true;
+    }
+  }
+  ConstPropertyReference* ref = node->getPropertyReference(propertyName);
+  const CollectionElement* collection = dynamic_cast<const CollectionElement*>(node->getModule());
+  if (ref && ref->getProperty() && ref->getProperty()->getAttribute<FromEnumerableAttribute>() && collection && collection->getCalculateCombinations())
+    return true;
+
+  return false;
 }
 
 void Workflow::buildStack(Node* node) {
@@ -1332,43 +1299,28 @@ void Workflow::buildStack(Node* node) {
 }
 
 void Workflow::updateCurrentModule() {
-  //return;
-
-  //cout << "[" << QThread::currentThreadId() << "] " << "Update selected module" << endl;
+  
   // build stack
   Node* node = getNode(workbench->getCurrentItem());
   if (!node)
     return;
 
-  if (host::DataModel::getInstance().getMainWorkflow() == this) {
-    ReflectableClass* module = getModule();
-    CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(module);
-    std::vector<checksum_type> checksums;
-    if (module) {
-      const std::vector<IClassProperty*>& properties = module->getProperties();
-      for (unsigned i = 0; i < properties.size(); ++i) {
-//        std::cout << properties[i]->getName() << std::endl;
-        if (properties[i]->getAttribute<InputAttribute>() &&
-            (!combiner || !properties[i]->getAttribute<FromEnumerableAttribute>()))
-        {
-          int cs = getChecksum(properties[i], *module);
-          checksums.push_back(cs);
-        }
-      }
-    }
-    updateChecksum(checksums, node);
-  } else {
-    updateChecksum(getInputChecksums(), node);
-  }
+  // update checksums before updating the workflow
+  host::ChecksumUpdater updater;
+  updater.update(node);
+  workflowUpdater->update(node);
+}
 
-  buildStack(node);
-  processStack();
+void Workflow::workflowUpdateFinished() {
+  for (std::set<Node*>::iterator iter = processedNodes.begin(); iter != processedNodes.end(); ++iter)
+    (*iter)->getToolItem()->setProgress(ToolItem::Neutral);
+  processedNodes.clear();
+
+  Q_EMIT updateFinished(this);
 }
 
 Workflow* Workflow::getCurrentWorkflow() {
   Node* node = getNode(workbench->getCurrentItem());
-  if (node == &inputsNode || node == &outputsNode)
-    return this;
   return dynamic_cast<Workflow*>(node);
 }
 
@@ -1376,33 +1328,18 @@ void Workflow::updateOutputs(bool updateNodes) {
   // if multiple interface
   //  - clear multiple outputs
   //  - reset combinations iterator
-  if (host::DataModel::getInstance().getMainWorkflow() == this) {
-    ReflectableClass* module = getModule();
-    CombinerInterface* combiner = dynamic_cast<CombinerInterface*>(module);
-    std::vector<checksum_type> checksums;
-    if (module) {
-      const std::vector<IClassProperty*>& properties = module->getProperties();
-      for (unsigned i = 0; i < properties.size(); ++i) {
-//        std::cout << properties[i]->getName() << std::endl;
-        if (properties[i]->getAttribute<InputAttribute>() &&
-            (!combiner || !properties[i]->getAttribute<FromEnumerableAttribute>()))
-        {
-          int cs = getChecksum(properties[i], *module);
-          checksums.push_back(cs);
-        }
-      }
-    }
-    updateChecksum(checksums);
-  } else {
-    updateChecksum(getInputChecksums());
-  }
 
-  if (!updateNodes && isUpToDate()) {
+  // update checksums before updating workflow
+  host::ChecksumUpdater updater;
+  updater.update(this);
+  workflowUpdater->update(this);
+
+  /*if (!updateNodes && isUpToDate()) {
     processStack();         ///< This emits the finished signal
     return;
   }
 
-  this->updateNodes();
+  this->updateNodes();*/
 }
 
 void Workflow::abortUpdate() {
@@ -1415,6 +1352,7 @@ void Workflow::abortUpdate() {
     processedStack.push(node);
   }
   worker->abort();
+  workflowUpdater->abort();
 }
 
 void Workflow::updateNodes() {
@@ -1427,7 +1365,6 @@ void Workflow::updateNodes() {
       return;
     }
   }
-  buildStack(&outputsNode);
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
     // TODO: check if this builds a correct stack
     if (interfaceNodes[i]->getModule()->findProperty("Value")->getAttribute<InputAttribute>())
@@ -1483,7 +1420,8 @@ void Workflow::processStack() {
       ToolItem* item = getToolItem();
       if (item)
         item->setProgress(combiner->getProgress());
-      buildStack(&outputsNode);
+      // TODO: rethink combiner stuff
+//      buildStack(&outputsNode);
       processStack();
       return;       // return here. otherwise update finished is emitted.
     }
@@ -1504,13 +1442,9 @@ void Workflow::finalizeModuleUpdate(Node* node) {
     node->writeResults();
   }
   node->getToolItem()->setProgress(100);
-  if (node == &outputsNode) {
-    // The output checksum of current workflow to its input checksum
-    setOutputChecksum(getInputChecksum());
-  } else {
-    // Set output checksum of node to its input checksum
-    node->setOutputChecksum(node->getInputChecksum());
-  }
+  
+  // Set output checksum of node to its input checksum
+  node->setOutputChecksum(node->getInputChecksum());
 
   // processStack (will emit updateFinished signal)
   processStack();
@@ -1555,6 +1489,7 @@ void Workflow::showProgress(Node* node, double progress, bool updateNode) {
   if (updateNode) {
     node->writeResults();
   }
+  processedNodes.insert(node);
 
   // TODO: Implement the ETA feature. A timer updates passed time and remaining time.
   //       This function updates estimates total time and time and date when the operation
@@ -1618,101 +1553,8 @@ void Workflow::update(IProgressMonitor*, bool) {
 void Workflow::writeResults() {
 }
 
-void Workflow::updateChecksum(const std::vector<checksum_type>& inputChecksums) {
-  updateChecksum(inputChecksums, &outputsNode);
-}
-
-void Workflow::updateChecksum(const std::vector<checksum_type>& inputChecksums, Node* node) {
-  setInputChecksums(inputChecksums);
-  buildStack(node);
-  while (!nodeStack.empty()) {
-    Node* node = nodeStack.top();
-    nodeStack.pop();
-
-    if (node == &inputsNode) {
-      node->updateChecksum(inputChecksums);
-    } else {
-
-      // Collect checksums of all direct inputs
-      std::vector<checksum_type> checksums;
-      vector<Edge*>* edges = getEdges();
-      std::set<std::string> connectedProperties;
-      for (int j = (int)edges->size() - 1; j >= 0; --j) {
-        Edge* edge = edges->at(j);
-        if (edge->getInputNode() == node->getUuid()) {
-          Node* outputNode = getNode(edge->getOutputNode());
-          if (outputNode) {
-            checksums.push_back(outputNode->getInputChecksum());
-            connectedProperties.insert(edge->getInputProperty());
-          }
-        }
-      }
-
-      // Collect checksums of all unconnected input properties
-      if (node != &outputsNode) {
-        ReflectableClass* module = node->getModule();
-        if (module) {
-          const std::vector<IClassProperty*>& properties = module->getProperties();
-          for (unsigned i = 0; i < properties.size(); ++i) {
-            // Ignore it if it is not an input or a connected input
-            if (!properties[i]->getAttribute<InputAttribute>() ||
-                properties[i]->getAttribute<FromEnumerableAttribute>() ||
-                connectedProperties.find(properties[i]->getName()) != connectedProperties.end())
-            {
-              continue;
-            }
-            std::cout << "[Checksum Module] Found unconnected input property: " << properties[i]->getName() << std::endl;
-
-            int cs = Node::getChecksum(properties[i], *module);
-            checksums.push_back(cs);
-          }
-        }
-      }
-
-      node->updateChecksum(checksums);
-    }
-
-    if (node == &outputsNode) {
-      setInputChecksum(node->getInputChecksum());
-    }
-  }
-}
-
 void Workflow::delegateDeleteCalled(workflow::Workflow* workflow) {
   Q_EMIT deleteCalled(workflow);
-}
-
-void Workflow::load(const string& filename) {
-  // Delete all current nodes, edges
-  // Load model data from xml file (only selected properties)
-  // Replace workflows's uuid with new uuid (also in interface name
-  // resume
-  while (_Edges->size()) {
-    CableItem* cable = _Edges->at(0)->getCableItem();
-    removeEdge(_Edges->at(0));
-    if (cable)
-      workbench->removeCableItem(cable);
-  }
-
-  while (_Nodes->size()) {
-    ToolItem* item = _Nodes->at(0)->getToolItem();
-    deleteModule(item);
-    if (item)
-      workbench->removeToolItem(item);
-  }
-
-  Xmlizer::GetPropertyFromXml(*this, findProperty("Libraries"), filename);
-  Xmlizer::GetPropertyFromXml(*this, findProperty("Interface"), filename);
-  Xmlizer::GetPropertyFromXml(*this, findProperty("Nodes"), filename);
-  Xmlizer::GetPropertyFromXml(*this, findProperty("Edges"), filename);
-  Xmlizer::GetPropertyFromXml(*this, findProperty("GlobalProperties"), filename);
-  Xmlizer::GetPropertyFromXml(*this, findProperty("GlobalEdges"), filename);
-
-  InterfaceDescription* interface = getInterface().get();
-  if (interface)
-    interface->setName(getInterfaceName());
-
-  gapputils::host::DataModel::getInstance().getMainWindow()->reload();
 }
 
 void Workflow::copySelectedNodesToClipboard() {
@@ -1727,7 +1569,7 @@ void Workflow::copySelectedNodesToClipboard() {
     if (toolItem) {
       Node* node = getNode(toolItem);
       // TODO: Workflows are not copied unless renewUuid() is fully implemented
-      if (toolItem->isDeletable() && !dynamic_cast<Workflow*>(node)) {
+      if (!dynamic_cast<Workflow*>(node)) {
         nodes->push_back(node);
         copied.insert(node->getUuid());
       }
@@ -1766,7 +1608,7 @@ void renewUuids(Workflow& workflow) {
       uuidMap[uuid] = Node::CreateUuid();
     node.setUuid(uuidMap[uuid]);
 
-    // Not implemented unless the ID change is applied to all
+    // TODO: Not implemented unless the ID change is applied to all
     // occurances of an UUID in the workflow
 //    Workflow* subworkflow = dynamic_cast<Workflow*>(&node);
 //    if (subworkflow)
@@ -1832,13 +1674,7 @@ void Workflow::setUiEnabled(bool enabled) {
 
 Node* Workflow::getNode(ToolItem* item) {
   unsigned pos;
-
-  if (item == inputsNode.getToolItem())
-    return &inputsNode;
-  else if (item == outputsNode.getToolItem())
-    return &outputsNode;
-  else
-    return getNode(item, pos);
+  return getNode(item, pos);
 }
 
 Node* Workflow::getNode(ToolItem* item, unsigned& pos) {
@@ -1854,12 +1690,7 @@ Node* Workflow::getNode(ToolItem* item, unsigned& pos) {
 
 Node* Workflow::getNode(capputils::reflection::ReflectableClass* object) {
   unsigned pos;
-  if (object == inputsNode.getModule())
-    return &inputsNode;
-  else if (object == outputsNode.getModule())
-    return &outputsNode;
-  else
-    return getNode(object, pos);
+  return getNode(object, pos);
 }
 
 Node* Workflow::getNode(capputils::reflection::ReflectableClass* object, unsigned& pos) {
@@ -1875,11 +1706,6 @@ Node* Workflow::getNode(capputils::reflection::ReflectableClass* object, unsigne
 
 Node* Workflow::getNode(const std::string& uuid) {
   Node* node = 0;
-
-  if (inputsNode.getUuid().compare(uuid) == 0)
-    return &inputsNode;
-  else if (outputsNode.getUuid().compare(uuid) == 0)
-    return &outputsNode;
 
   for(unsigned pos = 0; pos < _Nodes->size(); ++pos) {
     node = _Nodes->at(pos);
@@ -1907,13 +1733,7 @@ Edge* Workflow::getEdge(CableItem* cable, unsigned& pos) {
 
 const Node* Workflow::getNode(ToolItem* item) const {
   unsigned pos;
-
-  if (item == inputsNode.getToolItem())
-    return &inputsNode;
-  else if (item == outputsNode.getToolItem())
-    return &outputsNode;
-  else
-    return getNode(item, pos);
+  return getNode(item, pos);
 }
 
 const Node* Workflow::getNode(ToolItem* item, unsigned& pos) const {
@@ -2027,7 +1847,31 @@ PropertyReference* Workflow::getPropertyReference(const std::string& propertyNam
 
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
     if (interfaceNodes[i]->getUuid() == propertyName) {
-      ref = interfaceNodes[i]->getPropertyReference("Value");
+      if (dynamic_cast<CollectionElement*>(interfaceNodes[i]->getModule()))
+        ref = interfaceNodes[i]->getPropertyReference("Values");
+      else
+        ref = interfaceNodes[i]->getPropertyReference("Value");
+      ref->setNode(this);
+      return ref;
+    }
+  }
+
+  return 0;
+}
+
+ConstPropertyReference* Workflow::getPropertyReference(const std::string& propertyName) const {
+  ConstPropertyReference* ref = Node::getPropertyReference(propertyName);
+
+  if (ref)
+    return ref;
+
+  for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+    if (interfaceNodes[i]->getUuid() == propertyName) {
+      const Node* interfaceNode = interfaceNodes[i];
+      if (dynamic_cast<CollectionElement*>(interfaceNode->getModule()))
+        ref = interfaceNode->getPropertyReference("Values");
+      else
+        ref = interfaceNode->getPropertyReference("Value");
       ref->setNode(this);
       return ref;
     }
@@ -2039,4 +1883,3 @@ PropertyReference* Workflow::getPropertyReference(const std::string& propertyNam
 }
 
 }
-

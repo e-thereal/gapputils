@@ -39,6 +39,8 @@ using namespace std;
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
+#include "TestThread.h"
+
 template<class T>
 void printIt(const T& x) {
   std:: cout << x << " ";
