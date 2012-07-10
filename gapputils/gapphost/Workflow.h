@@ -13,9 +13,7 @@
 #include <qobject.h>
 #include <qwidget.h>
 #include <qaction.h>
-#include <qformlayout.h>
 #include <vector>
-#include <qtreeview.h>
 #include <tinyxml/tinyxml.h>
 #include <set>
 #include "Edge.h"
@@ -59,15 +57,12 @@ class Workflow : public QObject, public Node, public CompatibilityChecker, publi
 
 private:
   Workbench* workbench;
-  QTreeView* propertyGrid;
-  QFormLayout* infoLayout;
   QWidget* widget;
   std::set<std::string> loadedLibraries;
   bool ownWidget;                         ///< True at the beginning. False if widget has been dispensed
 
   std::set<Node*> processedNodes;
   static int librariesId;
-  QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal;
   Node* progressNode;
   LinearRegression etaRegression;
   time_t startTime;
@@ -94,10 +89,6 @@ public:
 
   /// This call is asynchronous. updateFinished signal is emitted when done.
   void updateCurrentModule();
-
-  /**
-   * \brief Updates all outputs
-   */
   void updateOutputs();
   void abortUpdate();
 
@@ -151,6 +142,7 @@ public:
 
   // Returns null if current item is not a workflow
   Workflow* getCurrentWorkflow();
+  Node* getCurrentNode();
 
   virtual bool areCompatibleConnections(const ToolConnection* output, const ToolConnection* input) const;
 
@@ -191,19 +183,13 @@ private Q_SLOTS:
   void delegateDeleteCalled(workflow::Workflow* workflow);
   void handleViewportChanged();
 
-  void showContextMenu(const QPoint &);
-  void gridClicked(const QModelIndex& index);
-  void makePropertyGlobal();
-  void removePropertyFromGlobal();
-  void connectProperty();
-  void disconnectProperty();
-
   void workflowUpdateFinished();
 
 Q_SIGNALS:
   void updateFinished(workflow::Node* node);
   void showWorkflowRequest(workflow::Workflow* workflow);
   void deleteCalled(workflow::Workflow* workflow);
+  void currentModuleChanged(workflow::Node* node);
 };
 
 }

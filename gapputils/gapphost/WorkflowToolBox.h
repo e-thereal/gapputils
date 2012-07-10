@@ -1,0 +1,48 @@
+/*
+ * WorkflowToolBox.h
+ *
+ *  Created on: Jul 10, 2012
+ *      Author: tombr
+ */
+
+#ifndef GAPPUTILS_HOST_WORKFLOWTOOLBOX_H_
+#define GAPPUTILS_HOST_WORKFLOWTOOLBOX_H_
+
+#include <qwidget.h>
+#include <qlineedit.h>
+#include <qtreewidget.h>
+
+#include <vector>
+#include <map>
+#include <boost/shared_ptr.hpp>
+
+namespace gapputils {
+
+namespace host {
+
+class WorkflowToolBox : public QWidget {
+
+  Q_OBJECT
+
+private:
+  QLineEdit* toolBoxFilterEdit;
+  QTreeWidget* toolBox;
+  std::map<QTreeWidgetItem*, boost::shared_ptr<std::vector<QTreeWidgetItem* > > > toolBoxItems;
+
+public:
+  WorkflowToolBox(QWidget * parent = 0);
+  virtual ~WorkflowToolBox();
+
+  void update();
+
+public Q_SLOTS:
+  void focusFilter();
+  void filterToolBox(const QString& text);
+  void itemClickedHandler(QTreeWidgetItem *item, int column);
+};
+
+} /* namespace host */
+
+} /* namespace gapputils */
+
+#endif /* GAPPUTILS_HOST_WORKFLOWTOOLBOX_H_ */

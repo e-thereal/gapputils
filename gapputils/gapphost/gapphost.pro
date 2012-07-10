@@ -37,7 +37,9 @@ SOURCES = main.cpp \
 		  WorkflowController.cpp \
 		  WorkflowUpdater.cpp \
 		  Filenames.cpp \
-		  NodeCache.cpp
+		  NodeCache.cpp \
+		  WorkflowToolBox.cpp \
+		  PropertyGrid.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -56,7 +58,11 @@ HEADERS = MainWindow.h \
           PopUpList.h \
           ToolItem.h \
           EditInterfaceDialog.h \
-          WorkflowUpdater.h
+          WorkflowUpdater.h \
+          WorkflowToolBox.h \
+          PropertyGrid.h
+          
+RESOURCES = res.qrc
           
 CONFIG += no_keywords debug console
 QMAKE_CXXFLAGS += -std=c++0x -pg

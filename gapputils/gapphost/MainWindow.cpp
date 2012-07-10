@@ -12,6 +12,8 @@
 #include <qtreewidget.h>
 #include <qstatusbar.h>
 #include <qlabel.h>
+#include <qdockwidget.h>
+#include <qsettings.h>
 
 #include "DataModel.h"
 #include "Controller.h"
@@ -25,6 +27,9 @@
 #include <iostream>
 #include <boost/typeof/std/utility.hpp>
 
+#include "WorkflowToolBox.h"
+#include "PropertyGrid.h"
+
 using namespace std;
 using namespace capputils;
 
@@ -36,172 +41,6 @@ using namespace workflow;
 
 namespace host {
 
-QTreeWidgetItem* newCategory(const string& name) {
-  QLinearGradient gradient(0, 0, 0, 20);
-  gradient.setColorAt(0, Qt::white);
-  gradient.setColorAt(1, Qt::lightGray);
-
-  QTreeWidgetItem* item = new QTreeWidgetItem(1);
-  item->setBackground(0, gradient);
-  item->setText(0, name.c_str());
-  item->setTextAlignment(0, Qt::AlignHCenter);
-
-  //QFont font = item->font(0);
-  //font.setBold(true);
-  //item->setFont(0, font);
-
-  return item;
-}
-
-QTreeWidgetItem* newTool(const string& name, const string& classname) {
-  QTreeWidgetItem* item = new QTreeWidgetItem();
-  item->setText(0, name.c_str());
-  item->setData(0, Qt::UserRole, QVariant::fromValue(QString(classname.c_str())));
-  
-  return item;
-}
-
-void updateToolBox(QTreeWidget* toolBox, std::map<QTreeWidgetItem*, boost::shared_ptr<std::vector<QTreeWidgetItem*> > >& toolBoxItems) {
-  toolBoxItems.clear();
-
-  toolBox->setIndentation(10);
-  toolBox->setHeaderHidden(true);
-#if TREEVIEW
-  toolBox->setRootIsDecorated(true);
-#else
-  toolBox->setRootIsDecorated(false);
-#endif
-  toolBox->clear();
-
-  reflection::ReflectableClassFactory& factory = reflection::ReflectableClassFactory::getInstance();
-  vector<string> classNames = factory.getClassNames();
-  sort(classNames.begin(), classNames.end());
-
-  QTreeWidgetItem* item = 0;
-  string groupString("");
-  //toolBox->addTopLevelItem(item);
-
-  for (unsigned i = 0; i < classNames.size(); ++i) {
-    string name = classNames[i];
-    string currentGroupString;
-
-#ifdef ONLY_WORKFLOWELEMENTS
-    reflection::ReflectableClass* object = factory.newInstance(name);
-    if (dynamic_cast<WorkflowElement*>(object) == 0 && dynamic_cast<WorkflowInterface*>(object) == 0) {
-      delete object;
-      continue;
-    }
-    delete object;
-#endif
-
-    int pos = name.find_last_of(":");
-    if (pos != (int)string::npos) {
-      currentGroupString = name.substr(0, pos-1);
-    } else {
-      pos = -1;
-    }
-
-    if (!currentGroupString.compare("gapputils::host::internal") ||
-        !currentGroupString.compare("gapputils::workflow"))
-    {
-      continue;
-    }
-
-#ifdef TREEVIEW
-
-    // search for the longest match
-    cout << "GroupString: " << groupString << std::endl;
-    cout << "CurrentString: " << currentGroupString << std::endl;
-
-    int maxPos1 = currentGroupString.find("::");
-    int maxPos2 = groupString.find("::");
-    int maxPos = 0;
-
-    if (maxPos1 == string::npos)
-      maxPos1 = currentGroupString.size();
-
-    if (maxPos2 == string::npos)
-      maxPos2 = groupString.size();
-
-    cout << "Comparing: '" << currentGroupString.substr(0, maxPos1) << "' to '" << groupString.substr(0, maxPos2) << "'" << std::endl;
-
-    while (currentGroupString.substr(0, maxPos1) == groupString.substr(0, maxPos2))
-    {
-      maxPos = maxPos1;
-      if (maxPos1 == currentGroupString.size() ||
-          maxPos2 == groupString.size())
-      {
-        break;
-      }
-
-      maxPos1 = currentGroupString.find("::", maxPos1 + 1);
-      maxPos2 = groupString.find("::", maxPos2 + 1);
-
-      if (maxPos1 == string::npos)
-        maxPos1 = currentGroupString.size();
-
-      if (maxPos2 == string::npos)
-        maxPos2 = groupString.size();
-
-      cout << "Comparing: '" << currentGroupString.substr(0, maxPos1) << "' to '" << groupString.substr(0, maxPos2) << "'" << std::endl;
-    }
-
-    cout << "LongestMatch: " << currentGroupString.substr(0, maxPos) << std::endl;
-
-    // Wie viele colons sind noch im current string drin. Ergo wie oft muss ich zurueck?
-    maxPos2 = maxPos;
-    int backSteps = (groupString.size() == maxPos2 ? 0 : 1);
-    while ((maxPos2 = groupString.find("::", maxPos2 + 1)) != string::npos)
-      ++backSteps;
-    cout << "BackSteps: " << backSteps << std::endl;
-
-    for (int i = 0; i < backSteps && item; ++i)
-      item = item->parent();
-
-    // 
-    maxPos1 = maxPos;
-    if (maxPos1 < currentGroupString.size()) {
-      while ((maxPos1 = currentGroupString.find("::", maxPos1 + 1)) != string::npos) {
-        cout << "New dir: " << currentGroupString.substr(0, maxPos1) << std::endl;
-        QTreeWidgetItem* newItem = newCategory(currentGroupString.substr(0, maxPos1));
-        if (item == 0)
-          toolBox->addTopLevelItem(newItem);
-        else
-          item->addChild(newItem);
-        item = newItem;
-      }
-      cout << "New dir: " << currentGroupString << std::endl;
-      QTreeWidgetItem* newItem = newCategory(currentGroupString);
-      if (item == 0)
-        toolBox->addTopLevelItem(newItem);
-      else
-        item->addChild(newItem);
-      item = newItem;
-    }
-
-    cout << std::endl;
-    groupString = currentGroupString;
-
-#else
-    if (currentGroupString.compare(groupString)) {
-      groupString = currentGroupString;
-      item = newCategory(groupString);
-      toolBox->addTopLevelItem(item);
-      toolBoxItems[item] = boost::shared_ptr<std::vector<QTreeWidgetItem*> >(new std::vector<QTreeWidgetItem*>());
-    }
-#endif
-
-    if (item) {
-      QTreeWidgetItem* toolItem = newTool(name.substr(pos+1), name);
-      toolBoxItems[item]->push_back(toolItem);
-      item->addChild(toolItem);
-    } else {
-      toolBox->addTopLevelItem(newTool(name.substr(pos+1), name));
-    }
-  }
-  //toolBox->expandAll();
-}
-
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
     : QMainWindow(parent, flags), libsChanged(false), autoQuit(false), workingWorkflow(0)
 {
@@ -212,36 +51,12 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
   setWindowIcon(QIcon(":/icons/icon.png"));
 
-  newObjectDialog = new NewObjectDialog();
-
   tabWidget = new QTabWidget();
   tabWidget->setTabsClosable(true);
   connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeWorkflow(int)));
   connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 
-  toolBoxFilterEdit = new QLineEdit();
-
-  toolBox = new QTreeWidget();
-  toolBox->setDragEnabled(true);
-  updateToolBox(toolBox, toolBoxItems);
-  filterToolBox("");
-
-  QVBoxLayout* toolBoxLayout = new QVBoxLayout();
-  //toolBoxLayout->setMargin(5);
-  toolBoxLayout->addWidget(toolBoxFilterEdit);
-  toolBoxLayout->addWidget(toolBox);
-
-  QWidget* toolBoxWidget = new QWidget();
-  toolBoxWidget->setLayout(toolBoxLayout);
-  
-  QSplitter* splitter = new QSplitter(Qt::Horizontal);
-  splitter->addWidget(toolBoxWidget);
-  splitter->addWidget(tabWidget);
-  QList<int> sizes = splitter->sizes();
-  sizes[0] = 180;
-  sizes[1] = 1100;
-  splitter->setSizes(sizes);
-  setCentralWidget(splitter);
+  setCentralWidget(tabWidget);
 
   fileMenu = menuBar()->addMenu("&File");
   fileMenu->addAction("Load Library", this, SLOT(loadLibrary()), QKeySequence(Qt::CTRL + Qt::Key_L));
@@ -259,7 +74,6 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   editMenu->addAction("Copy", this, SLOT(copy()), QKeySequence(Qt::CTRL + Qt::Key_C));
   editMenu->insertSeparator(editMenu->actions().last());
   editMenu->addAction("Paste", this, SLOT(paste()), QKeySequence(Qt::CTRL + Qt::Key_V));
-  editMenu->addAction("Filter", this, SLOT(focusFilter()), QKeySequence(Qt::CTRL + Qt::Key_F));
 
   runMenu = menuBar()->addMenu("&Run");
   runMenu->addAction("Update", this, SLOT(updateCurrentModule()), QKeySequence(Qt::Key_F5));
@@ -267,9 +81,9 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   abortAction = runMenu->addAction("Abort", this, SLOT(terminateUpdate()), QKeySequence(Qt::Key_Escape));
   abortAction->setEnabled(false);
 
+  windowMenu = menuBar()->addMenu("&Window");
+
   connect(&reloadTimer, SIGNAL(timeout()), this, SLOT(checkLibraryUpdates()));
-  connect(toolBox, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(itemClickedHandler(QTreeWidgetItem*, int)));
-  connect(toolBoxFilterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(filterToolBox(const QString&)));
 
   if (DataModel::getInstance().getAutoReload()) {
     reloadTimer.setInterval(1000);
@@ -301,6 +115,25 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   label->setFixedWidth(150);
   statusBar()->addPermanentWidget(label, 0);
   model.setFinishedLabel(label);
+
+
+  QDockWidget *dock = new QDockWidget(tr("Modules"), this);
+  dock->setObjectName("ModulesToolBox");
+  dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+  toolBox = new WorkflowToolBox(dock);
+  dock->setWidget(toolBox);
+  addDockWidget(Qt::LeftDockWidgetArea, dock);
+  windowMenu->addAction(dock->toggleViewAction());
+
+  editMenu->addAction("Filter", toolBox, SLOT(focusFilter()), QKeySequence(Qt::CTRL + Qt::Key_F));
+
+  dock = new QDockWidget(tr("Property Grid"), this);
+  dock->setObjectName("PropertyGrid");
+  dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+  propertyGrid = new PropertyGrid(dock);
+  dock->setWidget(propertyGrid);
+  addDockWidget(Qt::RightDockWidgetArea, dock);
+  windowMenu->addAction(dock->toggleViewAction());
 }
 
 MainWindow::~MainWindow()
@@ -308,45 +141,7 @@ MainWindow::~MainWindow()
   delete fileMenu;
   delete runMenu;
   delete editMenu;
-}
-
-void MainWindow::focusFilter() {
-  toolBoxFilterEdit->setFocus();
-  toolBoxFilterEdit->selectAll();
-}
-
-void MainWindow::filterToolBox(const QString& text) {
-  // Do the filtering stuff here
-
-  if (text.length()) {
-    for (BOOST_AUTO(item, toolBoxItems.begin()); item != toolBoxItems.end(); ++item) {
-      item->first->takeChildren();
-      int count = 0;
-      for (BOOST_AUTO(child, item->second->begin()); child != item->second->end(); ++child) {
-        if ((*child)->text(0).contains(text)) {
-          ++count;
-          item->first->addChild(*child);
-        }
-      }
-      QString label = item->first->text(0);
-      if (label.contains(' '))
-        label.remove(label.indexOf(' '), label.length());
-      item->first->setText(0, label + " (" + QString::number(count) + ")");
-    }
-  } else {
-    for (BOOST_AUTO(item, toolBoxItems.begin()); item != toolBoxItems.end(); ++item) {
-      item->first->takeChildren();
-      int count = 0;
-      for (BOOST_AUTO(child, item->second->begin()); child != item->second->end(); ++child) {
-        item->first->addChild(*child);
-        ++count;
-      }
-      QString label = item->first->text(0);
-      if (label.contains(' '))
-        label.remove(label.indexOf(' '), label.length());
-      item->first->setText(0, label + " (" + QString::number(count) + ")");
-    }
-  }
+  delete windowMenu;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
@@ -357,6 +152,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   model.setWindowHeight(height());
   //std::cout << "Save: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
 
+  QSettings settings("MSMRI", "grapevine");
+  settings.setValue("windowState", saveState());
   QMainWindow::closeEvent(event);
 }
 
@@ -364,12 +161,10 @@ void MainWindow::resume() {
   DataModel& model = DataModel::getInstance();
   int left = model.getWindowX(), top = model.getWindowY(), w = model.getWindowWidth(), h = model.getWindowHeight();
   this->setGeometry(left, top, w, h);
-  //std::cout << "Target: " << left << ", " << top << ", " << w << ", " << h << std::endl;
-  //std::cout << "Current: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
   left += left - x();
   top += top - y();
   this->setGeometry(left, top, w, h);
-  //std::cout << "Corrected: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
+
   Workflow* workflow = model.getMainWorkflow();
   string currentUuid = model.getCurrentWorkflow();
 
@@ -384,6 +179,7 @@ void MainWindow::resume() {
   workflow->resumeViewport(); // resume after the layout stuff is done.
   connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
   connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(closeWorkflow(workflow::Workflow*)));
+  connect(workflow, SIGNAL(currentModuleChanged(workflow::Node*)), this, SLOT(handleCurrentNodeChanged(workflow::Node*)));
 
   for (unsigned i = 0; i < model.getOpenWorkflows()->size(); ++i) {
     string uuid = model.getOpenWorkflows()->at(i);
@@ -392,6 +188,9 @@ void MainWindow::resume() {
   }
   if(model.getWorkflowMap()->find(currentUuid) != model.getWorkflowMap()->end())
     showWorkflow(model.getWorkflowMap()->at(currentUuid));
+
+  QSettings settings("MSMRI", "grapevine");
+  restoreState(settings.value("windowState").toByteArray());
 }
 
 void MainWindow::setAutoQuit(bool autoQuit) {
@@ -400,12 +199,6 @@ void MainWindow::setAutoQuit(bool autoQuit) {
 
 void MainWindow::quit() {
   this->close();
-}
-
-void MainWindow::itemClickedHandler(QTreeWidgetItem *item, int) {
-  if (item->childCount()) {
-    item->setExpanded(!item->isExpanded());
-  }
 }
 
 void MainWindow::copy() {
@@ -430,8 +223,7 @@ void MainWindow::loadWorkflow() {
     setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
     Xmlizer::FromXml(model, model.getConfiguration());
     resume();
-    updateToolBox(toolBox, toolBoxItems);
-    filterToolBox("");
+    toolBox->update();
   }
 }
 
@@ -459,8 +251,7 @@ void MainWindow::loadLibrary() {
   vector<string>* libs = workflow->getLibraries();
   libs->push_back(filename.toUtf8().data());
   workflow->setLibraries(libs);
-  updateToolBox(toolBox, toolBoxItems);
-  filterToolBox("");
+  toolBox->update();
 }
 
 void MainWindow::reload() {
@@ -475,8 +266,7 @@ void MainWindow::reload() {
 
   Xmlizer::FromXml(model, *modelElement);
   resume();
-  updateToolBox(toolBox, toolBoxItems);
-  filterToolBox("");
+  toolBox->update();
 }
 
 void MainWindow::checkLibraryUpdates() {
@@ -496,6 +286,7 @@ void MainWindow::setGuiEnabled(bool enabled) {
   fileMenu->setEnabled(enabled);
   editMenu->setEnabled(enabled);
   toolBox->setEnabled(enabled);
+  propertyGrid->setEnabled(enabled);
   for (unsigned i = 0; i < openWorkflows.size(); ++i)
     openWorkflows[i]->setUiEnabled(enabled);
 }
@@ -575,6 +366,7 @@ void MainWindow::showWorkflow(workflow::Workflow* workflow, bool addUuid) {
     if (addUuid)
       DataModel::getInstance().getOpenWorkflows()->push_back(workflow->getUuid());
     tabWidget->setCurrentIndex(currentIndex);
+    connect(workflow, SIGNAL(currentModuleChanged(workflow::Node*)), this, SLOT(handleCurrentNodeChanged(workflow::Node*)));
   }
 }
 
@@ -594,14 +386,23 @@ void MainWindow::closeWorkflow(int tabIndex) {
   assert(openWorkflows.size() == openWorkflowUuids->size() + 1);
   if (tabIndex == 0)
     return;
+
+  disconnect(openWorkflows[tabIndex], SIGNAL(currentModuleChanged(workflow::Node*)), this, SLOT(handleCurrentNodeChanged(workflow::Node*)));
+
   tabWidget->removeTab(tabIndex);
   openWorkflows.erase(openWorkflows.begin() + tabIndex);
   openWorkflowUuids->erase(openWorkflowUuids->begin() + (tabIndex - 1));
 }
 
 void MainWindow::currentTabChanged(int index) {
-  if (index >= 0 && index < (int)openWorkflows.size())
+  if (index >= 0 && index < (int)openWorkflows.size()) {
     DataModel::getInstance().setCurrentWorkflow(openWorkflows[index]->getUuid());
+    propertyGrid->setNode(openWorkflows[index]->getCurrentNode());
+  }
+}
+
+void MainWindow::handleCurrentNodeChanged(workflow::Node* node) {
+  propertyGrid->setNode(node);
 }
 
 }

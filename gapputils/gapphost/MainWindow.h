@@ -4,11 +4,8 @@
 #include <QtGui/QMainWindow>
 
 #include <qmenu.h>
-#include "NewObjectDialog.h"
 #include <qtabwidget.h>
-#include <qlineedit.h>
 #include <qtimer.h>
-#include <qtreewidget.h>
 #include <qsplitter.h>
 #include "Workflow.h"
 
@@ -18,6 +15,9 @@ namespace gapputils {
 
 namespace host {
 
+class WorkflowToolBox;
+class PropertyGrid;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -26,16 +26,16 @@ private:
   QMenu* fileMenu;
   QMenu* editMenu;
   QMenu* runMenu;
+  QMenu* windowMenu;
   QAction* abortAction;
-  NewObjectDialog* newObjectDialog;
   QTabWidget* tabWidget;
-  QLineEdit* toolBoxFilterEdit;
-  QTreeWidget* toolBox;
+  WorkflowToolBox* toolBox;
+  PropertyGrid* propertyGrid;
+
   QTimer reloadTimer;
   bool libsChanged, autoQuit;  ///< quits the problem when the workflow has been updated.
   std::vector<workflow::Workflow*> openWorkflows;
   workflow::Workflow* workingWorkflow;
-  std::map<QTreeWidgetItem*, boost::shared_ptr<std::vector<QTreeWidgetItem* > > > toolBoxItems;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
@@ -55,11 +55,8 @@ public Q_SLOTS:
   void loadLibrary();
   void reload();
   void checkLibraryUpdates();
-  void itemClickedHandler(QTreeWidgetItem *item, int column);
   void copy();
   void paste();
-  void focusFilter();
-  void filterToolBox(const QString& text);
 
   void updateCurrentModule();
   void updateWorkflow();
@@ -70,6 +67,7 @@ public Q_SLOTS:
   void closeWorkflow(workflow::Workflow* workflow);
   void closeWorkflow(int tabIndex);
   void currentTabChanged(int index);
+  void handleCurrentNodeChanged(workflow::Node* node);
 };
 
 }
