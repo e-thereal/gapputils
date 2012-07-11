@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   model.setMainWindow(this);
 
   setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
-  setWindowIcon(QIcon(":/icons/icon.png"));
+  setWindowIcon(QIcon(":/icons/application.png"));
 
   tabWidget = new QTabWidget();
   tabWidget->setTabsClosable(true);

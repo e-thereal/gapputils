@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workflow.h'
 **
-** Created: Fri Jun 22 22:51:31 2012
+** Created: Tue Jul 10 20:12:55 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-      25,   14, // methods
+      18,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -32,32 +32,25 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
 
  // signals: signature, parameters, type, tag, flags
       36,   31,   30,   30, 0x05,
-      79,   68,   30,   30, 0x05,
-     124,  115,   30,   30, 0x05,
-     165,  115,   30,   30, 0x05,
+      77,   68,   30,   30, 0x05,
+     118,   68,   30,   30, 0x05,
+     152,   31,   30,   30, 0x05,
 
  // slots: signature, parameters, type, tag, flags
-     213,  199,   30,   30, 0x08,
-     248,  243,   30,   30, 0x08,
-     272,  243,   30,   30, 0x08,
-     301,  296,   30,   30, 0x08,
-     319,  243,   30,   30, 0x08,
-     355,  349,   30,   30, 0x08,
-     378,  349,   30,   30, 0x08,
-     401,   31,   30,   30, 0x08,
-     464,  439,   30,   30, 0x08,
-     506,  115,   30,   30, 0x08,
-     540,  243,   30,   30, 0x08,
-     564,  243,   30,   30, 0x08,
-     592,  115,   30,   30, 0x08,
-     634,   30,   30,   30, 0x08,
-     658,   30,   30,   30, 0x08,
-     688,  682,   30,   30, 0x08,
-     713,   30,   30,   30, 0x08,
-     734,   30,   30,   30, 0x08,
-     761,   30,   30,   30, 0x08,
-     779,   30,   30,   30, 0x08,
-     800,   30,   30,   30, 0x08,
+     204,  190,   30,   30, 0x08,
+     239,  234,   30,   30, 0x08,
+     263,  234,   30,   30, 0x08,
+     292,  287,   30,   30, 0x08,
+     310,  234,   30,   30, 0x08,
+     346,  340,   30,   30, 0x08,
+     369,  340,   30,   30, 0x08,
+     406,  392,   30,   30, 0x08,
+     443,   68,   30,   30, 0x08,
+     477,  234,   30,   30, 0x08,
+     501,  234,   30,   30, 0x08,
+     529,   68,   30,   30, 0x08,
+     571,   30,   30,   30, 0x08,
+     595,   30,   30,   30, 0x08,
 
        0        // eod
 };
@@ -65,26 +58,21 @@ static const uint qt_meta_data_gapputils__workflow__Workflow[] = {
 static const char qt_meta_stringdata_gapputils__workflow__Workflow[] = {
     "gapputils::workflow::Workflow\0\0node\0"
     "updateFinished(workflow::Node*)\0"
-    "node,force\0processModule(workflow::Node*,bool)\0"
     "workflow\0showWorkflowRequest(workflow::Workflow*)\0"
     "deleteCalled(workflow::Workflow*)\0"
+    "currentModuleChanged(workflow::Node*)\0"
     "x,y,classname\0createModule(int,int,QString)\0"
     "item\0deleteModule(ToolItem*)\0"
     "itemSelected(ToolItem*)\0edge\0"
     "removeEdge(Edge*)\0itemChangedHandler(ToolItem*)\0"
     "cable\0createEdge(CableItem*)\0"
-    "deleteEdge(CableItem*)\0"
-    "finalizeModuleUpdate(workflow::Node*)\0"
-    "node,progress,updateNode\0"
-    "showProgress(workflow::Node*,double,bool)\0"
+    "deleteEdge(CableItem*)\0node,progress\0"
+    "showProgress(workflow::Node*,double)\0"
     "showWorkflow(workflow::Workflow*)\0"
     "showWorkflow(ToolItem*)\0"
     "showModuleDialog(ToolItem*)\0"
     "delegateDeleteCalled(workflow::Workflow*)\0"
-    "handleViewportChanged()\0showContextMenu(QPoint)\0"
-    "index\0gridClicked(QModelIndex)\0"
-    "makePropertyGlobal()\0removePropertyFromGlobal()\0"
-    "connectProperty()\0disconnectProperty()\0"
+    "handleViewportChanged()\0"
     "workflowUpdateFinished()\0"
 };
 
@@ -124,9 +112,9 @@ int gapputils::workflow::Workflow::qt_metacall(QMetaObject::Call _c, int _id, vo
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
         case 0: updateFinished((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
-        case 1: processModule((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< bool(*)>(_a[2]))); break;
-        case 2: showWorkflowRequest((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 3: deleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 1: showWorkflowRequest((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 2: deleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 3: currentModuleChanged((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
         case 4: createModule((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< QString(*)>(_a[3]))); break;
         case 5: deleteModule((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
         case 6: itemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
@@ -134,23 +122,16 @@ int gapputils::workflow::Workflow::qt_metacall(QMetaObject::Call _c, int _id, vo
         case 8: itemChangedHandler((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
         case 9: createEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
         case 10: deleteEdge((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
-        case 11: finalizeModuleUpdate((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
-        case 12: showProgress((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< double(*)>(_a[2])),(*reinterpret_cast< bool(*)>(_a[3]))); break;
-        case 13: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 14: showWorkflow((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 15: showModuleDialog((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 16: delegateDeleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
-        case 17: handleViewportChanged(); break;
-        case 18: showContextMenu((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
-        case 19: gridClicked((*reinterpret_cast< const QModelIndex(*)>(_a[1]))); break;
-        case 20: makePropertyGlobal(); break;
-        case 21: removePropertyFromGlobal(); break;
-        case 22: connectProperty(); break;
-        case 23: disconnectProperty(); break;
-        case 24: workflowUpdateFinished(); break;
+        case 11: showProgress((*reinterpret_cast< workflow::Node*(*)>(_a[1])),(*reinterpret_cast< double(*)>(_a[2]))); break;
+        case 12: showWorkflow((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 13: showWorkflow((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 14: showModuleDialog((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 15: delegateDeleteCalled((*reinterpret_cast< workflow::Workflow*(*)>(_a[1]))); break;
+        case 16: handleViewportChanged(); break;
+        case 17: workflowUpdateFinished(); break;
         default: ;
         }
-        _id -= 25;
+        _id -= 18;
     }
     return _id;
 }
@@ -163,21 +144,21 @@ void gapputils::workflow::Workflow::updateFinished(workflow::Node * _t1)
 }
 
 // SIGNAL 1
-void gapputils::workflow::Workflow::processModule(workflow::Node * _t1, bool _t2)
+void gapputils::workflow::Workflow::showWorkflowRequest(workflow::Workflow * _t1)
 {
-    void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)), const_cast<void*>(reinterpret_cast<const void*>(&_t2)) };
+    void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 1, _a);
 }
 
 // SIGNAL 2
-void gapputils::workflow::Workflow::showWorkflowRequest(workflow::Workflow * _t1)
+void gapputils::workflow::Workflow::deleteCalled(workflow::Workflow * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 2, _a);
 }
 
 // SIGNAL 3
-void gapputils::workflow::Workflow::deleteCalled(workflow::Workflow * _t1)
+void gapputils::workflow::Workflow::currentModuleChanged(workflow::Node * _t1)
 {
     void *_a[] = { 0, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 3, _a);
