@@ -76,6 +76,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AbstractLogbook.cpp" />
     <ClCompile Include="CacheableAttribute.cpp" />
     <ClCompile Include="CollectionElement.cpp" />
     <ClCompile Include="CombinerInterface.cpp" />
@@ -91,6 +92,7 @@
     <ClCompile Include="WorkflowInterface.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractLogbook.h" />
     <ClInclude Include="CacheableAttribute.h" />
     <ClInclude Include="ChecksumAttribute.h" />
     <ClInclude Include="CollectionElement.h" />

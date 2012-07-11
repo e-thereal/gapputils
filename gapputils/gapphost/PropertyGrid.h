@@ -24,7 +24,7 @@ class Node;
 
 namespace host {
 
-class PropertyGrid : protected QSplitter{
+class PropertyGrid : public QSplitter{
 
   Q_OBJECT
 

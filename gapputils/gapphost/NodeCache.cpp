@@ -4,7 +4,7 @@
  *  Created on: Jul 10, 2012
  *      Author: tombr
  */
-
+#define BOOST_FILESYSTEM_VERSION 2
 #include "NodeCache.h"
 
 #include <capputils/ReflectableClass.h>

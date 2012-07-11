@@ -183,14 +183,16 @@ bool Node::isDependentProperty(const std::string& propertyName) const {
 
 GlobalProperty* Node::getGlobalProperty(const PropertyReference& reference) {
   if (getWorkflow()) {
-    getWorkflow()->getGlobalProperty(reference.getObject(), reference.getProperty());
+    return getWorkflow()->getGlobalProperty(reference.getObject(), reference.getProperty());
   }
+  return 0;
 }
 
 GlobalEdge* Node::getGlobalEdge(const PropertyReference& reference) {
   if (getWorkflow()) {
-    getWorkflow()->getGlobalEdge(reference.getObject(), reference.getProperty());
+    return getWorkflow()->getGlobalEdge(reference.getObject(), reference.getProperty());
   }
+  return 0;
 }
 
 PropertyReference* Node::getPropertyReference(const std::string& propertyName) {

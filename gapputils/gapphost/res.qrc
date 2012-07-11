@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/icons">
-        <file alias="icon.png">Resources/grapevine.png</file>
+        <file alias="application.png">Resources/grapevine.png</file>
     </qresource>
 </RCC>

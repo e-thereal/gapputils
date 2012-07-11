@@ -8,6 +8,7 @@
 #include "LogbookWidget.h"
 
 #include "LogbookModel.h"
+#include <qicon.h>
 
 namespace gapputils {
 namespace host {
@@ -16,6 +17,7 @@ LogbookWidget::LogbookWidget(QWidget* parent) : QTreeWidget(parent) {
   setHeaderLabels(QStringList() << "Message" << "Module");
 
   QTreeWidgetItem* item = new QTreeWidgetItem();
+  item->setIcon(0, QIcon::fromTheme("dialog-warning", QIcon(":/icons/application.png")));
   item->setText(0, "Hello world");
   item->setText(1, "test");
   this->addTopLevelItem(item);
