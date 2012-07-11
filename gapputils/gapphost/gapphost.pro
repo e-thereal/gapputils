@@ -39,7 +39,9 @@ SOURCES = main.cpp \
 		  Filenames.cpp \
 		  NodeCache.cpp \
 		  WorkflowToolBox.cpp \
-		  PropertyGrid.cpp
+		  PropertyGrid.cpp \
+		  LogbookModel.cpp \
+		  LogbookWidget.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -60,7 +62,9 @@ HEADERS = MainWindow.h \
           EditInterfaceDialog.h \
           WorkflowUpdater.h \
           WorkflowToolBox.h \
-          PropertyGrid.h
+          PropertyGrid.h \
+          LogbookModel.h \
+          LogbookWidget.h
           
 RESOURCES = res.qrc
           

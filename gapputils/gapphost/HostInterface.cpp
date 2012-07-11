@@ -8,6 +8,7 @@
 #include "HostInterface.h"
 
 #include "DataModel.h"
+#include "LogbookModel.h"
 
 namespace gapputils {
 
@@ -21,6 +22,10 @@ HostInterface::HostInterface() {
 
 void HostInterface::saveDataModel(const std::string& filename) const {
   DataModel::getInstance().save(filename);
+}
+
+AbstractLogbook& HostInterface::getLogbook() {
+  return LogbookModel::GetInstance();
 }
 
 } /* namespace host */
