@@ -29,6 +29,7 @@
 
 #include "WorkflowToolBox.h"
 #include "PropertyGrid.h"
+#include "LogbookWidget.h"
 
 using namespace std;
 using namespace capputils;
@@ -116,6 +117,10 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   statusBar()->addPermanentWidget(label, 0);
   model.setFinishedLabel(label);
 
+  setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+  setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+  setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+  setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
   QDockWidget *dock = new QDockWidget(tr("Modules"), this);
   dock->setObjectName("ModulesToolBox");
@@ -124,7 +129,6 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   dock->setWidget(toolBox);
   addDockWidget(Qt::LeftDockWidgetArea, dock);
   windowMenu->addAction(dock->toggleViewAction());
-
   editMenu->addAction("Filter", toolBox, SLOT(focusFilter()), QKeySequence(Qt::CTRL + Qt::Key_F));
 
   dock = new QDockWidget(tr("Property Grid"), this);
@@ -134,6 +138,17 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   dock->setWidget(propertyGrid);
   addDockWidget(Qt::RightDockWidgetArea, dock);
   windowMenu->addAction(dock->toggleViewAction());
+
+  dock = new QDockWidget(tr("Logbook"), this);
+  dock->setObjectName("Logbook");
+  dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea
+      | Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+  LogbookWidget* logbook = new LogbookWidget(dock);
+  dock->setWidget(logbook);
+  addDockWidget(Qt::BottomDockWidgetArea, dock);
+  windowMenu->addAction(dock->toggleViewAction());
+
+  //setDockNestingEnabled(true);
 }
 
 MainWindow::~MainWindow()

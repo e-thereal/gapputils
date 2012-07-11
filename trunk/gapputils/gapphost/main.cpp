@@ -21,6 +21,7 @@
 #include "DataModel.h"
 #include "Workflow.h"
 #include "DefaultInterface.h"
+#include "LogbookModel.h"
 
 //#include <CProcessInfo.hpp>
 
@@ -49,6 +50,7 @@ void printIt(const T& x) {
 int main(int argc, char *argv[])
 {
   cublasInit();
+  gapputils::host::Logbook dlog("main");
 
   //MSMRI::CProcessInfo::getInstance().getCommandLine(argc, argv);
 
@@ -104,9 +106,9 @@ int main(int argc, char *argv[])
   try {
     MainWindow w;
     w.show();
-    //std::cout << "[Info] Start resuming ..." << std::endl;
+    dlog() << "[Info] Start resuming ...";
     w.resume();
-    //std::cout << "[Info] Resuming done." << std::endl;
+    dlog() << "[Info] Resuming done.";
     if (model.getRun()) {
       w.setAutoQuit(true);
       //std::cout << "[Info] Update main workflow." << std::endl;
