@@ -54,6 +54,10 @@ int main(int argc, char *argv[])
 {
   qRegisterMetaType<std::string>("std::string");
 
+  QCoreApplication::setOrganizationName("gapputils");
+  QCoreApplication::setOrganizationDomain("gapputils.blogspot.com");
+  QCoreApplication::setApplicationName("grapevine");
+
   cublasInit();
   gapputils::Logbook dlog(&gapputils::host::LogbookModel::GetInstance());
   dlog.setModule("host");

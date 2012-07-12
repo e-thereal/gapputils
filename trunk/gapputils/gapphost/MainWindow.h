@@ -68,6 +68,7 @@ public Q_SLOTS:
   void closeWorkflow(int tabIndex);
   void currentTabChanged(int index);
   void handleCurrentNodeChanged(workflow::Node* node);
+  void selectModule(const QString& uuid);
 };
 
 }

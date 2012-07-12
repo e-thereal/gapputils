@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/icons">
         <file alias="application.png">Resources/grapevine.png</file>
-        <file alias="trace.png">Resources/Accessibility.png</file>
+        <file alias="trace.png">Resources/Performance.png</file>
         <file alias="info.png">Resources/Info.png</file>
         <file alias="warning.png">Resources/Warning.png</file>
         <file alias="error.png">Resources/Error.png</file>
