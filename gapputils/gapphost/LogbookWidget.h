@@ -15,9 +15,11 @@
 
 #include <vector>
 
-namespace gapputils {
-
+namespace capputils {
 class Severity;
+}
+
+namespace gapputils {
 
 namespace host {
 

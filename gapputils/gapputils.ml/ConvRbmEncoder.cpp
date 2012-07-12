@@ -50,17 +50,14 @@ BeginPropertyDefinitions(ConvRbmEncoder)
 
 EndPropertyDefinitions
 
-ConvRbmEncoder::ConvRbmEncoder() : _Sampling(false), _Pooling(PoolingMethod::NoPooling), _Auto(false), data(0) {
+ConvRbmEncoder::ConvRbmEncoder() : _Sampling(false), _Pooling(PoolingMethod::NoPooling), _Auto(false) {
   WfeUpdateTimestamp
   setLabel("ConvRbmEncoder");
 
   Changed.connect(capputils::EventHandler<ConvRbmEncoder>(this, &ConvRbmEncoder::changedHandler));
 }
 
-ConvRbmEncoder::~ConvRbmEncoder() {
-  if (data)
-    delete data;
-}
+ConvRbmEncoder::~ConvRbmEncoder() { }
 
 void ConvRbmEncoder::changedHandler(capputils::ObservableClass* sender, int eventId) {
   if (eventId == inputId && getAuto()) {
@@ -82,26 +79,6 @@ void ConvRbmEncoder::changedHandler(capputils::ObservableClass* sender, int even
   Property(Auto, bool)
   Property(OutputDimension
  */
-
-void ConvRbmEncoder::writeResults() {
-  if (!data)
-    return;
-
-  /*ConvRbmEncoder test;
-  std::cout << std::endl << "ConvRbmEncoder (host): " << sizeof(test) << std::endl;
-  LOCATE(test, Model);
-  LOCATE(test, Inputs);
-  LOCATE(test, Outputs);
-  LOCATE(test, Direction);
-  LOCATE(test, Sampling);
-  LOCATE(test, Pooling);
-  LOCATE(test, Auto);
-  LOCATE(test, OutputDimension);
-  LOCATE2(test, data);*/
-
-  setOutputs(data->getOutputs());
-  setOutputDimension(data->getOutputDimension());
-}
 
 }
 

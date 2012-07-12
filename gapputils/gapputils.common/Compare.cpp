@@ -35,27 +35,17 @@ BeginPropertyDefinitions(Compare)
 
 EndPropertyDefinitions
 
-Compare::Compare(void) : _Type(ErrorType::MSE), _X(0), _Y(0), _Count(0), _Error(0), data(0)
+Compare::Compare(void) : _Type(ErrorType::MSE), _X(0), _Y(0), _Count(0), _Error(0)
 {
   Changed.connect(capputils::EventHandler<Compare>(this, &Compare::changeEventHandler));
 }
 
-Compare::~Compare(void)
-{
-  if (data)
-    delete data;
-}
+Compare::~Compare(void) { }
 
 void Compare::changeEventHandler(capputils::ObservableClass* sender, int eventId) {
 }
 
-void Compare::execute(gapputils::workflow::IProgressMonitor* monitor) const {
-  if (!data)
-    data = new Compare();
-
-  if (!capputils::Verifier::Valid(*this))
-    return;
-
+void Compare::update(gapputils::workflow::IProgressMonitor* monitor) const {
   double error = 0;
   switch (getType()) {
   case ErrorType::MSE: {
@@ -67,7 +57,7 @@ void Compare::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       }
       error /= count;
     } break;
-  case ErrorType::SE : {
+  case ErrorType::SE: {
       double *x = getX();
       double *y = getY();
       int count = getCount();
@@ -77,7 +67,7 @@ void Compare::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       error /= count;
       error = sqrt(error);
     } break;
-  case ErrorType::RSE : {
+  case ErrorType::RSE: {
       double *x = getX();
       double *y = getY();
       int count = getCount();
@@ -92,13 +82,7 @@ void Compare::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       error /= xMean;
     } break;
   }
-  data->setError(error);
-}
-
-void Compare::writeResults() {
-  if (!data)
-    return;
-  setError(data->getError());
+  newState->setError(error);
 }
 
 }

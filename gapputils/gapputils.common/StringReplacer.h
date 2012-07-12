@@ -14,7 +14,7 @@ namespace gapputils {
 
 namespace common {
 
-class StringReplacer : public workflow::DefaultWorkflowElement {
+class StringReplacer : public workflow::DefaultWorkflowElement<StringReplacer> {
   InitReflectableClass(StringReplacer)
 
   Property(Input, std::string)
@@ -30,7 +30,6 @@ public:
   virtual ~StringReplacer();
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
-
   virtual void writeResults();
 };
 

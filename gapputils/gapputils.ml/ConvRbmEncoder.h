@@ -8,7 +8,7 @@
 #ifndef GAPPUTILS_ML_CONVRBMENCODER_H_
 #define GAPPUTILS_ML_CONVRBMENCODER_H_
 
-#include <gapputils/WorkflowElement.h>
+#include <gapputils/DefaultWorkflowElement.h>
 #include <capputils/Enumerators.h>
 
 #include "ConvRbmModel.h"
@@ -22,7 +22,7 @@ namespace ml {
 ReflectableEnum(CodingDirection, Encode, Decode);
 ReflectableEnum(PoolingMethod, NoPooling, MaxPooling, PositionalMaxPooling, AvgPooling, StackPooling);
 
-class ConvRbmEncoder : public gapputils::workflow::WorkflowElement {
+class ConvRbmEncoder : public gapputils::workflow::DefaultWorkflowElement<ConvRbmEncoder> {
 public:
   typedef ConvRbmModel::tensor_t host_tensor_t;
   typedef ConvRbmModel::value_t value_t;
@@ -40,17 +40,16 @@ public:
   Property(OutputDimension, std::vector<int>)
 
 private:
-  mutable ConvRbmEncoder* data;
   static int inputId;
 
 public:
   ConvRbmEncoder();
   virtual ~ConvRbmEncoder();
 
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
-
   void changedHandler(capputils::ObservableClass* sender, int eventId);
+
+protected:
+  virtual void update(gapputils::workflow::IProgressMonitor* monitor) const;
 };
 
 }

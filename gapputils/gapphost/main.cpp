@@ -22,7 +22,7 @@
 #include "Workflow.h"
 #include "DefaultInterface.h"
 #include "LogbookModel.h"
-#include <gapputils/Logbook.h>
+#include <capputils/Logbook.h>
 
 //#include <CProcessInfo.hpp>
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   QCoreApplication::setApplicationName("grapevine");
 
   cublasInit();
-  gapputils::Logbook dlog(&gapputils::host::LogbookModel::GetInstance());
+  Logbook dlog(&LogbookModel::GetInstance());
   dlog.setModule("host");
 
   //MSMRI::CProcessInfo::getInstance().getCommandLine(argc, argv);

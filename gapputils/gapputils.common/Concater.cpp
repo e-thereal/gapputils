@@ -26,7 +26,7 @@ int Concater::outputId;
 
 BeginPropertyDefinitions(Concater)
 
-  ReflectableBase(workflow::DefaultWorkflowElement)
+  ReflectableBase(workflow::WorkflowElement)
   DefineProperty(Input1, Input("In1"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Input2, Input("In2"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Output, Output("Out"), Observe(outputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))

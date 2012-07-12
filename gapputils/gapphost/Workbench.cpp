@@ -143,8 +143,6 @@ void Workbench::setCurrentItem(ToolItem* item) {
   addAllInputs(dependentItems, item);
   addAllOutputs(dependentItems, item);
 
-
-
   Q_FOREACH (QGraphicsItem *item, scene()->items()) {
     item->update();
   }

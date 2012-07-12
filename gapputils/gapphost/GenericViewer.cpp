@@ -63,7 +63,7 @@ GenericViewer::~GenericViewer() {
 }
 
 void GenericViewer::changedHandler(capputils::ObservableClass*, int eventId) {
-  if (!capputils::Verifier::Valid(*this))
+  if (!capputils::Verifier::Valid(*this, getLogbook()))
     return;
 
   if (eventId != filename1Id && eventId != filename2Id && eventId != filename3Id)

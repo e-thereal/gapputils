@@ -11,11 +11,12 @@
 #include <capputils/ObserveAttribute.h>
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/VolatileAttribute.h>
+#include <capputils/Logbook.h>
 
 #include "HideAttribute.h"
 #include "LabelAttribute.h"
-#include "Logbook.h"
 
+using namespace capputils;
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 

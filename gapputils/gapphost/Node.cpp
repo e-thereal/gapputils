@@ -25,7 +25,7 @@
 #include <capputils/SerializeAttribute.h>
 #include <capputils/DescriptionAttribute.h>
 
-#include <gapputils/Logbook.h>
+#include <capputils/Logbook.h>
 
 #include <iostream>
 #include <gapputils/WorkflowElement.h>
