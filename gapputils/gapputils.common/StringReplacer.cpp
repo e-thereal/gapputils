@@ -18,7 +18,7 @@
 
 #include <gapputils/CacheableAttribute.h>
 
-#include <gapputils/AbstractLogbook.h>
+#include <gapputils/Logbook.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -64,15 +64,14 @@ StringReplacer::~StringReplacer() {
 }
 
 void StringReplacer::changedHandler(capputils::ObservableClass* sender, int eventId) {
+  Logbook& dlog = getLogbook();
+
   if (!capputils::Verifier::Valid(*this))
     return;
 
   if (eventId == inputId || eventId == findId || eventId == replaceId) {
     setOutput(replaceAll(getInput(), getFind(), getReplace()));
-    if (getHostInterface()) {
-      AbstractLogbook& dlog = getHostInterface()->getLogbook();
-      dlog() << "Replaced!";
-    }
+    dlog(Severity::Warning) << "replaced" << 1;
   }
 }
 

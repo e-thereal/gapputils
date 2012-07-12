@@ -14,6 +14,7 @@
 
 #include "HideAttribute.h"
 #include "LabelAttribute.h"
+#include "Logbook.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -31,7 +32,11 @@ BeginAbstractPropertyDefinitions(WorkflowElement)
 
 EndPropertyDefinitions
 
-WorkflowElement::WorkflowElement() : _Label("Element") {
+WorkflowElement::WorkflowElement() : _Label("Element"), logbook(new Logbook()) {
+}
+
+Logbook& WorkflowElement::getLogbook() const {
+  return *logbook;
 }
 
 }

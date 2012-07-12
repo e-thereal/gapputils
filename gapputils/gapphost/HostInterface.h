@@ -29,7 +29,6 @@ public:
   }
 
   virtual void saveDataModel(const std::string& filename) const;
-  virtual AbstractLogbook& getLogbook();
 };
 
 }

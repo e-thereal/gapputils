@@ -19,6 +19,8 @@
 
 namespace gapputils {
 
+class Logbook;
+
 namespace workflow {
 
 class WorkflowElement : public capputils::reflection::ReflectableClass,
@@ -33,8 +35,13 @@ class WorkflowElement : public capputils::reflection::ReflectableClass,
 public:
   static int labelId;
 
+private:
+  boost::shared_ptr<Logbook> logbook;
+
 public:
   WorkflowElement();
+
+  Logbook& getLogbook() const;
 
   virtual void execute(IProgressMonitor* monitor) const = 0;
   virtual void writeResults() = 0;

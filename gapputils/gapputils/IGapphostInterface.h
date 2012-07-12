@@ -21,7 +21,6 @@ public:
   virtual ~IGapphostInterface() {}
 
   virtual void saveDataModel(const std::string& filename) const = 0;
-  virtual AbstractLogbook& getLogbook() = 0;
 };
 
 }

@@ -391,7 +391,7 @@ void Workbench::drawBackground(QPainter *painter, const QRectF &rect) {
   // Text
   QRectF textRect(sceneRect.left() + 8, sceneRect.top() + 4,
       sceneRect.width() - 16, sceneRect.height() - 8);
-  QString message(tr("grapevine Workbench"));
+  QString message(tr("grapevine workbench"));
 
   QFont font = painter->font();
   font.setBold(true);

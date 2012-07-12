@@ -15,6 +15,8 @@
 
 #include "RbmModel.h"
 
+#include <gapputils/Logbook.h>
+
 namespace gapputils {
 
 namespace ml {
@@ -46,6 +48,9 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
   typedef tbblas::tensor_proxy<host_tensor_t::iterator, 3> host_proxy_t;
   typedef tbblas::tensor_proxy<device_tensor_t::iterator, 3> device_proxy_t;
   
+  Logbook& dlog = getLogbook();
+  dlog.setSeverity(Severity::Trace);
+  
   /*ConvRbmEncoder test;
   std::cout << std::endl << "ConvRbmEncoder (device): " << sizeof(test) << std::endl;
   LOCATE(test, Model);
@@ -65,21 +70,21 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
     return;
 
   if (!getModel()) {
-    std::cout << "[Warning] No model given. Aborting!" << std::endl;
+    dlog(Severity::Warning) << "No model given. Aborting!";
     return;
   }
 
   if (!getInputs() || getInputs()->size() == 0) {
-    std::cout << "[Warning] No input data given. Aborting!" << std::endl;
+    dlog(Severity::Warning) << "No input data given. Aborting!";
     return;
   }
 
-  std::cout << "Encoding tensors ..." << std::flush;
+  dlog() << "Encoding tensors ...";
 
   curandGenerator_t gen;
   curandStatus_t status;
   if ((status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT)) != CURAND_STATUS_SUCCESS) {
-    std::cout << "[Warning] Could not create random number generator: " << status << std::endl;
+    dlog(Severity::Warning) << "Could not create random number generator: " << status;
     return;
   }
 
@@ -206,7 +211,7 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
               poshidstates.data().data().get(),
               poshidstates.data().size())) != CURAND_STATUS_SUCCESS)
           {
-            std::cout << "[Error] Could not generate random numbers: " << status << std::endl;
+            dlog(Severity::Error) << "Could not generate random numbers: " << status;
             return;
           }
 
@@ -365,7 +370,7 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
         if (getSampling()) {
           if ((status = curandGenerateUniformDouble(gen, vtemp.data().data().get(), vtemp.data().size())) != CURAND_STATUS_SUCCESS)
           {
-            std::cout << "[Error] Could not generate random numbers: " << status << std::endl;
+            dlog(Severity::Error) << "Could not generate random numbers: " << status;
             return;
           }
 
@@ -381,7 +386,7 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
               vtemp.data().size(),
               0, 1.0)) != CURAND_STATUS_SUCCESS)
           {
-            std::cout << "[Error] Could not generate random numbers: " << status << std::endl;
+            dlog(Severity::Error) << "Could not generate random numbers: " << status;
             return;
           }
 
@@ -407,10 +412,10 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
   if ((status = curandDestroyGenerator(gen)) != CURAND_STATUS_SUCCESS)
   {
-    std::cout << "[Error] Could not destroy random number generator: " << status << std::endl;
+    dlog(Severity::Error) << "Could not destroy random number generator: " << status;
     return;
   }
-  std::cout << " done!" << std::endl;
+  dlog() << "Finished";
 
   data->setOutputs(Y);
 }
