@@ -1,9 +1,9 @@
 #pragma once
 
-#ifndef _GAPPUTILS_H_
-#define _GAPPUTILS_H_
+#ifndef GAPPUTILS_COMMON_COMPARE_H_
+#define GAPPUTILS_COMMON_COMPARE_H_
 
-#include <gapputils/WorkflowElement.h>
+#include <gapputils/DefaultWorkflowElement.h>
 #include <capputils/Enumerators.h>
 
 namespace gapputils {
@@ -12,7 +12,7 @@ namespace common {
 
 ReflectableEnum(ErrorType, MSE, SE, RSE);
 
-class Compare : public workflow::WorkflowElement
+class Compare : public workflow::DefaultWorkflowElement<Compare>
 {
 
   InitReflectableClass(Compare)
@@ -23,21 +23,18 @@ class Compare : public workflow::WorkflowElement
   Property(Count, int)
   Property(Error, double)
 
-private:
-  mutable Compare* data;
-
 public:
   Compare(void);
   ~Compare(void);
 
   void changeEventHandler(capputils::ObservableClass* sender, int eventId);
 
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
+protected:
+  virtual void update(workflow::IProgressMonitor* monitor) const;
 };
 
 }
 
 }
 
-#endif
+#endif /* GAPPUTILS_COMMON_COMPARE_H_ */

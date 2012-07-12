@@ -24,7 +24,7 @@ LogbookModel& LogbookModel::GetInstance() {
   return (instance ? *instance : *(instance = new LogbookModel()));
 }
 
-void LogbookModel::addMessage(const std::string& message, const Severity& severity,
+void LogbookModel::addMessage(const std::string& message, const capputils::Severity& severity,
     const std::string& module, const std::string& uuid)
 {
 //  std::cout << module << ": " << message << std::endl;

@@ -17,6 +17,8 @@
 #include <ctime>
 #include <iostream>
 
+using namespace capputils;
+
 namespace gapputils {
 namespace host {
 
@@ -31,12 +33,14 @@ LogbookWidget::LogbookWidget(QWidget* parent)
   traceButton->setIcon(traceIcon);
   traceButton->setIconSize(QSize(16, 16));
   traceButton->setCheckable(true);
+  traceButton->setAutoRaise(true);
   connect(traceButton, SIGNAL(toggled(bool)), this, SLOT(handleButtonToggle(bool)));
 
   infoButton = new QToolButton();
   infoButton->setIcon(infoIcon);
   infoButton->setIconSize(QSize(16, 16));
   infoButton->setCheckable(true);
+  infoButton->setAutoRaise(true);
   infoButton->setChecked(true);
   connect(infoButton, SIGNAL(toggled(bool)), this, SLOT(handleButtonToggle(bool)));
 
@@ -44,6 +48,7 @@ LogbookWidget::LogbookWidget(QWidget* parent)
   warningButton->setIcon(warningIcon);
   warningButton->setIconSize(QSize(16, 16));
   warningButton->setCheckable(true);
+  warningButton->setAutoRaise(true);
   warningButton->setChecked(true);
   connect(warningButton, SIGNAL(toggled(bool)), this, SLOT(handleButtonToggle(bool)));
 
@@ -51,6 +56,7 @@ LogbookWidget::LogbookWidget(QWidget* parent)
   errorButton->setIcon(errorIcon);
   errorButton->setIconSize(QSize(16, 16));
   errorButton->setCheckable(true);
+  errorButton->setAutoRaise(true);
   errorButton->setChecked(true);
   connect(errorButton, SIGNAL(toggled(bool)), this, SLOT(handleButtonToggle(bool)));
 

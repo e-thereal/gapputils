@@ -13,7 +13,7 @@
 
 #include "ChecksumUpdater.h"
 
-#include <gapputils/Logbook.h>
+#include <capputils/Logbook.h>
 #include "LogbookModel.h"
 
 namespace gapputils {
@@ -52,7 +52,7 @@ void WorkflowUpdater::update(workflow::Node* node) {
   if (!rootThread) {
     updater->update(node);
   } else {
-    Logbook dlog(&LogbookModel::GetInstance());
+    capputils::Logbook dlog(&LogbookModel::GetInstance());
     dlog.setModule("gapputils::host::WorkflowUpdater");
     dlog() << "Workflow update started.";
     this->node = node;
@@ -273,7 +273,7 @@ void WorkflowUpdater::handleAndDelegateProgressedEvent(workflow::Node* node, dou
 }
 
 void WorkflowUpdater::delegateUpdateFinished() {
-  Logbook dlog(&LogbookModel::GetInstance());
+  capputils::Logbook dlog(&LogbookModel::GetInstance());
   dlog.setModule("gapputils::host::WorkflowUpdater");
   dlog() << "Workflow update finished.";
   Q_EMIT updateFinished();

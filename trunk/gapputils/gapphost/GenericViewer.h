@@ -14,7 +14,7 @@
 
 namespace gapputils {
 
-class GenericViewer : public QObject, public workflow::DefaultWorkflowElement {
+class GenericViewer : public QObject, public workflow::DefaultWorkflowElement<GenericViewer> {
   Q_OBJECT
 
   InitReflectableClass(GenericViewer)

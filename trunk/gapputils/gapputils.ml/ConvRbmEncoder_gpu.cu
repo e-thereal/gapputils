@@ -15,7 +15,7 @@
 
 #include "RbmModel.h"
 
-#include <gapputils/Logbook.h>
+#include <capputils/Logbook.h>
 
 namespace gapputils {
 
@@ -43,7 +43,8 @@ private:
 #define LOCATE(a,b) std::cout << #b": " << (char*)&a._##b - (char*)&a << std::endl
 #define LOCATE2(a,b) std::cout << #b": " << (char*)&a.b - (char*)&a << std::endl
 
-void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) const {
+  using namespace capputils;
   using namespace thrust::placeholders;
   typedef tbblas::tensor_proxy<host_tensor_t::iterator, 3> host_proxy_t;
   typedef tbblas::tensor_proxy<device_tensor_t::iterator, 3> device_proxy_t;
@@ -62,12 +63,6 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
   LOCATE(test, Auto);
   LOCATE(test, OutputDimension);
   LOCATE2(test, data);*/
-
-  if (!data)
-    data = new ConvRbmEncoder();
-
-  if (!capputils::Verifier::Valid(*this))
-    return;
 
   if (!getModel()) {
     dlog(Severity::Warning) << "No model given. Aborting!";
@@ -148,7 +143,7 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
     outputDim[1] = visibleDim[1];
     outputDim[2] = visibleDim[2];
   }
-  data->setOutputDimension(outputDim);
+  newState->setOutputDimension(outputDim);
 
   //if (getDirection() == CodingDirection::Encode) {
     assert((layerDim[0] % blockSize) == 0);
@@ -417,7 +412,7 @@ void ConvRbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
   }
   dlog() << "Finished";
 
-  data->setOutputs(Y);
+  newState->setOutputs(Y);
 }
 
 }

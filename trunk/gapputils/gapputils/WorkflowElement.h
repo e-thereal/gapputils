@@ -17,9 +17,13 @@
 #include "IProgressMonitor.h"
 #include "IGapphostInterface.h"
 
-namespace gapputils {
+namespace capputils {
 
 class Logbook;
+
+}
+
+namespace gapputils {
 
 namespace workflow {
 
@@ -36,12 +40,12 @@ public:
   static int labelId;
 
 private:
-  boost::shared_ptr<Logbook> logbook;
+  boost::shared_ptr<capputils::Logbook> logbook;
 
 public:
   WorkflowElement();
 
-  Logbook& getLogbook() const;
+  capputils::Logbook& getLogbook() const;
 
   virtual void execute(IProgressMonitor* monitor) const = 0;
   virtual void writeResults() = 0;

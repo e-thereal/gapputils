@@ -8,7 +8,7 @@
 #ifndef GAPPUTILS_HOST_LOGBOOKMODEL_H_
 #define GAPPUTILS_HOST_LOGBOOKMODEL_H_
 
-#include <gapputils/AbstractLogbookModel.h>
+#include <capputils/AbstractLogbookModel.h>
 
 #include <qobject.h>
 
@@ -16,7 +16,7 @@ namespace gapputils {
 
 namespace host {
 
-class LogbookModel : public QObject, public AbstractLogbookModel {
+class LogbookModel : public QObject, public capputils::AbstractLogbookModel {
 
   Q_OBJECT
 
@@ -29,7 +29,7 @@ public:
   static LogbookModel& GetInstance();
 
   virtual void addMessage(const std::string& message,
-        const Severity& severity = Severity::Message,
+        const capputils::Severity& severity = capputils::Severity::Message,
         const std::string& module = "<none>",
         const std::string& uuid = "<none>");
 

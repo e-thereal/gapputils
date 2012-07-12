@@ -14,7 +14,7 @@ namespace gapputils {
 
 namespace common {
 
-class Concater : public workflow::DefaultWorkflowElement {
+class Concater : public workflow::DefaultWorkflowElement<Concater> {
 
   InitReflectableClass(Concater)
 

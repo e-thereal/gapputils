@@ -18,7 +18,7 @@
 
 #include <gapputils/CacheableAttribute.h>
 
-#include <gapputils/Logbook.h>
+#include <capputils/Logbook.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -34,10 +34,10 @@ int StringReplacer::replaceId;
 
 BeginPropertyDefinitions(StringReplacer)
 
-  ReflectableBase(workflow::DefaultWorkflowElement)
-  DefineProperty(Input, Input("In"), Observe(inputId = PROPERTY_ID), NotEqual<string>(""), TimeStamp(PROPERTY_ID))
+  ReflectableBase(workflow::WorkflowElement)
+  DefineProperty(Input, Input("In"), Observe(inputId = PROPERTY_ID), NotEqual<string>("", "Input must not be empty."), TimeStamp(PROPERTY_ID))
   DefineProperty(Output, Output("Out"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Find, Observe(findId = PROPERTY_ID), NotEqual<string>(""), TimeStamp(PROPERTY_ID))
+  DefineProperty(Find, Observe(findId = PROPERTY_ID), NotEqual<string>("", "Find must not be empty."), TimeStamp(PROPERTY_ID))
   DefineProperty(Replace, Observe(replaceId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
@@ -64,14 +64,13 @@ StringReplacer::~StringReplacer() {
 }
 
 void StringReplacer::changedHandler(capputils::ObservableClass* sender, int eventId) {
-  Logbook& dlog = getLogbook();
+  capputils::Logbook& dlog = getLogbook();
 
-  if (!capputils::Verifier::Valid(*this))
+  if (!capputils::Verifier::Valid(*this, dlog))
     return;
 
   if (eventId == inputId || eventId == findId || eventId == replaceId) {
     setOutput(replaceAll(getInput(), getFind(), getReplace()));
-    dlog(Severity::Warning) << "replaced" << 1;
   }
 }
 
