@@ -24,25 +24,11 @@ LogbookModel& LogbookModel::GetInstance() {
   return (instance ? *instance : *(instance = new LogbookModel()));
 }
 
-LogbookModel& LogbookModel::GetInstance(const std::string& module) {
-  LogbookModel& model = GetInstance();
-  model.setModule(module);
-  return model;
-}
-
-void LogbookModel::setModule(const std::string& module) {
-  this->module = module;
-}
-
-void LogbookModel::addMessage(const std::string& message) {
-  std::cout << module << ": " << message << std::endl;
-  Q_EMIT newMessage(message, module);
-}
-
-Logbook::Logbook(const std::string& module) : module(module) { }
-
-void Logbook::addMessage(const std::string& message) {
-  LogbookModel::GetInstance(module)() << message;
+void LogbookModel::addMessage(const std::string& message, const Severity& severity,
+    const std::string& module, const std::string& uuid)
+{
+//  std::cout << module << ": " << message << std::endl;
+  Q_EMIT newMessage(message, severity, module, uuid);
 }
 
 } /* namespace host */

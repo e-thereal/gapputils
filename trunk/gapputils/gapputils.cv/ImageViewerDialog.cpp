@@ -24,8 +24,6 @@ ImageViewerWidget::ImageViewerWidget(int width, int height) : QGraphicsView(), v
   setRenderHint(QPainter::Antialiasing);
   setTransformationAnchor(AnchorUnderMouse);
   scale(qreal(1), qreal(1));
-
-  //scene->addItem(new RectangleItem(model, this));
 }
 
 ImageViewerWidget::~ImageViewerWidget() {
@@ -73,8 +71,6 @@ void ImageViewerWidget::scaleView(qreal scaleFactor)
 }
 
 void ImageViewerWidget::mousePressEvent(QMouseEvent* event) {
-
-
   if (event->button() == Qt::LeftButton)
     setDragMode(ScrollHandDrag);
   else if (event->button() == Qt::RightButton)

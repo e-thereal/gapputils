@@ -25,6 +25,8 @@
 #include <capputils/SerializeAttribute.h>
 #include <capputils/DescriptionAttribute.h>
 
+#include <gapputils/Logbook.h>
+
 #include <iostream>
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/ChecksumAttribute.h>
@@ -41,6 +43,7 @@
 #include "HostInterface.h"
 #include "PropertyReference.h"
 #include "Workflow.h"
+#include "LogbookModel.h"
 
 // TODO: shouldn't need to use the controller
 #include "WorkflowController.h"
@@ -138,6 +141,9 @@ void Node::resume() {
   WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
   if (element) {
     element->setHostInterface(gapputils::host::HostInterface::GetPointer());
+    element->getLogbook().setModel(&host::LogbookModel::GetInstance());
+    element->getLogbook().setModule(element->getClassName());
+    element->getLogbook().setUuid(getUuid());
     element->resume();
   }
 }

@@ -22,6 +22,7 @@
 #include "Workflow.h"
 #include "DefaultInterface.h"
 #include "LogbookModel.h"
+#include <gapputils/Logbook.h>
 
 //#include <CProcessInfo.hpp>
 
@@ -42,6 +43,8 @@ using namespace std;
 
 #include "TestThread.h"
 
+#include "gapphost.h"
+
 template<class T>
 void printIt(const T& x) {
   std:: cout << x << " ";
@@ -49,8 +52,11 @@ void printIt(const T& x) {
 
 int main(int argc, char *argv[])
 {
+  qRegisterMetaType<std::string>("std::string");
+
   cublasInit();
-  gapputils::host::Logbook dlog("main");
+  gapputils::Logbook dlog(&gapputils::host::LogbookModel::GetInstance());
+  dlog.setModule("host");
 
   //MSMRI::CProcessInfo::getInstance().getCommandLine(argc, argv);
 
@@ -106,9 +112,9 @@ int main(int argc, char *argv[])
   try {
     MainWindow w;
     w.show();
-    dlog() << "[Info] Start resuming ...";
+    dlog() << "Start resuming ...";
     w.resume();
-    dlog() << "[Info] Resuming done.";
+    //dlog() << "[Info] Resuming done.";
     if (model.getRun()) {
       w.setAutoQuit(true);
       //std::cout << "[Info] Update main workflow." << std::endl;
