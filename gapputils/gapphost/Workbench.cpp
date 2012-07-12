@@ -135,9 +135,15 @@ void addAllOutputs(set<QGraphicsItem*>& items, ToolItem* item) {
 void Workbench::setCurrentItem(ToolItem* item) {
   selectedItem = item;
 
+  while (!scene()->selectedItems().empty())
+    scene()->selectedItems().first()->setSelected(false);
+  item->setSelected(item);
+
   dependentItems.clear();
   addAllInputs(dependentItems, item);
   addAllOutputs(dependentItems, item);
+
+
 
   Q_FOREACH (QGraphicsItem *item, scene()->items()) {
     item->update();

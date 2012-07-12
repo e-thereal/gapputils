@@ -127,7 +127,10 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
   toolBox = new WorkflowToolBox(dock);
   dock->setWidget(toolBox);
+//  dock->setStyleSheet("::title { position: relative; padding-left: 50px;"
+//                            "          text-align: left center }");
   addDockWidget(Qt::LeftDockWidgetArea, dock);
+
   windowMenu->addAction(dock->toggleViewAction());
   editMenu->addAction("Filter", toolBox, SLOT(focusFilter()), QKeySequence(Qt::CTRL + Qt::Key_F));
 
@@ -148,6 +151,9 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   addDockWidget(Qt::BottomDockWidgetArea, dock);
   windowMenu->addAction(dock->toggleViewAction());
 
+  connect(logbook, SIGNAL(selectModuleRequested(const QString&)),
+      this, SLOT(selectModule(const QString&)));
+
   //setDockNestingEnabled(true);
 }
 
@@ -167,7 +173,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   model.setWindowHeight(height());
   //std::cout << "Save: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
 
-  QSettings settings("MSMRI", "grapevine");
+  QSettings settings;
   settings.setValue("windowState", saveState());
   QMainWindow::closeEvent(event);
 }
@@ -204,8 +210,9 @@ void MainWindow::resume() {
   if(model.getWorkflowMap()->find(currentUuid) != model.getWorkflowMap()->end())
     showWorkflow(model.getWorkflowMap()->at(currentUuid));
 
-  QSettings settings("MSMRI", "grapevine");
-  restoreState(settings.value("windowState").toByteArray());
+  QSettings settings;
+  if (settings.contains("windowState"))
+    restoreState(settings.value("windowState").toByteArray());
 }
 
 void MainWindow::setAutoQuit(bool autoQuit) {
@@ -418,6 +425,17 @@ void MainWindow::currentTabChanged(int index) {
 
 void MainWindow::handleCurrentNodeChanged(workflow::Node* node) {
   propertyGrid->setNode(node);
+}
+
+void MainWindow::selectModule(const QString& quuid) {
+  std::string uuid = quuid.toAscii().data();
+
+  for (unsigned i = 0; i < openWorkflows.size(); ++i) {
+    if (openWorkflows[i]->trySelectNode(uuid)) {
+      tabWidget->setCurrentIndex(i);
+      break;
+    }
+  }
 }
 
 }

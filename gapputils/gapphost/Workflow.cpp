@@ -1521,6 +1521,16 @@ ConstPropertyReference* Workflow::getPropertyReference(const std::string& proper
   return 0;
 }
 
+bool Workflow::trySelectNode(const std::string& uuid) {
+  Node* node = getNode(uuid);
+  if (node && node->getToolItem()) {
+    workbench->setCurrentItem(node->getToolItem());
+    return true;
+  }
+
+  return false;
+}
+
 }
 
 }

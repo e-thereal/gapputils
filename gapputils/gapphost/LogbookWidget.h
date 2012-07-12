@@ -46,6 +46,10 @@ public Q_SLOTS:
   void filterUuid();
   void clearFilter();
   void clearLog();
+  void handleItemDoubleClicked(QTreeWidgetItem* item, int column);
+
+Q_SIGNALS:
+  void selectModuleRequested(const QString& uuid);
 };
 
 } /* namespace host */

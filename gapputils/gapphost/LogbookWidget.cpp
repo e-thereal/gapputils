@@ -12,9 +12,15 @@
 #include <qboxlayout.h>
 #include <qlabel.h>
 #include <qaction.h>
+#include <qsettings.h>
+
+#include <ctime>
+#include <iostream>
 
 namespace gapputils {
 namespace host {
+
+enum TableColumns {TimeColumn, MessageColumn, ModuleColumn, UuidColumn, SeverityColumn};
 
 LogbookWidget::LogbookWidget(QWidget* parent)
  : QWidget(parent), traceIcon(":/icons/trace.png"), infoIcon(":/icons/info.png"),
@@ -64,14 +70,15 @@ LogbookWidget::LogbookWidget(QWidget* parent)
   filterWidget->setLayout(quickFilterLayout);
 
   logbookWidget = new QTreeWidget();
-  logbookWidget->setHeaderLabels(QStringList() << "Message" << "Module" << "UUID");
+  logbookWidget->setHeaderLabels(QStringList() << "Time" << "Message" << "Module" << "UUID");
   logbookWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+  logbookWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
-  QAction* action = new QAction("Set module filter", this);
+  QAction* action = new QAction("Filter module", this);
   logbookWidget->addAction(action);
   connect(action, SIGNAL(triggered()), this, SLOT(filterModule()));
 
-  action = new QAction("Set UUID filter", this);
+  action = new QAction("Filter UUID", this);
   logbookWidget->addAction(action);
   connect(action, SIGNAL(triggered()), this, SLOT(filterUuid()));
 
@@ -79,9 +86,16 @@ LogbookWidget::LogbookWidget(QWidget* parent)
   logbookWidget->addAction(action);
   connect(action, SIGNAL(triggered()), this, SLOT(clearFilter()));
 
+  action = new QAction(this);
+  action->setSeparator(true);
+  logbookWidget->addAction(action);
+
   action = new QAction("Clear log", this);
   logbookWidget->addAction(action);
   connect(action, SIGNAL(triggered()), this, SLOT(clearLog()));
+
+  connect(logbookWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),
+      this, SLOT(handleItemDoubleClicked(QTreeWidgetItem*, int)));
 
   QVBoxLayout* mainLayout = new QVBoxLayout();
   mainLayout->addWidget(filterWidget);
@@ -92,9 +106,25 @@ LogbookWidget::LogbookWidget(QWidget* parent)
   LogbookModel& model = LogbookModel::GetInstance();
   connect(&model, SIGNAL(newMessage(const std::string&, const std::string&, const std::string&, const std::string&)),
       this, SLOT(showMessage(const std::string&, const std::string&, const std::string&, const std::string&)));
+
+  QSettings settings;
+  if (settings.contains("logbook/TimeWidth"))
+    logbookWidget->setColumnWidth(TimeColumn, settings.value("logbook/TimeWidth").toInt());
+  if (settings.contains("logbook/MessageWidth"))
+    logbookWidget->setColumnWidth(MessageColumn, settings.value("logbook/MessageWidth").toInt());
+  if (settings.contains("logbook/ModuleWidth"))
+    logbookWidget->setColumnWidth(ModuleColumn, settings.value("logbook/ModuleWidth").toInt());
+  if (settings.contains("logbook/UuidWidth"))
+    logbookWidget->setColumnWidth(UuidColumn, settings.value("logbook/UuidWidth").toInt());
 }
 
 LogbookWidget::~LogbookWidget() {
+  QSettings settings;
+  settings.setValue("logbook/TimeWidth", logbookWidget->columnWidth(TimeColumn));
+  settings.setValue("logbook/MessageWidth", logbookWidget->columnWidth(MessageColumn));
+  settings.setValue("logbook/ModuleWidth", logbookWidget->columnWidth(ModuleColumn));
+  settings.setValue("logbook/UuidWidth", logbookWidget->columnWidth(UuidColumn));
+
   for (int i = 0; i < logEntries.size(); ++i)
     delete logEntries[i];
 }
@@ -104,7 +134,7 @@ bool LogbookWidget::matchFilter(QTreeWidgetItem* item) {
 
   // check if current severity
   Severity severity;
-  severity = item->text(3).toAscii().data();
+  severity = item->text(SeverityColumn).toAscii().data();
 
   switch(severity) {
   case Severity::Trace:
@@ -128,9 +158,9 @@ bool LogbookWidget::matchFilter(QTreeWidgetItem* item) {
   }
 
   if (filterText.length()) {
-    if (item->text(0).contains(filterText) ||
-        item->text(1).contains(filterText) ||
-        item->text(2).contains(filterText))
+    if (item->text(MessageColumn).contains(filterText) ||
+        item->text(ModuleColumn).contains(filterText) ||
+        item->text(UuidColumn).contains(filterText))
     {
       return true;
     } else {
@@ -167,10 +197,18 @@ void LogbookWidget::showMessage(const std::string& message, const std::string& s
       item->setIcon(0, miscIcon);
   }
 
-  item->setText(0, message.c_str());
-  item->setText(1, module.c_str());
-  item->setText(2, uuid.c_str());
-  item->setText(3, ((std::string)severity).c_str());
+  struct tm* timeinfo;
+  char buffer[256];
+  time_t currentTime = time(0);
+
+  timeinfo = localtime(&currentTime);
+  strftime(buffer, 256, "%H:%M:%S", timeinfo);
+
+  item->setText(TimeColumn, buffer);
+  item->setText(MessageColumn, message.c_str());
+  item->setText(ModuleColumn, module.c_str());
+  item->setText(UuidColumn, uuid.c_str());
+  item->setText(SeverityColumn, ((std::string)severity).c_str());
 
   logEntries.push_back(item);
 
@@ -191,12 +229,12 @@ void LogbookWidget::handleTextChanged(const QString&) {
 
 void LogbookWidget::filterModule() {
   if (logbookWidget->currentItem())
-    filterEdit->setText(logbookWidget->currentItem()->text(1));
+    filterEdit->setText(logbookWidget->currentItem()->text(ModuleColumn));
 }
 
 void LogbookWidget::filterUuid() {
   if (logbookWidget->currentItem())
-    filterEdit->setText(logbookWidget->currentItem()->text(2));
+    filterEdit->setText(logbookWidget->currentItem()->text(UuidColumn));
 }
 
 void LogbookWidget::clearFilter() {
@@ -208,6 +246,10 @@ void LogbookWidget::clearLog() {
     delete logEntries[i];
   logEntries.clear();
   logbookWidget->clear();
+}
+
+void LogbookWidget::handleItemDoubleClicked(QTreeWidgetItem* item, int column) {
+  Q_EMIT selectModuleRequested(item->text(UuidColumn));
 }
 
 } /* namespace host */

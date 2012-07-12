@@ -92,6 +92,8 @@ public:
   void updateOutputs();
   void abortUpdate();
 
+  bool trySelectNode(const std::string& uuid);
+
   void copySelectedNodesToClipboard();
   void addNodesFromClipboard();
 
