@@ -41,7 +41,8 @@ SOURCES = main.cpp \
 		  WorkflowToolBox.cpp \
 		  PropertyGrid.cpp \
 		  LogbookModel.cpp \
-		  LogbookWidget.cpp
+		  LogbookWidget.cpp \
+		  GlobalPropertiesView.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -64,7 +65,8 @@ HEADERS = MainWindow.h \
           WorkflowToolBox.h \
           PropertyGrid.h \
           LogbookModel.h \
-          LogbookWidget.h
+          LogbookWidget.h \
+          GlobalPropertiesView.h
           
 RESOURCES = res.qrc
           

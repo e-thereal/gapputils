@@ -35,9 +35,9 @@ int StringReplacer::replaceId;
 BeginPropertyDefinitions(StringReplacer)
 
   ReflectableBase(workflow::WorkflowElement)
-  DefineProperty(Input, Input("In"), Observe(inputId = PROPERTY_ID), NotEqual<string>("", "Input must not be empty."), TimeStamp(PROPERTY_ID))
+  DefineProperty(Input, Input("In"), Observe(inputId = PROPERTY_ID), NotEqual<string>("", "Property 'Input' must not be empty."), TimeStamp(PROPERTY_ID))
   DefineProperty(Output, Output("Out"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Find, Observe(findId = PROPERTY_ID), NotEqual<string>("", "Find must not be empty."), TimeStamp(PROPERTY_ID))
+  DefineProperty(Find, Observe(findId = PROPERTY_ID), NotEqual<string>("", "Property 'Find' must not be empty."), TimeStamp(PROPERTY_ID))
   DefineProperty(Replace, Observe(replaceId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions

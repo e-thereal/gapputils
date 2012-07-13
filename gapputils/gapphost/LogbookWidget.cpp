@@ -74,6 +74,7 @@ LogbookWidget::LogbookWidget(QWidget* parent)
 
   QWidget* filterWidget = new QWidget();
   filterWidget->setLayout(quickFilterLayout);
+  filterWidget->setContentsMargins(4, 6, 3, 0);
 
   logbookWidget = new QTreeWidget();
   logbookWidget->setHeaderLabels(QStringList() << "Time" << "Message" << "Module" << "UUID");
@@ -106,6 +107,7 @@ LogbookWidget::LogbookWidget(QWidget* parent)
   QVBoxLayout* mainLayout = new QVBoxLayout();
   mainLayout->addWidget(filterWidget);
   mainLayout->addWidget(logbookWidget);
+  mainLayout->setMargin(0);
 
   setLayout(mainLayout);
 

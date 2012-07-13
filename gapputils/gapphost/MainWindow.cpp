@@ -30,6 +30,7 @@
 #include "WorkflowToolBox.h"
 #include "PropertyGrid.h"
 #include "LogbookWidget.h"
+#include "GlobalPropertiesView.h"
 
 using namespace std;
 using namespace capputils;
@@ -148,6 +149,15 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
       | Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
   LogbookWidget* logbook = new LogbookWidget(dock);
   dock->setWidget(logbook);
+  addDockWidget(Qt::BottomDockWidgetArea, dock);
+  windowMenu->addAction(dock->toggleViewAction());
+
+  dock = new QDockWidget(tr("Global Properties"), this);
+  dock->setObjectName("GlobalProperties");
+  dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea
+      | Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+  GlobalPropertiesView* propView = new GlobalPropertiesView(dock);
+  dock->setWidget(propView);
   addDockWidget(Qt::BottomDockWidgetArea, dock);
   windowMenu->addAction(dock->toggleViewAction());
 
