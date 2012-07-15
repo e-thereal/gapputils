@@ -7,6 +7,7 @@
 
 #include "FunctionFilter.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -32,8 +33,6 @@ using namespace gapputils::attributes;
 namespace gapputils {
 
 namespace ml {
-
-DefineEnum(FilterFunction)
 
 BeginPropertyDefinitions(FunctionParameters)
 EndPropertyDefinitions
@@ -74,7 +73,7 @@ BeginPropertyDefinitions(FunctionFilter)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(InputImage, Input(""), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
-  ReflectableProperty(Function, Observe(functionId = PROPERTY_ID))
+  DefineProperty(Function, Enumerator<FilterFunction>(), Observe(functionId = PROPERTY_ID))
   ReflectableProperty(Parameters, Observe(PROPERTY_ID))
   DefineProperty(OutputImage, Output(""), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
 

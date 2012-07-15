@@ -1,5 +1,6 @@
 #include "Compare.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/InputAttribute.h>
 #include <capputils/NotEqualAssertion.h>
@@ -23,11 +24,9 @@ namespace gapputils {
 
 namespace common {
 
-DefineEnum(ErrorType)
-
 BeginPropertyDefinitions(Compare)
 
-  ReflectableProperty(Type, Observe(PROPERTY_ID), Label())
+  DefineProperty(Type, Enumerator<ErrorType>(), Observe(PROPERTY_ID), Label())
   DefineProperty(X, Observe(PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(PROPERTY_ID))
   DefineProperty(Y, Observe(PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(PROPERTY_ID))
   DefineProperty(Count, Observe(PROPERTY_ID), Input("N"), TimeStamp(PROPERTY_ID))

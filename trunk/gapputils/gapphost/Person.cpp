@@ -1,6 +1,7 @@
 #include "Person.h"
 
 #include <capputils/DescriptionAttribute.h>
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/ScalarAttribute.h>
 #include <capputils/ObserveAttribute.h>
 #include <capputils/ReuseAttribute.h>
@@ -25,8 +26,6 @@ EndPropertyDefinitions
 
 Address::Address() : _Street("W 11th Ave"), _City("Vancouver"), _StreetNumber(1065), _AppartmentNumber(207) { }
 
-DefineEnum(Gender)
-
 BeginPropertyDefinitions(Person)
 
 DefineProperty(FirstName,
@@ -41,7 +40,7 @@ DefineProperty(Age,
 ReflectableProperty(Address,
   Description("Address with everything."), Observe(PROPERTY_ID), Reuse())
 
-ReflectableProperty(Gender, Observe(PROPERTY_ID))
+DefineProperty(Gender, Enumerator<Gender>(), (PROPERTY_ID))
 
 EndPropertyDefinitions
 

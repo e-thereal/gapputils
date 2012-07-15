@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'NewObjectDialog.ui'
 **
-** Created: Mon May 21 12:24:37 2012
+** Created: Tue Jul 10 20:12:59 2012
 **      by: Qt User Interface Compiler version 4.7.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!

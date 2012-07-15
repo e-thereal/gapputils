@@ -10,7 +10,7 @@ namespace gapputils {
 
 namespace common {
 
-ReflectableEnum(ErrorType, MSE, SE, RSE);
+CapputilsEnumerator(ErrorType, MSE, SE, RSE);
 
 class Compare : public workflow::DefaultWorkflowElement<Compare>
 {

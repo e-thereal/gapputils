@@ -7,6 +7,7 @@
 
 #include "ImageCombiner.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -31,15 +32,13 @@ namespace gapputils {
 
 namespace cv {
 
-DefineEnum(CombinerMode)
-
 BeginPropertyDefinitions(ImageCombiner)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(InputImage1, Input("Img1"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(InputImage2, Input("Img2"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Mode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Mode, Enumerator<CombinerMode>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 

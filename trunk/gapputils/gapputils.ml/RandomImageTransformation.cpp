@@ -7,6 +7,7 @@
 
 #include "RandomImageTransformation.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -33,15 +34,13 @@ namespace gapputils {
 
 namespace ml {
 
-DefineEnum(TransformationType)
-
 BeginPropertyDefinitions(RandomImageTransformation)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Input, Input("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Transformation, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Transformation, Enumerator<TransformationType>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(XRange, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(YRange, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ZRange, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))

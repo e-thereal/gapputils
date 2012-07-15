@@ -18,7 +18,7 @@ namespace gapputils {
 
 namespace ml {
 
-ReflectableEnum(ImageFusion, Addition, Multiplication);
+CapputilsEnumerator(ImageFusion, Addition, Multiplication);
 
 class FeatureCollages : public gapputils::workflow::WorkflowElement {
 

@@ -15,7 +15,7 @@ namespace gapputils {
 
 namespace ml {
 
-ReflectableEnum(TransformationType, Translation, Rotation, Scaling, Rigid);
+CapputilsEnumerator(TransformationType, Translation, Rotation, Scaling, Rigid);
 
 class RandomImageTransformation : public gapputils::workflow::WorkflowElement {
 

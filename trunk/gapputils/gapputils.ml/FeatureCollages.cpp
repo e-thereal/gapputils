@@ -7,6 +7,7 @@
 
 #include "FeatureCollages.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -35,15 +36,13 @@ namespace gapputils {
 
 namespace ml {
 
-DefineEnum(ImageFusion);
-
 BeginPropertyDefinitions(FeatureCollages)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(InputImages, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
   DefineProperty(FeatureCount, Observe(PROPERTY_ID))
   DefineProperty(ImageCount, Observe(PROPERTY_ID))
-  ReflectableProperty(Fusion, Observe(PROPERTY_ID))
+  DefineProperty(Fusion, Enumerator<ImageFusion>(), Observe(PROPERTY_ID))
   DefineProperty(OutputImages, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Debug"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
 

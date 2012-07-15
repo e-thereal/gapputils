@@ -17,7 +17,7 @@ namespace gapputils {
 
 namespace ml {
 
-ReflectableEnum(FilterFunction, Log, Sqrt, Bernstein, Gamma, Sigmoid);
+CapputilsEnumerator(FilterFunction, Log, Sqrt, Bernstein, Gamma, Sigmoid);
 
 class FunctionParameters : public capputils::reflection::ReflectableClass,
                            public capputils::ObservableClass

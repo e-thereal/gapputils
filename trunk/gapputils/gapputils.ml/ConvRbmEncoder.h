@@ -19,8 +19,8 @@ namespace gapputils {
 
 namespace ml {
 
-ReflectableEnum(CodingDirection, Encode, Decode);
-ReflectableEnum(PoolingMethod, NoPooling, MaxPooling, PositionalMaxPooling, AvgPooling, StackPooling);
+CapputilsEnumerator(CodingDirection, Encode, Decode);
+CapputilsEnumerator(PoolingMethod, NoPooling, MaxPooling, PositionalMaxPooling, AvgPooling, StackPooling);
 
 class ConvRbmEncoder : public gapputils::workflow::DefaultWorkflowElement<ConvRbmEncoder> {
 public:

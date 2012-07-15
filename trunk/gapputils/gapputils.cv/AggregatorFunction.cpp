@@ -11,8 +11,6 @@ namespace gapputils {
 
 namespace cv {
 
-DefineEnum(AggregatorFunction);
-
 } /* namespace cv */
 
 } /* namespace gapputils */

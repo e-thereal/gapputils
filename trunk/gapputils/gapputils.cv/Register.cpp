@@ -7,6 +7,7 @@
 
 #include "Register.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -46,15 +47,13 @@ namespace gapputils {
 
 namespace cv {
 
-DefineEnum(OptimizerType);
-
 BeginPropertyDefinitions(Register)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(BaseImage, Input("Base"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(InputImage, Input("In"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Similarity, Observe(PROPERTY_ID))
-  ReflectableProperty(Optimizer, Observe(PROPERTY_ID))
+  DefineProperty(Similarity, Enumerator<SimilarityMeasure>(), Observe(PROPERTY_ID))
+  DefineProperty(Optimizer, Enumerator<OptimizerType>(), Observe(PROPERTY_ID))
   DefineProperty(InPlane, Observe(PROPERTY_ID))
   DefineProperty(Matrix, Output("M"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 

@@ -10,9 +10,6 @@
 namespace gapputils {
 
 namespace cv {
-
-DefineEnum(SimilarityMeasure);
-
 }
 
 }
