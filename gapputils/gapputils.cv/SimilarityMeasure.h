@@ -14,7 +14,7 @@ namespace gapputils {
 
 namespace cv {
 
-ReflectableEnum(SimilarityMeasure, SSD, NCC, MI);
+CapputilsEnumerator(SimilarityMeasure, SSD, NCC, MI);
 
 }
 

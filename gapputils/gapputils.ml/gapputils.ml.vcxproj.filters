@@ -123,9 +123,6 @@
     <ClInclude Include="Mean.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Pooling.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PrincipleComponents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -240,9 +237,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Mean.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Pooling.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PrincipleComponents.cpp">

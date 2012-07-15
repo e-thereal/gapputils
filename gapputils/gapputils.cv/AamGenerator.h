@@ -20,7 +20,7 @@ namespace gapputils {
 
 namespace cv {
 
-ReflectableEnum(AamGeneratorMode, Image, Segmentation, TextureWarp);
+CapputilsEnumerator(AamGeneratorMode, Image, Segmentation, TextureWarp);
 
 class AamGenerator : public gapputils::workflow::WorkflowElement {
 

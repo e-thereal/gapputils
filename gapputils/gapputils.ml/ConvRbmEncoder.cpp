@@ -7,6 +7,7 @@
 
 #include "ConvRbmEncoder.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -31,9 +32,6 @@ namespace gapputils {
 
 namespace ml {
 
-DefineEnum(CodingDirection);
-DefineEnum(PoolingMethod);
-
 int ConvRbmEncoder::inputId;
 
 BeginPropertyDefinitions(ConvRbmEncoder)
@@ -42,9 +40,9 @@ BeginPropertyDefinitions(ConvRbmEncoder)
   DefineProperty(Model, Input("CRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
   DefineProperty(Inputs, Input("X"), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID))
   DefineProperty(Outputs, Output("Y"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  ReflectableProperty(Direction, Observe(PROPERTY_ID))
+  DefineProperty(Direction, Enumerator<CodingDirection>(), Observe(PROPERTY_ID))
   DefineProperty(Sampling, Observe(PROPERTY_ID))
-  ReflectableProperty(Pooling, Observe(PROPERTY_ID))
+  DefineProperty(Pooling, Enumerator<PoolingMethod>(), Observe(PROPERTY_ID))
   DefineProperty(Auto, Observe(PROPERTY_ID))
   DefineProperty(OutputDimension, NoParameter(), Observe(PROPERTY_ID))
 

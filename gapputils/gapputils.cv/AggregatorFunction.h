@@ -14,7 +14,7 @@ namespace gapputils {
 
 namespace cv {
 
-ReflectableEnum(AggregatorFunction, Minimum, Maximum, Sum, Average, Median);
+CapputilsEnumerator(AggregatorFunction, Minimum, Maximum, Sum, Average, Median);
 
 } /* namespace cv */
 

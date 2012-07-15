@@ -108,7 +108,6 @@
     <ClInclude Include="Mean.h" />
     <ClInclude Include="MnistReader.h" />
     <ClInclude Include="OneOfN.h" />
-    <ClInclude Include="Pooling.h" />
     <ClInclude Include="PrincipleComponents.h" />
     <ClInclude Include="RandomImageTransformation.h" />
     <ClInclude Include="RbmConditional.h" />
@@ -152,7 +151,6 @@
     <ClCompile Include="Mean.cpp" />
     <ClCompile Include="MnistReader.cpp" />
     <ClCompile Include="OneOfN.cpp" />
-    <ClCompile Include="Pooling.cpp" />
     <ClCompile Include="PrincipleComponents.cpp" />
     <ClCompile Include="RandomImageTransformation.cpp" />
     <ClCompile Include="RbmConditional.cpp" />

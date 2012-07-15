@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'GenericViewer.h'
 **
-** Created: Tue Jul 10 20:12:56 2012
+** Created: Sat Jul 14 00:02:57 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -59,8 +59,8 @@ void *gapputils::GenericViewer::qt_metacast(const char *_clname)
     if (!_clname) return 0;
     if (!strcmp(_clname, qt_meta_stringdata_gapputils__GenericViewer))
         return static_cast<void*>(const_cast< GenericViewer*>(this));
-    if (!strcmp(_clname, "workflow::DefaultWorkflowElement"))
-        return static_cast< workflow::DefaultWorkflowElement*>(const_cast< GenericViewer*>(this));
+    if (!strcmp(_clname, "workflow::DefaultWorkflowElement<GenericViewer>"))
+        return static_cast< workflow::DefaultWorkflowElement<GenericViewer>*>(const_cast< GenericViewer*>(this));
     return QObject::qt_metacast(_clname);
 }
 

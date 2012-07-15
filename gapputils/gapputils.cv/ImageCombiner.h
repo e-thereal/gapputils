@@ -18,7 +18,7 @@ namespace gapputils {
 
 namespace cv {
 
-ReflectableEnum(CombinerMode, Add, Subtract, Multiply, Divide);
+CapputilsEnumerator(CombinerMode, Add, Subtract, Multiply, Divide);
 
 class ImageCombiner : public gapputils::workflow::WorkflowElement {
 

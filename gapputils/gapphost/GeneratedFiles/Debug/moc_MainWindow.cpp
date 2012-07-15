@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'MainWindow.h'
 **
-** Created: Tue Jul 10 20:12:52 2012
+** Created: Sat Jul 14 00:02:54 2012
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
        5,       // revision
        0,       // classname
        0,    0, // classinfo
-      21,   14, // methods
+      22,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -52,6 +52,7 @@ static const uint qt_meta_data_gapputils__host__MainWindow[] = {
      400,  391,   28,   28, 0x0a,
      425,  419,   28,   28, 0x0a,
      448,  220,   28,   28, 0x0a,
+     495,  490,   28,   28, 0x0a,
 
        0        // eod
 };
@@ -71,6 +72,7 @@ static const char qt_meta_stringdata_gapputils__host__MainWindow[] = {
     "tabIndex\0closeWorkflow(int)\0index\0"
     "currentTabChanged(int)\0"
     "handleCurrentNodeChanged(workflow::Node*)\0"
+    "uuid\0selectModule(QString)\0"
 };
 
 const QMetaObject gapputils::host::MainWindow::staticMetaObject = {
@@ -123,9 +125,10 @@ int gapputils::host::MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void
         case 18: closeWorkflow((*reinterpret_cast< int(*)>(_a[1]))); break;
         case 19: currentTabChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
         case 20: handleCurrentNodeChanged((*reinterpret_cast< workflow::Node*(*)>(_a[1]))); break;
+        case 21: selectModule((*reinterpret_cast< const QString(*)>(_a[1]))); break;
         default: ;
         }
-        _id -= 21;
+        _id -= 22;
     }
     return _id;
 }

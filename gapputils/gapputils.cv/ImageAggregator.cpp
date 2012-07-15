@@ -7,6 +7,7 @@
 
 #include "ImageAggregator.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -35,7 +36,7 @@ BeginPropertyDefinitions(ImageAggregator)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(InputImage, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  ReflectableProperty(Function, Observe(PROPERTY_ID))
+  DefineProperty(Function, Enumerator<AggregatorFunction>(), Observe(PROPERTY_ID))
   DefineProperty(OutputImage, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
 
 EndPropertyDefinitions

@@ -7,6 +7,7 @@
 
 #include "SlidingWindowFilter.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -37,7 +38,7 @@ BeginPropertyDefinitions(SlidingWindowFilter)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(InputImage, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  ReflectableProperty(Filter, Observe(PROPERTY_ID))
+  DefineProperty(Filter, Enumerator<AggregatorFunction>(), Observe(PROPERTY_ID))
   DefineProperty(FilterSize, Observe(PROPERTY_ID))
   DefineProperty(OutputImage, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
 

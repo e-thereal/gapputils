@@ -3,6 +3,7 @@
 #include <qcombobox.h>
 #include <qcheckbox.h>
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EnumerableAttribute.h>
 #include <capputils/FromEnumerableAttribute.h>
 #include <capputils/IReflectableAttribute.h>
@@ -17,6 +18,7 @@
 
 #include <iostream>
 
+using namespace capputils;
 using namespace capputils::reflection;
 using namespace capputils::attributes;
 using namespace std;
@@ -32,25 +34,21 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
      const QStyleOptionViewItem & option ,
      const QModelIndex & index ) const
 {
-  // Old:
-  //const QVariant& varient = index.model()->data(index, Qt::UserRole);
   const QVariant& varient = index.data(Qt::UserRole);
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
     IClassProperty* property = reference.getProperty();
     ReflectableClass* object = reference.getObject();
 
-    IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
+    IEnumeratorAttribute* enumAttr = property->getAttribute<IEnumeratorAttribute>();
+    //IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
     FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
     FilenameAttribute* fa = 0;
 
     ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
 
-    if (reflectable) {
-      ReflectableClass* object = reference.getObject();
-      IClassProperty* prop = reference.getProperty();
-      ReflectableClass* value = reflectable->getValuePtr(*object, prop);
-      Enumerator* enumerator = dynamic_cast<Enumerator*>(value);
+    if (enumAttr) {
+      std::shared_ptr<capputils::Enumerator> enumerator = enumAttr->getEnumerator(*object, property);
       if (enumerator) {
         QComboBox* box = new QComboBox(parent);
         vector<string>& values = enumerator->getValues();
@@ -98,16 +96,15 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
   if (varient.canConvert<PropertyReference>()) {
     const PropertyReference& reference = varient.value<PropertyReference>();
     IClassProperty* property = reference.getProperty();
+    ReflectableClass* object = reference.getObject();
     Node* node = reference.getNode();
 
-    IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
+    //IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
     FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
     ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
-    if (reflectable) {
-      ReflectableClass* object = reference.getObject();
-      IClassProperty* prop = reference.getProperty();
-      ReflectableClass* value = reflectable->getValuePtr(*object, prop);
-      Enumerator* enumerator = dynamic_cast<Enumerator*>(value);
+    IEnumeratorAttribute* enumAttr = property->getAttribute<IEnumeratorAttribute>();
+    if (enumAttr) {
+      std::shared_ptr<capputils::Enumerator> enumerator = enumAttr->getEnumerator(*object, property);
       if (enumerator) {
         QComboBox* box = static_cast<QComboBox*>(editor);
         box->setCurrentIndex(enumerator->toInt());
@@ -161,16 +158,15 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
     const PropertyReference& reference = varient.value<PropertyReference>();
 
     IClassProperty* property = reference.getProperty();
+    ReflectableClass* object = reference.getObject();
     Node* node = reference.getNode();
 
-    IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
+    //IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
+    IEnumeratorAttribute* enumAttr = property->getAttribute<IEnumeratorAttribute>();
     FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
     ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
-    if (reflectable) {
-      ReflectableClass* object = reference.getObject();
-      IClassProperty* prop = reference.getProperty();
-      ReflectableClass* value = reflectable->getValuePtr(*object, prop);
-      Enumerator* enumerator = dynamic_cast<Enumerator*>(value);
+    if (enumAttr) {
+      std::shared_ptr<capputils::Enumerator> enumerator = enumAttr->getEnumerator(*object, property);
       if (enumerator) {
         QComboBox* box = static_cast<QComboBox*>(editor);
         QString str = box->currentText();

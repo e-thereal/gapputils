@@ -21,7 +21,7 @@ namespace gapputils {
 
 namespace cv {
 
-ReflectableEnum(OptimizerType, Powell, Simplex);
+CapputilsEnumerator(OptimizerType, Powell, Simplex);
 
 class Register : public gapputils::workflow::WorkflowElement {
 
