@@ -17,7 +17,7 @@ namespace gapputils {
 
 namespace cv {
 
-ReflectableEnum(SliceOrientation, Axial, Sagital, Coronal);
+CapputilsEnumerator(SliceOrientation, Axial, Sagital, Coronal);
 
 class SliceFromMif : public gapputils::workflow::WorkflowElement {
 
