@@ -7,6 +7,7 @@
 
 #include "SliceFromMif.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/DescriptionAttribute.h>
 #include <capputils/NoParameterAttribute.h>
 #include <capputils/EventHandler.h>
@@ -37,8 +38,6 @@ namespace gapputils {
 
 namespace cv {
 
-DefineEnum(SliceOrientation)
-
 BeginPropertyDefinitions(SliceFromMif)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
@@ -47,7 +46,7 @@ BeginPropertyDefinitions(SliceFromMif)
   DefineProperty(Width, Description("Is set to width of extracted slice."), NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(Height, Description("Is set to height of extracted slice."), NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(SlicePosition, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Orientation, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Orientation, Enumerator<SliceOrientation>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
