@@ -74,11 +74,10 @@ void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node)
 
       // If the type of the reflectable object has changed, the subtree needs to be rebuild.
       // You need to know the previous type in order to detect a changed. ScalarAttributes are
-      // no longer supported in order to garantee, that the string value is always set to the
+      // no longer supported in order to guarantee, that the string value is always set to the
       // previous type name.
 
-      Enumerator* enumerator = dynamic_cast<Enumerator*>(subObject);
-      if (!enumerator && subObject) {
+      if (subObject) {
         //if (!subObject->getAttribute<ScalarAttribute>()) {
         value->setText(subObject->getClassName().c_str());
         value->setEnabled(false);
@@ -87,7 +86,7 @@ void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node)
         //}
         buildModel(key, subObject, node);
       } else {
-        value->setText(properties[i]->getStringValue(*object).c_str());
+        // TODO: report problem
       }
     } else {
       value->setText(properties[i]->getStringValue(*object).c_str());

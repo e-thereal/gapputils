@@ -7,6 +7,7 @@
 
 #include "AamGenerator.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -35,8 +36,6 @@ namespace gapputils {
 
 namespace cv {
 
-DefineEnum(AamGeneratorMode)
-
 BeginPropertyDefinitions(AamGenerator)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
@@ -46,7 +45,7 @@ BeginPropertyDefinitions(AamGenerator)
   DefineProperty(TextureImage, Input("Tex"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputGrid, Output("Grid"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Mode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Mode, EnumeratorAttribute<AamGeneratorMode>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 

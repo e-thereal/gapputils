@@ -7,6 +7,7 @@
 
 #include "AamFitter.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -50,7 +51,7 @@ BeginPropertyDefinitions(AamFitter)
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(InputImage, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Measure, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Measure, Enumerator<SimilarityMeasure>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(InReferenceFrame, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(UseAppearanceMatrix, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(AppearanceParameters, Output("AP"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
