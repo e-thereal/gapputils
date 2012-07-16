@@ -19,7 +19,7 @@ namespace gapputils {
 
 namespace cv {
 
-ReflectableEnum(AamBuilderMode, Build, Evaluate);
+CapputilsEnumerator(AamBuilderMode, Build, Evaluate);
 
 class AamBuilder2 : public gapputils::workflow::WorkflowElement {
 

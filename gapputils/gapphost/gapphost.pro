@@ -10,7 +10,6 @@ SOURCES = main.cpp \
 		  FilenameEdit.cpp \
 		  ImageLoader.cpp \
 		  ImageViewer.cpp \
-		  ImageViewerItem.cpp \
 		  NewObjectDialog.cpp \
 		  ShowImageDialog.cpp \
 		  DataModel.cpp \

@@ -7,6 +7,7 @@
 
 #include "AamBuilder2.h"
 
+#include <capputils/EnumeratorAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -45,14 +46,12 @@ namespace gapputils {
 
 namespace cv {
 
-DefineEnum(AamBuilderMode)
-
 BeginPropertyDefinitions(AamBuilder2)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(TrainingSet, Input("D"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(InitialModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Mode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Mode, Enumerator<AamBuilderMode>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(ModelQuality, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(IterationCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 

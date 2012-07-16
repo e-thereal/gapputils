@@ -28,6 +28,10 @@
 
 #include "Workbench.h"
 
+namespace capputils {
+  class Logbook;
+}
+
 namespace gapputils {
 
 class ToolItem;
@@ -54,6 +58,7 @@ class Workflow : public QObject, public Node, public CompatibilityChecker, publi
 
   Property(ViewportScale, double)
   Property(ViewportPosition, std::vector<double>)
+  Property(Logbook, boost::shared_ptr<capputils::Logbook>)
 
 private:
   Workbench* workbench;

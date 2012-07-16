@@ -39,6 +39,7 @@
 #include <capputils/DescriptionAttribute.h>
 #include <capputils/FromEnumerableAttribute.h>
 #include <capputils/ToEnumerableAttribute.h>
+#include <capputils/Logbook.h>
 
 #include <gapputils/CombinerInterface.h>
 #include <gapputils/HideAttribute.h>
@@ -65,6 +66,7 @@
 
 #include "DataModel.h"
 #include "MainWindow.h"
+#include "LogbookModel.h"
 
 // TODO: shouldn't reference the controller
 #include "WorkflowController.h"
@@ -97,6 +99,7 @@ DefineProperty(GlobalProperties, Enumerable<vector<GlobalProperty*>*, true>())
 DefineProperty(GlobalEdges, Enumerable<vector<GlobalEdge*>*, true>())
 DefineProperty(ViewportScale)
 DefineProperty(ViewportPosition)
+DefineProperty(Logbook, Volatile())
 
 EndPropertyDefinitions
 
@@ -120,8 +123,8 @@ EndPropertyDefinitions
  */
 
 Workflow::Workflow()
- : _ViewportScale(1.0), ownWidget(true),
-   progressNode(0), workflowUpdater(new host::WorkflowUpdater())
+ : _ViewportScale(1.0), _Logbook(new Logbook(&host::LogbookModel::GetInstance())),
+   ownWidget(true), progressNode(0), workflowUpdater(new host::WorkflowUpdater())
 {
   _Libraries = new vector<std::string>();
   _Edges = new vector<Edge*>();
@@ -131,6 +134,8 @@ Workflow::Workflow()
 
   _ViewportPosition.push_back(0);
   _ViewportPosition.push_back(0);
+
+  _Logbook->setModule("gapputils::workflow::Workflow");
 
   workbench = new Workbench();
   workbench->setGeometry(0, 0, 600, 600);
@@ -214,6 +219,7 @@ Workflow::~Workflow() {
 }
 
 void Workflow::addInterfaceNode(Node* node) {
+  Logbook& dlog = *getLogbook();
   interfaceNodes.push_back(node);
 
   ReflectableClass* object = node->getModule();
@@ -226,7 +232,7 @@ void Workflow::addInterfaceNode(Node* node) {
   if (prop->getAttribute<InputAttribute>()) {
     ToolItem* item = getToolItem();
     if (!item) {
-      std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
+      dlog(Severity::Trace) << "Workflow does not have a ToolItem";
     } else {
       item->addConnection(QString(object->getProperty("Label").c_str()), interfaceNodes.size() + getModule()->getProperties().size() - 1, ToolConnection::Output);
 //      std::cout << "[Info] New connection added with id " << interfaceNodes.size() + getModule()->getProperties().size() - 1 << std::endl;
@@ -235,7 +241,7 @@ void Workflow::addInterfaceNode(Node* node) {
   if (prop->getAttribute<OutputAttribute>()) {
     ToolItem* item = getToolItem();
     if (!item) {
-      std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
+      dlog(Severity::Trace) << "Workflow does not have a ToolItem";
     } else {
       item->addConnection(QString(object->getProperty("Label").c_str()), interfaceNodes.size() + getModule()->getProperties().size() - 1, ToolConnection::Input);
 //      std::cout << "[Info] New connection added with id " << interfaceNodes.size() + getModule()->getProperties().size() - 1 << std::endl;
@@ -244,6 +250,7 @@ void Workflow::addInterfaceNode(Node* node) {
 }
   
 void Workflow::removeInterfaceNode(Node* node) {
+  Logbook& dlog = *getLogbook();
 //  std::cout << "[Info] removing interface node" << std::endl;
 
   int deletedId = -1;
@@ -276,7 +283,7 @@ void Workflow::removeInterfaceNode(Node* node) {
         if (prop->getAttribute<InputAttribute>()) {
           ToolItem* item = getToolItem();
           if (!item) {
-            std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
+            dlog(Severity::Trace) << "[Info] Workflow does not have a ToolItem";
           } else {
             deletedId = getModule()->getProperties().size() + i;
 //            std::cout << "[Info] removedId = " << deletedId << std::endl;
@@ -287,7 +294,7 @@ void Workflow::removeInterfaceNode(Node* node) {
         if (prop->getAttribute<OutputAttribute>()) {
           ToolItem* item = getToolItem();
           if (!item) {
-            std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
+            dlog(Severity::Trace) << "[Info] Workflow does not have a ToolItem";
           } else {
             deletedId = getModule()->getProperties().size() + i;
 //            std::cout << "[Info] removedId = " << deletedId << std::endl;
@@ -373,11 +380,11 @@ void Workflow::makePropertyGlobal(const std::string& name, const PropertyReferen
 
 bool Workflow::activateGlobalProperty(GlobalProperty* prop) {
   Node* node = getNode(prop->getModuleUuid());
+  Logbook& dlog = *getLogbook();
 
   unsigned id;
   if (!node || !node->getModule() || !node->getModule()->getPropertyIndex(id, prop->getPropertyName())) {
-    // TODO: Error handling
-    cout << "[Warning] Property " << prop->getPropertyName() << " could not be found." << endl;
+    dlog(Severity::Warning) << "Property '" << prop->getPropertyName() << "' could not be found.";
     return false;
   }
   prop->setPropertyId(id);
@@ -390,7 +397,7 @@ bool Workflow::activateGlobalProperty(GlobalProperty* prop) {
     font.setUnderline(true);
     item->setFont(font);
   } else {
-    cout << "no such item, " << __FILE__ << ", " << __LINE__ << endl;
+    dlog(Severity::Warning) << "No such item, " << __FILE__ << ", " << __LINE__;
   }
 
   return true;
@@ -414,13 +421,13 @@ void Workflow::connectProperty(const std::string& name, const PropertyReference&
 }
 
 void Workflow::activateGlobalEdge(GlobalEdge* edge) {
+  Logbook& dlog = *getLogbook();
   Node* inputNode = getNode(edge->getInputNode());
 
   GlobalProperty* globalProp = getGlobalProperty(edge->getGlobalProperty());
   globalProp->addEdge(edge);
   if (!edge->activate(getNode(edge->getOutputNode()), inputNode)) {
-    // TODO: should not happen but just in case, handle it right
-    cout << "Error in line " << __LINE__ << endl;
+    dlog(Severity::Error) << "Error in line " << __LINE__;
   }
 
   QStandardItem* item = getItem(inputNode->getModule(),
@@ -430,7 +437,7 @@ void Workflow::activateGlobalEdge(GlobalEdge* edge) {
     font.setItalic(true);
     item->setFont(font);
   } else {
-    cout << "no such item" << endl;
+    dlog(Severity::Warning) << "no such item: " << __LINE__ << endl;
   }
 }
 
@@ -610,6 +617,7 @@ void Workflow::newItem(Node* node) {
 }
 
 bool Workflow::newCable(Edge* edge) {
+  Logbook& dlog = *getLogbook();
 
 //  cout << "Connecting " << edge->getOutputNode() << "." << edge->getOutputProperty()
 //       << " with " << edge->getInputNode() << "." << edge->getInputProperty() << "... " << flush;
@@ -650,8 +658,7 @@ bool Workflow::newCable(Edge* edge) {
       }
     }
   } else {
-    // TODO: Error handling
-    cout << "[Warning] Can not find connections for edge " << edge->getInputNode() << " -> " << edge->getOutputNode() << endl;
+    dlog(Severity::Warning) << "Can not find connections for edge '" << edge->getInputNode() << "' -> '" << edge->getOutputNode() << "'";
     return false;
   }
 //  cout << "DONE!" << endl;
@@ -679,6 +686,8 @@ string replaceAll(const string& context, const string& from, const string& to)
 }
 
 void Workflow::resume() {
+  Logbook& dlog = *getLogbook();
+
   map<string, Workflow*>* workflowMap = host::DataModel::getInstance().getWorkflowMap().get();
   //assert(workflowMap->find(getUuid()) == workflowMap->end());
   if (workflowMap->find(getUuid()) == workflowMap->end())
@@ -696,13 +705,13 @@ void Workflow::resume() {
     if (!newCable(edges->at(i))) {
       removeEdge(edges->at(i));
       --i;
-      cout << "[Info] Edge has been removed from the model." << endl;
+      dlog() << "Edge has been removed from the model.";
     }
   }
 
   for (unsigned i = 0; i < globals->size(); ++i) {
     if (!activateGlobalProperty(globals->at(i))) {
-      cout << "[Info] Removing global property." << endl;
+      dlog() << "[Info] Removing global property.";
       removeGlobalProperty(globals->at(i));
       --i; // because there are now one less gprob
     }
@@ -793,12 +802,13 @@ void Workflow::itemChangedHandler(ToolItem* item) {
 
 void Workflow::deleteModule(ToolItem* item) {
   //cout << "Deleting module: " << item->getLabel() << endl;
+  Logbook& dlog = *getLogbook();
 
   unsigned i = 0;
   Node* node = getNode(item, i);
 
   if (!node) {
-    cout << "[Error] Node not found! " << __FILE__ << ", " << __LINE__ << endl;
+    dlog(Severity::Error) << "Node not found! " << __FILE__ << ", " << __LINE__;
     return;
   }
 
@@ -1280,6 +1290,8 @@ void renewUuids(Workflow& workflow) {
 }
 
 void Workflow::addNodesFromClipboard() {
+  Logbook& dlog = *getLogbook();
+
   Workflow pasteWorkflow;
   const std::string clipboardText = QApplication::clipboard()->text().toUtf8().data();
   Xmlizer::FromXmlString(pasteWorkflow, clipboardText);
@@ -1302,7 +1314,7 @@ void Workflow::addNodesFromClipboard() {
     getEdges()->push_back(edges[i]);
     if (!newCable(edges[i])) {
       removeEdge(edges[i]);
-      cout << "[Info] Edge has been removed from the model." << endl;
+      dlog() << "Edge has been removed from the model." << endl;
     }
   }
 
