@@ -7,6 +7,7 @@
 
 #include "ConvRbmDecoder.h"
 
+#include <capputils/DeprecatedAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -30,7 +31,7 @@ namespace ml {
 
 int ConvRbmDecoder::inputId;
 
-BeginPropertyDefinitions(ConvRbmDecoder)
+BeginPropertyDefinitions(ConvRbmDecoder, Deprecated("Use gapputils::ml::ConvRbmEncoder instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Model, Input("CRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))

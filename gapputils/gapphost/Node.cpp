@@ -9,6 +9,7 @@
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 #include <boost/filesystem.hpp>
 
+#include <capputils/DeprecatedAttribute.h>
 #include <capputils/ScalarAttribute.h>
 #include <gapputils/LabelAttribute.h>
 #include <gapputils/CacheableAttribute.h>
@@ -145,6 +146,10 @@ void Node::resume() {
     element->getLogbook().setModule(element->getClassName());
     element->getLogbook().setUuid(getUuid());
     element->resume();
+    DeprecatedAttribute* deprecated = element->getAttribute<DeprecatedAttribute>();
+    if (deprecated) {
+      element->getLogbook()(Severity::Warning) << "Module '" << element->getClassName() << "' is deprecated. " << deprecated->getMessage();
+    }
   }
 }
 
