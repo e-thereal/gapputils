@@ -215,7 +215,6 @@ void CudaImage::extractMiddleSlice(CudaImage& slice, const fmatrix4& matrix, Cud
 }*/
 
 double CudaImage::eval(const int3& point) {
-  // TODO: method stub
   return 0.0;
 }
 
