@@ -83,7 +83,7 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* /*monitor*/) cons
     return;
 
   boost::shared_ptr<ActiveAppearanceModel> model = getActiveAppearanceModel();
-  boost::shared_ptr<culib::ICudaImage> image = getInputImage();
+  boost::shared_ptr<image_t> image = getInputImage();
 
   if (!model || !image)
     return;
@@ -154,8 +154,6 @@ void AamFitter::execute(gapputils::workflow::IProgressMonitor* /*monitor*/) cons
   data->setAppearanceParameters(appearanceParameters);
   data->setShapeParameters(shapeParameters);
   data->setSimilarity(objective.eval(parameter));
-
-  image->freeCaches();
 }
 
 void AamFitter::writeResults() {

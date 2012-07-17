@@ -23,14 +23,14 @@ namespace cv {
 class AamEcdnll : public virtual optlib::IFunction<optlib::IMultiDimensionOptimizer::DomainType> {
 
 private:
-  boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > > trainingSet;
+  boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > > trainingSet;
   boost::shared_ptr<ActiveAppearanceModel> oldModel;
   boost::shared_ptr<ActiveAppearanceModel> newModel;
   float variance, lambda;
   std::vector<float> sigma;
 
 public:
-  AamEcdnll(boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > > trainingSet,
+  AamEcdnll(boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > > trainingSet,
       boost::shared_ptr<ActiveAppearanceModel> oldModel,
       float variance, float lambda, std::vector<float>& sigma);
   virtual ~AamEcdnll();

@@ -10,7 +10,7 @@
 
 #include <capputils/ReflectableClass.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 #include "GridModel.h"
 
@@ -44,15 +44,15 @@ public:
   virtual ~ActiveAppearanceModel();
 
   boost::shared_ptr<GridModel> createMeanShape();
-  boost::shared_ptr<culib::ICudaImage> createMeanTexture();
+  boost::shared_ptr<image_t> createMeanTexture();
   boost::shared_ptr<GridModel> createShape(std::vector<float>* features);
-  boost::shared_ptr<culib::ICudaImage> createTexture(std::vector<float>* features);
+  boost::shared_ptr<image_t> createTexture(std::vector<float>* features);
 
   void setMeanShape(boost::shared_ptr<GridModel> grid);
-  void setMeanTexture(boost::shared_ptr<culib::ICudaImage> image);
+  void setMeanTexture(boost::shared_ptr<image_t> image);
 
   static boost::shared_ptr<std::vector<float> > toFeatures(GridModel* grid);
-  static boost::shared_ptr<std::vector<float> > toFeatures(culib::ICudaImage* image);
+  static boost::shared_ptr<std::vector<float> > toFeatures(image_t* image);
 };
 
 }

@@ -47,6 +47,15 @@ public:
   const dim_t& getSize() const { return size; }
   const dim_t& getPixelSize() const { return pixelSize; }
   value_t* getData() const { return data; }
+
+  void fill(const value_t& value) {
+    size_t count = 1;
+    for (unsigned i = 0; i < dimCount; ++i) {
+      count *= size[i];
+    }
+    for (size_t i = 0; i < count; ++i)
+      data[i] = value;
+  }
 };
 
 template<class T, unsigned dim>
@@ -64,6 +73,8 @@ public:
   typedef typename Base::dim_t dim_t;
 
 public:
+  Image3d(const dim_t& size, const dim_t& pixelSize) : Base(size, pixelSize) { }
+
   Image3d(size_t width, size_t height, size_t depth,
       size_t pixelWidth = 1000, size_t pixelHeight = 1000, size_t pixelDepth = 1000)
    : Base(width * height * depth)

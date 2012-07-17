@@ -20,12 +20,12 @@ namespace gapputils {
 namespace cv {
 
 void AamUtils::getAppearanceParameters(std::vector<float>* appearanceParameters,
-      ActiveAppearanceModel* model, GridModel* grid, culib::ICudaImage* image)
+      ActiveAppearanceModel* model, GridModel* grid, image_t* image)
 {
   const int spCount = model->getShapeParameterCount();
   const int tpCount = model->getTextureParameterCount();
   const int apCount = model->getAppearanceParameterCount();
-  const int pixelCount = image->getSize().x * image->getSize().y * image->getSize().z;
+  const int pixelCount = image->getSize()[0] * image->getSize()[1] * image->getSize()[2];
 
   boost::shared_ptr<vector<float> > shapeFeatures = model->toFeatures(grid);
   vector<float>* meanGridFeatures = model->getMeanShape().get();

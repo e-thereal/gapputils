@@ -10,7 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 #include "GridModel.h"
 #include "ActiveAppearanceModel.h"
@@ -24,7 +24,7 @@ class AamBuilder : public gapputils::workflow::WorkflowElement {
   InitReflectableClass(AamBuilder)
 
   Property(Grids, boost::shared_ptr<std::vector<boost::shared_ptr<GridModel> > >)
-  Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
+  Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
 
   Property(ShapeParameterCount, int)
@@ -32,7 +32,7 @@ class AamBuilder : public gapputils::workflow::WorkflowElement {
   Property(AppearanceParameterCount, int)
 
 //  Property(MeanGrid, boost::shared_ptr<GridModel>)
-  Property(MeanImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(MeanImage, boost::shared_ptr<image_t>)
 
 private:
   mutable AamBuilder* data;

@@ -4,7 +4,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 #include "GridModel.h"
 #include <qimage.h>
 
@@ -17,9 +17,9 @@ class ImageWarp : public workflow::WorkflowElement
 
 InitReflectableClass(ImageWarp)
 
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
-  Property(BackgroundImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
+  Property(BackgroundImage, boost::shared_ptr<image_t>)
   Property(BaseGrid, boost::shared_ptr<GridModel>)
   Property(WarpedGrid, boost::shared_ptr<GridModel>)
 

@@ -18,7 +18,7 @@ class AamUtils {
 public:
   //static boost::shared_ptr<> getModelParametersFromShapeParameters
   static void getAppearanceParameters(std::vector<float>* appearanceParameters,
-      ActiveAppearanceModel* model, GridModel* grid, culib::ICudaImage* image);
+      ActiveAppearanceModel* model, GridModel* grid, image_t* image);
   static void getShapeParameters(std::vector<float>* shapeParameters,
       ActiveAppearanceModel* model, std::vector<float>* appearanceParameters);
   static void getShapeFeatures(std::vector<float>* shapeFeatures,

@@ -28,9 +28,9 @@ class AamGenerator : public gapputils::workflow::WorkflowElement {
 
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
   Property(ParameterVector, boost::shared_ptr<std::vector<float> >)
-  Property(BackgroundImage, boost::shared_ptr<culib::ICudaImage>)
-  Property(TextureImage, boost::shared_ptr<culib::ICudaImage>)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(BackgroundImage, boost::shared_ptr<image_t>)
+  Property(TextureImage, boost::shared_ptr<image_t>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
   Property(OutputGrid, boost::shared_ptr<GridModel>)
   Property(Mode, AamGeneratorMode)
 

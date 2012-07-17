@@ -22,7 +22,7 @@ namespace gapputils {
 
 namespace cv {
 
-AamEcdnll::AamEcdnll(boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > > trainingSet,
+AamEcdnll::AamEcdnll(boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > > trainingSet,
     boost::shared_ptr<ActiveAppearanceModel> oldModel, float variance, float lambda, std::vector<float>& sigma)
  : trainingSet(trainingSet), oldModel(oldModel), newModel(new ActiveAppearanceModel()), variance(variance), lambda(lambda), sigma(sigma)
 {

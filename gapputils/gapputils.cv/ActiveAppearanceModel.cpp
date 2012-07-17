@@ -17,6 +17,8 @@
 
 #include <capputils/Xmlizer.h>
 
+#include "util.h"
+
 using namespace capputils::attributes;
 using namespace std;
 
@@ -68,20 +70,18 @@ boost::shared_ptr<GridModel> ActiveAppearanceModel::createShape(std::vector<floa
   return grid;
 }
 
-boost::shared_ptr<culib::ICudaImage> ActiveAppearanceModel::createMeanTexture() {
+boost::shared_ptr<image_t> ActiveAppearanceModel::createMeanTexture() {
   return createTexture(getMeanTexture().get());
 }
 
-boost::shared_ptr<culib::ICudaImage> ActiveAppearanceModel::createTexture(std::vector<float>* features) {
+boost::shared_ptr<image_t> ActiveAppearanceModel::createTexture(std::vector<float>* features) {
   if (!features) {
-    boost::shared_ptr<culib::ICudaImage> image((culib::ICudaImage*)0);
-    return image;
+    return boost::shared_ptr<image_t>();
   }
-  boost::shared_ptr<culib::ICudaImage> image(new culib::CudaImage(dim3(getWidth(), getHeight())));
+  boost::shared_ptr<image_t> image(new image_t(getWidth(), getHeight(), 1));
 
-  float* buffer = image->getOriginalImage();
+  float* buffer = image->getData();
   copy(features->begin(), features->end(), buffer);
-  image->resetWorkingCopy();
 
   return image;
 }
@@ -93,9 +93,9 @@ void ActiveAppearanceModel::setMeanShape(boost::shared_ptr<GridModel> grid) {
   setMeanShape(toFeatures(grid.get()));
 }
 
-void ActiveAppearanceModel::setMeanTexture(boost::shared_ptr<culib::ICudaImage> image) {
-  setWidth(image->getSize().x);
-  setHeight(image->getSize().y);
+void ActiveAppearanceModel::setMeanTexture(boost::shared_ptr<image_t> image) {
+  setWidth(image->getSize()[0]);
+  setHeight(image->getSize()[1]);
 
   setMeanTexture(toFeatures(image.get()));
 }
@@ -113,16 +113,15 @@ boost::shared_ptr<vector<float> > ActiveAppearanceModel::toFeatures(GridModel* g
   return features;
 }
 
-boost::shared_ptr<vector<float> > ActiveAppearanceModel::toFeatures(culib::ICudaImage* image) {
+boost::shared_ptr<vector<float> > ActiveAppearanceModel::toFeatures(image_t* image) {
   boost::shared_ptr<vector<float> > features(new vector<float>());
-  unsigned width = image->getSize().x;
-  unsigned height = image->getSize().y;
+  unsigned width = image->getSize()[0];
+  unsigned height = image->getSize()[1];
 
   const unsigned count = width * height;
   features->resize(count);
 
-  image->saveDeviceToWorkingCopy();
-  float* buffer = image->getWorkingCopy();
+  float* buffer = image->getData();
   copy(buffer, buffer + count, features->begin());
 
   return features;
