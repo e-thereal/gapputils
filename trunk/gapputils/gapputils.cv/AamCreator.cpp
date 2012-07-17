@@ -84,21 +84,19 @@ void AamCreator::execute(gapputils::workflow::IProgressMonitor* /*monitor*/) con
     return;
 
   int spCount, tpCount, apCount, rowCount, columnCount;
-  const int width = getImages()->at(0)->getSize().x, height = getImages()->at(0)->getSize().y;
+  const int width = getImages()->at(0)->getSize()[0], height = getImages()->at(0)->getSize()[1];
   const int pixelCount = width * height;
 
   // create mean image
-  boost::shared_ptr<culib::ICudaImage> meanImage(new culib::CudaImage(dim3(width, height)));
-  float* meanBuffer = meanImage->getOriginalImage();
+  boost::shared_ptr<image_t> meanImage(new image_t(width, height, 1));
+  float* meanBuffer = meanImage->getData();
 
   unsigned imageCount = getImages()->size();
   for (unsigned i = 0; i < imageCount; ++i) {
-    culib::ICudaImage* image = getImages()->at(i).get();
-    image->saveDeviceToWorkingCopy();
-    std::transform(meanBuffer, meanBuffer + pixelCount, image->getWorkingCopy(), meanBuffer, op_sum);
+    image_t* image = getImages()->at(i).get();
+    std::transform(meanBuffer, meanBuffer + pixelCount, image->getData(), meanBuffer, op_sum);
   }
   std::transform(meanBuffer, meanBuffer + pixelCount, meanBuffer, DivideBy(imageCount));
-  meanImage->resetWorkingCopy();
 
   boost::shared_ptr<ActiveAppearanceModel> model(new ActiveAppearanceModel());
   model->setShapeParameterCount(spCount = getShapeParameterCount());

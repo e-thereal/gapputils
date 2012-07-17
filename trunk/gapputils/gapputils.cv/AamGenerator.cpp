@@ -45,7 +45,7 @@ BeginPropertyDefinitions(AamGenerator)
   DefineProperty(TextureImage, Input("Tex"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
   DefineProperty(OutputGrid, Output("Grid"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Mode, EnumeratorAttribute<AamGeneratorMode>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Mode, Enumerator<AamGeneratorMode>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
 
 EndPropertyDefinitions
 
@@ -65,12 +65,13 @@ void AamGenerator::changedHandler(capputils::ObservableClass* sender, int eventI
 
 }
 
-boost::shared_ptr<culib::ICudaImage> createWhiteTexture(dim3 size, dim3 voxelSize = dim3()) {
-  boost::shared_ptr<culib::ICudaImage> image(new culib::CudaImage(size, voxelSize));
-  float* buffer = image->getOriginalImage();
-  const int count = size.x * size.y;
+boost::shared_ptr<image_t> createWhiteTexture(unsigned width, unsigned height,
+    unsigned pixelWidth = 1000, unsigned pixelHeight = 1000)
+{
+  boost::shared_ptr<image_t> image(new image_t(width, height, 1, pixelWidth, pixelHeight));
+  float* buffer = image->getData();
+  const int count = width * height;
   fill(buffer, buffer + count, 1.0f);
-  image->resetWorkingCopy();
   return image;
 }
 
@@ -122,7 +123,7 @@ void AamGenerator::execute(gapputils::workflow::IProgressMonitor* monitor) const
   boost::shared_ptr<vector<float> > meanImage = model->getMeanTexture();
   for (int i = 0; i < pixelCount; ++i)
     textureFeatures[i] = textureFeatures[i] + meanImage->at(i);
-  boost::shared_ptr<culib::ICudaImage> image;
+  boost::shared_ptr<image_t> image;
 
   switch(getMode()) {
   case AamGeneratorMode::Image:
@@ -130,7 +131,7 @@ void AamGenerator::execute(gapputils::workflow::IProgressMonitor* monitor) const
     break;
 
   case AamGeneratorMode::Segmentation:
-    image = createWhiteTexture(dim3(model->getWidth(), model->getHeight()));
+    image = createWhiteTexture(model->getWidth(), model->getHeight());
     break;
 
   case AamGeneratorMode::TextureWarp:
@@ -149,7 +150,6 @@ void AamGenerator::execute(gapputils::workflow::IProgressMonitor* monitor) const
   data->setOutputImage(warp.getOutputImage());
   data->setOutputGrid(grid);
   grid->freeCaches();
-  image->freeCaches();
 }
 
 void AamGenerator::writeResults() {

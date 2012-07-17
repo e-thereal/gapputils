@@ -22,7 +22,7 @@ class AamFitter : public gapputils::workflow::WorkflowElement {
   InitReflectableClass(AamFitter)
 
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
   Property(Measure, SimilarityMeasure)
   Property(InReferenceFrame, bool)
   Property(UseAppearanceMatrix, bool)

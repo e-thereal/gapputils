@@ -84,7 +84,6 @@ void AamTester2::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   data->setShapeParameters(fshape);
 
   getGrid()->freeCaches();
-  getImage()->freeCaches();
 }
 
 void AamTester2::writeResults() {

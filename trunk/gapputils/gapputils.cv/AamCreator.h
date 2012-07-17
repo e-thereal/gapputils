@@ -22,7 +22,7 @@ class AamCreator : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(AamCreator)
 
-  Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
+  Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(ShapeParameterCount, int)
   Property(TextureParameterCount, int)
   Property(AppearanceParameterCount, int)

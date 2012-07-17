@@ -25,7 +25,7 @@ class AamBuilder2 : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(AamBuilder2)
 
-  Property(TrainingSet, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
+  Property(TrainingSet, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(InitialModel, boost::shared_ptr<ActiveAppearanceModel>)
   Property(Mode, AamBuilderMode)
   Property(ModelQuality, double)

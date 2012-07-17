@@ -90,7 +90,7 @@ void AamBuilder2::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   const int shapeMatrixSize = shapeFeatureCount * getInitialModel()->getShapeParameterCount();
 
   boost::shared_ptr<ActiveAppearanceModel> result, initialModel;
-  boost::shared_ptr<vector<boost::shared_ptr<culib::ICudaImage> > > trainingSet = getTrainingSet();
+  boost::shared_ptr<vector<boost::shared_ptr<image_t> > > trainingSet = getTrainingSet();
   initialModel = getInitialModel();
 
   if (getMode() == AamBuilderMode::Build) {

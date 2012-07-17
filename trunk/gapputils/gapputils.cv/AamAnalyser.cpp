@@ -256,8 +256,6 @@ void AamAnalyser::execute(gapputils::workflow::IProgressMonitor* monitor) const 
       monitor->reportProgress(800/8);
   }
 
-  getImage()->freeCaches();
-
   capputils::Xmlizer::ToFile(getXmlName(), root);
 }
 

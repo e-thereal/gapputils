@@ -25,7 +25,7 @@ class AamTester2 : public gapputils::workflow::WorkflowElement {
 
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
   Property(Grid, boost::shared_ptr<GridModel>)
-  Property(Image, boost::shared_ptr<culib::ICudaImage>)
+  Property(Image, boost::shared_ptr<image_t>)
   Property(AppearanceParameters, boost::shared_ptr<std::vector<float> >)
   Property(ShapeParameters, boost::shared_ptr<std::vector<float> >)
   Property(Similarity, double)

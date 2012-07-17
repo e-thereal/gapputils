@@ -9,7 +9,7 @@
 #define GAPPUTILSCVCUDA_AAMMATCHFUNCTION_H_
 
 #include <vector>
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 #include <culib/similarity.h>
 #include <thrust/device_vector.h>
 

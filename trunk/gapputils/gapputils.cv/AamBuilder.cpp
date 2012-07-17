@@ -105,8 +105,8 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (getImages()->size() == 0)
     return;
 
-  const unsigned width = getImages()->at(0)->getSize().x;
-  const unsigned height = getImages()->at(0)->getSize().y;
+  const unsigned width = getImages()->at(0)->getSize()[0];
+  const unsigned height = getImages()->at(0)->getSize()[1];
   const int pixelCount = width * height;
   const int imageCount = getImages()->size();
 
@@ -163,12 +163,12 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   model->setSingularShapeParameters(singularShapeParameters);
 
   // Warp all images into reference frame and calculate mean image afterwards
-  std::vector<boost::shared_ptr<culib::ICudaImage> > warpedImages;
+  std::vector<boost::shared_ptr<image_t> > warpedImages;
 
   ImageWarp warp;
   for (int i = 0; i < imageCount; ++i) {
-    if (width != getImages()->at(i)->getSize().x ||
-        height != getImages()->at(i)->getSize().y)
+    if (width != getImages()->at(i)->getSize()[0] ||
+        height != getImages()->at(i)->getSize()[1])
     {
       continue;
     }
@@ -181,17 +181,16 @@ void AamBuilder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     warpedImages.push_back(warp.getOutputImage());
   }
 
-  boost::shared_ptr<culib::ICudaImage> meanTexture(new culib::CudaImage(dim3(width, height)));
+  boost::shared_ptr<image_t> meanTexture(new image_t(width, height, 1));
 
-  float* buffer = meanTexture->getOriginalImage();
+  float* buffer = meanTexture->getData();
   for (unsigned i = 0; i < width * height; ++i) {
     float value = 0;
     for (unsigned j = 0; j < warpedImages.size(); ++j) {
-      value += warpedImages[j]->getWorkingCopy()[i];
+      value += warpedImages[j]->getData()[i];
     }
     buffer[i] = value / warpedImages.size();
   }
-  meanTexture->resetWorkingCopy();
   model->setMeanTexture(meanTexture);
 
   // Flatten pixels into one large vector

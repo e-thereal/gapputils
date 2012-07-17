@@ -18,7 +18,7 @@ class AamTester : public gapputils::workflow::WorkflowElement
   InitReflectableClass(AamTester)
 
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
-  Property(SampleImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(SampleImage, boost::shared_ptr<image_t>)
   Property(SampleGrid, boost::shared_ptr<GridModel>)
   Property(FirstMode, float)
   Property(SecondMode, float)

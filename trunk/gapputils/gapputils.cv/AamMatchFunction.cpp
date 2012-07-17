@@ -19,6 +19,7 @@
 #include <cmath>
 
 #include "FromRgb.h"
+#include "util.h"
 
 using namespace std;
 using namespace culib;
@@ -27,7 +28,7 @@ namespace gapputils {
 
 namespace cv {
 
-AamMatchFunction::AamMatchFunction(boost::shared_ptr<ICudaImage> image,
+AamMatchFunction::AamMatchFunction(boost::shared_ptr<image_t> image,
     boost::shared_ptr<ActiveAppearanceModel> model, bool inReferenceFrame,
     SimilarityMeasure measure, bool useAm)
  : image(image), model(model), inReferenceFrame(inReferenceFrame), measure(measure), useAm(useAm),
@@ -37,7 +38,7 @@ AamMatchFunction::AamMatchFunction(boost::shared_ptr<ICudaImage> image,
    tpCount(model->getTextureParameterCount()),
    apCount(model->getAppearanceParameterCount()),
    status(spCount, tpCount, apCount, 2 * pointCount, pixelCount, spCount + tpCount),
-   warpedImage(new culib::CudaImage(image->getSize(), image->getVoxelSize())),
+   warpedImage(new image_t(image->getSize(), image->getPixelSize())),
    d_shapeMatrix(model->getShapeMatrix()->begin(), model->getShapeMatrix()->end()),
    d_textureMatrix(model->getTextureMatrix()->begin(), model->getTextureMatrix()->end()),
    d_appearanceMatrix(model->getAppearanceMatrix()->begin(), model->getAppearanceMatrix()->end()),
@@ -193,13 +194,15 @@ double AamMatchFunction::eval(const DomainType& parameter) {
 //  return sim - pen;
 
   // TODO: Need fast method to clear an image
-  warpedImage->resetWorkingCopy();
+  warpedImage->fill(0);
 
+  boost::shared_ptr<culib::ICudaImage> image2 = make_cuda_image(*image);
+  boost::shared_ptr<culib::ICudaImage> warped2 = make_cuda_image(*warpedImage);
   double sim2 = cuda::aamMatchFunction(parameter, spCount, tpCount, apCount,
       model->getWidth(), model->getHeight(), model->getColumnCount(), model->getRowCount(),
       d_shapeMatrix.data().get(), d_textureMatrix.data().get(), d_appearanceMatrix.data().get(),
       d_meanShape.data().get(), d_meanTexture.data().get(), status,
-      image.get(), warpedImage.get(), inReferenceFrame, config, (measure == SimilarityMeasure::MI), useAm);
+      image2.get(), warped2.get(), inReferenceFrame, config, (measure == SimilarityMeasure::MI), useAm);
 #ifdef OLD_METHOD
   if(sim != sim2) {
     cout.setf(ios::boolalpha);

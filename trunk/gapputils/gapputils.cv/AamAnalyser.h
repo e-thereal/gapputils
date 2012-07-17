@@ -24,7 +24,7 @@ class AamAnalyser : public gapputils::workflow::WorkflowElement {
   InitReflectableClass(AamAnalyser)
 
   Property(ActiveAppearanceModel, boost::shared_ptr<ActiveAppearanceModel>)
-  Property(Image, boost::shared_ptr<culib::ICudaImage>)
+  Property(Image, boost::shared_ptr<image_t>)
   Property(FocalShapeParameters, boost::shared_ptr<std::vector<float> >)
   Property(StartShapeParameters, boost::shared_ptr<std::vector<float> >)
   Property(TargetShapeParameters, boost::shared_ptr<std::vector<float> >)

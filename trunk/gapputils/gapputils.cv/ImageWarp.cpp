@@ -29,6 +29,7 @@
 #include <cmath>
 
 #include "ActiveAppearanceModel.h"
+#include "util.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -92,8 +93,9 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (warpedGrid->getRowCount() != rowCount || warpedGrid->getColumnCount() != columnCount)
     return;
 
-  ICudaImage* inputImage = getInputImage().get();
-  boost::shared_ptr<ICudaImage> bgImage = getBackgroundImage();
+  boost::shared_ptr<ICudaImage> inputImage = make_cuda_image(*getInputImage());
+  boost::shared_ptr<ICudaImage> bgImage = make_cuda_image(*getBackgroundImage());
+
   boost::shared_ptr<ICudaImage> warpedImage((bgImage ? new CudaImage(*bgImage) : new CudaImage(inputImage->getSize(), inputImage->getVoxelSize())));
   warpImage(warpedImage->getDevicePointer(), inputImage->getCudaArray(), inputImage->getSize(),
       (float2*)baseGrid->getDeviceFeatures(), (float2*)warpedGrid->getDeviceFeatures(),
@@ -105,7 +107,7 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   baseGrid->freeCaches();
   warpedGrid->freeCaches();
 
-  data->setOutputImage(warpedImage);
+  data->setOutputImage(make_gapputils_image(*warpedImage));
 }
 
 void ImageWarp::writeResults() {
