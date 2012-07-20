@@ -22,7 +22,8 @@
 #include <gapputils/ReadOnlyAttribute.h>
 
 #include <culib/transform.h>
-#include <culib/CudaImage.h>
+
+#include "util.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -68,13 +69,12 @@ void Transform::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!getInputImage() || !getMatrix())
     return;
 
-  culib::ICudaImage& input = *getInputImage();
-  boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(getWidth(), getHeight())));
+  boost::shared_ptr<culib::ICudaImage> input = make_cuda_image(*getInputImage());
+  boost::shared_ptr<image_t> output(new image_t(getWidth(), getHeight(), 1));
+  boost::shared_ptr<culib::ICudaImage> cuoutput = make_cuda_image(*output);
 
-  culib::transform3D(output->getDevicePointer(), input.getCudaArray(), output->getSize(), *getMatrix());
-  output->saveDeviceToOriginalImage();
-  output->saveDeviceToWorkingCopy();
-  output->freeCaches();
+  culib::transform3D(cuoutput->getDevicePointer(), input->getCudaArray(), cuoutput->getSize(), *getMatrix());
+  cuoutput->saveDeviceToOriginalImage();
 
   data->setOutputImage(output);
 }

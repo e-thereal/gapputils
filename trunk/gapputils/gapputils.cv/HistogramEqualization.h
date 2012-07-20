@@ -3,8 +3,7 @@
 #define GAPPUTILSCV_HISTOGRAMEQUALIZATION_H_
 
 #include <gapputils/WorkflowElement.h>
-
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -14,8 +13,8 @@ class HistogramEqualization : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(HistogramEqualization)
 
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
   Property(BinCount, int)
 
 private:

@@ -7,6 +7,7 @@
 
 #include "CudaImageInterface.h"
 
+#include <capputils/DeprecatedAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -31,7 +32,7 @@ namespace host {
 
 namespace inputs {
 
-BeginPropertyDefinitions(CudaImage, Interface())
+BeginPropertyDefinitions(CudaImage, Interface(), Deprecated("Use 'gapputils::inputs::Image' instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Value, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
@@ -74,7 +75,7 @@ void CudaImage::writeResults() {
 
 namespace outputs {
 
-BeginPropertyDefinitions(CudaImage, Interface())
+BeginPropertyDefinitions(CudaImage, Interface(), Deprecated("Use 'gapputils::outputs::Image' instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Value, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))

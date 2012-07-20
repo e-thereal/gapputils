@@ -119,7 +119,6 @@
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="GridDialog.cpp" />
     <ClCompile Include="GridLine.cpp" />
-    <ClCompile Include="GridList.cpp" />
     <ClCompile Include="GridModel.cpp" />
     <ClCompile Include="GridPoint.cpp" />
     <ClCompile Include="GridPointItem.cpp" />
@@ -149,6 +148,7 @@
     <ClCompile Include="ToRgb.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Transformation.cpp" />
+    <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AamBuilder.h" />
@@ -170,6 +170,7 @@
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ImageToFeatures.h" />
     <ClInclude Include="ImageViewer.h" />
+    <ClInclude Include="util.h" />
     <CustomBuild Include="ImageViewerDialog.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing %(Identity)...</Message>
@@ -197,7 +198,6 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DGAPPUTILS.CV_LIB -DQT_GUI_LIB -D_WINDLL "-I." "-I.\GeneratedFiles" "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\qtmain" "-I$(QTDIR)\include\QtCore" "-I." "-I$(QTDIR)\include\QtGui" "-I." "-I." "-I."</Command>
     </CustomBuild>
     <ClInclude Include="GridLine.h" />
-    <ClInclude Include="GridList.h" />
     <ClInclude Include="GridModel.h" />
     <ClInclude Include="GridPoint.h" />
     <CustomBuild Include="GridWidget.h">

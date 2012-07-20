@@ -22,8 +22,6 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
-#include <culib/CudaImage.h>
-
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -77,17 +75,15 @@ void ImageToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) co
   if (!capputils::Verifier::Valid(*this) || !getImage())
     return;
 
-  culib::ICudaImage& image = *getImage();
+  image_t& image = *getImage();
 
-  const int width = image.getSize().x;
-  const int height = image.getSize().y;
-  const int depth = image.getSize().z;
+  const int width = image.getSize()[0];
+  const int height = image.getSize()[1];
+  const int depth = image.getSize()[2];
   const int count = width * height * depth;
   
-  //image.saveDeviceToWorkingCopy();
-
   boost::shared_ptr<std::vector<float> > output(new std::vector<float>(count));
-  std::copy(image.getWorkingCopy(), image.getWorkingCopy() + count, output->begin());
+  std::copy(image.getData(), image.getData() + count, output->begin());
 
   data->setWidth(width);
   data->setHeight(height);

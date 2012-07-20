@@ -22,8 +22,9 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
-#include <culib/CudaImage.h>
 #include <culib/transform.h>
+
+#include "util.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -69,33 +70,33 @@ void Resample::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     return;
 
   if (getInputImage()) {
-    culib::ICudaImage* input = getInputImage().get();
-    boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(getWidth(), getHeight(), input->getSize().z)));
+    boost::shared_ptr<culib::ICudaImage> input = make_cuda_image(*getInputImage());
+    boost::shared_ptr<image_t> output(new image_t(getWidth(), getHeight(), input->getSize().z));
+    boost::shared_ptr<culib::ICudaImage> cuoutput = make_cuda_image(*output);
+    
     fmatrix4 scalingMatrix = make_fmatrix4_scaling(
-        (float)input->getSize().x / (float)output->getSize().x,
-        (float)input->getSize().y / (float)output->getSize().y,
+        (float)input->getSize().x / (float)cuoutput->getSize().x,
+        (float)input->getSize().y / (float)cuoutput->getSize().y,
         1.f);
-    culib::transform3D(output->getDevicePointer(), input->getCudaArray(), output->getSize(), scalingMatrix);
-    output->saveDeviceToWorkingCopy();
-    input->freeCaches();
-    output->freeCaches();
+    culib::transform3D(cuoutput->getDevicePointer(), input->getCudaArray(), cuoutput->getSize(), scalingMatrix);
+    cuoutput->saveDeviceToOriginalImage();
 
     data->setOutputImage(output);
   }
 
   if (getInputImages()) {
-    boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > > outputs(new std::vector<boost::shared_ptr<culib::ICudaImage> >());
+    boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > > outputs(new std::vector<boost::shared_ptr<image_t> >());
     for (unsigned i = 0; i < getInputImages()->size(); ++i) {
-      culib::ICudaImage* input = getInputImages()->at(i).get();
-      boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(getWidth(), getHeight(), input->getSize().z)));
+      boost::shared_ptr<culib::ICudaImage> input = make_cuda_image(*getInputImages()->at(i));
+      boost::shared_ptr<image_t> output(new image_t(getWidth(), getHeight(), input->getSize().z));
+      boost::shared_ptr<culib::ICudaImage> cuoutput = make_cuda_image(*output);
+
       fmatrix4 scalingMatrix = make_fmatrix4_scaling(
-          (float)input->getSize().x / (float)output->getSize().x,
-          (float)input->getSize().y / (float)output->getSize().y,
+          (float)input->getSize().x / (float)cuoutput->getSize().x,
+          (float)input->getSize().y / (float)cuoutput->getSize().y,
           1.f);
-      culib::transform3D(output->getDevicePointer(), input->getCudaArray(), output->getSize(), scalingMatrix);
-      output->saveDeviceToWorkingCopy();
-      input->freeCaches();
-      output->freeCaches();
+      culib::transform3D(cuoutput->getDevicePointer(), input->getCudaArray(), cuoutput->getSize(), scalingMatrix);
+      cuoutput->saveDeviceToOriginalImage();
 
       outputs->push_back(output);
     }

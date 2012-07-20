@@ -38,6 +38,11 @@ public:
 protected:
   ImageBase(const size_t& count) : data(new value_t[count]) { }
 
+  ImageBase(const size_t& count, const dim_t& pixelSize) : data(new value_t[count]) {
+    for (unsigned i = 0; i < dimCount; ++i)
+      this->pixelSize[i] = size[i];
+  }
+
 public:
 
   virtual ~ImageBase() {
@@ -85,6 +90,15 @@ public:
     this->pixelSize[0] = pixelWidth;
     this->pixelSize[1] = pixelHeight;
     this->pixelSize[2] = pixelDepth;
+  }
+
+  Image3d(size_t width, size_t height, size_t depth,
+      const dim_t& pixelSize)
+   : Base(width * height * depth, pixelSize)
+  {
+    this->size[0] = width;
+    this->size[1] = height;
+    this->size[2] = depth;
   }
 };
 

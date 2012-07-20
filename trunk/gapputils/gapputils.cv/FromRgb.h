@@ -5,7 +5,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 #include <QImage>
 
 namespace gapputils {
@@ -18,9 +18,9 @@ class FromRgb : public workflow::WorkflowElement
   InitReflectableClass(FromRgb)
 
   Property(ImagePtr, boost::shared_ptr<QImage>)
-  Property(Red, boost::shared_ptr<culib::ICudaImage>)
-  Property(Green, boost::shared_ptr<culib::ICudaImage>)
-  Property(Blue, boost::shared_ptr<culib::ICudaImage>)
+  Property(Red, boost::shared_ptr<image_t>)
+  Property(Green, boost::shared_ptr<image_t>)
+  Property(Blue, boost::shared_ptr<image_t>)
 
 private:
   mutable FromRgb* data;

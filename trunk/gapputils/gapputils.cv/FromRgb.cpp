@@ -19,9 +19,7 @@
 #include <cmath>
 
 using namespace gapputils::attributes;
-
 using namespace capputils::attributes;
-using namespace culib;
 
 namespace gapputils {
 
@@ -69,48 +67,41 @@ void FromRgb::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  ICudaImage* red = getRed().get();
-  ICudaImage* green = getGreen().get();
-  ICudaImage* blue = getBlue().get();
-
-  if (red)
-    red->saveDeviceToWorkingCopy();
-  if (green)
-    green->saveDeviceToWorkingCopy();
-  if (blue)
-    blue->saveDeviceToWorkingCopy();
+  image_t* red = getRed().get();
+  image_t* green = getGreen().get();
+  image_t* blue = getBlue().get();
 
   int width = 0;
   int height = 0;
 
   if (red) {
-    width = red->getSize().x;
-    height = red->getSize().y;
+    width = red->getSize()[0];
+    height = red->getSize()[1];
   } else if (green) {
-    width = green->getSize().x;
-    height = green->getSize().y;
+    width = green->getSize()[0];
+    height = green->getSize()[1];
   } else if (blue) {
-    width = blue->getSize().x;
-    height = blue->getSize().y;
+    width = blue->getSize()[0];
+    height = blue->getSize()[1];
   }
 
   if (width <= 0 || height <= 0)
     return;
 
   if (green) {
-    if (green->getSize().x != width || green->getSize().y != height)
+    if (green->getSize()[0] != width || green->getSize()[1] != height)
       return;
   }
   if (blue) {
-    if (blue->getSize().x != width || blue->getSize().y != height)
+    if (blue->getSize()[0] != width || blue->getSize()[1] != height)
       return;
   }
 
   
   boost::shared_ptr<QImage> image(new QImage(width, height, QImage::Format_ARGB32));
-  float* redBuffer = (red ? red->getWorkingCopy() : 0);
-  float* greenBuffer = (green ? green->getWorkingCopy() : 0);
-  float* blueBuffer = (blue ? blue->getWorkingCopy() : 0);
+  float* redBuffer = (red ? red->getData() : 0);
+  float* greenBuffer = (green ? green->getData() : 0);
+  float* blueBuffer = (blue ? blue->getData() : 0);
 
   for (int y = 0, i = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x, ++i) {

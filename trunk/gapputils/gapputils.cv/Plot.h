@@ -10,7 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -23,7 +23,7 @@ class Plot : public gapputils::workflow::WorkflowElement {
   Property(OldPlot, std::string)
   Property(X, boost::shared_ptr<std::vector<float> >)
   Property(Y, boost::shared_ptr<std::vector<float> >)
-  Property(Image, boost::shared_ptr<culib::ICudaImage>)
+  Property(Image, boost::shared_ptr<image_t>)
   Property(Format, std::string)
   Property(Plot, std::string)
 

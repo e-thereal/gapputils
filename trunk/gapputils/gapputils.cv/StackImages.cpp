@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include <culib/CudaImage.h>
+#include <capputils/Logbook.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -62,6 +62,10 @@ void StackImages::changedHandler(capputils::ObservableClass* sender, int eventId
 }
 
 void StackImages::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+  using namespace capputils;
+  Logbook& dlog = getLogbook();
+  dlog.setSeverity(Severity::Warning);
+
   if (!data)
     data = new StackImages();
 
@@ -72,122 +76,121 @@ void StackImages::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   // Get and check the dimensions
   unsigned width = 0, height = 0, depth = 0;
   if (getInputImages()) {
-    std::vector<boost::shared_ptr<culib::ICudaImage> >& inputs = *getInputImages();
+    std::vector<boost::shared_ptr<image_t> >& inputs = *getInputImages();
     for (unsigned i = 0; i < inputs.size(); ++i) {
       if (depth == 0) {
-        width = inputs[i]->getSize().x;
-        height = inputs[i]->getSize().y;
+        width = inputs[i]->getSize()[0];
+        height = inputs[i]->getSize()[1];
       }
-      if (inputs[i]->getSize().x != width || inputs[i]->getSize().y != height) {
-        std::cout << "[Warning] Size mismatch. Aborting." << std::endl;
+      if (inputs[i]->getSize()[0] != width || inputs[i]->getSize()[1] != height) {
+        dlog() << "Size mismatch. Aborting.";
         return;
       }
-      depth += inputs[i]->getSize().z;
+      depth += inputs[i]->getSize()[2];
     }
   }
 
   if (getInputImage1()) {
-    culib::ICudaImage& image = *getInputImage1();
+    image_t& image = *getInputImage1();
     if (depth == 0) {
-      width = image.getSize().x;
-      height = image.getSize().y;
+      width = image.getSize()[0];
+      height = image.getSize()[1];
     }
 
-    if (image.getSize().x != width || image.getSize().y != height) {
-      std::cout << "[Warning] Size mismatch. Aborting." << std::endl;
+    if (image.getSize()[0] != width || image.getSize()[1] != height) {
+      dlog() << "Size mismatch. Aborting.";
       return;
     }
-    depth += image.getSize().z;
+    depth += image.getSize()[2];
   }
 
   if (getInputImage2()) {
-    culib::ICudaImage& image = *getInputImage2();
+    image_t& image = *getInputImage1();
     if (depth == 0) {
-      width = image.getSize().x;
-      height = image.getSize().y;
+      width = image.getSize()[0];
+      height = image.getSize()[1];
     }
 
-    if (image.getSize().x != width || image.getSize().y != height) {
-      std::cout << "[Warning] Size mismatch. Aborting." << std::endl;
+    if (image.getSize()[0] != width || image.getSize()[1] != height) {
+      dlog() << "Size mismatch. Aborting.";
       return;
     }
-    depth += image.getSize().z;
+    depth += image.getSize()[2];
   }
 
   if (getInputImage3()) {
-    culib::ICudaImage& image = *getInputImage3();
+    image_t& image = *getInputImage1();
     if (depth == 0) {
-      width = image.getSize().x;
-      height = image.getSize().y;
+      width = image.getSize()[0];
+      height = image.getSize()[1];
     }
 
-    if (image.getSize().x != width || image.getSize().y != height) {
-      std::cout << "[Warning] Size mismatch. Aborting." << std::endl;
+    if (image.getSize()[0] != width || image.getSize()[1] != height) {
+      dlog() << "Size mismatch. Aborting.";
       return;
     }
-    depth += image.getSize().z;
+    depth += image.getSize()[2];
   }
 
   if (getInputImage4()) {
-    culib::ICudaImage& image = *getInputImage4();
+    image_t& image = *getInputImage1();
     if (depth == 0) {
-      width = image.getSize().x;
-      height = image.getSize().y;
+      width = image.getSize()[0];
+      height = image.getSize()[1];
     }
 
-    if (image.getSize().x != width || image.getSize().y != height) {
-      std::cout << "[Warning] Size mismatch. Aborting." << std::endl;
+    if (image.getSize()[0] != width || image.getSize()[1] != height) {
+      dlog() << "Size mismatch. Aborting.";
       return;
     }
-    depth += image.getSize().z;
+    depth += image.getSize()[2];
   }
 
   if (depth == 0) {
-    std::cout << "[Warning] No input images found." << std::endl;
+    dlog() << "No input images found.";
     return;
   }
 
-  boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(width, height, depth)));
-  float* imageData = output->getOriginalImage();
+  boost::shared_ptr<image_t> output(new image_t(width, height, depth));
+  float* imageData = output->getData();
   if (getInputImages()) {
-    std::vector<boost::shared_ptr<culib::ICudaImage> >& inputs = *getInputImages();
+    std::vector<boost::shared_ptr<image_t> >& inputs = *getInputImages();
     for (unsigned i = 0; i < inputs.size(); ++i) {
-      const culib::ICudaImage& image = *inputs[i];
+      const image_t& image = *inputs[i];
 
-      const unsigned count = image.getSize().x * image.getSize().y * image.getSize().z;
-      std::copy(image.getWorkingCopy(), image.getWorkingCopy() + count, imageData);
+      const unsigned count = image.getSize()[0] * image.getSize()[1] * image.getSize()[2];
+      std::copy(image.getData(), image.getData() + count, imageData);
       imageData += count;
     }
   }
 
   if (getInputImage1()) {
-    const culib::ICudaImage& image = *getInputImage1();
-    const unsigned count = image.getSize().x * image.getSize().y * image.getSize().z;
-    std::copy(image.getWorkingCopy(), image.getWorkingCopy() + count, imageData);
+    const image_t& image = *getInputImage1();
+    const unsigned count = image.getSize()[0] * image.getSize()[1] * image.getSize()[2];
+    std::copy(image.getData(), image.getData() + count, imageData);
     imageData += count;
   }
 
   if (getInputImage2()) {
-    const culib::ICudaImage& image = *getInputImage2();
-    const unsigned count = image.getSize().x * image.getSize().y * image.getSize().z;
-    std::copy(image.getWorkingCopy(), image.getWorkingCopy() + count, imageData);
+    const image_t& image = *getInputImage1();
+    const unsigned count = image.getSize()[0] * image.getSize()[1] * image.getSize()[2];
+    std::copy(image.getData(), image.getData() + count, imageData);
     imageData += count;
   }
 
   if (getInputImage3()) {
-    const culib::ICudaImage& image = *getInputImage3();
-    const unsigned count = image.getSize().x * image.getSize().y * image.getSize().z;
-    std::copy(image.getWorkingCopy(), image.getWorkingCopy() + count, imageData);
+    const image_t& image = *getInputImage1();
+    const unsigned count = image.getSize()[0] * image.getSize()[1] * image.getSize()[2];
+    std::copy(image.getData(), image.getData() + count, imageData);
     imageData += count;
   }
 
   if (getInputImage4()) {
-    const culib::ICudaImage& image = *getInputImage4();
-    const unsigned count = image.getSize().x * image.getSize().y * image.getSize().z;
-    std::copy(image.getWorkingCopy(), image.getWorkingCopy() + count, imageData);
+    const image_t& image = *getInputImage1();
+    const unsigned count = image.getSize()[0] * image.getSize()[1] * image.getSize()[2];
+    std::copy(image.getData(), image.getData() + count, imageData);
     imageData += count;
   }
-  output->resetWorkingCopy();
 
   data->setOutputImage(output);
 }

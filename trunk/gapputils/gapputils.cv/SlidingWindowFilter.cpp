@@ -22,8 +22,6 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
-#include <culib/CudaImage.h>
-
 #include <deque>
 #include <iostream>
 
@@ -218,14 +216,14 @@ void SlidingWindowFilter::execute(gapputils::workflow::IProgressMonitor* monitor
   if (!capputils::Verifier::Valid(*this) || !getInputImage())
     return;
 
-  culib::ICudaImage& input = *getInputImage();
-  const int width = input.getSize().x;
-  const int height = input.getSize().y;
-  const int depth = input.getSize().z;
+  image_t& input = *getInputImage();
+  const int width = input.getSize()[0];
+  const int height = input.getSize()[1];
+  const int depth = input.getSize()[2];
 
-  boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(input.getSize(), input.getVoxelSize()));
-  float* inbuf = input.getWorkingCopy();
-  float* outbuf = output->getWorkingCopy();
+  boost::shared_ptr<image_t> output(new image_t(input.getSize(), input.getPixelSize()));
+  float* inbuf = input.getData();
+  float* outbuf = output->getData();
   const int K = getFilterSize();
   
   // Calculate sliding window over x axis

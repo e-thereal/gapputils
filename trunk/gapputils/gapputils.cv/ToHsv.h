@@ -6,7 +6,7 @@
 
 #include <qimage.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -18,9 +18,9 @@ class ToHsv : public workflow::WorkflowElement
 InitReflectableClass(ToHsv)
 
 Property(ImagePtr, boost::shared_ptr<QImage>)
-Property(Hue, boost::shared_ptr<culib::ICudaImage>)
-Property(Saturation, boost::shared_ptr<culib::ICudaImage>)
-Property(Value, boost::shared_ptr<culib::ICudaImage>)
+Property(Hue, boost::shared_ptr<image_t>)
+Property(Saturation, boost::shared_ptr<image_t>)
+Property(Value, boost::shared_ptr<image_t>)
 
 private:
   mutable ToHsv* data;

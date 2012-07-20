@@ -12,8 +12,6 @@
 #include <capputils/VolatileAttribute.h>
 #include <capputils/TimeStampAttribute.h>
 
-#include <culib/CudaImage.h>
-
 #include <gapputils/HideAttribute.h>
 
 #include <QColor>
@@ -52,8 +50,6 @@ void ToHsv::changedEventHandler(capputils::ObservableClass* sender, int eventId)
 }
 
 void ToHsv::execute(gapputils::workflow::IProgressMonitor* monitor) const {
-  using namespace culib;
-
   if (!data)
     data = new ToHsv();
 
@@ -67,12 +63,12 @@ void ToHsv::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   const int width = image->width();
   const int height = image->height();
  
-  boost::shared_ptr<CudaImage> hueImage(new CudaImage(dim3(width, height)));
-  boost::shared_ptr<CudaImage> saturationImage(new CudaImage(dim3(width, height)));
-  boost::shared_ptr<CudaImage> valueImage(new CudaImage(dim3(width, height)));
-  float* hueBuffer = hueImage->getOriginalImage();
-  float* saturationBuffer = saturationImage->getOriginalImage();
-  float* valueBuffer = valueImage->getOriginalImage();
+  boost::shared_ptr<image_t> hueImage(new image_t(width, height, 1));
+  boost::shared_ptr<image_t> saturationImage(new image_t(width, height, 1));
+  boost::shared_ptr<image_t> valueImage(new image_t(width, height, 1));
+  float* hueBuffer = hueImage->getData();
+  float* saturationBuffer = saturationImage->getData();
+  float* valueBuffer = valueImage->getData();
 
   for (int y = 0, i = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x, ++i) {
@@ -84,9 +80,6 @@ void ToHsv::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       valueBuffer[i] = (float)v;
     }
   }
-  hueImage->resetWorkingCopy();
-  saturationImage->resetWorkingCopy();
-  valueImage->resetWorkingCopy();
 
   data->setHue(hueImage);
   data->setSaturation(saturationImage);

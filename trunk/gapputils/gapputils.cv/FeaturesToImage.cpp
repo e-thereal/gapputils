@@ -84,9 +84,8 @@ void FeaturesToImage::execute(gapputils::workflow::IProgressMonitor* monitor) co
 
   std::cout << "SliceCount: " << sliceCount << std::endl;
 
-  boost::shared_ptr<culib::ICudaImage> image(new culib::CudaImage(dim3(columnCount, rowCount, sliceCount)));
-  std::copy(features.begin(), features.begin() + (rowCount * columnCount * sliceCount), image->getOriginalImage());
-  image->resetWorkingCopy();
+  boost::shared_ptr<image_t> image(new image_t(columnCount, rowCount, sliceCount));
+  std::copy(features.begin(), features.begin() + (rowCount * columnCount * sliceCount), image->getData());
   data->setImage(image);
 }
 

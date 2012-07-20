@@ -12,8 +12,6 @@
 #include <capputils/VolatileAttribute.h>
 #include <capputils/TimeStampAttribute.h>
 
-#include <culib/CudaImage.h>
-
 #include <gapputils/HideAttribute.h>
 
 #include <QColor>
@@ -52,8 +50,6 @@ void ToRgb::changedEventHandler(capputils::ObservableClass* sender, int eventId)
 }
 
 void ToRgb::execute(gapputils::workflow::IProgressMonitor* monitor) const {
-  using namespace culib;
-
   if (!data)
     data = new ToRgb();
 
@@ -66,12 +62,12 @@ void ToRgb::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   boost::shared_ptr<QImage> image = getImagePtr();
   const int width = image->width();
   const int height = image->height();
-  boost::shared_ptr<ICudaImage> redImage(new CudaImage(dim3(width, height)));
-  boost::shared_ptr<ICudaImage> greenImage(new CudaImage(dim3(width, height)));
-  boost::shared_ptr<ICudaImage> blueImage(new CudaImage(dim3(width, height)));
-  float* redBuffer = redImage->getOriginalImage();
-  float* greenBuffer = greenImage->getOriginalImage();
-  float* blueBuffer = blueImage->getOriginalImage();
+  boost::shared_ptr<image_t> redImage(new image_t(width, height, 1));
+  boost::shared_ptr<image_t> greenImage(new image_t(width, height, 1));
+  boost::shared_ptr<image_t> blueImage(new image_t(width, height, 1));
+  float* redBuffer = redImage->getData();
+  float* greenBuffer = greenImage->getData();
+  float* blueBuffer = blueImage->getData();
 
   for (int y = 0, i = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x, ++i) {
@@ -81,9 +77,6 @@ void ToRgb::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       blueBuffer[i] = (float)color.blue() / 256.f;
     }
   }
-  redImage->resetWorkingCopy();
-  greenImage->resetWorkingCopy();
-  blueImage->resetWorkingCopy();
 
   data->setRed(redImage);
   data->setGreen(greenImage);

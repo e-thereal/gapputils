@@ -21,7 +21,6 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
-#include <culib/CudaImage.h>
 #include <regutil/CudaImage.h>
 
 #include <algorithm>
@@ -29,6 +28,8 @@
 #include <iostream>
 
 #include <culib/histogram.h>
+
+#include "util.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -74,10 +75,6 @@ void Plot::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 
   const std::string placeholder = "% new plot placeholder";
 
-  //std::cout << "x size: " << get
-
-  
-
   std::stringstream plot;
 
   if (getOldPlot().size()) {
@@ -107,10 +104,10 @@ void Plot::execute(gapputils::workflow::IProgressMonitor* monitor) const {
         }
 
         if (getImage()) {
-          culib::ICudaImage& image = *getImage();
+          boost::shared_ptr<culib::ICudaImage> image = make_cuda_image(*getImage());
           culib::HistogramConfig config;
           culib::setupHistogramConfig(config, dim3(256), make_float2(1.f / 256.f));
-          getHistogram(config, image.getDevicePointer(), image.getSize());
+          getHistogram(config, image->getDevicePointer(), image->getSize());
 
           //thrust::device_ptr<uint> histogram(config.d_histogram);
           //thrust::device_vector<float> cdf(histogram, histogram + binCount);

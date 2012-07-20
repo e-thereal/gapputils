@@ -10,7 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 #include <culib/math3d.h>
 
 #include <capputils/Enumerators.h>
@@ -27,8 +27,8 @@ class Register : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(Register)
 
-  Property(BaseImage, boost::shared_ptr<culib::ICudaImage>)
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(BaseImage, boost::shared_ptr<image_t>)
+  Property(InputImage, boost::shared_ptr<image_t>)
   Property(Similarity, SimilarityMeasure)
   Property(Optimizer, OptimizerType)
   Property(InPlane, bool)

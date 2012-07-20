@@ -77,9 +77,6 @@
     <ClCompile Include="ImageWarp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GridList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Cropper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -185,6 +182,9 @@
     <ClCompile Include="CudaImageInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ToRgb.h">
@@ -212,9 +212,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageWarp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GridList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AamBuilder.h">
@@ -317,6 +314,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CudaImageInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
