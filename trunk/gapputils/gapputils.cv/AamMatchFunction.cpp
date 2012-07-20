@@ -19,7 +19,7 @@
 #include <cmath>
 
 #include "FromRgb.h"
-#include "util.h"
+#include "cuda_util.h"
 
 using namespace std;
 using namespace culib;
@@ -53,14 +53,14 @@ AamMatchFunction::~AamMatchFunction(void)
   cleanupSimilarityConfig(config);
 }
 
-void saveCudaImage(const std::string& filename, boost::shared_ptr<culib::ICudaImage> image) {
+void saveCudaImage(const std::string& filename, boost::shared_ptr<image_t> image) {
   FromRgb fromRgb;
   fromRgb.setRed(image);
   fromRgb.setGreen(image);
   fromRgb.setBlue(image);
   fromRgb.execute(0);
   fromRgb.writeResults();
-  fromRgb.getImagePtr()->save(filename.c_str(), "jpg");
+  fromRgb.getImagePtr()->save(filename.c_str(), "png");
 }
 
 //#define OLD_METHOD

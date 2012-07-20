@@ -13,8 +13,6 @@
 #include "ActiveAppearanceModel.h"
 #include "GridModel.h"
 
-#include <culib/ICudaImage.h>
-
 namespace gapputils {
 
 namespace cv {

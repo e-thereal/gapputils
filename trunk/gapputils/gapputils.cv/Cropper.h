@@ -10,7 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 #include "RectangleModel.h"
 
@@ -22,9 +22,9 @@ class Cropper : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(Cropper)
 
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
   Property(Rectangle, boost::shared_ptr<RectangleModel>)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
 
 private:
   mutable Cropper* data;

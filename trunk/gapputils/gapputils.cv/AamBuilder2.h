@@ -11,7 +11,6 @@
 #include <gapputils/WorkflowElement.h>
 
 #include <capputils/Enumerators.h>
-#include <culib/ICudaImage.h>
 
 #include "ActiveAppearanceModel.h"
 

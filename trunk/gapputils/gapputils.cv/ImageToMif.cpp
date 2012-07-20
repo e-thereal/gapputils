@@ -74,17 +74,17 @@ void ImageToMif::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this) || !getImage())
     return;
 
-  const int columnCount = getImage()->getSize().x;
-  const int rowCount = getImage()->getSize().y;
-  const int sliceCount = getImage()->getSize().z;
+  const int columnCount = getImage()->getSize()[0];
+  const int rowCount = getImage()->getSize()[1];
+  const int sliceCount = getImage()->getSize()[2];
 
   CMIF mif(columnCount, rowCount, sliceCount);
-  mif.getChannel(1).setPixelSizeX(getImage()->getVoxelSize().x);
-  mif.getChannel(1).setPixelSizeY(getImage()->getVoxelSize().y);
-  mif.getChannel(1).setSliceThickness(getImage()->getVoxelSize().z);
+  mif.getChannel(1).setPixelSizeX(getImage()->getPixelSize()[0]);
+  mif.getChannel(1).setPixelSizeY(getImage()->getPixelSize()[1]);
+  mif.getChannel(1).setSliceThickness(getImage()->getPixelSize()[2]);
   CMIF::pixelArray pixels = mif.getRawData();
 
-  float* features = getImage()->getWorkingCopy();
+  float* features = getImage()->getData();
 
   float minV = features[0], maxV = features[0];
 

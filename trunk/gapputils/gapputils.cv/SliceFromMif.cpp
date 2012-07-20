@@ -28,8 +28,6 @@
 #include <CChannel.hpp>
 #include <cmath>
 
-#include <culib/CudaImage.h>
-
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 using namespace std;
@@ -96,11 +94,11 @@ void SliceFromMif::execute(gapputils::workflow::IProgressMonitor* monitor) const
     break;
   }
 
-  boost::shared_ptr<culib::CudaImage> image(new culib::CudaImage(dim3(width, height),
-      dim3(mif.getChannel(1).getPixelSizeX(),
-           mif.getChannel(1).getPixelSizeY(),
-           mif.getChannel(1).getSliceThickness())));
-  float* buffer = image->getOriginalImage();
+  boost::shared_ptr<image_t> image(new image_t(width, height, 1,
+      mif.getChannel(1).getPixelSizeX(),
+      mif.getChannel(1).getPixelSizeY(),
+      mif.getChannel(1).getSliceThickness()));
+  float* buffer = image->getData();
 
   CMIF::pixelArray pixels = mif.getRawData();
   for (int y = 0, i = 0; y < height; ++y) {
@@ -119,7 +117,6 @@ void SliceFromMif::execute(gapputils::workflow::IProgressMonitor* monitor) const
 
     }
   }
-  image->resetWorkingCopy();
 
   data->setWidth(width);
   data->setHeight(height);

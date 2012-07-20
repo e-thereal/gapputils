@@ -32,7 +32,7 @@ namespace host {
 
 namespace inputs {
 
-BeginPropertyDefinitions(CudaImage, Interface(), Deprecated("Use 'gapputils::inputs::Image' instead."))
+BeginPropertyDefinitions(CudaImage, Interface(), Deprecated("Use 'interfaces::inputs::Image' instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Value, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
@@ -75,7 +75,7 @@ void CudaImage::writeResults() {
 
 namespace outputs {
 
-BeginPropertyDefinitions(CudaImage, Interface(), Deprecated("Use 'gapputils::outputs::Image' instead."))
+BeginPropertyDefinitions(CudaImage, Interface(), Deprecated("Use 'interfaces::outputs::Image' instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Value, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))

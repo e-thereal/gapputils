@@ -4,8 +4,6 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
-
 #include "ActiveAppearanceModel.h"
 #include "GridModel.h"
 
