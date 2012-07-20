@@ -10,11 +10,11 @@
 #include "FunctionFilter.h"
 
 #include <capputils/Verifier.h>
-#include <culib/CudaImage.h>
 #include <culib/math3d.h>
 
 #include <thrust/transform.h>
-#include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
+#include <thrust/copy.h>
 #include <iostream>
 
 namespace gapputils {
@@ -87,27 +87,26 @@ void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) con
   if (!getInputImage())
     return;
 
-  culib::ICudaImage& input = *getInputImage();
-  boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(input.getSize(), input.getVoxelSize()));
+  image_t& input = *getInputImage();
+  boost::shared_ptr<image_t> output(new image_t(input.getSize(), input.getPixelSize()));
 
-  const unsigned count = input.getSize().x * input.getSize().y * input.getSize().z;
+  const unsigned count = input.getSize()[0] * input.getSize()[1] * input.getSize()[2];
 
-  thrust::device_ptr<float> inputPtr(input.getDevicePointer());
-  thrust::device_ptr<float> outputPtr(output->getDevicePointer());
+  thrust::device_vector<float> data(input.getData(), input.getData() + count);
 
   switch(getFunction()) {
   case FilterFunction::Log:
-    thrust::transform(inputPtr, inputPtr + count, outputPtr, gpu_log());
+    thrust::transform(data.begin(), data.end(), data.begin(), gpu_log());
     break;
 
   case FilterFunction::Sqrt:
-    thrust::transform(inputPtr, inputPtr + count, outputPtr, gpu_sqrt());
+    thrust::transform(data.begin(), data.end(), data.begin(), gpu_sqrt());
     break;
 
   case FilterFunction::Bernstein: {
     BernsteinParameters* params = dynamic_cast<BernsteinParameters*>(getParameters().get());
     if (params) {
-      thrust::transform(inputPtr, inputPtr + count, outputPtr,
+      thrust::transform(data.begin(), data.end(), data.begin(),
           gpu_bernstein(params->getIndex(), params->getDegree()));
     }
     } break;
@@ -115,7 +114,7 @@ void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) con
   case FilterFunction::Gamma: {
     GammaParameters* params = dynamic_cast<GammaParameters*>(getParameters().get());
     if (params) {
-      thrust::transform(inputPtr, inputPtr + count, outputPtr,
+      thrust::transform(data.begin(), data.end(), data.begin(),
         gpu_gamma(params->getSlope(), params->getGamma(), params->getIntercept()));
     }
     } break;
@@ -123,19 +122,14 @@ void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) con
   case FilterFunction::Sigmoid: {
     SigmoidParameters* params = dynamic_cast<SigmoidParameters*>(getParameters().get());
     if (params) {
-      thrust::transform(inputPtr, inputPtr + count, outputPtr,
+      thrust::transform(data.begin(), data.end(), data.begin(),
         gpu_sigmoid(params->getSlope(), params->getInflection()));
     }
     } break;
   }
 
-  output->saveDeviceToOriginalImage();
-  output->saveDeviceToWorkingCopy();
-
-  input.freeCaches();
-  output->freeCaches();
-  
-  data->setOutputImage(output);
+  thrust::copy(data.begin(), data.end(), output->getData());
+  this->data->setOutputImage(output);
 }
 
 }

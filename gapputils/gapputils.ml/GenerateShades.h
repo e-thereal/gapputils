@@ -10,7 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -20,12 +20,12 @@ class GenerateShades : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(GenerateShades)
 
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
   Property(MaxSummand, float)
   Property(MinMultiplier, float)
   Property(MaxMultiplier, float)
   Property(Count, unsigned)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
 
 private:
   mutable GenerateShades* data;

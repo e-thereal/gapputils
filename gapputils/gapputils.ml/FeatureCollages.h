@@ -12,7 +12,7 @@
 
 #include <capputils/Enumerators.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -24,12 +24,12 @@ class FeatureCollages : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(FeatureCollages)
 
-  Property(InputImages, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
+  Property(InputImages, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(FeatureCount, int)
   Property(ImageCount, int)
   Property(Fusion, ImageFusion)
-  Property(OutputImages, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(OutputImages, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
+  Property(OutputImage, boost::shared_ptr<image_t>)
 
 private:
   mutable FeatureCollages* data;

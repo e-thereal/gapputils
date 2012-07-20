@@ -11,7 +11,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -20,10 +20,10 @@ namespace ml {
 class ImageMatrix : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(ImageMatrix)
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
   Property(MinValue, float)
   Property(MaxValue, float)
-  Property(ImageMatrix, boost::shared_ptr<culib::ICudaImage>)
+  Property(ImageMatrix, boost::shared_ptr<image_t>)
   Property(AutoScale, bool)
   Property(CenterImages, bool)
 

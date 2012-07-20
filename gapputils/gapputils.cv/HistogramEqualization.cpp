@@ -16,7 +16,7 @@
 
 #include <gapputils/HideAttribute.h>
 
-#include "util.h"
+#include "cuda_util.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;

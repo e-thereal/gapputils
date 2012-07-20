@@ -148,7 +148,7 @@
     <ClCompile Include="ToRgb.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Transformation.cpp" />
-    <ClCompile Include="util.cpp" />
+    <ClCompile Include="cuda_util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AamBuilder.h" />
@@ -170,7 +170,7 @@
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ImageToFeatures.h" />
     <ClInclude Include="ImageViewer.h" />
-    <ClInclude Include="util.h" />
+    <ClInclude Include="cuda_util.h" />
     <CustomBuild Include="ImageViewerDialog.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing %(Identity)...</Message>
