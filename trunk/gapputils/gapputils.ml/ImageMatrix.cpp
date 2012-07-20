@@ -22,8 +22,6 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
-#include <culib/CudaImage.h>
-
 #include <cmath>
 
 using namespace capputils::attributes;

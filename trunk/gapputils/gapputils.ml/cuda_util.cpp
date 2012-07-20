@@ -4,14 +4,14 @@
  *  Created on: Jul 16, 2012
  *      Author: tombr
  */
-#include "util.h"
+#include "cuda_util.h"
 
 #include <culib/CudaImage.h>
 #include <algorithm>
 
 namespace gapputils {
 
-namespace cv {
+namespace ml {
 
 boost::shared_ptr<culib::ICudaImage> make_cuda_image(const image_t& image) {
   return boost::shared_ptr<culib::ICudaImage>(new culib::CudaImage(

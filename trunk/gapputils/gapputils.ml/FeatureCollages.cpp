@@ -27,8 +27,6 @@
 
 #include <boost/lambda/lambda.hpp>
 
-#include <culib/CudaImage.h>
-
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -73,18 +71,18 @@ void FeatureCollages::execute(gapputils::workflow::IProgressMonitor* monitor) co
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  std::vector<boost::shared_ptr<culib::ICudaImage> >& primitives = *getInputImages();
+  std::vector<boost::shared_ptr<image_t> >& primitives = *getInputImages();
 
-  const int width = primitives[0]->getSize().x;
-  const int height = primitives[0]->getSize().y;
+  const int width = primitives[0]->getSize()[0];
+  const int height = primitives[0]->getSize()[1];
   const int count = width * height;
 
-  boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > > outputs(
-      new std::vector<boost::shared_ptr<culib::ICudaImage> >());
+  boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > > outputs(
+      new std::vector<boost::shared_ptr<image_t> >());
 
   for (int iImage = 0; iImage < getImageCount(); ++iImage) {
-    boost::shared_ptr<culib::CudaImage> output(new culib::CudaImage(dim3(width, height)));
-    float* buffer = output->getWorkingCopy();
+    boost::shared_ptr<image_t> output(new image_t(width, height, 1));
+    float* buffer = output->getData();
 
     switch (getFusion()) {
     case ImageFusion::Addition:
@@ -97,14 +95,14 @@ void FeatureCollages::execute(gapputils::workflow::IProgressMonitor* monitor) co
     }
 
     for (int iPrimitive = 0; iPrimitive < getFeatureCount(); ++iPrimitive) {
-      culib::ICudaImage& primitive = *primitives[rand() % primitives.size()];
+      image_t& primitive = *primitives[rand() % primitives.size()];
       switch(getFusion()) {
       case ImageFusion::Addition:
-        std::transform(buffer, buffer + count, primitive.getWorkingCopy(), buffer, _1 + _2);
+        std::transform(buffer, buffer + count, primitive.getData(), buffer, _1 + _2);
         break;
-
+        
       case ImageFusion::Multiplication:
-        std::transform(buffer, buffer + count, primitive.getWorkingCopy(), buffer, _1 * _2);
+        std::transform(buffer, buffer + count, primitive.getData(), buffer, _1 * _2);
         break;
       }
 

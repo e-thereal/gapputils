@@ -22,9 +22,9 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
-#include <culib/CudaImage.h>
-
 #include <algorithm>
+
+#include <capputils/Logbook.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -75,39 +75,44 @@ public:
 };
 
 void GenerateShades::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+  using capputils::Severity;
+  capputils::Logbook& dlog = getLogbook();
+  dlog.setSeverity(Severity::Warning);
+
   if (!data)
     data = new GenerateShades();
 
-  if (!capputils::Verifier::Valid(*this))
+  if (!capputils::Verifier::Valid(*this, dlog))
     return;
 
   if (!getInputImage()) {
-    std::cout << "[Warning] No input image given. Abbording." << std::endl;
+    dlog() << "No input image given. Abbording.";
     return;
   }
 
-  culib::ICudaImage& input = *getInputImage();
+  image_t& input = *getInputImage();
 
-  if (input.getSize().z != 1) {
-    std::cout << "[Warning] Input image must contain exactly one slice. Abbording." << std::endl;
+  if (input.getSize()[2] != 1) {
+    dlog() << "Input image must contain exactly one slice. Abbording.";
     return;
   }
 
-  dim3 newSize = input.getSize();
-  newSize.z = getCount();
+  image_t::dim_t newSize;
+  newSize[0] = input.getSize()[0];
+  newSize[1] = input.getSize()[1];
+  newSize[2] = getCount();
 
-  boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(newSize, input.getVoxelSize()));
-  float* outputBuffer = output->getOriginalImage();
-  float* inputBuffer = input.getWorkingCopy();
+  boost::shared_ptr<image_t> output(new image_t(newSize, input.getPixelSize()));
+  float* outputBuffer = output->getData();
+  float* inputBuffer = input.getData();
 
-  const int pixelCount = newSize.x * newSize.y;
+  const int pixelCount = newSize[0] * newSize[1];
 
   for (unsigned i = 0; i < getCount(); ++i) {
     float a = (float)rand() / RAND_MAX * (getMaxMultiplier() - getMinMultiplier()) + getMinMultiplier();
     float y = (float)rand() / RAND_MAX * getMaxSummand();
     std::transform(inputBuffer, inputBuffer + pixelCount, outputBuffer + pixelCount * i, axpy_34<float>(a, y));
   }
-  output->resetWorkingCopy();
 
   data->setOutputImage(output);
 }

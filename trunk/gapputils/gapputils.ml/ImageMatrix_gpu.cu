@@ -17,6 +17,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "cuda_util.h"
+
 //#define TRACE std::cout << __LINE__ << std::endl;
 
 namespace gapputils {
@@ -50,16 +52,16 @@ void ImageMatrix::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   if (!capputils::Verifier::Valid(*this) || !getInputImage())
     return;
 
-
-  dim3 size = getInputImage()->getSize();
+  boost::shared_ptr<culib::ICudaImage> input = make_cuda_image(*getInputImage());
+  dim3 size = input->getSize();
   int rowCount = ceil(std::sqrt((float)size.z));
 
+  boost::shared_ptr<image_t> outMatrix(new image_t(size.x * rowCount, size.y * rowCount, 1));
   boost::shared_ptr<culib::ICudaImage> imageMatrix(new culib::CudaImage(dim3(size.x * rowCount, size.y * rowCount)));
   
   // anneliebttom copy this
 
-  culib::ICudaImage& input = *getInputImage();
-  dim3 inSize = input.getSize();
+  dim3 inSize = input->getSize();
   dim3 outSize = imageMatrix->getSize();
   const int count = inSize.x * inSize.y;
   const int totalCount = inSize.x * inSize.y * inSize.z;
@@ -69,8 +71,8 @@ void ImageMatrix::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   culib::CudaImage centered(inSize);
 //  fmatrix4 centering = make_fmatrix4_translation(-size.x / 2, -size.y / 2, 0);
   fmatrix4 centering = make_fmatrix4_translation(-(int)size.x/2, -(int)size.y/2, 0);
-  culib::transform3D(centered.getDevicePointer(), input.getCudaArray(), inSize, centering, dim3(), true);
-  thrust::device_ptr<float> inputPtr(getCenterImages() ? centered.getDevicePointer() : input.getDevicePointer());
+  culib::transform3D(centered.getDevicePointer(), input->getCudaArray(), inSize, centering, dim3(), true);
+  thrust::device_ptr<float> inputPtr(getCenterImages() ? centered.getDevicePointer() : input->getDevicePointer());
 
   assert(inSize.x * rowCount == outSize.x);
   assert(inSize.y * rowCount == outSize.y);
@@ -85,8 +87,8 @@ void ImageMatrix::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   float maxV = getMaxValue();
 
   if (getAutoScale()) {
-    float _min = thrust::reduce(inputPtr, inputPtr + totalCount, input.getWorkingCopy()[0], thrust::minimum<float>());
-    float _max = thrust::reduce(inputPtr, inputPtr + totalCount, input.getWorkingCopy()[0], thrust::maximum<float>());
+    float _min = thrust::reduce(inputPtr, inputPtr + totalCount, input->getWorkingCopy()[0], thrust::minimum<float>());
+    float _max = thrust::reduce(inputPtr, inputPtr + totalCount, input->getWorkingCopy()[0], thrust::maximum<float>());
 //    maxV = min(abs(_max), abs(_min));
 //    minV = -maxV;
     minV = _min;
@@ -108,9 +110,9 @@ void ImageMatrix::execute(gapputils::workflow::IProgressMonitor* monitor) const 
           submatrix.begin());
     }
   }
-  input.freeCaches();
-  thrust::copy(m.data().begin(), m.data().end(), imageMatrix->getWorkingCopy());
-  data->setImageMatrix(imageMatrix);
+  input->freeCaches();
+  thrust::copy(m.data().begin(), m.data().end(), outMatrix->getData());
+  data->setImageMatrix(outMatrix);
 }
 
 }

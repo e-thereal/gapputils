@@ -10,7 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 #include <capputils/Enumerators.h>
 
 namespace gapputils {
@@ -66,10 +66,10 @@ class FunctionFilter : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(FunctionFilter)
 
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
   Property(Function, FilterFunction)
   Property(Parameters, boost::shared_ptr<FunctionParameters>)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
 
 private:
   mutable FunctionFilter* data;
