@@ -4,8 +4,8 @@
 #define GAPPUTILSCV_FROMHSV_H_
 
 #include <gapputils/WorkflowElement.h>
+#include <gapputils/Image.h>
 
-#include <culib/ICudaImage.h>
 #include <QImage>
 
 namespace gapputils {
@@ -18,9 +18,9 @@ class FromHsv : public workflow::WorkflowElement
   InitReflectableClass(FromHsv)
 
   Property(ImagePtr, boost::shared_ptr<QImage>)
-  Property(Hue, boost::shared_ptr<culib::ICudaImage>)
-  Property(Saturation, boost::shared_ptr<culib::ICudaImage>)
-  Property(Value, boost::shared_ptr<culib::ICudaImage>)
+  Property(Hue, boost::shared_ptr<image_t>)
+  Property(Saturation, boost::shared_ptr<image_t>)
+  Property(Value, boost::shared_ptr<image_t>)
 
 private:
   mutable FromHsv* data;

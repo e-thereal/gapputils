@@ -21,7 +21,6 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
-#include <culib/CudaImage.h>
 #include <milib/ImageFactory.h>
 
 #include <algorithm>
@@ -71,16 +70,14 @@ void ImageToDicom::execute(gapputils::workflow::IProgressMonitor* monitor) const
   if (!capputils::Verifier::Valid(*this) || !getImage())
     return;
 
-  culib::ICudaImage& image = *getImage();
-  const int width = image.getSize().x;
-  const int height = image.getSize().y;
-  const int depth = image.getSize().z;
+  image_t& image = *getImage();
+  const int width = image.getSize()[0];
+  const int height = image.getSize()[1];
+  const int depth = image.getSize()[2];
 
   const int count = width * height * depth;
 
-  image.saveDeviceToWorkingCopy();
-
-  float* pixels = image.getWorkingCopy();
+  float* pixels = image.getData();
   //for (int i = 0; i < count; ++i)
   //  std::cout << pixels[i] << " ";
 

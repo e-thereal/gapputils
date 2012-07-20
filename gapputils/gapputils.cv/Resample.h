@@ -10,7 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -20,10 +20,10 @@ class Resample : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(Resample)
 
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
-  Property(InputImages, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
-  Property(OutputImages, boost::shared_ptr<std::vector<boost::shared_ptr<culib::ICudaImage> > >)
+  Property(InputImage, boost::shared_ptr<image_t>)
+  Property(InputImages, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
+  Property(OutputImage, boost::shared_ptr<image_t>)
+  Property(OutputImages, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(Width, int)
   Property(Height, int)
 

@@ -25,6 +25,10 @@
 #include <gapputils.cv.cuda/aggregate.h>
 #include <culib/CudaImage.h>
 
+#include <algorithm>
+
+#include "util.h"
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -67,25 +71,25 @@ void ImageAggregator::execute(gapputils::workflow::IProgressMonitor* monitor) co
   if (!getInputImage())
     return;
 
-  culib::ICudaImage& input = *getInputImage();
+  boost::shared_ptr<culib::ICudaImage> input = make_cuda_image(*getInputImage());
+  boost::shared_ptr<image_t> output(new image_t(getInputImage()->getSize(), getInputImage()->getPixelSize()));
+  unsigned count = input->getSize().x * input->getSize().y * input->getSize().z;
 
   switch (getFunction()) {
   case AggregatorFunction::Average: {
-    boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(input.getSize().x, input.getSize().y)));
-    cuda::average(&input, output.get());
-    output->saveDeviceToWorkingCopy();
-    output->freeCaches();
-    data->setOutputImage(output);
+    cuda::average(input.get(), input.get());
+    input->saveDeviceToWorkingCopy();
+    std::copy(input->getWorkingCopy(), input->getWorkingCopy() + count, output->getData());
     } break;
 
   case AggregatorFunction::Sum: {
-    boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(dim3(input.getSize().x, input.getSize().y)));
-    cuda::sum(&input, output.get());
-    output->saveDeviceToWorkingCopy();
-    output->freeCaches();
-    data->setOutputImage(output);
+    cuda::sum(input.get(), input.get());
+    input->saveDeviceToWorkingCopy();
+    std::copy(input->getWorkingCopy(), input->getWorkingCopy() + count, output->getData());
     } break;
   }
+
+  data->setOutputImage(output);
 }
 
 void ImageAggregator::writeResults() {

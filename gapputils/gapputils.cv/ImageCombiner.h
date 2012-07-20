@@ -12,7 +12,7 @@
 
 #include <capputils/Enumerators.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -24,9 +24,9 @@ class ImageCombiner : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(ImageCombiner)
 
-  Property(InputImage1, boost::shared_ptr<culib::ICudaImage>)
-  Property(InputImage2, boost::shared_ptr<culib::ICudaImage>)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage1, boost::shared_ptr<image_t>)
+  Property(InputImage2, boost::shared_ptr<image_t>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
   Property(Mode, CombinerMode)
 
 private:

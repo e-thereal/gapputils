@@ -110,9 +110,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_FilenameEdit.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="ImageViewerItem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ShowImageDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -302,6 +299,9 @@
     <ClCompile Include="GeneratedFiles\Release\moc_GlobalPropertiesView.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="ImageInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
@@ -396,9 +396,6 @@
     <ClInclude Include="CustomToolItemAttribute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ImageViewerItem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DataModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -454,6 +451,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NodeCache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -10,7 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 #include "AggregatorFunction.h"
 
@@ -22,10 +22,10 @@ class SlidingWindowFilter : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(SlidingWindowFilter)
 
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
   Property(Filter, AggregatorFunction)
   Property(FilterSize, int)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
 
 private:
   mutable SlidingWindowFilter* data;

@@ -10,7 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 #include <capputils/Enumerators.h>
 
@@ -24,9 +24,9 @@ class ImageAggregator : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(ImageAggregator)
 
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
   Property(Function, AggregatorFunction)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
 
 private:
   mutable ImageAggregator* data;

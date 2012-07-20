@@ -8,8 +8,7 @@
 #define GAPPUTILS_CV_IMAGETODICOM_H_
 
 #include <gapputils/WorkflowElement.h>
-#include <boost/shared_ptr.hpp>
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -19,7 +18,7 @@ class ImageToDicom : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(ImageToDicom)
 
-  Property(Image, boost::shared_ptr<culib::ICudaImage>)
+  Property(Image, boost::shared_ptr<image_t>)
   Property(MinValue, double)
   Property(MaxValue, double)
   Property(AutoScale, bool)

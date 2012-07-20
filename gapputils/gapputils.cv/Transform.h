@@ -10,7 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 #include <culib/math3d.h>
 
 namespace gapputils {
@@ -21,11 +21,11 @@ class Transform : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(Transform)
 
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
   Property(Matrix, boost::shared_ptr<fmatrix4>)
   Property(Width, int)
   Property(Height, int)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
 
 private:
   mutable Transform* data;

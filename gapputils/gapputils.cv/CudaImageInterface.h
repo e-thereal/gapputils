@@ -9,7 +9,7 @@
 #define GAPPUTILS_HOST_CUDAIMAGEINTERFACE_H_
 
 #include <gapputils/WorkflowElement.h>
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -21,7 +21,7 @@ class CudaImage : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(CudaImage)
 
-  Property(Value, boost::shared_ptr<culib::ICudaImage>)
+  Property(Value, boost::shared_ptr<image_t>)
 
 private:
   mutable CudaImage* data;
@@ -44,7 +44,7 @@ class CudaImage : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(CudaImage)
 
-  Property(Value, boost::shared_ptr<culib::ICudaImage>)
+  Property(Value, boost::shared_ptr<image_t>)
 
 private:
   mutable CudaImage* data;

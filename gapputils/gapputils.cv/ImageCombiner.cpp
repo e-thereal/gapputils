@@ -22,8 +22,9 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
-#include <culib/CudaImage.h>
 #include <iostream>
+
+#include <capputils/Logbook.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -65,27 +66,24 @@ void ImageCombiner::execute(gapputils::workflow::IProgressMonitor* monitor) cons
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  boost::shared_ptr<culib::ICudaImage> input1 = getInputImage1();
-  boost::shared_ptr<culib::ICudaImage> input2 = getInputImage2();
+  boost::shared_ptr<image_t> input1 = getInputImage1();
+  boost::shared_ptr<image_t> input2 = getInputImage2();
 
-  if (!input1 || !input2 || input1->getSize().x != input2->getSize().x ||
-      input1->getSize().y != input2->getSize().y ||
-      input1->getSize().z != input2->getSize().z)
+  if (!input1 || !input2 || input1->getSize()[0] != input2->getSize()[0] ||
+      input1->getSize()[1] != input2->getSize()[1] ||
+      input1->getSize()[2] != input2->getSize()[2])
   {
-    std::cout << "[Warning] No input image given or dimensions don't match. Abording!" << std::endl;
+    getLogbook()(capputils::Severity::Warning) << "No input image given or dimensions don't match. Abording!";
     return;
   }
 
-  const int count = input1->getSize().x * input1->getSize().y * input1->getSize().z;
+  const int count = input1->getSize()[0] * input1->getSize()[1] * input1->getSize()[2];
 
-  boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(input1->getSize(), input1->getVoxelSize()));
+  boost::shared_ptr<image_t> output(new image_t(input1->getSize(), input1->getPixelSize()));
 
-  input1->saveDeviceToWorkingCopy();
-  input2->saveDeviceToWorkingCopy();
-
-  float* buffer1 = input1->getWorkingCopy();
-  float* buffer2 = input2->getWorkingCopy();
-  float* buffer = output->getOriginalImage();
+  float* buffer1 = input1->getData();
+  float* buffer2 = input2->getData();
+  float* buffer = output->getData();
 
   switch (getMode()) {
   case CombinerMode::Add:
@@ -109,7 +107,6 @@ void ImageCombiner::execute(gapputils::workflow::IProgressMonitor* monitor) cons
     break;
   }
 
-  output->resetWorkingCopy();
   data->setOutputImage(output);
 }
 

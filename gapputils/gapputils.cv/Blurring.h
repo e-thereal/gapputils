@@ -10,8 +10,7 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
-#include <culib/math3d.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -21,10 +20,10 @@ class Blurring : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(Blurring)
 
-  Property(InputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(InputImage, boost::shared_ptr<image_t>)
   Property(Sigma, float)
   Property(InPlane, bool)
-  Property(OutputImage, boost::shared_ptr<culib::ICudaImage>)
+  Property(OutputImage, boost::shared_ptr<image_t>)
 
 private:
   mutable Blurring* data;

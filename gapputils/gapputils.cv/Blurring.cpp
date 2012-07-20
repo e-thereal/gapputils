@@ -26,6 +26,8 @@
 
 #include <algorithm>
 
+#include "util.h"
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -69,23 +71,25 @@ void Blurring::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!getInputImage())
     return;
 
-  culib::ICudaImage& input = *getInputImage();
-  boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(input.getSize(), input.getVoxelSize()));
+  image_t& input = *getInputImage();
+  boost::shared_ptr<image_t> output(new image_t(input.getSize(), input.getPixelSize()));
   
   if (getInPlane()) {
-    const int count = input.getSize().x * input.getSize().y;
-    for (int i = 0; i < input.getSize().z; ++i) {
-      regutil::CudaImage inputImage(dim3(input.getSize().x, input.getSize().y), input.getVoxelSize(), input.getWorkingCopy() + i * count);
+    const int count = input.getSize()[0] * input.getSize()[1];
+    for (int i = 0; i < input.getSize()[2]; ++i) {
+      regutil::CudaImage inputImage(dim3(input.getSize()[0], input.getSize()[1]),
+          dim3(input.getPixelSize()[0], input.getPixelSize()[1], input.getPixelSize()[2]), input.getData() + i * count);
       inputImage.blurImage(getSigma());
       inputImage.saveDeviceToWorkingCopy();
-      std::copy(inputImage.getWorkingCopy(), inputImage.getWorkingCopy() + count, output->getWorkingCopy() + i * count);
+      std::copy(inputImage.getWorkingCopy(), inputImage.getWorkingCopy() + count, output->getData() + i * count);
     }
   } else {
-    const int count = input.getSize().x * input.getSize().y * input.getSize().z;
-    regutil::CudaImage inputImage(input.getSize(), input.getVoxelSize(), input.getWorkingCopy());
+    const int count = input.getSize()[0] * input.getSize()[1] * input.getSize()[2];
+    regutil::CudaImage inputImage(dim3(input.getSize()[0], input.getSize()[1], input.getSize()[2]),
+        dim3(input.getPixelSize()[0], input.getPixelSize()[1], input.getPixelSize()[2]), input.getData());
     inputImage.blurImage(getSigma());
     inputImage.saveDeviceToWorkingCopy();
-    std::copy(inputImage.getWorkingCopy(), inputImage.getWorkingCopy() + count, output->getWorkingCopy());
+    std::copy(inputImage.getWorkingCopy(), inputImage.getWorkingCopy() + count, output->getData());
   }
   
   data->setOutputImage(output);

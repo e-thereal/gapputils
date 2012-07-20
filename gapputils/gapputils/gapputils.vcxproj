@@ -80,6 +80,7 @@
     <ClCompile Include="CollectionElement.cpp" />
     <ClCompile Include="CombinerInterface.cpp" />
     <ClCompile Include="HideAttribute.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="InterfaceAttribute.cpp" />
     <ClCompile Include="InterfaceDescription.cpp" />
     <ClCompile Include="IProgressMonitor.cpp" />
@@ -98,6 +99,7 @@
     <ClInclude Include="gapputils.h" />
     <ClInclude Include="HideAttribute.h" />
     <ClInclude Include="IGapphostInterface.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="InterfaceAttribute.h" />
     <ClInclude Include="InterfaceDescription.h" />
     <ClInclude Include="IProgressMonitor.h" />

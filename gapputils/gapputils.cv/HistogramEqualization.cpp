@@ -16,6 +16,8 @@
 
 #include <gapputils/HideAttribute.h>
 
+#include "util.h"
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 using namespace culib;
@@ -59,16 +61,12 @@ void HistogramEqualization::execute(gapputils::workflow::IProgressMonitor* monit
   if (!getInputImage())
     return;
 
-  culib::ICudaImage* input = getInputImage().get();
-  boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(input->getSize(), input->getVoxelSize()));
-  //boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(*input));
+  boost::shared_ptr<culib::ICudaImage> input = make_cuda_image(*getInputImage());
+  boost::shared_ptr<image_t> output(new image_t(getInputImage()->getSize(), getInputImage()->getPixelSize()));
 
-  culib::equalizeHistogram(output->getDevicePointer(), input->getDevicePointer(), input->getSize(), getBinCount(), 1.f/(float)getBinCount(), false);
-  
-  //boost::shared_ptr<culib::ICudaImage> output(new culib::CudaImage(*input));
-  output->saveDeviceToWorkingCopy();
-  //output->freeCaches();
-  //input->freeCaches();
+  culib::CudaImage cuoutput(input->getSize(), input->getVoxelSize());
+  culib::equalizeHistogram(cuoutput.getDevicePointer(), input->getDevicePointer(), input->getSize(), getBinCount(), 1.f/(float)getBinCount(), false);
+  cuoutput.saveDeviceToOriginalImage();
   data->setOutputImage(output);
 }
 

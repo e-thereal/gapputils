@@ -19,9 +19,7 @@
 #include <cmath>
 
 using namespace gapputils::attributes;
-
 using namespace capputils::attributes;
-using namespace culib;
 
 namespace gapputils {
 
@@ -67,58 +65,51 @@ void FromHsv::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!capputils::Verifier::Valid(*this))
     return;
 
-  ICudaImage* hue = getHue().get();
-  ICudaImage* saturation = getSaturation().get();
-  ICudaImage* value = getValue().get();
-
-  if (hue)
-    hue->saveDeviceToWorkingCopy();
-  if (saturation)
-    saturation->saveDeviceToWorkingCopy();
-  if (value)
-    value->saveDeviceToWorkingCopy();
+  image_t* hue = getHue().get();
+  image_t* saturation = getSaturation().get();
+  image_t* value = getValue().get();
 
   int width = 0;
   int height = 0;
   int pixelWidth = 1000, pixelHeight = 1000;
 
   if (hue) {
-    width = hue->getSize().x;
-    height = hue->getSize().y;
-    pixelWidth = hue->getVoxelSize().x;
-    pixelHeight = hue->getVoxelSize().y;
+    width = hue->getSize()[0];
+    height = hue->getSize()[1];
+    pixelWidth = hue->getPixelSize()[0];
+    pixelHeight = hue->getPixelSize()[1];
   } else if (saturation) {
-    width = saturation->getSize().x;
-    height = saturation->getSize().y;
-    pixelWidth = saturation->getVoxelSize().x;
-    pixelHeight = saturation->getVoxelSize().y;
+    width = saturation->getSize()[0];
+    height = saturation->getSize()[1];
+    pixelWidth = saturation->getPixelSize()[0];
+    pixelHeight = saturation->getPixelSize()[1];
   } else if (value) {
-    width = value->getSize().x;
-    height = value->getSize().y;
-    pixelWidth = value->getVoxelSize().x;
-    pixelHeight = value->getVoxelSize().y;
+    width = value->getSize()[0];
+    height = value->getSize()[1];
+    pixelWidth = value->getPixelSize()[0];
+    pixelHeight = value->getPixelSize()[1];
   }
 
   if (width <= 0 || height <= 0)
     return;
 
   if (saturation) {
-    if (saturation->getSize().x != width || saturation->getSize().y != height ||
-        saturation->getVoxelSize().x != pixelWidth || saturation->getVoxelSize().y != pixelHeight)
+    if (saturation->getSize()[0] != width || saturation->getSize()[1] != height ||
+        saturation->getPixelSize()[0] != pixelWidth || saturation->getPixelSize()[1] != pixelHeight)
       return;
   }
   if (value) {
-    if (value->getSize().x != width || value->getSize().y != height ||
-        value->getVoxelSize().x != pixelWidth || value->getVoxelSize().y != pixelHeight)
+    if (value->getSize()[0] != width || value->getSize()[1] != height ||
+        value->getPixelSize()[0] != pixelWidth || value->getPixelSize()[1] != pixelHeight)
       return;
   }
 
   boost::shared_ptr<QImage> image(new QImage(width, height, QImage::Format_ARGB32));
   image->setDotsPerMeterX(1000000/pixelWidth);
   image->setDotsPerMeterY(1000000/pixelHeight);
-  float* hueBuffer = (hue ? hue->getWorkingCopy() : 0);
-  float* saturationBuffer = (saturation ? saturation->getWorkingCopy() : 0);
-  float* valueBuffer = (value ? value->getWorkingCopy() : 0);
+  float* hueBuffer = (hue ? hue->getData() : 0);
+  float* saturationBuffer = (saturation ? saturation->getData() : 0);
+  float* valueBuffer = (value ? value->getData() : 0);
 
   QColor color;
   for (int y = 0, i = 0; y < height; ++y) {

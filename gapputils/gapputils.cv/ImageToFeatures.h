@@ -8,8 +8,7 @@
 #define GAPPUTILS_CV_IMAGETOFEATURES_H_
 
 #include <gapputils/WorkflowElement.h>
-#include <boost/shared_ptr.hpp>
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -19,7 +18,7 @@ class ImageToFeatures : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(ImageToFeatures)
 
-  Property(Image, boost::shared_ptr<culib::ICudaImage>)
+  Property(Image, boost::shared_ptr<image_t>)
   Property(Data, boost::shared_ptr<std::vector<float> >)
   Property(Width, int)
   Property(Height, int)

@@ -105,9 +105,12 @@ void Register::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     }
   }
 
-
-  regutil::CudaImage baseImage(getBaseImage()->getSize(), getBaseImage()->getVoxelSize(), getBaseImage()->getWorkingCopy());
-  regutil::CudaImage inputImage(getInputImage()->getSize(), getInputImage()->getVoxelSize(), getInputImage()->getWorkingCopy());
+  regutil::CudaImage baseImage(dim3(getBaseImage()->getSize()[0], getBaseImage()->getSize()[1], getBaseImage()->getSize()[2]),
+    dim3(getBaseImage()->getPixelSize()[0], getBaseImage()->getPixelSize()[1], getBaseImage()->getPixelSize()[2]),
+    getBaseImage()->getData());
+  regutil::CudaImage inputImage(dim3(getInputImage()->getSize()[0], getInputImage()->getSize()[1], getInputImage()->getSize()[2]),
+    dim3(getInputImage()->getPixelSize()[0], getInputImage()->getPixelSize()[1], getInputImage()->getPixelSize()[2]),
+    getInputImage()->getData());
 
   optlib::ObservableDirectionSetOptimizer* optimizer;
   switch(getOptimizer()) {

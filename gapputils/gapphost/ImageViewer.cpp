@@ -2,8 +2,6 @@
 
 #include <gapputils/LabelAttribute.h>
 #include <capputils/InputAttribute.h>
-#include "ImageViewerItem.h"
-#include "CustomToolItemAttribute.h"
 #include <capputils/ObserveAttribute.h>
 #include <gapputils/HideAttribute.h>
 #include <capputils/VolatileAttribute.h>

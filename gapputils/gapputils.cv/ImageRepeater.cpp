@@ -21,9 +21,9 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
-#include <culib/CudaImage.h>
-
 #include <algorithm>
+
+#include <capputils/Logbook.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -65,23 +65,21 @@ void ImageRepeater::execute(gapputils::workflow::IProgressMonitor* monitor) cons
     return;
 
   if (!getInputImage()) {
-    std::cout << "[Warning] No input image given." << std::endl;
+    getLogbook()(capputils::Severity::Warning) << "No input image given.";
     return;
   }
-  culib::ICudaImage& input = *getInputImage();
-  const unsigned width = input.getSize().x, height = input.getSize().y, depth = input.getSize().z;
+  image_t& input = *getInputImage();
+  const unsigned width = input.getSize()[0], height = input.getSize()[1], depth = input.getSize()[2];
   const unsigned voxelCount = width * height * depth;
   const int count = getCount();
-  boost::shared_ptr<culib::ICudaImage> output(
-      new culib::CudaImage(dim3(width, height, count * depth), input.getVoxelSize()));
+  boost::shared_ptr<image_t> output(
+      new image_t(width, height, count * depth, input.getPixelSize()));
 
-  float* image = output->getOriginalImage();
-  input.saveDeviceToWorkingCopy();
+  float* image = output->getData();
   for (int i = 0; i < count; ++i, image += voxelCount) {
-    std::copy(input.getWorkingCopy(), input.getWorkingCopy() + voxelCount, image);
+    std::copy(input.getData(), input.getData() + voxelCount, image);
   }
 
-  output->resetWorkingCopy();
   data->setOutputImage(output);
 }
 

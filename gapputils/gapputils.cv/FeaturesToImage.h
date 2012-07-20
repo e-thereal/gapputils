@@ -9,7 +9,7 @@
 
 #include <gapputils/WorkflowElement.h>
 #include <boost/shared_ptr.hpp>
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -23,7 +23,7 @@ class FeaturesToImage : public gapputils::workflow::WorkflowElement {
   Property(ColumnCount, int)
   Property(RowCount, int)
   Property(MaxCount, int)
-  Property(Image, boost::shared_ptr<culib::ICudaImage>)
+  Property(Image, boost::shared_ptr<image_t>)
 
 private:
   mutable FeaturesToImage* data;
