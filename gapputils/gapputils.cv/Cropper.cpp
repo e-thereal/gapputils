@@ -18,13 +18,10 @@
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
 
-#include <culib/CudaImage.h>
-
 #include <gapputils/HideAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
-using namespace culib;
 
 namespace gapputils {
 
@@ -65,26 +62,24 @@ void Cropper::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   if (!getInputImage() || !getRectangle())
     return;
 
-  ICudaImage* input = getInputImage().get();
+  image_t* input = getInputImage().get();
   const int left = getRectangle()->getLeft();
   const int top = getRectangle()->getTop();
   const int rwidth = getRectangle()->getWidth();
   const int rheight = getRectangle()->getHeight();
-  const int width = input->getSize().x;
-  const int height = input->getSize().y;
+  const int width = input->getSize()[0];
+  const int height = input->getSize()[1];
 
-  boost::shared_ptr<culib::ICudaImage> output(new CudaImage(dim3(rwidth, rheight), input->getVoxelSize()));
+  boost::shared_ptr<image_t> output(new image_t(rwidth, rheight, 1, input->getPixelSize()));
 
-  float* inputBuffer = input->getWorkingCopy();
-  float* outputBuffer = output->getOriginalImage();
+  float* inputBuffer = input->getData();
+  float* outputBuffer = output->getData();
 
   for (int y = 0; y < rheight && y + top < height; ++y) {
     for (int x = 0; x < rwidth && x + left < width; ++x) {
       outputBuffer[y * rwidth + x] = inputBuffer[(y + top) * width + x + left];
     }
   }
-
-  output->resetWorkingCopy();
   data->setOutputImage(output);
 }
 

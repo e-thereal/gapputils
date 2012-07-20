@@ -9,7 +9,7 @@
 #define GAPPUTLIS_CV_IMAGETOMIF_H_
 
 #include <gapputils/WorkflowElement.h>
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 namespace gapputils {
 
@@ -19,7 +19,7 @@ class ImageToMif : public gapputils::workflow::WorkflowElement {
 
   InitReflectableClass(ImageToMif)
 
-  Property(Image, boost::shared_ptr<culib::ICudaImage>)
+  Property(Image, boost::shared_ptr<image_t>)
   Property(MinValue, double)
   Property(MaxValue, double)
   Property(AutoScale, bool)

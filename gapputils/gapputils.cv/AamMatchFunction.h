@@ -5,7 +5,6 @@
 #include <optlib/IMultiDimensionOptimizer.h>
 
 #include <boost/shared_ptr.hpp>
-#include <culib/ICudaImage.h>
 #include <culib/similarity.h>
 
 #include <gapputils.cv.cuda/AamMatchFunction.h>

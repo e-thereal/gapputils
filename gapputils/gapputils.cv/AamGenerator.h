@@ -10,7 +10,6 @@
 
 #include <gapputils/WorkflowElement.h>
 
-#include <culib/ICudaImage.h>
 #include <capputils/Enumerators.h>
 
 #include "ActiveAppearanceModel.h"

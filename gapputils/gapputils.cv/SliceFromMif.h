@@ -9,7 +9,7 @@
 #define GAPPUTILSCV_SLICEFROMMIF_H_
 
 #include <gapputils/WorkflowElement.h>
-#include <culib/ICudaImage.h>
+#include <gapputils/Image.h>
 
 #include <capputils/Enumerators.h>
 
@@ -24,7 +24,7 @@ class SliceFromMif : public gapputils::workflow::WorkflowElement {
   InitReflectableClass(SliceFromMif)
 
   Property(MifName, std::string)
-  Property(Image, boost::shared_ptr<culib::ICudaImage>)
+  Property(Image, boost::shared_ptr<image_t>)
   Property(Width, int)
   Property(Height, int)
   Property(SlicePosition, int)

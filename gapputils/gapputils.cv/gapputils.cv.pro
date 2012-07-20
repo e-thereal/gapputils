@@ -56,7 +56,7 @@ SOURCES = FromRgb.cpp \
           SimilarityMeasure.cpp \
           AggregatorFunction.cpp \
           SlidingWindowFilter.cpp \
-          util.cpp
+          cuda_util.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \

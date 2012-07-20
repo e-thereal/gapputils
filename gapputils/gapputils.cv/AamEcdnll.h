@@ -11,7 +11,6 @@
 #include <optlib/IMultiDimensionOptimizer.h>
 
 #include <boost/shared_ptr.hpp>
-#include <culib/ICudaImage.h>
 
 #include "ActiveAppearanceModel.h"
 
