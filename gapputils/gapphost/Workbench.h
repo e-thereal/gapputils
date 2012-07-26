@@ -48,6 +48,8 @@ public:
   void removeCableItem(CableItem* cable);
   void removeToolItem(ToolItem* item);
 
+  void setExclusivelySelected(ToolItem* item);
+  void unselectAll();
   void setCurrentItem(ToolItem* item);
   ToolItem* getCurrentItem() const;
   std::vector<CableItem*>& getCurrentCables();

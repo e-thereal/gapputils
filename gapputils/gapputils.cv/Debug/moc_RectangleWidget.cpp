@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'RectangleWidget.h'
 **
-** Created: Mon Jul 16 15:59:44 2012
+** Created: Wed Jul 25 13:46:27 2012
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.2)
 **
 ** WARNING! All changes made in this file will be lost!
