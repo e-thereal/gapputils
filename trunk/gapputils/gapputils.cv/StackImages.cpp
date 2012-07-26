@@ -105,7 +105,7 @@ void StackImages::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   }
 
   if (getInputImage2()) {
-    image_t& image = *getInputImage1();
+    image_t& image = *getInputImage2();
     if (depth == 0) {
       width = image.getSize()[0];
       height = image.getSize()[1];
@@ -119,7 +119,7 @@ void StackImages::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   }
 
   if (getInputImage3()) {
-    image_t& image = *getInputImage1();
+    image_t& image = *getInputImage3();
     if (depth == 0) {
       width = image.getSize()[0];
       height = image.getSize()[1];
@@ -133,7 +133,7 @@ void StackImages::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   }
 
   if (getInputImage4()) {
-    image_t& image = *getInputImage1();
+    image_t& image = *getInputImage4();
     if (depth == 0) {
       width = image.getSize()[0];
       height = image.getSize()[1];
@@ -172,21 +172,21 @@ void StackImages::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   }
 
   if (getInputImage2()) {
-    const image_t& image = *getInputImage1();
+    const image_t& image = *getInputImage2();
     const unsigned count = image.getSize()[0] * image.getSize()[1] * image.getSize()[2];
     std::copy(image.getData(), image.getData() + count, imageData);
     imageData += count;
   }
 
   if (getInputImage3()) {
-    const image_t& image = *getInputImage1();
+    const image_t& image = *getInputImage3();
     const unsigned count = image.getSize()[0] * image.getSize()[1] * image.getSize()[2];
     std::copy(image.getData(), image.getData() + count, imageData);
     imageData += count;
   }
 
   if (getInputImage4()) {
-    const image_t& image = *getInputImage1();
+    const image_t& image = *getInputImage4();
     const unsigned count = image.getSize()[0] * image.getSize()[1] * image.getSize()[2];
     std::copy(image.getData(), image.getData() + count, imageData);
     imageData += count;

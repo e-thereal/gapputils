@@ -13,6 +13,11 @@
 
 #include <boost/typeof/std/utility.hpp>
 
+#include <gapputils/WorkflowElement.h>
+#include <gapputils/WorkflowInterface.h>
+
+#define ONLY_WORKFLOWELEMENTS
+
 using namespace std;
 
 using namespace capputils;
@@ -72,7 +77,7 @@ void updateToolBox(QTreeWidget* toolBox, std::map<QTreeWidgetItem*, boost::share
 
 #ifdef ONLY_WORKFLOWELEMENTS
     reflection::ReflectableClass* object = factory.newInstance(name);
-    if (dynamic_cast<WorkflowElement*>(object) == 0 && dynamic_cast<WorkflowInterface*>(object) == 0) {
+    if (dynamic_cast<workflow::WorkflowElement*>(object) == 0 && dynamic_cast<workflow::WorkflowInterface*>(object) == 0) {
       delete object;
       continue;
     }

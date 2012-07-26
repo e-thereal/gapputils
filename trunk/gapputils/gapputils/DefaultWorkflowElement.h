@@ -13,6 +13,9 @@
 #include <capputils/Verifier.h>
 #include <capputils/Logbook.h>
 #include <capputils/NoParameterAttribute.h>
+#include <gapputils/LabelAttribute.h>
+
+// TODO: Introduce WorkflowProperty macro. This macro automatically sets certain attributes
 
 namespace gapputils {
 
@@ -33,11 +36,14 @@ public:
   }
 
   virtual void execute(IProgressMonitor* monitor) const {
+    capputils::Logbook& dlog = getLogbook();
     if (!newState)
       newState = new T();
 
-    if (!capputils::Verifier::Valid(*this, getLogbook()))
+    if (!capputils::Verifier::Valid(*this, dlog)) {
+      dlog(capputils::Severity::Warning) << "Invalid arguments. Aborting!";
       return;
+    }
 
     update(monitor);
   }
@@ -49,7 +55,9 @@ public:
     std::vector<capputils::reflection::IClassProperty*>& properties = getProperties();
     for (unsigned i = 0; i < properties.size(); ++i) {
       capputils::reflection::IClassProperty* prop = properties[i];
-      if (prop->getAttribute<capputils::attributes::NoParameterAttribute>()) {
+      if (prop->getAttribute<capputils::attributes::NoParameterAttribute>() &&
+          !prop->getAttribute<gapputils::attributes::LabelAttribute>())
+      {
         prop->setValue(*this, *newState, prop);
       }
     }

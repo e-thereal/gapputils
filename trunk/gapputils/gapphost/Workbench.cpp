@@ -80,7 +80,8 @@ void Workbench::removeToolItem(ToolItem* item) {
       if ((tool = dynamic_cast<ToolItem*>(item)))
         break;
     }
-    setCurrentItem(tool);
+    if (tool)
+      setCurrentItem(tool);
   }
 }
 
@@ -132,12 +133,19 @@ void addAllOutputs(set<QGraphicsItem*>& items, ToolItem* item) {
   }
 }
 
-void Workbench::setCurrentItem(ToolItem* item) {
-  selectedItem = item;
-
+void Workbench::unselectAll() {
   while (!scene()->selectedItems().empty())
     scene()->selectedItems().first()->setSelected(false);
-  item->setSelected(item);
+}
+
+void Workbench::setExclusivelySelected(ToolItem* item) {
+  unselectAll();
+  if (item)
+    item->setSelected(true);
+}
+
+void Workbench::setCurrentItem(ToolItem* item) {
+  selectedItem = item;
 
   dependentItems.clear();
   addAllInputs(dependentItems, item);

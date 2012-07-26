@@ -35,8 +35,6 @@
 using namespace std;
 using namespace capputils;
 
-#define ONLY_WORKFLOWELEMENTS
-
 namespace gapputils {
 
 using namespace workflow;

@@ -14,6 +14,8 @@
 
 #include <curand.h>
 
+#include <tbblas/device_matrix.hpp>
+
 namespace gapputils {
 
 namespace ml {
