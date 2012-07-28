@@ -34,8 +34,8 @@ namespace ml {
 BeginPropertyDefinitions(FgrbmWriter)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(FgrbmModel, Input("FGRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Filename, Output("File"), Filename("FGRBM Model (*.fgrbm)"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(FgrbmModel, Input("FGRBM"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Filename, Output("File"), Filename("FGRBM Model (*.fgrbm)"), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

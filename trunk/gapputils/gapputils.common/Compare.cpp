@@ -26,11 +26,11 @@ namespace common {
 
 BeginPropertyDefinitions(Compare)
 
-  DefineProperty(Type, Enumerator<ErrorType>(), Observe(PROPERTY_ID), Label())
-  DefineProperty(X, Observe(PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(PROPERTY_ID))
-  DefineProperty(Y, Observe(PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(PROPERTY_ID))
-  DefineProperty(Count, Observe(PROPERTY_ID), Input("N"), TimeStamp(PROPERTY_ID))
-  DefineProperty(Error, Observe(PROPERTY_ID), Output(), TimeStamp(PROPERTY_ID))
+  DefineProperty(Type, Enumerator<ErrorType>(), Observe(Id), Label())
+  DefineProperty(X, Observe(Id), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(Id))
+  DefineProperty(Y, Observe(Id), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(Id))
+  DefineProperty(Count, Observe(Id), Input("N"), TimeStamp(Id))
+  DefineProperty(Error, Observe(Id), Output(), TimeStamp(Id))
 
 EndPropertyDefinitions
 

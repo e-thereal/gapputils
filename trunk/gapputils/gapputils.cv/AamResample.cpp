@@ -30,12 +30,12 @@ namespace cv {
 BeginPropertyDefinitions(AamResample)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputModel, Output("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Width, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Height, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputModel, Input("AAM"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputModel, Output("AAM"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(RowCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(Width, Observe(Id), TimeStamp(Id))
+  DefineProperty(Height, Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

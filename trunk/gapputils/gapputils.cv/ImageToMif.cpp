@@ -37,11 +37,11 @@ namespace cv {
 BeginPropertyDefinitions(ImageToMif)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Image, Input(), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MinValue, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MaxValue, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(AutoScale, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MifName, Output("Mif"), Filename(), NotEqual<std::string>(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Image, Input(), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(MinValue, Observe(Id), TimeStamp(Id))
+  DefineProperty(MaxValue, Observe(Id), TimeStamp(Id))
+  DefineProperty(AutoScale, Observe(Id), TimeStamp(Id))
+  DefineProperty(MifName, Output("Mif"), Filename(), NotEqual<std::string>(""), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

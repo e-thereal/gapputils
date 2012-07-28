@@ -50,12 +50,12 @@ namespace cv {
 BeginPropertyDefinitions(Register)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(BaseImage, Input("Base"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InputImage, Input("In"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Similarity, Enumerator<SimilarityMeasure>(), Observe(PROPERTY_ID))
-  DefineProperty(Optimizer, Enumerator<OptimizerType>(), Observe(PROPERTY_ID))
-  DefineProperty(InPlane, Observe(PROPERTY_ID))
-  DefineProperty(Matrix, Output("M"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(BaseImage, Input("Base"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InputImage, Input("In"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Similarity, Enumerator<SimilarityMeasure>(), Observe(Id))
+  DefineProperty(Optimizer, Enumerator<OptimizerType>(), Observe(Id))
+  DefineProperty(InPlane, Observe(Id))
+  DefineProperty(Matrix, Output("M"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

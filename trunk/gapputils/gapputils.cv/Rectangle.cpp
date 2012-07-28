@@ -44,14 +44,14 @@ BeginPropertyDefinitions(Rectangle)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(Width, Observe(widthId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Height, Observe(heightId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RectangleWidth, Observe(rectWidthId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RectangleHeight, Observe(rectHeightId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Model, Hide(), Observe(modelId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Rectangle, Output("Rect"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BackgroundImage, NoParameter(), Volatile(), ReadOnly(), Observe(backgroundId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RectangleName, Input("Name"), Observe(nameId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Width, Observe(widthId = Id), TimeStamp(Id))
+  DefineProperty(Height, Observe(heightId = Id), TimeStamp(Id))
+  DefineProperty(RectangleWidth, Observe(rectWidthId = Id), TimeStamp(Id))
+  DefineProperty(RectangleHeight, Observe(rectHeightId = Id), TimeStamp(Id))
+  ReflectableProperty(Model, Hide(), Observe(modelId = Id), TimeStamp(Id))
+  DefineProperty(Rectangle, Output("Rect"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(BackgroundImage, NoParameter(), Volatile(), ReadOnly(), Observe(backgroundId = Id), TimeStamp(Id))
+  DefineProperty(RectangleName, Input("Name"), Observe(nameId = Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

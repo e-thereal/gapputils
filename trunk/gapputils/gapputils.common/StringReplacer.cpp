@@ -7,6 +7,7 @@
 
 #include "StringReplacer.h"
 
+#include <capputils/NotEmptyAttribute.h>
 #include <capputils/ObserveAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/InputAttribute.h>
@@ -35,10 +36,10 @@ int StringReplacer::replaceId;
 BeginPropertyDefinitions(StringReplacer)
 
   ReflectableBase(workflow::WorkflowElement)
-  DefineProperty(Input, Input("In"), Observe(inputId = PROPERTY_ID), NotEqual<string>("", "Property 'Input' must not be empty."), TimeStamp(PROPERTY_ID))
-  DefineProperty(Output, Output("Out"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Find, Observe(findId = PROPERTY_ID), NotEqual<string>("", "Property 'Find' must not be empty."), TimeStamp(PROPERTY_ID))
-  DefineProperty(Replace, Observe(replaceId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Input, Input("In"), Observe(inputId = Id), NotEmpty<Type>(), TimeStamp(Id))
+  DefineProperty(Output, Output("Out"), Observe(Id), TimeStamp(Id))
+  DefineProperty(Find, Observe(findId = Id), NotEmpty<Type>(), TimeStamp(Id))
+  DefineProperty(Replace, Observe(replaceId = Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

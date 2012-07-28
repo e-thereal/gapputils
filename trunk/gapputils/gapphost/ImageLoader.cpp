@@ -25,10 +25,10 @@ BeginPropertyDefinitions(ImageLoader)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(ImageName, Input("Name"), Observe(PROPERTY_ID), Filename(), FileExists(), TimeStamp(PROPERTY_ID))
-  DefineProperty(ImagePtr, Output("Img"), Observe(PROPERTY_ID), ReadOnly(), Volatile(), TimeStamp(PROPERTY_ID))
-  DefineProperty(Width, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID), NoParameter())
-  DefineProperty(Height, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID), NoParameter())
+  DefineProperty(ImageName, Input("Name"), Observe(Id), Filename(), FileExists(), TimeStamp(Id))
+  DefineProperty(ImagePtr, Output("Img"), Observe(Id), ReadOnly(), Volatile(), TimeStamp(Id))
+  DefineProperty(Width, Observe(Id), TimeStamp(Id), NoParameter())
+  DefineProperty(Height, Observe(Id), TimeStamp(Id), NoParameter())
 
 EndPropertyDefinitions
 

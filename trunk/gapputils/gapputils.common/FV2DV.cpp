@@ -33,8 +33,8 @@ int FV2DV::inputId;
 BeginPropertyDefinitions(FV2DV)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Input, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(inputId = PROPERTY_ID))
-  DefineProperty(Output, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Input, Input(""), Volatile(), ReadOnly(), Observe(Id), TimeStamp(inputId = Id))
+  DefineProperty(Output, Output(""), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

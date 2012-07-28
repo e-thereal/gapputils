@@ -35,11 +35,11 @@ namespace cv {
 BeginPropertyDefinitions(Transform)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input("In"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Matrix, Input("M"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Width, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Height, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Out"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage, Input("In"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Matrix, Input("M"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Width, Observe(Id), TimeStamp(Id))
+  DefineProperty(Height, Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputImage, Output("Out"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

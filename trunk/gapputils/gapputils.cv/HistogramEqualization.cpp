@@ -29,9 +29,9 @@ namespace cv {
 BeginPropertyDefinitions(HistogramEqualization)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BinCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage, Input("Img"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(BinCount, Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

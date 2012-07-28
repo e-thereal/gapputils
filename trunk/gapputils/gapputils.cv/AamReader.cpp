@@ -33,8 +33,8 @@ namespace cv {
 BeginPropertyDefinitions(AamReader)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Filename, Filename(), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ActiveAppearanceModel, Output("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Filename, Filename(), FileExists(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ActiveAppearanceModel, Output("AAM"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

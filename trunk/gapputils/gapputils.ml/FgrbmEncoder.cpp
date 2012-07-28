@@ -32,11 +32,11 @@ BeginPropertyDefinitions(FgrbmEncoder)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(FgrbmModel, Input("FGRBM"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ConditionalVector, Input("Cond"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VisibleVector, Input("In"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(HiddenVector, Output("Out"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SampleHiddens, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(FgrbmModel, Input("FGRBM"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ConditionalVector, Input("Cond"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(VisibleVector, Input("In"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(HiddenVector, Output("Out"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(SampleHiddens, Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

@@ -31,11 +31,11 @@ namespace cv {
 BeginPropertyDefinitions(AamTester)
   ReflectableBase(gapputils::workflow::WorkflowElement)
   
-  DefineProperty(ActiveAppearanceModel, Input("AAM"), Hide(), Volatile(), Reflectable<boost::shared_ptr<ActiveAppearanceModel> >(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SampleImage, Output("Img"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SampleGrid, Output("Grid"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(FirstMode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SecondMode, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ActiveAppearanceModel, Input("AAM"), Hide(), Volatile(), Reflectable<boost::shared_ptr<ActiveAppearanceModel> >(), Observe(Id), TimeStamp(Id))
+  DefineProperty(SampleImage, Output("Img"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(SampleGrid, Output("Grid"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(FirstMode, Observe(Id), TimeStamp(Id))
+  DefineProperty(SecondMode, Observe(Id), TimeStamp(Id))
 EndPropertyDefinitions
 
 AamTester::AamTester(void) : _FirstMode(0), _SecondMode(0), data(0)

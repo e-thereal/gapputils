@@ -39,13 +39,13 @@ namespace cv {
 BeginPropertyDefinitions(AamGenerator)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ParameterVector, Input("PV"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BackgroundImage, Input("BG"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(TextureImage, Input("Tex"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputGrid, Output("Grid"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Mode, Enumerator<AamGeneratorMode>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ParameterVector, Input("PV"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(BackgroundImage, Input("BG"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(TextureImage, Input("Tex"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputGrid, Output("Grid"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Mode, Enumerator<AamGeneratorMode>(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

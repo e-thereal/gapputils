@@ -41,12 +41,12 @@ namespace cv {
 BeginPropertyDefinitions(Plot)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(OldPlot, Input("Plot"), Hide(), Observe(PROPERTY_ID))
-  DefineProperty(X, Input(), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Y, Input(), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Image, Input("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Format, Observe(PROPERTY_ID))
-  DefineProperty(Plot, Output(""), Hide(), Observe(PROPERTY_ID))
+  DefineProperty(OldPlot, Input("Plot"), Hide(), Observe(Id))
+  DefineProperty(X, Input(), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Y, Input(), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Image, Input("Img"), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Format, Observe(Id))
+  DefineProperty(Plot, Output(""), Hide(), Observe(Id))
 
 EndPropertyDefinitions
 

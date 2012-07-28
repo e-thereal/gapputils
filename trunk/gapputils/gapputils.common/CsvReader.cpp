@@ -34,16 +34,16 @@ BeginPropertyDefinitions(CsvReader)
   ReflectableBase(workflow::WorkflowElement)
 
   // TODO: workaround here. Inputs are not encoded in outputs. Therefore filename here would give wrong results
-  DefineProperty(Filename, Input("File"), Filename(), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(FirstColumn, Description("Zero-based index of the first column"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(LastColumn, Description("Zero-based index of the last column. A value of -1 indicates to read until the end."), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(FirstRow, Observe(PROPERTY_ID), Description("Zero-based index of the first row"), TimeStamp(PROPERTY_ID))
-  DefineProperty(LastRow, Observe(PROPERTY_ID), Description("Zero-based index of the last row. A value of -1 indicates to read until the end."), TimeStamp(PROPERTY_ID))
-  DefineProperty(Delimiter, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Filename, Input("File"), Filename(), FileExists(), Observe(Id), TimeStamp(Id))
+  DefineProperty(FirstColumn, Description("Zero-based index of the first column"), Observe(Id), TimeStamp(Id))
+  DefineProperty(LastColumn, Description("Zero-based index of the last column. A value of -1 indicates to read until the end."), Observe(Id), TimeStamp(Id))
+  DefineProperty(FirstRow, Observe(Id), Description("Zero-based index of the first row"), TimeStamp(Id))
+  DefineProperty(LastRow, Observe(Id), Description("Zero-based index of the last row. A value of -1 indicates to read until the end."), TimeStamp(Id))
+  DefineProperty(Delimiter, Observe(Id), TimeStamp(Id))
   
-  DefineProperty(ColumnCount, Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Data, Output(), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ColumnCount, Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(RowCount, Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Data, Output(), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

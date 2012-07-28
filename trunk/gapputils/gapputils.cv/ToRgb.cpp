@@ -26,10 +26,10 @@ namespace cv {
 BeginPropertyDefinitions(ToRgb)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(ImagePtr, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Red, Output("R"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Green, Output("G"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Blue, Output("B"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImagePtr, Input("Img"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Red, Output("R"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Green, Output("G"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Blue, Output("B"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

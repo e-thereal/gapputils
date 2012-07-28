@@ -41,14 +41,14 @@ namespace ml {
 BeginPropertyDefinitions(MnistReader)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Filename, Input("Name"), FileExists(), Filename(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MaxImageCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MakeBinary, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ImageCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(FeatureCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Data, Output(), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Filename, Input("Name"), FileExists(), Filename(), Observe(Id), TimeStamp(Id))
+  DefineProperty(MaxImageCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(MakeBinary, Observe(Id), TimeStamp(Id))
+  DefineProperty(ImageCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(RowCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(FeatureCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(Data, Output(), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

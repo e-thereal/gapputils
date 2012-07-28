@@ -35,12 +35,12 @@ BeginPropertyDefinitions(ConcatenateVectors)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(Input1, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Input2, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Dimension1, Observe(PROPERTY_ID))
-  DefineProperty(Dimension2, Observe(PROPERTY_ID))
-  DefineProperty(Output, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(OutputDimension, NoParameter(), Observe(PROPERTY_ID))
+  DefineProperty(Input1, Input(""), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Input2, Input(""), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Dimension1, Observe(Id))
+  DefineProperty(Dimension2, Observe(Id))
+  DefineProperty(Output, Output(""), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(OutputDimension, NoParameter(), Observe(Id))
 
 EndPropertyDefinitions
 

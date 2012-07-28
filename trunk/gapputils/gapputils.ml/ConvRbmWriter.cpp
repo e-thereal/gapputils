@@ -34,9 +34,9 @@ int ConvRbmWriter::inputId;
 BeginPropertyDefinitions(ConvRbmWriter)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Model, Input("CRBM"), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Filename, Output("File"), Filename("CRBM Model (*.crbm)"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(AutoSave, Observe(PROPERTY_ID))
+  DefineProperty(Model, Input("CRBM"), Volatile(), ReadOnly(), Observe(inputId = Id), TimeStamp(Id))
+  DefineProperty(Filename, Output("File"), Filename("CRBM Model (*.crbm)"), Observe(Id), TimeStamp(Id))
+  DefineProperty(AutoSave, Observe(Id))
 
 EndPropertyDefinitions
 

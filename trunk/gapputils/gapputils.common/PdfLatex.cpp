@@ -37,11 +37,11 @@ int PdfLatex::texId;
 BeginPropertyDefinitions(PdfLatex)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(TexFilename, ShortName("TeX"), FileExists(), Input(), Observe(texId = PROPERTY_ID), Filename(), Volatile(), TimeStamp(PROPERTY_ID))
-  DefineProperty(CommandName, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ParameterString, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputName, ShortName("Pdf"), Output(), Observe(PROPERTY_ID), Volatile(), TimeStamp(PROPERTY_ID), Filename())
-  DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(PROPERTY_ID), Volatile(), Hide(), TimeStamp(PROPERTY_ID))
+  DefineProperty(TexFilename, ShortName("TeX"), FileExists(), Input(), Observe(texId = Id), Filename(), Volatile(), TimeStamp(Id))
+  DefineProperty(CommandName, Observe(Id), TimeStamp(Id))
+  DefineProperty(ParameterString, Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputName, ShortName("Pdf"), Output(), Observe(Id), Volatile(), TimeStamp(Id), Filename())
+  DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(Id), Volatile(), Hide(), TimeStamp(Id))
 
 EndPropertyDefinitions
 

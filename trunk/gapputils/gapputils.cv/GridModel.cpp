@@ -20,9 +20,9 @@ int GridModel::pointsId;
 BeginPropertyDefinitions(GridModel)
   using namespace capputils::attributes;
 
-  DefineProperty(RowCount, Observe(rowCountId = PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(columnCountId = PROPERTY_ID))
-  DefineProperty(Points, Enumerable<std::vector<GridPoint*>*, true>(), Observe(pointsId = PROPERTY_ID))
+  DefineProperty(RowCount, Observe(rowCountId = Id))
+  DefineProperty(ColumnCount, Observe(columnCountId = Id))
+  DefineProperty(Points, Enumerable<std::vector<GridPoint*>*, true>(), Observe(pointsId = Id))
 
 EndPropertyDefinitions
 

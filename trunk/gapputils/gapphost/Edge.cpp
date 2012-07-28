@@ -4,8 +4,11 @@
 #include <capputils/ObservableClass.h>
 #include <capputils/VolatileAttribute.h>
 
+#include <capputils/Logbook.h>
+
 #include "Node.h"
 #include "PropertyReference.h"
+#include "LogbookModel.h"
 
 using namespace capputils::attributes;
 

@@ -31,9 +31,9 @@ namespace ml {
 BeginPropertyDefinitions(DiagonalMatrix)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Matrix, Output("Data"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(RowCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(Matrix, Output("Data"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

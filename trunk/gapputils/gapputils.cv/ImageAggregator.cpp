@@ -39,9 +39,9 @@ namespace cv {
 BeginPropertyDefinitions(ImageAggregator)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Function, Enumerator<AggregatorFunction>(), Observe(PROPERTY_ID))
-  DefineProperty(OutputImage, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(InputImage, Input(""), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Function, Enumerator<AggregatorFunction>(), Observe(Id))
+  DefineProperty(OutputImage, Output(""), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

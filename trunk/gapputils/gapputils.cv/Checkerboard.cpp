@@ -31,15 +31,15 @@ namespace cv {
 BeginPropertyDefinitions(Checkerboard)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Width, Observe(PROPERTY_ID))
-  DefineProperty(Height, Observe(PROPERTY_ID))
-  DefineProperty(Depth, Observe(PROPERTY_ID))
-  DefineProperty(TileWidth, Observe(PROPERTY_ID))
-  DefineProperty(TileHeight, Observe(PROPERTY_ID))
-  DefineProperty(TileDepth, Observe(PROPERTY_ID))
-  DefineProperty(DarkValue, Observe(PROPERTY_ID))
-  DefineProperty(LightValue, Observe(PROPERTY_ID))
-  DefineProperty(Checkerboard, Output("Board"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(Width, Observe(Id))
+  DefineProperty(Height, Observe(Id))
+  DefineProperty(Depth, Observe(Id))
+  DefineProperty(TileWidth, Observe(Id))
+  DefineProperty(TileHeight, Observe(Id))
+  DefineProperty(TileDepth, Observe(Id))
+  DefineProperty(DarkValue, Observe(Id))
+  DefineProperty(LightValue, Observe(Id))
+  DefineProperty(Checkerboard, Output("Board"), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

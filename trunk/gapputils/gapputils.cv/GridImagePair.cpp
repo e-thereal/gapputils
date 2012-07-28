@@ -33,11 +33,11 @@ int GridImagePair::namesId;
 BeginPropertyDefinitions(GridImagePair)
   ReflectableBase(workflow::WorkflowInterface)
 
-  DefineProperty(ImageNames, Input("Names"), Filename("All (*);;MIFs (*.MIF);;Images (*.jpg *.png *.jpeg)", true), FileExists(), Enumerable<std::vector<std::string>, false>(), Observe(namesId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImageNames, Input("Names"), Filename("All (*);;MIFs (*.MIF);;Images (*.jpg *.png *.jpeg)", true), FileExists(), Enumerable<std::vector<std::string>, false>(), Observe(namesId = Id), TimeStamp(Id))
 
-  DefineProperty(ImageName, Input("Name"), Filename(), FileExists(), FromEnumerable(namesId), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Image, Output("Img"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Model, Output("Model"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImageName, Input("Name"), Filename(), FileExists(), FromEnumerable(namesId), Observe(Id), TimeStamp(Id))
+  DefineProperty(Image, Output("Img"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Model, Output("Model"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

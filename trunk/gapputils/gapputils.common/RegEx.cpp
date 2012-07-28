@@ -37,10 +37,10 @@ int RegEx::formatId;
 BeginPropertyDefinitions(RegEx)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Input, Input(""), Observe(inputId = PROPERTY_ID), NotEqual<std::string>(""), TimeStamp(PROPERTY_ID))
-  DefineProperty(Output, Output(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Regex, Observe(regexId = PROPERTY_ID), NotEqual<std::string>(""), TimeStamp(PROPERTY_ID))
-  DefineProperty(Format, Observe(formatId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Input, Input(""), Observe(inputId = Id), NotEqual<std::string>(""), TimeStamp(Id))
+  DefineProperty(Output, Output(""), Observe(Id), TimeStamp(Id))
+  DefineProperty(Regex, Observe(regexId = Id), NotEqual<std::string>(""), TimeStamp(Id))
+  DefineProperty(Format, Observe(formatId = Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

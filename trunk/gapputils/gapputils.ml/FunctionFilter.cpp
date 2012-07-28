@@ -42,8 +42,8 @@ EndPropertyDefinitions
 
 BeginPropertyDefinitions(BernsteinParameters)
 
-  DefineProperty(Index, Observe(PROPERTY_ID))
-  DefineProperty(Degree, Observe(PROPERTY_ID))
+  DefineProperty(Index, Observe(Id))
+  DefineProperty(Degree, Observe(Id))
 
 EndPropertyDefinitions
 
@@ -52,9 +52,9 @@ BernsteinParameters::BernsteinParameters() : _Index(0), _Degree(0) { }
 BernsteinParameters::~BernsteinParameters() { }
 
 BeginPropertyDefinitions(GammaParameters)
-  DefineProperty(Slope, Observe(PROPERTY_ID))
-  DefineProperty(Gamma, Observe(PROPERTY_ID))
-  DefineProperty(Intercept, Observe(PROPERTY_ID))
+  DefineProperty(Slope, Observe(Id))
+  DefineProperty(Gamma, Observe(Id))
+  DefineProperty(Intercept, Observe(Id))
 EndPropertyDefinitions
 
 GammaParameters::GammaParameters() : _Slope(1.f), _Gamma(1.f), _Intercept(0.f) { }
@@ -72,10 +72,10 @@ int FunctionFilter::functionId;
 BeginPropertyDefinitions(FunctionFilter)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input(""), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
-  DefineProperty(Function, Enumerator<FilterFunction>(), Observe(functionId = PROPERTY_ID))
-  ReflectableProperty(Parameters, Observe(PROPERTY_ID))
-  DefineProperty(OutputImage, Output(""), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
+  DefineProperty(InputImage, Input(""), ReadOnly(), Volatile(), Observe(Id))
+  DefineProperty(Function, Enumerator<FilterFunction>(), Observe(functionId = Id))
+  ReflectableProperty(Parameters, Observe(Id))
+  DefineProperty(OutputImage, Output(""), ReadOnly(), Volatile(), Observe(Id))
 
 EndPropertyDefinitions
 

@@ -33,16 +33,16 @@ BeginPropertyDefinitions(FgrbmTrainer)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(ConditionalsVector, Input("X"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VisiblesVector, Input("Y"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InitialFgrbmModel, Input("FGRBM"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SampleVisibles, Flag(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(EpochCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BatchSize, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(LearningRate, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(FgrbmModel, Output("FGRBM"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Wx, Output(), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Wy, Output(), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ConditionalsVector, Input("X"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(VisiblesVector, Input("Y"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InitialFgrbmModel, Input("FGRBM"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(SampleVisibles, Flag(), Observe(Id), TimeStamp(Id))
+  DefineProperty(EpochCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(BatchSize, Observe(Id), TimeStamp(Id))
+  DefineProperty(LearningRate, Observe(Id), TimeStamp(Id))
+  DefineProperty(FgrbmModel, Output("FGRBM"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Wx, Output(), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Wy, Output(), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

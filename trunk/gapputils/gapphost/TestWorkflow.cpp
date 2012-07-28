@@ -17,9 +17,9 @@ namespace gapputils {
 
 BeginPropertyDefinitions(TestWorkflow)
 
-  DefineProperty(Name, Input(), Observe(PROPERTY_ID))
-  DefineProperty(In1, Input(), Observe(PROPERTY_ID))
-  DefineProperty(Out1, Output(), Observe(PROPERTY_ID))
+  DefineProperty(Name, Input(), Observe(Id))
+  DefineProperty(In1, Input(), Observe(Id))
+  DefineProperty(Out1, Output(), Observe(Id))
 
 EndPropertyDefinitions
 

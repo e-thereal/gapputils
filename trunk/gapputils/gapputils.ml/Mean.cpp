@@ -31,9 +31,9 @@ namespace ml {
 BeginPropertyDefinitions(Mean)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputVectors, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(FeatureCount, Observe(PROPERTY_ID))
-  DefineProperty(OutputVector, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(InputVectors, Input(""), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(FeatureCount, Observe(Id))
+  DefineProperty(OutputVector, Output(""), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

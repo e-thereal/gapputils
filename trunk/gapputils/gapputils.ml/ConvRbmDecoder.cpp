@@ -34,11 +34,11 @@ int ConvRbmDecoder::inputId;
 BeginPropertyDefinitions(ConvRbmDecoder, Deprecated("Use gapputils::ml::ConvRbmEncoder instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Model, Input("CRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Inputs, Input("H"), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID))
-  DefineProperty(Outputs, Output("V"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(SampleVisibles, Observe(PROPERTY_ID))
-  DefineProperty(Auto, Observe(PROPERTY_ID))
+  DefineProperty(Model, Input("CRBM"), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Inputs, Input("H"), Volatile(), ReadOnly(), Observe(inputId = Id))
+  DefineProperty(Outputs, Output("V"), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(SampleVisibles, Observe(Id))
+  DefineProperty(Auto, Observe(Id))
 
 EndPropertyDefinitions
 

@@ -31,10 +31,10 @@ namespace ml {
 BeginPropertyDefinitions(FeaturesToTensors)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Features, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Width, NotEqual<int>(0), Observe(PROPERTY_ID))
-  DefineProperty(Height, NotEqual<int>(0), Observe(PROPERTY_ID))
-  DefineProperty(Tensors, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(Features, Input(""), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Width, NotEqual<int>(0), Observe(Id))
+  DefineProperty(Height, NotEqual<int>(0), Observe(Id))
+  DefineProperty(Tensors, Output(""), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

@@ -72,7 +72,6 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   editMenu = menuBar()->addMenu("&Edit");
   editMenu->addAction("Copy", this, SLOT(copy()), QKeySequence(Qt::CTRL + Qt::Key_C));
-  editMenu->insertSeparator(editMenu->actions().last());
   editMenu->addAction("Paste", this, SLOT(paste()), QKeySequence(Qt::CTRL + Qt::Key_V));
 
   runMenu = menuBar()->addMenu("&Run");
@@ -161,6 +160,11 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   connect(logbook, SIGNAL(selectModuleRequested(const QString&)),
       this, SLOT(selectModule(const QString&)));
+
+  editMenu->addAction("Reset Inputs", this, SLOT(resetInputs()), QKeySequence(Qt::Key_Home));
+  editMenu->insertSeparator(editMenu->actions().last());
+  editMenu->addAction("Increment Inputs", this, SLOT(incrementInputs()), QKeySequence(Qt::Key_PageDown));
+  editMenu->addAction("Decrement Inputs", this, SLOT(decrementInputs()), QKeySequence(Qt::Key_PageUp));
 
   //setDockNestingEnabled(true);
 }
@@ -444,6 +448,18 @@ void MainWindow::selectModule(const QString& quuid) {
       break;
     }
   }
+}
+
+void MainWindow::resetInputs() {
+  openWorkflows[tabWidget->currentIndex()]->resetInputs();
+}
+
+void MainWindow::incrementInputs() {
+  openWorkflows[tabWidget->currentIndex()]->incrementInputs();
+}
+
+void MainWindow::decrementInputs() {
+  openWorkflows[tabWidget->currentIndex()]->decrementInputs();
 }
 
 }

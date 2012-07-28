@@ -9,6 +9,7 @@
 
 #include <gapputils/ChecksumAttribute.h>
 #include <gapputils/LabelAttribute.h>
+#include <gapputils/CollectionElement.h>
 
 #include <boost/filesystem.hpp>
 
@@ -106,6 +107,13 @@ checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags
   // Add the class name
   std::string className = object->getClassName();
   checksum.process_bytes((void*)&className[0], className.size());
+
+  // If it is a combiner class, add to progress to it
+  workflow::CollectionElement* collection = dynamic_cast<workflow::CollectionElement*>(object);
+  if (collection) {
+    double progress = collection->getProgress();
+    checksum.process_bytes(&progress, sizeof(progress));
+  }
   return checksum.checksum();
 }
 

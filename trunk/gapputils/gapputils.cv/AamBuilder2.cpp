@@ -49,13 +49,13 @@ namespace cv {
 BeginPropertyDefinitions(AamBuilder2)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(TrainingSet, Input("D"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InitialModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Mode, Enumerator<AamBuilderMode>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ModelQuality, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(IterationCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(TrainingSet, Input("D"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InitialModel, Input("AAM"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Mode, Enumerator<AamBuilderMode>(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ModelQuality, Observe(Id), TimeStamp(Id))
+  DefineProperty(IterationCount, Observe(Id), TimeStamp(Id))
 
-  DefineProperty(ActiveAppearanceModel, Output("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ActiveAppearanceModel, Output("AAM"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

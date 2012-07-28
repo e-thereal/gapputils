@@ -28,8 +28,8 @@ int WorkflowElement::labelId;
 
 BeginAbstractPropertyDefinitions(WorkflowElement)
 
-  DefineProperty(Label, Label(), Observe(labelId = PROPERTY_ID))
-  DefineProperty(HostInterface, Volatile(), Hide(), NoParameter(), Observe(PROPERTY_ID))
+  DefineProperty(Label, Label(), Observe(labelId = Id))
+  DefineProperty(HostInterface, Volatile(), Hide(), NoParameter(), Observe(Id))
 
 EndPropertyDefinitions
 

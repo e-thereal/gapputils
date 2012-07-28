@@ -37,14 +37,14 @@ int ConvRbmEncoder::inputId;
 BeginPropertyDefinitions(ConvRbmEncoder)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Model, Input("CRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Inputs, Input("X"), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID))
-  DefineProperty(Outputs, Output("Y"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Direction, Enumerator<CodingDirection>(), Observe(PROPERTY_ID))
-  DefineProperty(Sampling, Observe(PROPERTY_ID))
-  DefineProperty(Pooling, Enumerator<PoolingMethod>(), Observe(PROPERTY_ID))
-  DefineProperty(Auto, Observe(PROPERTY_ID))
-  DefineProperty(OutputDimension, NoParameter(), Observe(PROPERTY_ID))
+  DefineProperty(Model, Input("CRBM"), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Inputs, Input("X"), Volatile(), ReadOnly(), Observe(inputId = Id))
+  DefineProperty(Outputs, Output("Y"), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Direction, Enumerator<CodingDirection>(), Observe(Id))
+  DefineProperty(Sampling, Observe(Id))
+  DefineProperty(Pooling, Enumerator<PoolingMethod>(), Observe(Id))
+  DefineProperty(Auto, Observe(Id))
+  DefineProperty(OutputDimension, NoParameter(), Observe(Id))
 
 EndPropertyDefinitions
 

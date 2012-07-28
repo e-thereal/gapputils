@@ -34,11 +34,11 @@ BeginPropertyDefinitions(RbmDecoder)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(RbmModel, Input("RBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(HiddenVector, Input("In"), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VisibleVector, Output("Out"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(UseWeightsOnly, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(AutoDecode, Observe(PROPERTY_ID))
+  DefineProperty(RbmModel, Input("RBM"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(HiddenVector, Input("In"), Volatile(), ReadOnly(), Observe(inputId = Id), TimeStamp(Id))
+  DefineProperty(VisibleVector, Output("Out"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(UseWeightsOnly, Observe(Id), TimeStamp(Id))
+  DefineProperty(AutoDecode, Observe(Id))
 
 EndPropertyDefinitions
 

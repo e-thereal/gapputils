@@ -30,9 +30,9 @@ namespace cv {
 BeginPropertyDefinitions(Cropper)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Rectangle, Input("Rect"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage, Input("Img"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Rectangle, Input("Rect"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputImage, Output("Img"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

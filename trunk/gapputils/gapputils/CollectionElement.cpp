@@ -18,6 +18,8 @@
 #include <capputils/OutputAttribute.h>
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/ToEnumerableAttribute.h>
+#include <capputils/Verifier.h>
+#include <capputils/Logbook.h>
 
 using namespace capputils::attributes;
 using namespace std;
@@ -30,7 +32,7 @@ BeginAbstractPropertyDefinitions(CollectionElement)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(CalculateCombinations, Observe(PROPERTY_ID))
+  DefineProperty(CalculateCombinations, Observe(Id))
 
 EndPropertyDefinitions
 
@@ -41,8 +43,16 @@ CollectionElement::CollectionElement() : _CalculateCombinations(true) {
 CollectionElement::~CollectionElement() {
 }
 
+
 bool CollectionElement::resetCombinations() {
+  using namespace capputils;
   using namespace capputils::reflection;
+
+  Logbook& dlog = getLogbook();
+  if (!Verifier::Valid(*this, dlog)) {
+    dlog(Severity::Warning) << "Aborting interface reset.";
+    return false;
+  }
 
   //cout << "Reset combinations" << endl;
 
@@ -97,6 +107,12 @@ bool CollectionElement::resetCombinations() {
 }
 
 void CollectionElement::appendResults() {
+  capputils::Logbook& dlog = getLogbook();
+  if (!capputils::Verifier::Valid(*this, dlog)) {
+    dlog(capputils::Severity::Warning) << "Aborting append results.";
+    return;
+  }
+
   //cout << "Append results" << endl;
   for (unsigned i = 0; i < outputIterators.size(); ++i) {
     outputIterators[i]->setValue(*this, *this, outputProperties[i]);
@@ -105,7 +121,16 @@ void CollectionElement::appendResults() {
 }
 
 bool CollectionElement::advanceCombinations() {
+  capputils::Logbook& dlog = getLogbook();
+  if (!capputils::Verifier::Valid(*this, dlog)) {
+    dlog(capputils::Severity::Warning) << "Aborting interface incrementation.";
+    return false;
+  }
+
   //cout << "Advance combinations" << endl;
+  if (currentIteration >= iterationCount)
+    return false;
+
   ++currentIteration;
 
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
@@ -118,6 +143,25 @@ bool CollectionElement::advanceCombinations() {
   }
 
   return true;
+}
+
+void CollectionElement::regressCombinations() {
+  capputils::Logbook& dlog = getLogbook();
+  if (!capputils::Verifier::Valid(*this, dlog)) {
+    dlog(capputils::Severity::Warning) << "Aborting interface decrementation.";
+    return;
+  }
+
+  if (currentIteration)
+    --currentIteration;
+  else
+    return;
+
+  for (unsigned i = 0; i < inputIterators.size(); ++i) {
+    inputIterators[i]->prev();
+    if (!inputIterators[i]->eof(*this))
+      inputProperties[i]->setValue(*this, *this, inputIterators[i]);
+  }
 }
 
 double CollectionElement::getProgress() const {

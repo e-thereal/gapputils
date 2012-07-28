@@ -57,7 +57,9 @@ SOURCES = FromRgb.cpp \
           AggregatorFunction.cpp \
           SlidingWindowFilter.cpp \
           cuda_util.cpp \
-          SplitSlices.cpp
+          SplitSlices.cpp \
+          CudaImageInterface.cpp \
+          Convolve.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \
@@ -93,11 +95,12 @@ LIBS += -L/home/tombr/Projects/tinyxml/Debug
 LIBS += -L"/home/tombr/Projects/capputils/Debug Shared"
 LIBS += -L"/home/tombr/Projects/gapputils/Debug Shared"
 LIBS += -L"/home/tombr/Projects/culib/Debug"
+LIBS += -L"/home/tombr/Projects/tbblas/Debug"
 LIBS += -L"/home/tombr/Projects/optlib/Debug"
 LIBS += -L"/home/tombr/Projects/regutil/Default"
 LIBS += -L"/home/tombr/Projects/gapputils.cv.cuda/Debug"
 LIBS += -L"/res1/software/cuda/lib"
 LIBS += -L"/res1/software/cula/lib"
 LIBS += -L/home/tombr/lib
-LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -lgapputils.cv.cuda -lregutil -loptlib -lculib -lcudart -lcublas -lcufft -lcula_core -lcula_lapack
+LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -lgapputils.cv.cuda -lregutil -loptlib -lculib -lcudart -lcublas -lcufft -lcula_core -lcula_lapack -ltbblas
 LIBS += -lcmif_v5_3 -lutilities_v3_2 -lz

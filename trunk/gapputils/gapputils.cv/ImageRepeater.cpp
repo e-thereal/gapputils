@@ -35,9 +35,9 @@ namespace cv {
 BeginPropertyDefinitions(ImageRepeater)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input("Img"), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
-  DefineProperty(Count, Observe(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Img"), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
+  DefineProperty(InputImage, Input("Img"), ReadOnly(), Volatile(), Observe(Id))
+  DefineProperty(Count, Observe(Id))
+  DefineProperty(OutputImage, Output("Img"), ReadOnly(), Volatile(), Observe(Id))
 
 EndPropertyDefinitions
 

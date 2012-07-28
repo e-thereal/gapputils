@@ -41,15 +41,15 @@ namespace cv {
 BeginPropertyDefinitions(AamBuilder)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Grids, Input(), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Images, Input(), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ActiveAppearanceModel, Output("AAM"), Hide(), Volatile(), Reflectable<boost::shared_ptr<ActiveAppearanceModel> >(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ShapeParameterCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(TextureParameterCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(AppearanceParameterCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Grids, Input(), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Images, Input(), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ActiveAppearanceModel, Output("AAM"), Hide(), Volatile(), Reflectable<boost::shared_ptr<ActiveAppearanceModel> >(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ShapeParameterCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(TextureParameterCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(AppearanceParameterCount, Observe(Id), TimeStamp(Id))
 
-//  DefineProperty(MeanGrid, Output("MG"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MeanImage, Output("MI"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+//  DefineProperty(MeanGrid, Output("MG"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(MeanImage, Output("MI"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

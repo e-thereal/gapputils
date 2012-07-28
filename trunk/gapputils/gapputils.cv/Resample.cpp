@@ -37,12 +37,12 @@ BeginPropertyDefinitions(Resample)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(InputImage, Input("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InputImages, Input("Imgs"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputImages, Output("Imgs"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Width, Description("Absolute width after resizing no matter what the initial width has been."), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Height, Description("Absolute height after resizing no matter what the initial height has been."), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage, Input("Img"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InputImages, Input("Imgs"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputImages, Output("Imgs"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Width, Description("Absolute width after resizing no matter what the initial width has been."), Observe(Id), TimeStamp(Id))
+  DefineProperty(Height, Description("Absolute height after resizing no matter what the initial height has been."), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

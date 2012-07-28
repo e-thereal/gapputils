@@ -46,10 +46,15 @@ public:
    */
   bool advanceCombinations();
 
+  void regressCombinations();
+
   double getProgress() const;
 
   int getIterationCount() const { return iterationCount; }
   int getCurrentIteration() const { return currentIteration; }
+
+  virtual void execute(gapputils::workflow::IProgressMonitor*) const { }
+  virtual void writeResults() { }
 };
 
 }
