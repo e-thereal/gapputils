@@ -32,8 +32,8 @@ namespace cv {
 BeginPropertyDefinitions(Vector)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputVector, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputVector, Output("PV"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputVector, Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputVector, Output("PV"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

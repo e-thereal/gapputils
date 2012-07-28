@@ -31,15 +31,15 @@ namespace ml {
 BeginPropertyDefinitions(RbmConditional)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Model, Input("RBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Givens, Input("X"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Conditionals, Output("Y"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(GivenCount, Observe(PROPERTY_ID))
-  DefineProperty(InitializationCycles, Observe(PROPERTY_ID))
-  DefineProperty(SampleCycles, Observe(PROPERTY_ID))
-  DefineProperty(ShowSamples, Observe(PROPERTY_ID))
-  DefineProperty(Delay, Observe(PROPERTY_ID))
-  DefineProperty(Debug, Observe(PROPERTY_ID))
+  DefineProperty(Model, Input("RBM"), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Givens, Input("X"), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Conditionals, Output("Y"), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(GivenCount, Observe(Id))
+  DefineProperty(InitializationCycles, Observe(Id))
+  DefineProperty(SampleCycles, Observe(Id))
+  DefineProperty(ShowSamples, Observe(Id))
+  DefineProperty(Delay, Observe(Id))
+  DefineProperty(Debug, Observe(Id))
 
 EndPropertyDefinitions
 

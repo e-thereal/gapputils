@@ -33,9 +33,9 @@ namespace common {
 BeginPropertyDefinitions(StringStack)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputVector1, Input("In1"), Observe(PROPERTY_ID))
-  DefineProperty(InputVector2, Input("In2"), Observe(PROPERTY_ID))
-  DefineProperty(OutputVector, Output("Out"), Observe(PROPERTY_ID))
+  DefineProperty(InputVector1, Input("In1"), Observe(Id))
+  DefineProperty(InputVector2, Input("In2"), Observe(Id))
+  DefineProperty(OutputVector, Output("Out"), Observe(Id))
 
 EndPropertyDefinitions
 

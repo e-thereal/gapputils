@@ -37,15 +37,15 @@ int Grid::inputGridId;
 BeginPropertyDefinitions(Grid)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(RowCount, Observe(rowCountId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(columnCountId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  ReflectableProperty(Model, Hide(), Observe(modelId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Grid, Output("Out"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InputGrid, Input("In"), Hide(), Volatile(), Observe(inputGridId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BackgroundImage, ReadOnly(), Volatile(), Observe(backgroundId = PROPERTY_ID))
-  DefineProperty(Width, Observe(widthId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Height, Observe(heightId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(GridName, Input("Name"), Volatile(), Observe(nameId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(RowCount, Observe(rowCountId = Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, Observe(columnCountId = Id), TimeStamp(Id))
+  ReflectableProperty(Model, Hide(), Observe(modelId = Id), TimeStamp(Id))
+  DefineProperty(Grid, Output("Out"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InputGrid, Input("In"), Hide(), Volatile(), Observe(inputGridId = Id), TimeStamp(Id))
+  DefineProperty(BackgroundImage, ReadOnly(), Volatile(), Observe(backgroundId = Id))
+  DefineProperty(Width, Observe(widthId = Id), TimeStamp(Id))
+  DefineProperty(Height, Observe(heightId = Id), TimeStamp(Id))
+  DefineProperty(GridName, Input("Name"), Volatile(), Observe(nameId = Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

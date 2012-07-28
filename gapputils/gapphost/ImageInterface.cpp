@@ -16,7 +16,7 @@ namespace interfaces {
 namespace inputs {
 
 BeginPropertyDefinitions(Image, Interface())
-  DefineProperty(Value, Output(""), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
+  WorkflowProperty(Value, Output(""));
 EndPropertyDefinitions
 
 Image::Image(void) {
@@ -28,7 +28,7 @@ Image::Image(void) {
 namespace outputs {
 
 BeginPropertyDefinitions(Image, Interface())
-  DefineProperty(Value, Input(""), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
+  WorkflowProperty(Value, Input(""));
 EndPropertyDefinitions
 
 Image::Image(void) {

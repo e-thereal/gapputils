@@ -32,9 +32,9 @@ BeginPropertyDefinitions(OneOfN)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(OnIndex, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Count, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Vector, Output("Vec"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(OnIndex, Observe(Id), TimeStamp(Id))
+  DefineProperty(Count, Observe(Id), TimeStamp(Id))
+  DefineProperty(Vector, Output("Vec"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

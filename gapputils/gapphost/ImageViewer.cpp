@@ -21,7 +21,7 @@ int ImageViewer::imageId;
 BeginPropertyDefinitions(ImageViewer)
 
   ReflectableBase(workflow::WorkflowElement)
-  DefineProperty(ImagePtr, Input("Img"), Observe(imageId = PROPERTY_ID), Hide(), Volatile())
+  DefineProperty(ImagePtr, Input("Img"), Observe(imageId = Id), Hide(), Volatile())
 
 EndPropertyDefinitions
 

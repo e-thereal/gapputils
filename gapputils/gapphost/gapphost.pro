@@ -41,7 +41,9 @@ SOURCES = main.cpp \
 		  PropertyGrid.cpp \
 		  LogbookModel.cpp \
 		  LogbookWidget.cpp \
-		  GlobalPropertiesView.cpp
+		  GlobalPropertiesView.cpp \
+		  ImageInterface.cpp \
+		  ImagesInterface.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \

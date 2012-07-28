@@ -17,10 +17,10 @@ namespace test {
 
 BeginPropertyDefinitions(Address)
 
-DefineProperty(Street, Observe(PROPERTY_ID))
-DefineProperty(City, Observe(PROPERTY_ID))
-DefineProperty(StreetNumber, Observe(PROPERTY_ID))
-DefineProperty(AppartmentNumber, Observe(PROPERTY_ID))
+DefineProperty(Street, Observe(Id))
+DefineProperty(City, Observe(Id))
+DefineProperty(StreetNumber, Observe(Id))
+DefineProperty(AppartmentNumber, Observe(Id))
 
 EndPropertyDefinitions
 
@@ -29,18 +29,18 @@ Address::Address() : _Street("W 11th Ave"), _City("Vancouver"), _StreetNumber(10
 BeginPropertyDefinitions(Person)
 
 DefineProperty(FirstName,
-  Description("Persons given name."), Observe(PROPERTY_ID), Label(), Input(), Output())
+  Description("Persons given name."), Observe(Id), Label(), Input(), Output())
 
 DefineProperty(Name,
-  Description("Name of our parents."), Observe(PROPERTY_ID), Input(), Output())
+  Description("Name of our parents."), Observe(Id), Input(), Output())
 
 DefineProperty(Age,
-  Description("Age in years."), Observe(PROPERTY_ID), Input())
+  Description("Age in years."), Observe(Id), Input())
 
 ReflectableProperty(Address,
-  Description("Address with everything."), Observe(PROPERTY_ID), Reuse())
+  Description("Address with everything."), Observe(Id), Reuse())
 
-DefineProperty(Gender, Enumerator<Gender>(), (PROPERTY_ID))
+DefineProperty(Gender, Enumerator<Gender>(), (Id))
 
 EndPropertyDefinitions
 

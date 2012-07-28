@@ -36,16 +36,16 @@ namespace ml {
 BeginPropertyDefinitions(InitializeConvRbmModel)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputTensors, Input("Imgs"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(FilterCount, Observe(PROPERTY_ID))
-  DefineProperty(FilterWidth, Observe(PROPERTY_ID))
-  DefineProperty(FilterHeight, Observe(PROPERTY_ID))
-  DefineProperty(PoolingBlockSize, Observe(PROPERTY_ID))
-  DefineProperty(WeightMean, Observe(PROPERTY_ID))
-  DefineProperty(WeightStddev, Observe(PROPERTY_ID))
-  DefineProperty(IsGaussian, Observe(PROPERTY_ID))
+  DefineProperty(InputTensors, Input("Imgs"), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(FilterCount, Observe(Id))
+  DefineProperty(FilterWidth, Observe(Id))
+  DefineProperty(FilterHeight, Observe(Id))
+  DefineProperty(PoolingBlockSize, Observe(Id))
+  DefineProperty(WeightMean, Observe(Id))
+  DefineProperty(WeightStddev, Observe(Id))
+  DefineProperty(IsGaussian, Observe(Id))
 
-  DefineProperty(Model, Output("CRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(Model, Output("CRBM"), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

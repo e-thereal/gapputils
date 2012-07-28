@@ -39,11 +39,11 @@ int FeaturesToImage::dataId;
 BeginPropertyDefinitions(FeaturesToImage)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Data, Input(), ReadOnly(), Volatile(), Observe(dataId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MaxCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Image, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Data, Input(), ReadOnly(), Volatile(), Observe(dataId = Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(RowCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(MaxCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(Image, Output("Img"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

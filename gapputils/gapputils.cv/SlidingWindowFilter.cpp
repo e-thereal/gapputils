@@ -35,10 +35,10 @@ namespace cv {
 BeginPropertyDefinitions(SlidingWindowFilter)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Filter, Enumerator<AggregatorFunction>(), Observe(PROPERTY_ID))
-  DefineProperty(FilterSize, Observe(PROPERTY_ID))
-  DefineProperty(OutputImage, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(InputImage, Input(""), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Filter, Enumerator<AggregatorFunction>(), Observe(Id))
+  DefineProperty(FilterSize, Observe(Id))
+  DefineProperty(OutputImage, Output(""), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

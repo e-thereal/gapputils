@@ -32,9 +32,9 @@ namespace ml {
 BeginPropertyDefinitions(PrincipleComponents)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(FeatureCount, Input("D"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Data, Input(), Description("All features must be normalized to have zero mean"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(PrincipleComponents, Output("PC"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(FeatureCount, Input("D"), Observe(Id), TimeStamp(Id))
+  DefineProperty(Data, Input(), Description("All features must be normalized to have zero mean"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(PrincipleComponents, Output("PC"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

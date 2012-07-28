@@ -43,15 +43,15 @@ namespace cv {
 BeginPropertyDefinitions(SliceToFeatures)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(MifNames, Input("Mifs"), Filename("MIFs (*.MIF);;ROI MIFs (*_roi.MIF)", true), Enumerable<std::vector<std::string>, false>(), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MifName, Input("Mif"), Filename("MIFs (*.MIF);;ROI MIFs (*_roi.MIF)"), Observe(PROPERTY_ID))
-  DefineProperty(MakeBinary, Flag(), Observe(PROPERTY_ID))
-  DefineProperty(Threshold, Observe(PROPERTY_ID))
-  DefineProperty(RowCount, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VoxelsPerSlice, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SliceCount, NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Data, Output(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID), Volatile(), ReadOnly())
+  DefineProperty(MifNames, Input("Mifs"), Filename("MIFs (*.MIF);;ROI MIFs (*_roi.MIF)", true), Enumerable<std::vector<std::string>, false>(), FileExists(), Observe(Id), TimeStamp(Id))
+  DefineProperty(MifName, Input("Mif"), Filename("MIFs (*.MIF);;ROI MIFs (*_roi.MIF)"), Observe(Id))
+  DefineProperty(MakeBinary, Flag(), Observe(Id))
+  DefineProperty(Threshold, Observe(Id))
+  DefineProperty(RowCount, NoParameter(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, NoParameter(), Observe(Id), TimeStamp(Id))
+  DefineProperty(VoxelsPerSlice, NoParameter(), Observe(Id), TimeStamp(Id))
+  DefineProperty(SliceCount, NoParameter(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Data, Output(), Observe(Id), TimeStamp(Id), Volatile(), ReadOnly())
 
 EndPropertyDefinitions
 

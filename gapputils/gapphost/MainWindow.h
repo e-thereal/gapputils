@@ -57,6 +57,9 @@ public Q_SLOTS:
   void checkLibraryUpdates();
   void copy();
   void paste();
+  void resetInputs();
+  void incrementInputs();
+  void decrementInputs();
 
   void updateCurrentModule();
   void updateWorkflow();

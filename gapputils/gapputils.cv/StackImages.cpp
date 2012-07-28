@@ -36,12 +36,12 @@ namespace cv {
 BeginPropertyDefinitions(StackImages)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImages, Input("Imgs"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InputImage1, Input("I1"), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
-  DefineProperty(InputImage2, Input("I2"), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
-  DefineProperty(InputImage3, Input("I3"), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
-  DefineProperty(InputImage4, Input("I4"), ReadOnly(), Volatile(), Observe(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Img"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImages, Input("Imgs"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InputImage1, Input("I1"), ReadOnly(), Volatile(), Observe(Id))
+  DefineProperty(InputImage2, Input("I2"), ReadOnly(), Volatile(), Observe(Id))
+  DefineProperty(InputImage3, Input("I3"), ReadOnly(), Volatile(), Observe(Id))
+  DefineProperty(InputImage4, Input("I4"), ReadOnly(), Volatile(), Observe(Id))
+  DefineProperty(OutputImage, Output("Img"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

@@ -49,14 +49,14 @@ namespace cv {
 BeginPropertyDefinitions(AamFitter)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InputImage, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Measure, Enumerator<SimilarityMeasure>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InReferenceFrame, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(UseAppearanceMatrix, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(AppearanceParameters, Output("AP"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ShapeParameters, Output("SP"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Similarity, Output("Sim"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InputImage, Input("Img"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Measure, Enumerator<SimilarityMeasure>(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InReferenceFrame, Observe(Id), TimeStamp(Id))
+  DefineProperty(UseAppearanceMatrix, Observe(Id), TimeStamp(Id))
+  DefineProperty(AppearanceParameters, Output("AP"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ShapeParameters, Output("SP"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Similarity, Output("Sim"), Observe(Id), TimeStamp(Id))
 EndPropertyDefinitions
 
 AamFitter::AamFitter() : _InReferenceFrame(true), _UseAppearanceMatrix(true), data(0) {

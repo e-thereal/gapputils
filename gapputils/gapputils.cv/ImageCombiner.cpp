@@ -36,10 +36,10 @@ namespace cv {
 BeginPropertyDefinitions(ImageCombiner)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage1, Input("Img1"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(InputImage2, Input("Img2"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Mode, Enumerator<CombinerMode>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage1, Input("Img1"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InputImage2, Input("Img2"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Mode, Enumerator<CombinerMode>(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

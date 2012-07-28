@@ -36,12 +36,12 @@ int ImageMatrix::inputId;
 BeginPropertyDefinitions(ImageMatrix)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input("In"), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MinValue, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MaxValue, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ImageMatrix, Output("Out"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(AutoScale, Observe(PROPERTY_ID))
-  DefineProperty(CenterImages, Observe(PROPERTY_ID))
+  DefineProperty(InputImage, Input("In"), Volatile(), ReadOnly(), Observe(inputId = Id), TimeStamp(Id))
+  DefineProperty(MinValue, Observe(Id), TimeStamp(Id))
+  DefineProperty(MaxValue, Observe(Id), TimeStamp(Id))
+  DefineProperty(ImageMatrix, Output("Out"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(AutoScale, Observe(Id))
+  DefineProperty(CenterImages, Observe(Id))
 
 EndPropertyDefinitions
 

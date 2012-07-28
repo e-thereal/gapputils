@@ -36,11 +36,11 @@ int ToyCombiner::outputId = 0;
 BeginPropertyDefinitions(ToyCombiner)
 
   ReflectableBase(gapputils::workflow::CombinerInterface)
-  DefineProperty(InputNames, Input("Names"), Filename("All (*);;MIFs (*.MIF);;Images (*.jpg *.png *.jpeg)", true), FileExists(), Enumerable<TYPE_OF(InputNames), false>(), Observe(inputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputNames, Output("Names"), Enumerable<TYPE_OF(OutputNames), false>(), Observe(outputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputNames, Input("Names"), Filename("All (*);;MIFs (*.MIF);;Images (*.jpg *.png *.jpeg)", true), FileExists(), Enumerable<TYPE_OF(InputNames), false>(), Observe(inputId = Id), TimeStamp(Id))
+  DefineProperty(OutputNames, Output("Names"), Enumerable<TYPE_OF(OutputNames), false>(), Observe(outputId = Id), TimeStamp(Id))
 
-  DefineProperty(InputName, Input("Name"), FromEnumerable(inputId), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputName, Output("Name"), ToEnumerable(outputId), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputName, Input("Name"), FromEnumerable(inputId), Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputName, Output("Name"), ToEnumerable(outputId), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

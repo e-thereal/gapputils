@@ -30,10 +30,10 @@ int FromRgb::outputId;
 BeginPropertyDefinitions(FromRgb)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(ImagePtr, Output("Img"), Volatile(), ReadOnly(), Observe(outputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Red, Input("R"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Green, Input("G"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Blue, Input("B"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImagePtr, Output("Img"), Volatile(), ReadOnly(), Observe(outputId = Id), TimeStamp(Id))
+  DefineProperty(Red, Input("R"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Green, Input("G"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Blue, Input("B"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

@@ -35,7 +35,7 @@ namespace inputs {
 BeginPropertyDefinitions(CudaImage, Interface(), Deprecated("Use 'interfaces::inputs::Image' instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Value, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(Value, Output(""), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 
@@ -78,7 +78,7 @@ namespace outputs {
 BeginPropertyDefinitions(CudaImage, Interface(), Deprecated("Use 'interfaces::outputs::Image' instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Value, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(Value, Input(""), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

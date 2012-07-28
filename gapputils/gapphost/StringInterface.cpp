@@ -34,7 +34,7 @@ namespace inputs {
 BeginPropertyDefinitions(String, Interface())
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Value, Output(""), Observe(PROPERTY_ID))
+  DefineProperty(Value, Output(""), Observe(Id))
 
 EndPropertyDefinitions
 
@@ -77,7 +77,7 @@ namespace outputs {
 BeginPropertyDefinitions(String, Interface())
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Value, Input(""), Observe(PROPERTY_ID))
+  DefineProperty(Value, Input(""), Observe(Id))
 
 EndPropertyDefinitions
 

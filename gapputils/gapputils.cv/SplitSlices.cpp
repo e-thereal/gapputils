@@ -8,13 +8,8 @@
 #include "SplitSlices.h"
 
 #include <capputils/NotNullAttribute.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/ObserveAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <capputils/VolatileAttribute.h>
-#include <capputils/Logbook.h>
 
-#include <gapputils/ReadOnlyAttribute.h>
+#include <algorithm>
 
 namespace gapputils {
 
@@ -26,8 +21,8 @@ BeginPropertyDefinitions(SplitSlices)
 
   ReflectableBase(workflow::DefaultWorkflowElement<SplitSlices>)
 
-  DefineProperty(Volume, Input(""), Volatile(), ReadOnly(), NotNull<PROPERTY_TYPE>(), Observe(PROPERTY_ID))
-  DefineProperty(Slices, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  WorkflowProperty(Volume, Input(""), NotNull<Type>());
+  WorkflowProperty(Slices, Output(""));
 
 EndPropertyDefinitions
 
@@ -40,14 +35,20 @@ SplitSlices::~SplitSlices() {
 
 void SplitSlices::update(workflow::IProgressMonitor* /*monitor*/) const {
   using namespace capputils;
-  Logbook& dlog = getLogbook();
-
-  if (!getVolume()) {
-    dlog(Severity::Warning) << "No input volume given. Aborting!";
-    return;
-  }
 
   boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > > slices(new std::vector<boost::shared_ptr<image_t> >());
+  image_t& volume = *getVolume();
+  const unsigned width = volume.getSize()[0], height = volume.getSize()[1], depth = volume.getSize()[2];
+  const unsigned pitch = width * height;
+
+  float* volumeData = volume.getData();
+
+  for (unsigned z = 0; z < depth; ++z, volumeData += pitch) {
+    boost::shared_ptr<image_t> slice(new image_t(width, height, 1, volume.getPixelSize()));
+    std::copy(volumeData, volumeData + pitch, slice->getData());
+    slices->push_back(slice);
+  }
+
   newState->setSlices(slices);
 }
 

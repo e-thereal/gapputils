@@ -32,10 +32,10 @@ namespace ml {
 BeginPropertyDefinitions(RbmReader)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Filename, Input("File"), Filename("RBM Model (*.rbm)"), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RbmModel, Output("RBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VisibleCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(HiddenCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Filename, Input("File"), Filename("RBM Model (*.rbm)"), FileExists(), Observe(Id), TimeStamp(Id))
+  DefineProperty(RbmModel, Output("RBM"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(VisibleCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(HiddenCount, Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

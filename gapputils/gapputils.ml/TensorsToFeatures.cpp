@@ -34,12 +34,12 @@ int TensorsToFeatures::inputId;
 BeginPropertyDefinitions(TensorsToFeatures)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Tensors, Input(""), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID))
-  DefineProperty(Width, NoParameter(), Observe(PROPERTY_ID))
-  DefineProperty(Height, NoParameter(), Observe(PROPERTY_ID))
-  DefineProperty(Depth, NoParameter(), Observe(PROPERTY_ID))
-  DefineProperty(Features, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(Auto, Observe(PROPERTY_ID))
+  DefineProperty(Tensors, Input(""), Volatile(), ReadOnly(), Observe(inputId = Id))
+  DefineProperty(Width, NoParameter(), Observe(Id))
+  DefineProperty(Height, NoParameter(), Observe(Id))
+  DefineProperty(Depth, NoParameter(), Observe(Id))
+  DefineProperty(Features, Output(""), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(Auto, Observe(Id))
 
 EndPropertyDefinitions
 

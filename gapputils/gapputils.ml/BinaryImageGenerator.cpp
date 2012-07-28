@@ -42,12 +42,12 @@ namespace ml {
 BeginPropertyDefinitions(BinaryImageGenerator)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ImageCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(FeatureCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(IsBinary, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Data, Output("Imgs"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(RowCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(ImageCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(FeatureCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(IsBinary, Observe(Id), TimeStamp(Id))
+  DefineProperty(Data, Output("Imgs"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

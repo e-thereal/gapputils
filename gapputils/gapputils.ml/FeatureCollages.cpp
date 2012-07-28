@@ -37,12 +37,12 @@ namespace ml {
 BeginPropertyDefinitions(FeatureCollages)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImages, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(FeatureCount, Observe(PROPERTY_ID))
-  DefineProperty(ImageCount, Observe(PROPERTY_ID))
-  DefineProperty(Fusion, Enumerator<ImageFusion>(), Observe(PROPERTY_ID))
-  DefineProperty(OutputImages, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Debug"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(InputImages, Input(""), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(FeatureCount, Observe(Id))
+  DefineProperty(ImageCount, Observe(Id))
+  DefineProperty(Fusion, Enumerator<ImageFusion>(), Observe(Id))
+  DefineProperty(OutputImages, Output(""), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(OutputImage, Output("Debug"), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

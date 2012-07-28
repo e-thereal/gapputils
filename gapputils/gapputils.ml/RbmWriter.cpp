@@ -34,9 +34,9 @@ int RbmWriter::inputId;
 BeginPropertyDefinitions(RbmWriter)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(RbmModel, Input("RBM"), Volatile(), ReadOnly(), Observe(inputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Filename, Output("File"), Filename("RBM Model (*.rbm)"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(AutoSave, Observe(PROPERTY_ID))
+  DefineProperty(RbmModel, Input("RBM"), Volatile(), ReadOnly(), Observe(inputId = Id), TimeStamp(Id))
+  DefineProperty(Filename, Output("File"), Filename("RBM Model (*.rbm)"), Observe(Id), TimeStamp(Id))
+  DefineProperty(AutoSave, Observe(Id))
 
 EndPropertyDefinitions
 

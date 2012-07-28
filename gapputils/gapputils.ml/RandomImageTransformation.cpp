@@ -37,14 +37,14 @@ namespace ml {
 BeginPropertyDefinitions(RandomImageTransformation)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Input, Input("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Transformation, Enumerator<TransformationType>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(XRange, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(YRange, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ZRange, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Output, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Input, Input("Img"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(RowCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(Transformation, Enumerator<TransformationType>(), Observe(Id), TimeStamp(Id))
+  DefineProperty(XRange, Observe(Id), TimeStamp(Id))
+  DefineProperty(YRange, Observe(Id), TimeStamp(Id))
+  DefineProperty(ZRange, Observe(Id), TimeStamp(Id))
+  DefineProperty(Output, Output("Img"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

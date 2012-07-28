@@ -40,14 +40,14 @@ namespace cv {
 BeginPropertyDefinitions(FeaturesToMif)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Data, Input(), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MaxCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MinValue, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MaxValue, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(AutoScale, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(MifName, Output("Mif"), Filename(), NotEqual<std::string>(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Data, Input(), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(RowCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(MaxCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(MinValue, Observe(Id), TimeStamp(Id))
+  DefineProperty(MaxValue, Observe(Id), TimeStamp(Id))
+  DefineProperty(AutoScale, Observe(Id), TimeStamp(Id))
+  DefineProperty(MifName, Output("Mif"), Filename(), NotEqual<std::string>(""), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

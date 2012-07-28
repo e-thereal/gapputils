@@ -172,6 +172,7 @@ void WorkflowUpdater::abort() {
 }
 
 void WorkflowUpdater::buildStack(workflow::Node* node) {
+  capputils::Logbook dlog(&LogbookModel::GetInstance());
 
   // Rebuild the stack without node, thus guaranteeing that node appears only once
   std::stack<workflow::Node*> oldStack;
@@ -191,6 +192,12 @@ void WorkflowUpdater::buildStack(workflow::Node* node) {
     reportProgress(node, 0, false);
     nodesStack.push(node);
   } else {
+    workflow::WorkflowElement* element = dynamic_cast<workflow::WorkflowElement*>(node->getModule());
+    if (element) {
+      dlog.setModule(element->getClassName());
+      dlog.setUuid(node->getUuid());
+      dlog(capputils::Severity::Trace) << "Module is up-to-date. (" << node->getInputChecksum() << ", " << node->getOutputChecksum() << ")";
+    }
     reportProgress(node, 100, false);
   }
   
@@ -202,6 +209,7 @@ void WorkflowUpdater::buildStack(workflow::Node* node) {
 }
 
 void WorkflowUpdater::updateNodes() {
+  capputils::Logbook dlog(&LogbookModel::GetInstance());
   
   // Go through the stack and update all nodes
   while(!nodesStack.empty() && !getAbortRequested()) {
@@ -232,9 +240,20 @@ void WorkflowUpdater::updateNodes() {
       if (nodesStack.empty() || (currentNode->getInputChecksum() != currentNode->getOutputChecksum()
           && !NodeCache::Restore(currentNode)))
       {
+
         workflow::WorkflowElement* element = dynamic_cast<workflow::WorkflowElement*>(currentNode->getModule());
         if (element) {
+          dlog.setModule(element->getClassName());
+          dlog.setUuid(currentNode->getUuid());
+          dlog(capputils::Severity::Trace) << "Starting update. (" << currentNode->getInputChecksum() << ", " << currentNode->getOutputChecksum() << ")";
           element->execute(this);
+        }
+      } else {
+        workflow::WorkflowElement* element = dynamic_cast<workflow::WorkflowElement*>(currentNode->getModule());
+        if (element) {
+          dlog.setModule(element->getClassName());
+          dlog.setUuid(currentNode->getUuid());
+          dlog(capputils::Severity::Trace) << "Module is up-to-date. (" << currentNode->getInputChecksum() << ", " << currentNode->getOutputChecksum() << ")";
         }
       }
     }

@@ -33,9 +33,9 @@ namespace cv {
 BeginPropertyDefinitions(Transformation)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(XTrans, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(YTrans, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Matrix, Output("M"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(XTrans, Observe(Id), TimeStamp(Id))
+  DefineProperty(YTrans, Observe(Id), TimeStamp(Id))
+  DefineProperty(Matrix, Output("M"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

@@ -33,13 +33,13 @@ namespace ml {
 BeginPropertyDefinitions(ConvRbmReader)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Filename, Input("File"), Filename("CRBM Model (*.crbm)"), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Model, Output("CRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(FilterCount, NoParameter(), Observe(PROPERTY_ID))
-  DefineProperty(FilterWidth, NoParameter(), Observe(PROPERTY_ID))
-  DefineProperty(FilterHeight, NoParameter(), Observe(PROPERTY_ID))
-  DefineProperty(FilterDepth, NoParameter(), Observe(PROPERTY_ID))
-  DefineProperty(PoolingSize, NoParameter(), Observe(PROPERTY_ID))
+  DefineProperty(Filename, Input("File"), Filename("CRBM Model (*.crbm)"), FileExists(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Model, Output("CRBM"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(FilterCount, NoParameter(), Observe(Id))
+  DefineProperty(FilterWidth, NoParameter(), Observe(Id))
+  DefineProperty(FilterHeight, NoParameter(), Observe(Id))
+  DefineProperty(FilterDepth, NoParameter(), Observe(Id))
+  DefineProperty(PoolingSize, NoParameter(), Observe(Id))
 
 EndPropertyDefinitions
 

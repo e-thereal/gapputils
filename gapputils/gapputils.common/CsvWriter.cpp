@@ -28,10 +28,10 @@ BeginPropertyDefinitions(CsvWriter)
 
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(Filename, Output("Csv"), Observe(PROPERTY_ID), Filename(), NotEqual<string>(""), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, ShortName("CC"), Observe(PROPERTY_ID), Input(), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, ShortName("RC"), Observe(PROPERTY_ID), Input(), TimeStamp(PROPERTY_ID))
-  DefineProperty(Data, Observe(PROPERTY_ID), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(PROPERTY_ID))
+  DefineProperty(Filename, Output("Csv"), Observe(Id), Filename(), NotEqual<string>(""), TimeStamp(Id))
+  DefineProperty(ColumnCount, ShortName("CC"), Observe(Id), Input(), TimeStamp(Id))
+  DefineProperty(RowCount, ShortName("RC"), Observe(Id), Input(), TimeStamp(Id))
+  DefineProperty(Data, Observe(Id), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(Id))
 
 EndPropertyDefinitions
 

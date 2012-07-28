@@ -36,12 +36,12 @@ namespace ml {
 BeginPropertyDefinitions(GenerateShades)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input("Img"), Description("Must be a single slice image."), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(MaxSummand, Observe(PROPERTY_ID))
-  DefineProperty(MinMultiplier, Observe(PROPERTY_ID))
-  DefineProperty(MaxMultiplier, Observe(PROPERTY_ID))
-  DefineProperty(Count, Observe(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Img"), Description("Output images are stacked together forming a multi-slice image."), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(InputImage, Input("Img"), Description("Must be a single slice image."), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(MaxSummand, Observe(Id))
+  DefineProperty(MinMultiplier, Observe(Id))
+  DefineProperty(MaxMultiplier, Observe(Id))
+  DefineProperty(Count, Observe(Id))
+  DefineProperty(OutputImage, Output("Img"), Description("Output images are stacked together forming a multi-slice image."), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

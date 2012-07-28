@@ -88,7 +88,7 @@ int Workflow::librariesId;
 BeginPropertyDefinitions(Workflow)
 
 // Libraries must be the first property since libraries must be loaded before all other modules
-DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Observe(librariesId = PROPERTY_ID))
+DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Observe(librariesId = Id))
 
 // Add Properties of node after libraries (module could be an object of a class of one of the libraries)
 ReflectableBase(Node)
@@ -953,7 +953,7 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
     if (workflow) {
       inputNode = workflow->getInterfaceNode(input->id);
       assert(inputNode->getModule());
-      if (dynamic_cast<CollectionElement*>(outputNode->getModule())) {
+      if (dynamic_cast<CollectionElement*>(inputNode->getModule())) {
         if (!inputNode->getModule()->getPropertyIndex(inputId, "Values"))
           inputNode = 0;
       } else {
@@ -1542,6 +1542,33 @@ bool Workflow::trySelectNode(const std::string& uuid) {
   }
 
   return false;
+}
+
+void Workflow::resetInputs() {
+  std::vector<workflow::Node*>& interfaceNodes = getInterfaceNodes();
+  for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+    CollectionElement* collection = dynamic_cast<CollectionElement*>(interfaceNodes[i]->getModule());
+    if (collection && isInputNode(interfaceNodes[i]))
+      collection->resetCombinations();
+  }
+}
+
+void Workflow::incrementInputs() {
+  std::vector<workflow::Node*>& interfaceNodes = getInterfaceNodes();
+  for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+    CollectionElement* collection = dynamic_cast<CollectionElement*>(interfaceNodes[i]->getModule());
+    if (collection && isInputNode(interfaceNodes[i]))
+      collection->advanceCombinations();
+  }
+}
+
+void Workflow::decrementInputs() {
+  std::vector<workflow::Node*>& interfaceNodes = getInterfaceNodes();
+  for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+    CollectionElement* collection = dynamic_cast<CollectionElement*>(interfaceNodes[i]->getModule());
+    if (collection && isInputNode(interfaceNodes[i]))
+      collection->regressCombinations();
+  }
 }
 
 }

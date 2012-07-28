@@ -31,11 +31,11 @@ namespace ml {
 BeginPropertyDefinitions(FgrbmDecoder)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(FgrbmModel, Input("FGRBM"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ConditionalVector, Input("Cond"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(HiddenVector, Input("In"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VisibleVector, Output("Out"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SampleVisibles, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(FgrbmModel, Input("FGRBM"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ConditionalVector, Input("Cond"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(HiddenVector, Input("In"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(VisibleVector, Output("Out"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(SampleVisibles, Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

@@ -33,12 +33,12 @@ namespace cv {
 BeginPropertyDefinitions(AamTester2)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Grid, Input(), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Image, Input("Img"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(AppearanceParameters, Output("AP"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ShapeParameters, Output("SP"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Similarity, Output("Sim"), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ActiveAppearanceModel, Input("AAM"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Grid, Input(), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Image, Input("Img"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(AppearanceParameters, Output("AP"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ShapeParameters, Output("SP"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Similarity, Output("Sim"), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

@@ -28,10 +28,6 @@ private:
 
 public:
   Filenames();
-  virtual ~Filenames();
-
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
 };
 
 }
@@ -50,10 +46,6 @@ private:
 
 public:
   Filenames();
-  virtual ~Filenames();
-
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
 };
 
 }

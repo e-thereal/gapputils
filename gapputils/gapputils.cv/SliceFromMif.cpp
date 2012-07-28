@@ -39,12 +39,12 @@ namespace cv {
 BeginPropertyDefinitions(SliceFromMif)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(MifName, Input("Mif"), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Image, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Width, Description("Is set to width of extracted slice."), NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Height, Description("Is set to height of extracted slice."), NoParameter(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(SlicePosition, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Orientation, Enumerator<SliceOrientation>(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(MifName, Input("Mif"), Filename("MIFs (*.MIF)"), FileExists(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Image, Output("Img"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Width, Description("Is set to width of extracted slice."), NoParameter(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Height, Description("Is set to height of extracted slice."), NoParameter(), Observe(Id), TimeStamp(Id))
+  DefineProperty(SlicePosition, Observe(Id), TimeStamp(Id))
+  DefineProperty(Orientation, Enumerator<SliceOrientation>(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

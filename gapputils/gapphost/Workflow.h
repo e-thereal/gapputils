@@ -169,6 +169,10 @@ public:
 
   void activateGlobalEdge(GlobalEdge* edge);
 
+  void resetInputs();
+  void incrementInputs();
+  void decrementInputs();
+
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 

@@ -28,10 +28,10 @@ namespace gapputils {
 BeginPropertyDefinitions(GenericViewer)
 
   ReflectableBase(workflow::WorkflowElement)
-  DefineProperty(Program, Observe(PROPERTY_ID))
-  DefineProperty(Filename1, Observe(filename1Id = PROPERTY_ID), Input("File1"), Filename(), FileExists(), Volatile())
-  DefineProperty(Filename2, Observe(filename2Id = PROPERTY_ID), Input("File2"), Filename(), Volatile())
-  DefineProperty(Filename3, Observe(filename3Id = PROPERTY_ID), Input("File3"), Filename(), Volatile())
+  DefineProperty(Program, Observe(Id))
+  DefineProperty(Filename1, Observe(filename1Id = Id), Input("File1"), Filename(), FileExists(), Volatile())
+  DefineProperty(Filename2, Observe(filename2Id = Id), Input("File2"), Filename(), Volatile())
+  DefineProperty(Filename3, Observe(filename3Id = Id), Input("File3"), Filename(), Volatile())
 
 EndPropertyDefinitions
 

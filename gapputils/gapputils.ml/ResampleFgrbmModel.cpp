@@ -31,12 +31,12 @@ namespace ml {
 BeginPropertyDefinitions(ResampleFgrbmModel)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputModel, Input("FGRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
-  DefineProperty(InputWidth, Observe(PROPERTY_ID))
-  DefineProperty(InputHeight, Observe(PROPERTY_ID))
-  DefineProperty(OutputWidth, Observe(PROPERTY_ID))
-  DefineProperty(OutputHeight, Observe(PROPERTY_ID))
-  DefineProperty(OutputModel, Output("FGRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(InputModel, Input("FGRBM"), Volatile(), ReadOnly(), Observe(Id))
+  DefineProperty(InputWidth, Observe(Id))
+  DefineProperty(InputHeight, Observe(Id))
+  DefineProperty(OutputWidth, Observe(Id))
+  DefineProperty(OutputHeight, Observe(Id))
+  DefineProperty(OutputModel, Output("FGRBM"), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

@@ -41,11 +41,11 @@ namespace cv {
 BeginPropertyDefinitions(ImageWarp)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(InputImage, Input("Img"), Hide(), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BackgroundImage, Input("BG"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(BaseGrid, Input("Base"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(WarpedGrid, Input("Warped"), Hide(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage, Input("Img"), Hide(), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(BackgroundImage, Input("BG"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(BaseGrid, Input("Base"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(WarpedGrid, Input("Warped"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

@@ -32,8 +32,8 @@ namespace common {
 BeginPropertyDefinitions(Vector)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputVector, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(OutputVector, Output("PV"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputVector, Observe(Id), TimeStamp(Id))
+  DefineProperty(OutputVector, Output("PV"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

@@ -35,17 +35,17 @@ BeginPropertyDefinitions(InitializeFgrbm)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(ConditionalsVector, Input("X"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VisiblesVector, Input("Y"), ReadOnly(), Volatile(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(VisibleCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(HiddenCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(FactorCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(WeightStddevs, Observe(PROPERTY_ID))
-  DefineProperty(DiagonalWeightMeans, Observe(PROPERTY_ID))
-  DefineProperty(InitialHidden, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(IsGaussian, Flag(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ConditionalsVector, Input("X"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(VisiblesVector, Input("Y"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(VisibleCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(HiddenCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(FactorCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(WeightStddevs, Observe(Id))
+  DefineProperty(DiagonalWeightMeans, Observe(Id))
+  DefineProperty(InitialHidden, Observe(Id), TimeStamp(Id))
+  DefineProperty(IsGaussian, Flag(), Observe(Id), TimeStamp(Id))
 
-  DefineProperty(FgrbmModel, Output("FGRBM"), Volatile(), ReadOnly(), Observe(PROPERTY_ID))
+  DefineProperty(FgrbmModel, Output("FGRBM"), Volatile(), ReadOnly(), Observe(Id))
 
 EndPropertyDefinitions
 

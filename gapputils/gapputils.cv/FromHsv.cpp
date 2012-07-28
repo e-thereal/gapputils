@@ -30,10 +30,10 @@ int FromHsv::outputId;
 BeginPropertyDefinitions(FromHsv)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(ImagePtr, Output("Img"), Volatile(), ReadOnly(), Observe(outputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Hue, Input("H"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Saturation, Input("S"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Value, Input("V"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(ImagePtr, Output("Img"), Volatile(), ReadOnly(), Observe(outputId = Id), TimeStamp(Id))
+  DefineProperty(Hue, Input("H"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Saturation, Input("S"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Value, Input("V"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

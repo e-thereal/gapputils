@@ -29,9 +29,9 @@ int TextWriter::inputId;
 BeginPropertyDefinitions(TextWriter)
 
 ReflectableBase(workflow::WorkflowElement)
-DefineProperty(Text, Input(), Observe(inputId = PROPERTY_ID), Volatile(), Hide(), TimeStamp(PROPERTY_ID))
-DefineProperty(Filename, Output(""), Filename(), NotEqual<string>(""), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-DefineProperty(Auto, Observe(PROPERTY_ID))
+DefineProperty(Text, Input(), Observe(inputId = Id), Volatile(), Hide(), TimeStamp(Id))
+DefineProperty(Filename, Output(""), Filename(), NotEqual<string>(""), Observe(Id), TimeStamp(Id))
+DefineProperty(Auto, Observe(Id))
 
 EndPropertyDefinitions
 

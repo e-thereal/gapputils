@@ -43,31 +43,10 @@ using namespace std;
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#include "TestThread.h"
-
 #include "gapphost.h"
-
-template<class T>
-void printIt(const T& x) {
-  std:: cout << x << " ";
-}
-
-class A {
-public:
-  virtual ~A() { }
-};
-
-class B : public A { };
 
 int main(int argc, char *argv[])
 {
-  std::shared_ptr<int> p1 = std::make_shared<int>(1);
-  std::weak_ptr<int> p2 = p1;
-  {
-    std::shared_ptr<A> a(new B());
-    std::weak_ptr<A> a2 = a;
-    std::weak_ptr<B> b = dynamic_pointer_cast<B>(a2.lock());
-  }
   qRegisterMetaType<std::string>("std::string");
 
   QCoreApplication::setOrganizationName("gapputils");

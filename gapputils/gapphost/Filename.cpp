@@ -34,7 +34,7 @@ namespace inputs {
 BeginPropertyDefinitions(Filename, Interface())
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Value, Output(""), capputils::attributes::Filename(), FileExists(), Observe(PROPERTY_ID))
+  DefineProperty(Value, Output(""), capputils::attributes::Filename(), FileExists(), Observe(Id))
 
 EndPropertyDefinitions
 

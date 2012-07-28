@@ -36,15 +36,15 @@ int XslTransformation::extId;
 BeginPropertyDefinitions(XslTransformation)
 
 ReflectableBase(workflow::WorkflowElement)
-DefineProperty(InputName, ShortName("Xml"), Input(), Filename(), FileExists(), Observe(inputId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-DefineProperty(OutputName, ShortName("Out"), Output(), Filename(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-DefineProperty(XsltName, ShortName("Xslt"), Input(), Filename(), FileExists(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-DefineProperty(CommandName, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(PROPERTY_ID), Hide(), TimeStamp(PROPERTY_ID))
-DefineProperty(OutputExtension, Observe(extId = PROPERTY_ID), TimeStamp(PROPERTY_ID))
-DefineProperty(InSwitch, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-DefineProperty(OutSwitch, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-DefineProperty(XsltSwitch, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+DefineProperty(InputName, ShortName("Xml"), Input(), Filename(), FileExists(), Observe(inputId = Id), TimeStamp(Id))
+DefineProperty(OutputName, ShortName("Out"), Output(), Filename(), Observe(Id), TimeStamp(Id))
+DefineProperty(XsltName, ShortName("Xslt"), Input(), Filename(), FileExists(), Observe(Id), TimeStamp(Id))
+DefineProperty(CommandName, Observe(Id), TimeStamp(Id))
+DefineProperty(CommandOutput, ShortName("Cout"), Output(), Observe(Id), Hide(), TimeStamp(Id))
+DefineProperty(OutputExtension, Observe(extId = Id), TimeStamp(Id))
+DefineProperty(InSwitch, Observe(Id), TimeStamp(Id))
+DefineProperty(OutSwitch, Observe(Id), TimeStamp(Id))
+DefineProperty(XsltSwitch, Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

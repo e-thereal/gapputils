@@ -38,10 +38,10 @@ namespace cv {
 BeginPropertyDefinitions(Blurring)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(InputImage, Input(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(Sigma, Observe(PROPERTY_ID))
-  DefineProperty(InPlane, Observe(PROPERTY_ID))
-  DefineProperty(OutputImage, Output(""), Volatile(), ReadOnly(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(InputImage, Input(""), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(Sigma, Observe(Id))
+  DefineProperty(InPlane, Observe(Id))
+  DefineProperty(OutputImage, Output(""), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 

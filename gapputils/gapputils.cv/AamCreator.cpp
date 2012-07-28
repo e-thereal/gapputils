@@ -33,13 +33,13 @@ namespace cv {
 BeginPropertyDefinitions(AamCreator)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Images, Input("Imgs"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ShapeParameterCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(TextureParameterCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(AppearanceParameterCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(RowCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ColumnCount, Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
-  DefineProperty(ActiveAppearanceModel, Output("AAM"), Volatile(), Hide(), Observe(PROPERTY_ID), TimeStamp(PROPERTY_ID))
+  DefineProperty(Images, Input("Imgs"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
+  DefineProperty(ShapeParameterCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(TextureParameterCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(AppearanceParameterCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(RowCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(ActiveAppearanceModel, Output("AAM"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 
