@@ -110,7 +110,7 @@ checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags
 
   // If it is a combiner class, add to progress to it
   workflow::CollectionElement* collection = dynamic_cast<workflow::CollectionElement*>(object);
-  if (collection) {
+  if (collection && !collection->getCalculateCombinations()) {
     double progress = collection->getProgress();
     checksum.process_bytes(&progress, sizeof(progress));
   }
