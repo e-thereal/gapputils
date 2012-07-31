@@ -9,16 +9,8 @@
 
 #include "Workflow.h"
 
-#include <qtreeview.h>
-#include <qsplitter.h>
-#include <qaction.h>
-#include <qmenu.h>
-#include <qmessagebox.h>
-#include <qformlayout.h>
 #include <qlabel.h>
-#include <qtextedit.h>
 #include <qclipboard.h>
-#include <qstatusbar.h>
 #include <qapplication.h>
 
 #include <cassert>
@@ -31,38 +23,28 @@
 #include <capputils/ObserveAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/LibraryLoader.h>
-#include <capputils/Verifier.h>
 #include <capputils/EnumerableAttribute.h>
 #include <capputils/ShortNameAttribute.h>
-#include <capputils/Executer.h>
-#include <capputils/TimeStampAttribute.h>
-#include <capputils/DescriptionAttribute.h>
 #include <capputils/FromEnumerableAttribute.h>
 #include <capputils/ToEnumerableAttribute.h>
 #include <capputils/Logbook.h>
 
-#include <gapputils/CombinerInterface.h>
-#include <gapputils/HideAttribute.h>
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/WorkflowInterface.h>
 #include <gapputils/LabelAttribute.h>
 #include <gapputils/InterfaceAttribute.h>
 #include <gapputils/CollectionElement.h>
 
-#include <boost/filesystem.hpp>
 #include <boost/units/detail/utility.hpp>
 
 #include <set>
 #include <map>
 #include <iomanip>
 
-#include "PropertyGridDelegate.h"
 #include "CableItem.h"
 #include "Workbench.h"
 #include "WorkflowItem.h"
 #include "PropertyReference.h"
-#include "MakeGlobalDialog.h"
-#include "PopUpList.h"
 
 #include "DataModel.h"
 #include "MainWindow.h"
@@ -90,7 +72,9 @@ BeginPropertyDefinitions(Workflow)
 // Libraries must be the first property since libraries must be loaded before all other modules
 DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Observe(librariesId = Id))
 
-// Add Properties of node after libraries (module could be an object of a class of one of the libraries)
+// Add Properties of node after librarie
+// Original reason: module could be an object of a class of one of the libraries)
+// Shouldn't be the case anymore but just to be save, leave it here for now. (there's no harm)
 ReflectableBase(Node)
 
 DefineProperty(Edges, Enumerable<vector<Edge*>*, true>())
@@ -102,25 +86,6 @@ DefineProperty(ViewportPosition)
 DefineProperty(Logbook, Volatile())
 
 EndPropertyDefinitions
-
-/**
-
-  TODOs:
-
-  - Copy action. Creates an XML Workflow containing the to be copied nodes + non dangling edges
-
-  - Insert action. Inserts nodes and edges from on an XML Workflow. Renames all uuids.
-    Parses for UUIDs. If replacement exists, apply replacement, otherwise create new UUID.
-
-  - Code snippets: Select nodes and drag and drop them to the code snippets window underneath the toolbox.
-    Dropping opens a Dialogbox where the user can enter the name of the snippet. (renaming later)
-    Drag a snippet from the snippets window and drop it into the workbench creates according nodes.
-    Code snippets act like named copy and paste
-
-  - Make Workflow Refactory: Puts selected nodes into a subworkflow.
-    Determines inputs and outputs automatically (all edges that are connected to non-subworkflow nodes create an input or output property)
-
- */
 
 Workflow::Workflow()
  : _ViewportScale(1.0), _Logbook(new Logbook(&host::LogbookModel::GetInstance())),
