@@ -19,16 +19,16 @@ BeginPropertyDefinitions(GlobalProperty)
 
   DefineProperty(Name)
   DefineProperty(ModuleUuid)
-  DefineProperty(PropertyName)
-  DefineProperty(NodePtr, Volatile())
-  DefineProperty(PropertyId, Volatile())
+  DefineProperty(PropertyId)
+//  DefineProperty(NodePtr, Volatile())
+//  DefineProperty(PropertyId, Volatile())
   DefineProperty(Edges, Volatile())
   DefineProperty(Expressions, Volatile())
 
 EndPropertyDefinitions
 
 GlobalProperty::GlobalProperty()
- : _NodePtr(0), _PropertyId(-1), _Expressions(new std::vector<Expression*>())
+ : _Expressions(new std::vector<Expression*>())
 {
   _Edges = new std::vector<Edge*>();
 }
@@ -37,16 +37,16 @@ GlobalProperty::~GlobalProperty() {
   delete _Edges;
 }
 
-capputils::reflection::IClassProperty* GlobalProperty::getProperty() {
-  Node* node = getNodePtr();
-  if (node) {
-    capputils::reflection::ReflectableClass* object = node->getModule();
-    if (object) {
-      return object->getProperties()[getPropertyId()];
-    }
-  }
-  return 0;
-}
+//capputils::reflection::IClassProperty* GlobalProperty::getProperty() {
+//  Node* node = getNodePtr();
+//  if (node) {
+//    capputils::reflection::ReflectableClass* object = node->getModule();
+//    if (object) {
+//      return object->getProperties()[getPropertyId()];
+//    }
+//  }
+//  return 0;
+//}
 
 void GlobalProperty::addEdge(Edge* edge) {
   _Edges->push_back(edge);

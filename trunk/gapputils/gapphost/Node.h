@@ -8,11 +8,10 @@
 #include <capputils/ReflectableClass.h>
 #include <capputils/ObservableClass.h>
 #include <gapputils/IProgressMonitor.h>
-#include "ModelHarmonizer.h"
+//#include "ModelHarmonizer.h"
 #include "Expression.h"
 
 class PropertyReference;
-class ConstPropertyReference;
 
 namespace gapputils {
 
@@ -41,7 +40,7 @@ public:
   Property(Expressions, boost::shared_ptr<std::vector<boost::shared_ptr<Expression> > >)
 
 private:
-  ModelHarmonizer* harmonizer;
+//  ModelHarmonizer* harmonizer;
   static int moduleId;
   bool readFromCache;
 
@@ -75,14 +74,10 @@ public:
   void resumeExpressions();
   bool isDependentProperty(const std::string& propertyName) const;
 
-  QStandardItemModel* getModel();
+//  QStandardItemModel* getModel();
 
   virtual GlobalProperty* getGlobalProperty(const PropertyReference& reference);
   virtual GlobalEdge* getGlobalEdge(const PropertyReference& reference);
-
-  /// Returns false if reference could not be determined
-  virtual PropertyReference* getPropertyReference(const std::string& propertyName);
-  virtual ConstPropertyReference* getPropertyReference(const std::string& propertyName) const;
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);

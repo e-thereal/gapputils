@@ -17,6 +17,7 @@
 #include "Node.h"
 #include "GlobalProperty.h"
 #include "Workflow.h"
+#include "PropertyReference.h"
 
 namespace gapputils {
 
@@ -57,8 +58,9 @@ std::string Expression::evaluate() const {
         for (input >> ch; !input.eof() && ch != ')'; input >> ch)
           propertyName << ch;
         GlobalProperty* gprop = workflow->getGlobalProperty(propertyName.str());
-        if (gprop && gprop->getProperty() && gprop->getNodePtr() && gprop->getNodePtr()->getModule()) {
-          output << gprop->getProperty()->getStringValue(*gprop->getNodePtr()->getModule());
+        if (gprop) {
+          PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
+          output << ref.getProperty()->getStringValue(*ref.getObject());
         } else {
           output << "{" << propertyName.str() << " not found}";
         }
@@ -71,6 +73,17 @@ std::string Expression::evaluate() const {
   }
 
   return output.str();
+}
+
+int getPropertyPos(const capputils::reflection::ReflectableClass& object,
+    const capputils::reflection::IClassProperty* prop)
+{
+  std::vector<capputils::reflection::IClassProperty*>& props = object.getProperties();
+  for (unsigned i = 0; i < props.size(); ++i) {
+    if (props[i] == prop)
+      return i;
+  }
+  assert(0);
 }
 
 void Expression::resume() {
@@ -94,14 +107,16 @@ void Expression::resume() {
         for (input >> ch; !input.eof() && ch != ')'; input >> ch)
           propertyName << ch;
         GlobalProperty* gprop = workflow->getGlobalProperty(propertyName.str());
-        if (gprop && gprop->getProperty() && gprop->getNodePtr() && gprop->getNodePtr()->getModule()) {
+        if (gprop) {
+          PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
           capputils::ObservableClass* observable =
-              dynamic_cast<capputils::ObservableClass*>(gprop->getNodePtr()->getModule());
+              dynamic_cast<capputils::ObservableClass*>(ref.getObject());
           if (observable) {
             // don't link twice for the same global property
             if (globalProperties.find(gprop) == globalProperties.end()) {
               observable->Changed.connect(handler);
-              observedProperties.insert(std::pair<capputils::ObservableClass*, int>(observable, gprop->getPropertyId()));
+              observedProperties.insert(std::pair<capputils::ObservableClass*, int>(observable,
+                  getPropertyPos(*ref.getObject(), ref.getProperty())));
               gprop->getExpressions()->push_back(this);
               globalProperties.insert(gprop);
             }
@@ -120,10 +135,12 @@ void Expression::disconnect(GlobalProperty* gprop) {
   // Mean I'll tell the global property that I'm gone now and I remove my event handler
   // and the pair
   assert(gprop);
-  assert(gprop->getNodePtr());
+
+  Workflow* workflow = getNode()->getWorkflow();
+  PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
 
   capputils::ObservableClass* observable =
-      dynamic_cast<capputils::ObservableClass*>(gprop->getNodePtr()->getModule());
+      dynamic_cast<capputils::ObservableClass*>(ref.getObject());
 
   if (observable) {
     if (globalProperties.find(gprop) != globalProperties.end()) {
@@ -132,7 +149,8 @@ void Expression::disconnect(GlobalProperty* gprop) {
           gprop->getExpressions()->erase(gprop->getExpressions()->begin() + i);
       }
       observable->Changed.disconnect(handler);
-      std::pair<capputils::ObservableClass*, int> pair(observable, gprop->getPropertyId());
+      std::pair<capputils::ObservableClass*, int> pair(observable,
+          getPropertyPos(*ref.getObject(), ref.getProperty()));
       std::set<std::pair<capputils::ObservableClass*, int> >::iterator iPair = observedProperties.find(pair);
       if (iPair != observedProperties.end())
         observedProperties.erase(iPair);

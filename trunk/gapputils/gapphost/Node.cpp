@@ -77,7 +77,7 @@ EndPropertyDefinitions
 
 Node::Node(void)
  : _Uuid(Node::CreateUuid()), _X(0), _Y(0), _Module(0), _InputChecksum(0), _OutputChecksum(0), _ToolItem(0), _Workflow(0),
-   _Expressions(new std::vector<boost::shared_ptr<Expression> >()), harmonizer(0), readFromCache(false)
+   _Expressions(new std::vector<boost::shared_ptr<Expression> >()), readFromCache(false)
 {
   Changed.connect(EventHandler<Node>(this, &Node::changedHandler));
 }
@@ -165,11 +165,11 @@ void Node::getDependentNodes(std::vector<Node*>& dependendNodes) {
     getWorkflow()->getDependentNodes(this, dependendNodes);
 }
 
-QStandardItemModel* Node::getModel() {
-  if (!harmonizer)
-    harmonizer = new ModelHarmonizer(this);
-  return harmonizer->getModel();
-}
+//QStandardItemModel* Node::getModel() {
+//  if (!harmonizer)
+//    harmonizer = new ModelHarmonizer(this);
+//  return harmonizer->getModel();
+//}
 
 void Node::changedHandler(capputils::ObservableClass*, int eventId) {
   if (eventId == moduleId) {
@@ -194,40 +194,16 @@ bool Node::isDependentProperty(const std::string& propertyName) const {
 
 GlobalProperty* Node::getGlobalProperty(const PropertyReference& reference) {
   if (getWorkflow()) {
-    return getWorkflow()->getGlobalProperty(reference.getObject(), reference.getProperty());
+    return getWorkflow()->getGlobalProperty(reference);
   }
   return 0;
 }
 
 GlobalEdge* Node::getGlobalEdge(const PropertyReference& reference) {
   if (getWorkflow()) {
-    return getWorkflow()->getGlobalEdge(reference.getObject(), reference.getProperty());
+    return getWorkflow()->getGlobalEdge(reference);
   }
   return 0;
-}
-
-PropertyReference* Node::getPropertyReference(const std::string& propertyName) {
-  ReflectableClass* object = getModule();
-  if (!object)
-    return 0;
-
-  IClassProperty* prop = object->findProperty(propertyName);
-  if (!prop)
-    return 0;
-
-  return new PropertyReference(object, prop, this);
-}
-
-ConstPropertyReference* Node::getPropertyReference(const std::string& propertyName) const {
-  const ReflectableClass* object = getModule();
-  if (!object)
-    return 0;
-
-  const IClassProperty* prop = object->findProperty(propertyName);
-  if (!prop)
-    return 0;
-
-  return new ConstPropertyReference(object, prop, this);
 }
 
 }

@@ -22,6 +22,7 @@
 #include "MakeGlobalDialog.h"
 #include "PopUpList.h"
 #include "Workflow.h"
+#include "ModelHarmonizer.h"
 
 using namespace capputils::attributes;
 using namespace capputils::reflection;
@@ -69,8 +70,10 @@ void PropertyGrid::setEnabled(bool enabled) {
 
 void PropertyGrid::setNode(workflow::Node* node) {
   this->node = node;
+  harmonizer = boost::shared_ptr<ModelHarmonizer>(new ModelHarmonizer(node));
+
   if (node) {
-    propertyGrid->setModel(node->getModel());
+    propertyGrid->setModel(harmonizer->getModel());
     propertyGrid->expandAll();
   } else {
     propertyGrid->setModel(0);
@@ -162,7 +165,6 @@ void PropertyGrid::showContextMenu(const QPoint& point) {
   else
     actions.append(makeGlobal);
 
-
   GlobalEdge* edge = node->getGlobalEdge(reference);
   if (edge)
     actions.append(disconnectFromGlobal);
@@ -180,6 +182,15 @@ void PropertyGrid::makePropertyGlobal() {
     QString text = dialog.getText();
     if (text.length()) {
       QModelIndex index = propertyGrid->currentIndex();
+
+      QStandardItemModel* model = dynamic_cast<QStandardItemModel*>(propertyGrid->model());
+      if (model) {
+        QStandardItem* item = model->itemFromIndex(index);
+        QFont font = item->font();
+        font.setUnderline(true);
+        item->setFont(font);
+      }
+
       node->getWorkflow()->makePropertyGlobal(text.toAscii().data(), index.data(Qt::UserRole).value<PropertyReference>());
     } else {
       QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for a global property!");
@@ -192,6 +203,14 @@ void PropertyGrid::removePropertyFromGlobal() {
   assert(node->getWorkflow());
   QModelIndex index = propertyGrid->currentIndex();
   PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
+
+  QStandardItemModel* model = dynamic_cast<QStandardItemModel*>(propertyGrid->model());
+  if (model) {
+    QStandardItem* item = model->itemFromIndex(index);
+    QFont font = item->font();
+    font.setUnderline(false);
+    item->setFont(font);
+  }
 
   GlobalProperty* gprop = node->getGlobalProperty(reference);
   if (gprop)
@@ -212,7 +231,8 @@ void PropertyGrid::connectProperty() {
   PopUpList list;
   std::vector<GlobalProperty*>* globals = workflow->getGlobalProperties();
   for (unsigned i = 0; i < globals->size(); ++i) {
-    if (Edge::areCompatible(globals->at(i)->getProperty(), reference.getProperty())) {
+    PropertyReference ref(reference.getWorkflow(), globals->at(i)->getModuleUuid(), globals->at(i)->getPropertyId());
+    if (Edge::areCompatible(ref.getProperty(), reference.getProperty())) {
       list.getList()->addItem(globals->at(i)->getName().c_str());
     } else {
 //      GlobalProperty* gprop = globals->at(i);
@@ -225,6 +245,14 @@ void PropertyGrid::connectProperty() {
     return;
   }
 
+  QStandardItemModel* model = dynamic_cast<QStandardItemModel*>(propertyGrid->model());
+  if (model) {
+    QStandardItem* item = model->itemFromIndex(index);
+    QFont font = item->font();
+    font.setItalic(true);
+    item->setFont(font);
+  }
+
   if (list.exec() == QDialog::Accepted) {
     workflow->connectProperty(list.getList()->selectedItems()[0]->text().toAscii().data(), reference);
   }
@@ -235,6 +263,14 @@ void PropertyGrid::disconnectProperty() {
   assert(node->getWorkflow());
   QModelIndex index = propertyGrid->currentIndex();
   PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
+
+  QStandardItemModel* model = dynamic_cast<QStandardItemModel*>(propertyGrid->model());
+  if (model) {
+    QStandardItem* item = model->itemFromIndex(index);
+    QFont font = item->font();
+    font.setItalic(false);
+    item->setFont(font);
+  }
 
   GlobalEdge* edge = node->getGlobalEdge(reference);
   if (edge)

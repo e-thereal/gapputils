@@ -25,9 +25,9 @@ class GlobalProperty : public capputils::reflection::ReflectableClass {
 
   Property(Name, std::string)
   Property(ModuleUuid, std::string)
-  Property(PropertyName, std::string)
-  Property(NodePtr, Node*)
-  Property(PropertyId, int)
+  Property(PropertyId, std::string)
+  //Property(NodePtr, Node*)
+  //Property(PropertyId, int)
   Property(Edges, std::vector<Edge*>*)
   Property(Expressions, boost::shared_ptr<std::vector<Expression* > >)
 
@@ -35,7 +35,7 @@ public:
   GlobalProperty();
   virtual ~GlobalProperty();
 
-  capputils::reflection::IClassProperty* getProperty();
+//  capputils::reflection::IClassProperty* getProperty();
   void addEdge(Edge* edge);
   void removeEdge(Edge* edge);
 };

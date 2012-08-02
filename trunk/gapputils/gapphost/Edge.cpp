@@ -33,27 +33,18 @@ BeginPropertyDefinitions(Edge)
 EndPropertyDefinitions
 
 Edge::Edge(void)
- : _OutputNodePtr(0), _OutputReference(0), _InputNodePtr(0), _InputReference(0),
-   _CableItem(0), handler(this, &Edge::changedHandler), outputId(-1)
+ : _OutputNodePtr(0), _InputNodePtr(0), _CableItem(0), handler(this, &Edge::changedHandler), outputId(-1)
 {
 }
 
 Edge::~Edge(void)
 {
-  PropertyReference* inputRef = getInputReference();
-  PropertyReference* outputRef = getOutputReference();
+  PropertyReference* outputRef = getOutputReference().get();
   if (outputRef) {
     capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(outputRef->getObject());
     if (observable) {
       observable->Changed.disconnect(handler);
     }
-    delete outputRef;
-    setOutputReference(0);
-  }
-
-  if (inputRef) {
-    delete inputRef;
-    setInputReference(0);
   }
 }
 
@@ -66,9 +57,7 @@ bool Edge::activate(Node* outputNode, Node* inputNode) {
   setOutputNodePtr(outputNode);
   setInputNodePtr(inputNode);
 
-  PropertyReference* outputRef = outputNode->getPropertyReference(getOutputProperty());
-  if (!outputRef)
-    return false;
+  boost::shared_ptr<PropertyReference> outputRef(new PropertyReference(outputNode->getWorkflow(), outputNode->getUuid(), getOutputProperty()));
 
   std::vector<capputils::reflection::IClassProperty*>& properties = outputRef->getObject()->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
@@ -78,13 +67,9 @@ bool Edge::activate(Node* outputNode, Node* inputNode) {
     }
   }
 
-  PropertyReference* inputRef = inputNode->getPropertyReference(getInputProperty());
-  if (!inputRef)
-    return false;
+  boost::shared_ptr<PropertyReference> inputRef(new PropertyReference(inputNode->getWorkflow(), inputNode->getUuid(), getInputProperty()));
 
   if (!Edge::areCompatible(outputRef->getProperty(), inputRef->getProperty())) {
-    delete inputRef;
-    delete outputRef;
     return false;
   }
 
@@ -125,8 +110,8 @@ void Edge::changedHandler(capputils::ObservableClass*, int eventId) {
   if (eventId != (int)outputId)
     return;
 
-  PropertyReference* inputRef = getInputReference();
-  PropertyReference* outputRef = getOutputReference();
+  PropertyReference* inputRef = getInputReference().get();
+  PropertyReference* outputRef = getOutputReference().get();
 
   if (!inputRef || !outputRef)
     return;
