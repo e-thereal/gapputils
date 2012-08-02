@@ -33,7 +33,7 @@ BeginPropertyDefinitions(Edge)
 EndPropertyDefinitions
 
 Edge::Edge(void)
- : _OutputNodePtr(0), _InputNodePtr(0), _CableItem(0), handler(this, &Edge::changedHandler), outputId(-1)
+ : _CableItem(0), handler(this, &Edge::changedHandler), outputId(-1)
 {
 }
 
@@ -48,7 +48,7 @@ Edge::~Edge(void)
   }
 }
 
-bool Edge::activate(Node* outputNode, Node* inputNode) {
+bool Edge::activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> inputNode) {
   // TODO: re-think how to activate an edge. How do I activate an edge that connects
   //       a node with an interface node of a workflow?
 
@@ -57,7 +57,7 @@ bool Edge::activate(Node* outputNode, Node* inputNode) {
   setOutputNodePtr(outputNode);
   setInputNodePtr(inputNode);
 
-  boost::shared_ptr<PropertyReference> outputRef(new PropertyReference(outputNode->getWorkflow(), outputNode->getUuid(), getOutputProperty()));
+  boost::shared_ptr<PropertyReference> outputRef(new PropertyReference(outputNode->getWorkflow().lock(), outputNode->getUuid(), getOutputProperty()));
 
   std::vector<capputils::reflection::IClassProperty*>& properties = outputRef->getObject()->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
@@ -67,7 +67,7 @@ bool Edge::activate(Node* outputNode, Node* inputNode) {
     }
   }
 
-  boost::shared_ptr<PropertyReference> inputRef(new PropertyReference(inputNode->getWorkflow(), inputNode->getUuid(), getInputProperty()));
+  boost::shared_ptr<PropertyReference> inputRef(new PropertyReference(inputNode->getWorkflow().lock(), inputNode->getUuid(), getInputProperty()));
 
   if (!Edge::areCompatible(outputRef->getProperty(), inputRef->getProperty())) {
     return false;
@@ -88,7 +88,7 @@ bool Edge::activate(Node* outputNode, Node* inputNode) {
   return true;
 }
 
-bool Edge::areCompatible(const Node* outputNode, int outputId, const Node* inputNode, int inputId) {
+/*bool Edge::areCompatible(const Node* outputNode, int outputId, const Node* inputNode, int inputId) {
   if (!outputNode || !outputNode->getModule() || !inputNode || !inputNode->getModule())
     return false;
 
@@ -96,7 +96,7 @@ bool Edge::areCompatible(const Node* outputNode, int outputId, const Node* input
   capputils::reflection::IClassProperty* outProp = outputNode->getModule()->getProperties()[outputId];
 
   return Edge::areCompatible(outProp, inProp);
-}
+}*/
 
 bool Edge::areCompatible(const capputils::reflection::IClassProperty* outProp,
       const capputils::reflection::IClassProperty* inProp)

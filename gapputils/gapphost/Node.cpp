@@ -76,18 +76,13 @@ BeginPropertyDefinitions(Node)
 EndPropertyDefinitions
 
 Node::Node(void)
- : _Uuid(Node::CreateUuid()), _X(0), _Y(0), _Module(0), _InputChecksum(0), _OutputChecksum(0), _ToolItem(0), _Workflow(0),
+ : _Uuid(Node::CreateUuid()), _X(0), _Y(0), _InputChecksum(0), _OutputChecksum(0),
    _Expressions(new std::vector<boost::shared_ptr<Expression> >()), readFromCache(false)
 {
   Changed.connect(EventHandler<Node>(this, &Node::changedHandler));
 }
 
-Node::~Node(void)
-{
-  if (_Module) {
-    delete _Module;
-  }
-}
+Node::~Node(void) { }
 
 std::string Node::CreateUuid() {
   boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -96,16 +91,16 @@ std::string Node::CreateUuid() {
   return stream.str();
 }
 
-Expression* Node::getExpression(const std::string& propertyName) {
+boost::shared_ptr<Expression> Node::getExpression(const std::string& propertyName) {
   std::vector<boost::shared_ptr<Expression> >& expressions = *getExpressions();
 
   for (unsigned i = 0; i < expressions.size(); ++i) {
     if (!expressions[i]->getPropertyName().compare(propertyName)) {
-      return expressions[i].get();
+      return expressions[i];
     }
   }
 
-  return 0;
+  return boost::shared_ptr<Expression>();
 }
 
 bool Node::removeExpression(const std::string& propertyName) {
@@ -122,7 +117,7 @@ bool Node::removeExpression(const std::string& propertyName) {
 }
 
 void Node::resume() {
-  ReflectableClass* module = getModule();
+  boost::shared_ptr<ReflectableClass> module = getModule();
   if (module) {
     std::vector<IClassProperty*>& properties = module->getProperties();
     for (unsigned i = 0; i < properties.size(); ++i) {
@@ -136,10 +131,10 @@ void Node::resume() {
   std::vector<boost::shared_ptr<Expression> >& expressions = *getExpressions();
 
   for (unsigned i = 0; i < expressions.size(); ++i) {
-    expressions[i]->setNode(this);
+    expressions[i]->setNode(shared_from_this());
   }
 
-  WorkflowElement* element = dynamic_cast<WorkflowElement*>(getModule());
+  boost::shared_ptr<WorkflowElement> element = boost::dynamic_pointer_cast<WorkflowElement>(getModule());
   if (element) {
     element->setHostInterface(gapputils::host::HostInterface::GetPointer());
     element->getLogbook().setModel(&host::LogbookModel::GetInstance());
@@ -160,9 +155,9 @@ void Node::resumeExpressions() {
     expressions[i]->resume();
 }
 
-void Node::getDependentNodes(std::vector<Node*>& dependendNodes) {
-  if (getWorkflow())
-    getWorkflow()->getDependentNodes(this, dependendNodes);
+void Node::getDependentNodes(std::vector<boost::shared_ptr<Node> >& dependendNodes) {
+  if (!getWorkflow().expired())
+    getWorkflow().lock()->getDependentNodes(shared_from_this(), dependendNodes);
 }
 
 //QStandardItemModel* Node::getModel() {
@@ -187,23 +182,23 @@ void Node::changedHandler(capputils::ObservableClass*, int eventId) {
 }
 
 bool Node::isDependentProperty(const std::string& propertyName) const {
-  if (getWorkflow())
-    return getWorkflow()->isDependentProperty(this, propertyName);
+  if (!getWorkflow().expired())
+    return getWorkflow().lock()->isDependentProperty(shared_from_this(), propertyName);
   return false;
 }
 
-GlobalProperty* Node::getGlobalProperty(const PropertyReference& reference) {
-  if (getWorkflow()) {
-    return getWorkflow()->getGlobalProperty(reference);
+boost::shared_ptr<GlobalProperty> Node::getGlobalProperty(const PropertyReference& reference) {
+  if (!getWorkflow().expired()) {
+    return getWorkflow().lock()->getGlobalProperty(reference);
   }
-  return 0;
+  return boost::shared_ptr<GlobalProperty>();
 }
 
-GlobalEdge* Node::getGlobalEdge(const PropertyReference& reference) {
-  if (getWorkflow()) {
-    return getWorkflow()->getGlobalEdge(reference);
+boost::shared_ptr<GlobalEdge> Node::getGlobalEdge(const PropertyReference& reference) {
+  if (!getWorkflow().expired()) {
+    return getWorkflow().lock()->getGlobalEdge(reference);
   }
-  return 0;
+  return boost::shared_ptr<GlobalEdge>();
 }
 
 }

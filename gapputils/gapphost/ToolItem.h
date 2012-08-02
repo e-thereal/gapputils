@@ -17,6 +17,8 @@
 #include "ModelHarmonizer.h"
 #include "Node.h"
 
+#include <boost/enable_shared_from_this.hpp>
+
 namespace gapputils {
 
 class Workbench;
@@ -33,13 +35,13 @@ public:
   QString label;
   Direction direction;
   ToolItem* parent;
-  MultiConnection* multi;
+  boost::weak_ptr<MultiConnection> multi;
   CableItem* cable;
   int id;                 ///< PropertyId
 
 public:
   ToolConnection(const QString& label, Direction direction, ToolItem* parent,
-      int id, MultiConnection* multi = 0);
+      int id, boost::shared_ptr<MultiConnection> multi = boost::shared_ptr<MultiConnection>());
   virtual ~ToolConnection();
 
   void draw(QPainter* painter, bool showLabel = true) const;
@@ -49,7 +51,7 @@ public:
   void connect(CableItem* cable);
 };
 
-class MultiConnection {
+class MultiConnection : public boost::enable_shared_from_this<MultiConnection> {
   friend class ToolItem;
 
 public:
@@ -57,7 +59,7 @@ public:
   ToolConnection::Direction direction;
   ToolItem* parent;
   int id;
-  std::vector<ToolConnection*> connections;
+  std::vector<boost::shared_ptr<ToolConnection> > connections;
   int x, y;
   bool expanded;
 
@@ -66,8 +68,8 @@ public:
       int id);
   virtual ~MultiConnection();
 
-  bool hits(std::vector<ToolConnection*>& connections, int x, int y) const;
-  ToolConnection* getLastConnection();
+  bool hits(std::vector<boost::shared_ptr<ToolConnection> >& connections, int x, int y) const;
+  boost::shared_ptr<ToolConnection> getLastConnection();
   void adjust();
   QString getLabel() const;
   void setPos(int x, int y);
@@ -91,26 +93,25 @@ protected:
   std::string label;
   Workbench* bench;
   int width, height, adjust, connectionDistance, inputsWidth, labelWidth, outputsWidth;
-  std::vector<ToolConnection*> inputs;
-  std::vector<MultiConnection*> outputs;
+  std::vector<boost::shared_ptr<ToolConnection> > inputs;
+  std::vector<boost::shared_ptr<MultiConnection> > outputs;
   QFont labelFont;
-  //bool deletable;
   double progress;
 
 public:
-  ToolItem(const std::string& label, Workbench *bench = 0);
+  ToolItem(const std::string& label, Workbench* bench = 0);
   virtual ~ToolItem();
 
   void setWorkbench(Workbench* bench);
 
-  ToolConnection* hitConnection(int x, int y, ToolConnection::Direction direction) const;
+  boost::shared_ptr<ToolConnection> hitConnection(int x, int y, ToolConnection::Direction direction) const;
 
   /// Adds the connections to the connections vector
-  bool hitConnections(std::vector<ToolConnection*>& connections, int x, int y, ToolConnection::Direction direction) const;
+  bool hitConnections(std::vector<boost::shared_ptr<ToolConnection> >& connections, int x, int y, ToolConnection::Direction direction) const;
 
-  ToolConnection* getConnection(int id, ToolConnection::Direction direction) const;
-  std::vector<ToolConnection*>& getInputs();
-  void getOutputs(std::vector<ToolConnection*>& connections);
+  boost::shared_ptr<ToolConnection> getConnection(int id, ToolConnection::Direction direction) const;
+  std::vector<boost::shared_ptr<ToolConnection> >& getInputs();
+  void getOutputs(std::vector<boost::shared_ptr<ToolConnection> >& connections);
   void updateSize();
 
   void updateConnectionPositions();
@@ -120,8 +121,6 @@ public:
   void drawBox(QPainter* painter);
   virtual std::string getLabel() const;
   void setLabel(const std::string& label);
-  //virtual bool isDeletable() const;
-  //void setDeletable(bool deletable);
 
   void updateCables();
 

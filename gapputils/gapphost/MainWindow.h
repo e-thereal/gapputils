@@ -34,8 +34,8 @@ private:
 
   QTimer reloadTimer;
   bool libsChanged, autoQuit;  ///< quits the problem when the workflow has been updated.
-  std::vector<workflow::Workflow*> openWorkflows;
-  workflow::Workflow* workingWorkflow;
+  std::vector<boost::shared_ptr<workflow::Workflow> > openWorkflows;
+  boost::shared_ptr<workflow::Workflow> workingWorkflow;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
@@ -65,12 +65,12 @@ public Q_SLOTS:
   void updateWorkflow();
   void updateMainWorkflow();
   void terminateUpdate();
-  void updateFinished(workflow::Node* node);
-  void showWorkflow(workflow::Workflow* workflow, bool addUuid = true);
-  void closeWorkflow(workflow::Workflow* workflow);
+  void updateFinished(boost::shared_ptr<workflow::Node> node);
+  void showWorkflow(boost::shared_ptr<workflow::Workflow> workflow, bool addUuid = true);
+  void closeWorkflow(boost::shared_ptr<workflow::Workflow> workflow);
   void closeWorkflow(int tabIndex);
   void currentTabChanged(int index);
-  void handleCurrentNodeChanged(workflow::Node* node);
+  void handleCurrentNodeChanged(boost::shared_ptr<workflow::Node> node);
   void selectModule(const QString& uuid);
 };
 

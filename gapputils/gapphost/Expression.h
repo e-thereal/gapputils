@@ -27,12 +27,12 @@ class Expression : public capputils::reflection::ReflectableClass {
 
   Property(Expression, std::string)
   Property(PropertyName, std::string)
-  Property(Node, Node*)
+  Property(Node, boost::weak_ptr<Node>)
 
 private:
   capputils::EventHandler<Expression> handler;
   std::set<std::pair<capputils::ObservableClass*, int> > observedProperties;
-  std::set<GlobalProperty*> globalProperties;
+  std::set<boost::weak_ptr<GlobalProperty> > globalProperties;
 
 public:
   Expression();
@@ -41,7 +41,7 @@ public:
   std::string evaluate() const;
 
   void resume();
-  void disconnect(GlobalProperty* gprop);
+  void disconnect(boost::shared_ptr<GlobalProperty> gprop);
   void disconnectAll();
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 };

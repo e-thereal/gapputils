@@ -32,7 +32,7 @@ namespace gapputils {
 
 namespace host {
 
-PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent), node(0) {
+PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent) {
   propertyGrid = new QTreeView();
   propertyGrid->setAllColumnsShowFocus(false);
   propertyGrid->setAlternatingRowColors(true);
@@ -68,7 +68,7 @@ void PropertyGrid::setEnabled(bool enabled) {
   propertyGrid->setEnabled(enabled);
 }
 
-void PropertyGrid::setNode(workflow::Node* node) {
+void PropertyGrid::setNode(boost::shared_ptr<workflow::Node> node) {
   this->node = node;
   harmonizer = boost::shared_ptr<ModelHarmonizer>(new ModelHarmonizer(node));
 

@@ -20,34 +20,25 @@ namespace gapputils {
 
 namespace host {
 
-WorkflowUpdater::WorkflowUpdater(WorkflowUpdater* rootThread)
-  : node(0), currentNode(0), rootThread(rootThread), abortRequested(false), updater(0)
+WorkflowUpdater::WorkflowUpdater(boost::shared_ptr<WorkflowUpdater> rootThread)
+  : rootThread(rootThread), abortRequested(false)
 {
   if (!rootThread) {
-    updater = new WorkflowUpdater(this);
+    updater = boost::shared_ptr<WorkflowUpdater>(new WorkflowUpdater(shared_from_this()));
 
     // One workflow updater instance is executed in the root thread
     // this instance can be used to synchronize the root thread with the updater threads
     // Therefore, some signals send from the updater threads are delegated by the root thread instance
     // Others are handled by the root thread directly
-    connect(updater, SIGNAL(progressed(workflow::Node*, double, bool)), this, SLOT(handleAndDelegateProgressedEvent(workflow::Node*, double, bool)), Qt::BlockingQueuedConnection);
-    connect(updater, SIGNAL(nodeUpdateFinished(workflow::Node*)), this, SLOT(handleNodeUpdateFinished(workflow::Node*)), Qt::BlockingQueuedConnection);
+    connect(updater, SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double, bool)), this, SLOT(handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node>, double, bool)), Qt::BlockingQueuedConnection);
+    connect(updater, SIGNAL(nodeUpdateFinished(boost::shared_ptr<workflow::Node>)), this, SLOT(handleNodeUpdateFinished(boost::shared_ptr<workflow::Node>)), Qt::BlockingQueuedConnection);
     connect(updater, SIGNAL(finished()), this, SLOT(delegateUpdateFinished()));
   }
 }
 
-WorkflowUpdater::~WorkflowUpdater(void)
-{
-  if (!rootThread) {
-    assert(updater);
-    delete updater;
-    updater = 0;
-  } else {
-    assert(!updater);
-  }
-}
+WorkflowUpdater::~WorkflowUpdater(void) { }
 
-void WorkflowUpdater::update(workflow::Node* node) {
+void WorkflowUpdater::update(boost::shared_ptr<workflow::Node> node) {
   abortRequested = false;
   if (!rootThread) {
     updater->update(node);
@@ -67,7 +58,7 @@ void WorkflowUpdater::run() {
   //       3. Single node case: else
 
   ChecksumUpdater checksumUpdater;
-  workflow::Workflow* workflow = dynamic_cast<workflow::Workflow*>(node);
+  boost::shared_ptr<workflow::Workflow> workflow = dynamic_pointer_cast<workflow::Workflow>(node.lock());
   if (workflow) {
     if (workflow->hasCollectionElementInterface()) {
 
@@ -78,14 +69,14 @@ void WorkflowUpdater::run() {
       // add all interface nodes to the stack
       // and update nodes
       // append results at the end
-      std::vector<workflow::Node*>& interfaceNodes = workflow->getInterfaceNodes();
-      std::vector<workflow::CollectionElement*> collectionElements;
+      std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
+      std::vector<boost::shared_ptr<workflow::CollectionElement> > collectionElements;
 
       bool needsUpdate = true;
       bool lastIteration = false;
 
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-        workflow::CollectionElement* collection = dynamic_cast<workflow::CollectionElement*>(interfaceNodes[i]->getModule());
+        boost::shared_ptr<workflow::CollectionElement> collection = dynamic_pointer_cast<workflow::CollectionElement>(interfaceNodes[i]->getModule());
         if (collection && collection->getCalculateCombinations()) {
           if (!collection->resetCombinations())
             needsUpdate = false;
@@ -130,8 +121,8 @@ void WorkflowUpdater::run() {
 
       /*** Workflow case ***/
 
-      checksumUpdater.update(node);
-      std::vector<workflow::Node*>& interfaceNodes = workflow->getInterfaceNodes();
+      checksumUpdater.update(node.lock());
+      std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
         if (workflow->isOutputNode(interfaceNodes[i]))
           buildStack(interfaceNodes[i]);
@@ -142,22 +133,22 @@ void WorkflowUpdater::run() {
 
     /*** Single update case ***/
 
-    checksumUpdater.update(node);
-    buildStack(node);
+    checksumUpdater.update(node.lock());
+    buildStack(node.lock());
     updateNodes();
   }
 }
 
 void WorkflowUpdater::reportProgress(double progress, bool updateNode) {
   if (currentNode)
-    reportProgress(currentNode, progress, updateNode);
+    reportProgress(currentNode.lock(), progress, updateNode);
 }
 
-void WorkflowUpdater::reportProgress(workflow::Node* node, double progress, bool updateNode) {
+void WorkflowUpdater::reportProgress(boost::shared_ptr<workflow::Node> node, double progress, bool updateNode) {
   Q_EMIT progressed(node, progress, updateNode);
 }
 
-void WorkflowUpdater::reportNodeUpdateFinished(workflow::Node* node) {
+void WorkflowUpdater::reportNodeUpdateFinished(boost::shared_ptr<workflow::Node> node) {
   Q_EMIT nodeUpdateFinished(node);
 }
 
@@ -171,17 +162,17 @@ void WorkflowUpdater::abort() {
   abortRequested = true;
 }
 
-void WorkflowUpdater::buildStack(workflow::Node* node) {
+void WorkflowUpdater::buildStack(boost::shared_ptr<workflow::Node> node) {
   capputils::Logbook dlog(&LogbookModel::GetInstance());
 
   // Rebuild the stack without node, thus guaranteeing that node appears only once
-  std::stack<workflow::Node*> oldStack;
+  std::stack<boost::weak_ptr<workflow::Node> > oldStack;
   while (!nodesStack.empty()) {
     oldStack.push(nodesStack.top());
     nodesStack.pop();
   }
   while (!oldStack.empty()) {
-    workflow::Node* n = oldStack.top();
+    boost::weak_ptr<workflow::Node> n = oldStack.top();
     if (n != node)
       nodesStack.push(n);
     oldStack.pop();
@@ -192,7 +183,7 @@ void WorkflowUpdater::buildStack(workflow::Node* node) {
     reportProgress(node, 0, false);
     nodesStack.push(node);
   } else {
-    workflow::WorkflowElement* element = dynamic_cast<workflow::WorkflowElement*>(node->getModule());
+    boost::shared_ptr<workflow::WorkflowElement> element = dynamic_pointer_cast<workflow::WorkflowElement>(node->getModule());
     if (element) {
       dlog.setModule(element->getClassName());
       dlog.setUuid(node->getUuid());
@@ -202,7 +193,7 @@ void WorkflowUpdater::buildStack(workflow::Node* node) {
   }
   
   // call build stack for all dependent nodes
-  std::vector<workflow::Node*> dependentNodes;
+  std::vector<boost::shared_ptr<workflow::Node> > dependentNodes;
   node->getDependentNodes(dependentNodes);
   for (unsigned i = 0; i < dependentNodes.size(); ++i)
     buildStack(dependentNodes[i]);
@@ -218,15 +209,15 @@ void WorkflowUpdater::updateNodes() {
 
     reportProgress(currentNode, ToolItem::InProgress, false);
 
-    workflow::Workflow* workflow = dynamic_cast<workflow::Workflow*>(currentNode);
+    boost::shared_ptr<workflow::Workflow> workflow = dynamic_pointer_cast<workflow::Workflow>(currentNode.lock());
     if (workflow) {
 
       // Create a new worker for the sub workflow
       WorkflowUpdater updater(rootThread);
 
       // Just sit and watch if he is doing a good job
-      connect(&updater, SIGNAL(progressed(workflow::Node*, double, bool)), rootThread, SLOT(handleAndDelegateProgressedEvent(workflow::Node*, double, bool)), Qt::BlockingQueuedConnection);
-      connect(&updater, SIGNAL(nodeUpdateFinished(workflow::Node*)), rootThread, SLOT(handleNodeUpdateFinished(workflow::Node*)), Qt::BlockingQueuedConnection);
+      connect(&updater, SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double, bool)), rootThread, SLOT(handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node>, double, bool)), Qt::BlockingQueuedConnection);
+      connect(&updater, SIGNAL(nodeUpdateFinished(boost::shared_ptr<workflow::Node>)), rootThread, SLOT(handleNodeUpdateFinished(boost::shared_ptr<workflow::Node>)), Qt::BlockingQueuedConnection);
 
       // Let him get started
       updater.update(currentNode);
@@ -238,10 +229,10 @@ void WorkflowUpdater::updateNodes() {
       // update node
       // TODO: check if value could be read from cache. Never read it from cache if it is the last node
       if (nodesStack.empty() || (currentNode->getInputChecksum() != currentNode->getOutputChecksum()
-          && !NodeCache::Restore(currentNode)))
+          && !NodeCache::Restore(currentNode.lock())))
       {
 
-        workflow::WorkflowElement* element = dynamic_cast<workflow::WorkflowElement*>(currentNode->getModule());
+        boost::shared_ptr<workflow::WorkflowElement> element = dynamic_pointer_cast<workflow::WorkflowElement>(currentNode->getModule());
         if (element) {
           dlog.setModule(element->getClassName());
           dlog.setUuid(currentNode->getUuid());
@@ -249,7 +240,7 @@ void WorkflowUpdater::updateNodes() {
           element->execute(this);
         }
       } else {
-        workflow::WorkflowElement* element = dynamic_cast<workflow::WorkflowElement*>(currentNode->getModule());
+        boost::shared_ptr<workflow::WorkflowElement> element = dynamic_pointer_cast<workflow::WorkflowElement>(currentNode->getModule());
         if (element) {
           dlog.setModule(element->getClassName());
           dlog.setUuid(currentNode->getUuid());
@@ -260,18 +251,18 @@ void WorkflowUpdater::updateNodes() {
 
     // update finished
     if (!getAbortRequested()) {
-      reportProgress(currentNode, 100.0, false);
-      reportNodeUpdateFinished(currentNode);
+      reportProgress(currentNode.lock(), 100.0, false);
+      reportNodeUpdateFinished(currentNode.lock());
     }
 
-    currentNode = 0;
+    currentNode.reset();
   }
 }
 
 // The root thread handles node updates by invoking the writeResults method
-void WorkflowUpdater::handleNodeUpdateFinished(workflow::Node* node) {
+void WorkflowUpdater::handleNodeUpdateFinished(boost::shared_ptr<workflow::Node> node) {
   node->setOutputChecksum(node->getInputChecksum());
-  workflow::WorkflowElement* element = dynamic_cast<workflow::WorkflowElement*>(node->getModule());
+  boost::shared_ptr<workflow::WorkflowElement> element = dynamic_pointer_cast<workflow::WorkflowElement>(node->getModule());
   if (element) {
     element->writeResults();
   }
@@ -281,9 +272,9 @@ void WorkflowUpdater::handleNodeUpdateFinished(workflow::Node* node) {
 }
 
 // The root thread does not only delegate the event, it also in charge of calling writeResults if requested
-void WorkflowUpdater::handleAndDelegateProgressedEvent(workflow::Node* node, double progress, bool updateNode) {
+void WorkflowUpdater::handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node> node, double progress, bool updateNode) {
   if (updateNode) {
-    workflow::WorkflowElement* element = dynamic_cast<workflow::WorkflowElement*>(node->getModule());
+    boost::shared_ptr<workflow::WorkflowElement> element = dynamic_pointer_cast<workflow::WorkflowElement>(node->getModule());
     if (element) {
       element->writeResults();
     }

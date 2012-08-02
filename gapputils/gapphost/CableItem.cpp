@@ -12,7 +12,9 @@ using namespace std;
 
 namespace gapputils {
 
-CableItem::CableItem(Workbench* bench, ToolConnection* input, ToolConnection* output) : input(0), output(0), dragPoint(0), bench(bench)
+CableItem::CableItem(Workbench* bench,
+    boost::shared_ptr<ToolConnection> input,
+    boost::shared_ptr<ToolConnection> output) : bench(bench)
 {
   setAcceptedMouseButtons(0);
   if (input)
@@ -27,14 +29,11 @@ CableItem::CableItem(Workbench* bench, ToolConnection* input, ToolConnection* ou
 //  this->setGraphicsEffect(effect);
 }
 
-CableItem::~CableItem(void)
-{
-  if (dragPoint)
-    delete dragPoint;
-}
+CableItem::~CableItem(void) { }
 
 void CableItem::adjust() {
   QLineF line;
+  boost::shared_ptr<ToolConnection> input = this->input.lock(), output = this->output.lock();
   if (input && output)
     line = QLineF(mapFromItem(input->parent, input->attachmentPos()), mapFromItem(output->parent, output->attachmentPos()));
   else if (input && dragPoint)
@@ -47,15 +46,13 @@ void CableItem::adjust() {
 }
 
 void CableItem::setDragPoint(QPointF point) {
-  if (dragPoint)
-    delete dragPoint;
-  dragPoint = new QPointF(point);
+  dragPoint = boost::shared_ptr<QPointF>(new QPointF(point));
   adjust();
 }
 
-void CableItem::setInput(ToolConnection* input) {
-  if (this->input)
-    this->input->connect(0);
+void CableItem::setInput(boost::shared_ptr<ToolConnection> input) {
+  if (!this->input.expired())
+    this->input.lock()->connect(0);
   this->input = input;
   if (input) {
     input->connect(this);
@@ -63,9 +60,9 @@ void CableItem::setInput(ToolConnection* input) {
   adjust();
 }
 
-void CableItem::setOutput(ToolConnection* output) {
-  if (this->output)
-    this->output->connect(0);
+void CableItem::setOutput(boost::shared_ptr<ToolConnection> output) {
+  if (!this->output.expired())
+    this->output.lock()->connect(0);
   this->output = output;
   if (output) {
     output->connect(this);
@@ -73,26 +70,24 @@ void CableItem::setOutput(ToolConnection* output) {
   adjust();
 }
 
-ToolConnection* CableItem::getInput() const {
-  return input;
+boost::shared_ptr<ToolConnection> CableItem::getInput() const {
+  return input.lock();
 }
 
-ToolConnection* CableItem::getOutput() const {
-  return output;
+boost::shared_ptr<ToolConnection> CableItem::getOutput() const {
+  return output.lock();
 }
 
 bool CableItem::needInput() const {
-  return !input;
+  return input.expired();
 }
 
 bool CableItem::needOutput() const {
-  return !output;
+  return output.expired();
 }
 
 void CableItem::endDrag() {
-  if (dragPoint)
-    delete dragPoint;
-  dragPoint = 0;
+  dragPoint.reset();
 }
 
 QRectF CableItem::boundingRect() const {
@@ -114,7 +109,7 @@ void CableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem* /*optio
     }
   }
 
-  if (isCurrentCable || (bench->getCurrentCables().size() == 0  && input && input->parent->isCurrentItem()) || (bench->getCurrentCables().size() == 0  && output && output->parent->isCurrentItem())) {
+  if (isCurrentCable || (bench->getCurrentCables().size() == 0  && !input.expired() && input.lock()->parent->isCurrentItem()) || (bench->getCurrentCables().size() == 0  && !output.expired() && output.lock()->parent->isCurrentItem())) {
     setZValue(6);
     painter->setPen(QPen(Qt::darkGray, 4.5));
     painter->drawPath(path);

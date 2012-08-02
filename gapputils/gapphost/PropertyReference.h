@@ -29,29 +29,29 @@ private:
 
   // Identification properties
 
-  const gapputils::workflow::Workflow* workflow;  ///< Workflow
+  boost::weak_ptr<const gapputils::workflow::Workflow> workflow;  ///< Workflow
   std::string nodeId;         ///< The UUID of the node associated with the property
   std::string propertyId;     ///< PropertyName of the format propName.subPropName
 
   // Runtime access properties
 
-  gapputils::workflow::Node* node;
+  boost::weak_ptr<gapputils::workflow::Node> node;
   capputils::reflection::ReflectableClass* object;
   capputils::reflection::IClassProperty* prop;
 
 public:
   PropertyReference();
-  PropertyReference(const gapputils::workflow::Workflow* workflow,
+  PropertyReference(boost::shared_ptr<const gapputils::workflow::Workflow> workflow,
       const std::string& nodeId,
       const std::string& propertyId);
   virtual ~PropertyReference();
 
 public:
-  const gapputils::workflow::Workflow* getWorkflow() const;
+  boost::shared_ptr<const gapputils::workflow::Workflow> getWorkflow() const;
   std::string getNodeId() const;
   std::string getPropertyId() const;
 
-  gapputils::workflow::Node* getNode() const;
+  boost::shared_ptr<gapputils::workflow::Node> getNode() const;
   capputils::reflection::ReflectableClass* getObject() const;
   capputils::reflection::IClassProperty* getProperty() const;
 };

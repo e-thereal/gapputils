@@ -51,7 +51,7 @@ void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node,
     QStandardItem* key = new QStandardItem(keyName.c_str());
     QStandardItem* value = new QStandardItem();
     key->setEditable(false);
-    PropertyReference ref(node->getWorkflow(), node->getUuid(), propertyPrefix + properties[i]->getName());
+    PropertyReference ref(node->getWorkflow().lock(), node->getUuid(), propertyPrefix + properties[i]->getName());
     value->setData(QVariant::fromValue(ref), Qt::UserRole);
 
     if (node->getGlobalProperty(ref)) {
@@ -156,7 +156,7 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node
   }
 }
 
-ModelHarmonizer::ModelHarmonizer(gapputils::workflow::Node* node)
+ModelHarmonizer::ModelHarmonizer(boost::shared_ptr<gapputils::workflow::Node> node)
  : QObject(), node(node), modelLocked(false), handler(this, &ModelHarmonizer::changedHandler)
 {
   model = new QStandardItemModel(0, 2);
@@ -166,9 +166,9 @@ ModelHarmonizer::ModelHarmonizer(gapputils::workflow::Node* node)
   assert(node);
   assert(node->getModule());
 
-  buildModel(model->invisibleRootItem(), node->getModule(), node);
+  buildModel(model->invisibleRootItem(), node->getModule().get(), node.get());
   connect(model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(itemChanged(QStandardItem*)));
-  ObservableClass* observable = dynamic_cast<ObservableClass*>(node->getModule());
+  ObservableClass* observable = dynamic_cast<ObservableClass*>(node->getModule().get());
   if (observable) {
     observable->Changed.connect(handler);
   }
@@ -176,9 +176,12 @@ ModelHarmonizer::ModelHarmonizer(gapputils::workflow::Node* node)
 
 ModelHarmonizer::~ModelHarmonizer() {
   disconnect(model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(itemChanged(QStandardItem*)));
-  ObservableClass* observable = dynamic_cast<ObservableClass*>(node->getModule());
-  if (observable) {
-    observable->Changed.disconnect(handler);
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  if (node) {
+    ObservableClass* observable = dynamic_cast<ObservableClass*>(node->getModule().get());
+    if (observable) {
+      observable->Changed.disconnect(handler);
+    }
   }
   delete model;
 }
@@ -189,7 +192,7 @@ QStandardItemModel* ModelHarmonizer::getModel() const {
 
 void ModelHarmonizer::changedHandler(capputils::ObservableClass* sender, int eventId) {
   modelLocked = true;
-  updateModel(model->invisibleRootItem(), *node->getModule(), node);
+  updateModel(model->invisibleRootItem(), *node.lock()->getModule(), node.lock().get());
   modelLocked = false;
 }
 

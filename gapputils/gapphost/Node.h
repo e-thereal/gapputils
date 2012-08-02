@@ -8,7 +8,9 @@
 #include <capputils/ReflectableClass.h>
 #include <capputils/ObservableClass.h>
 #include <gapputils/IProgressMonitor.h>
-//#include "ModelHarmonizer.h"
+
+#include <boost/enable_shared_from_this.hpp>
+
 #include "Expression.h"
 
 class PropertyReference;
@@ -24,7 +26,8 @@ class GlobalProperty;
 class GlobalEdge;
 
 class Node : public capputils::reflection::ReflectableClass,
-             public capputils::ObservableClass
+             public capputils::ObservableClass,
+             public boost::enable_shared_from_this<Node>
 {
 public:
   InitReflectableClass(Node)
@@ -32,15 +35,14 @@ public:
   Property(Uuid, std::string)
   Property(X, int)
   Property(Y, int)
-  Property(Module, capputils::reflection::ReflectableClass*)
+  Property(Module, boost::shared_ptr<capputils::reflection::ReflectableClass>)
   Property(InputChecksum, checksum_t)
   Property(OutputChecksum, checksum_t)
   Property(ToolItem, ToolItem*)
-  Property(Workflow, Workflow*)
+  Property(Workflow, boost::weak_ptr<Workflow>)
   Property(Expressions, boost::shared_ptr<std::vector<boost::shared_ptr<Expression> > >)
 
 private:
-//  ModelHarmonizer* harmonizer;
   static int moduleId;
   bool readFromCache;
 
@@ -50,7 +52,7 @@ public:
 
   static std::string CreateUuid();
 
-  void getDependentNodes(std::vector<Node*>& dependendNodes);
+  void getDependentNodes(std::vector<boost::shared_ptr<Node> >& dependendNodes);
 
   /**
    * \brief Returns the expression object of the named property if the property is associated to one.
@@ -59,7 +61,7 @@ public:
    *
    * \return The expression object, or 0 if the property is not bound to an expression
    */
-  Expression* getExpression(const std::string& propertyName);
+  boost::shared_ptr<Expression> getExpression(const std::string& propertyName);
 
   /**
    * \brief Removes an expression from a property
@@ -76,8 +78,8 @@ public:
 
 //  QStandardItemModel* getModel();
 
-  virtual GlobalProperty* getGlobalProperty(const PropertyReference& reference);
-  virtual GlobalEdge* getGlobalEdge(const PropertyReference& reference);
+  virtual boost::shared_ptr<GlobalProperty> getGlobalProperty(const PropertyReference& reference);
+  virtual boost::shared_ptr<GlobalEdge> getGlobalEdge(const PropertyReference& reference);
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);

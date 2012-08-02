@@ -86,12 +86,12 @@ int main(int argc, char *argv[])
 
   // Initialize if necessary
   if (!model.getMainWorkflow()) {
-    Workflow* workflow = new Workflow();
+    boost::shared_ptr<Workflow> workflow(new Workflow());
     model.setMainWorkflow(workflow);
     //model.setCurrentWorkflow(workflow->getUuid());
   }
   if (!model.getMainWorkflow()->getModule())
-    model.getMainWorkflow()->setModule(new DefaultInterface());
+    model.getMainWorkflow()->setModule(boost::shared_ptr<DefaultInterface>(new DefaultInterface()));
 
   reflection::ReflectableClass& wfModule = *model.getMainWorkflow()->getModule();
 
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
   }
 
   model.save();
-  delete model.getMainWorkflow();
+//  delete model.getMainWorkflow();
 
   cublasShutdown();
 #ifdef GAPPHOST_CULA_SUPPORT

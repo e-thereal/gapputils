@@ -30,19 +30,18 @@ namespace gapputils {
 using namespace workflow;
 
 ToolConnection::ToolConnection(const QString& label, Direction direction,
-    ToolItem* parent, int id, MultiConnection* multi)
+    ToolItem* parent, int id, boost::shared_ptr<MultiConnection> multi)
   : x(0), y(0), width(6), height(7), label(label), direction(direction),
     parent(parent), id(id), cable(0), multi(multi)
 {
 }
 
-ToolConnection::~ToolConnection() {
-}
+ToolConnection::~ToolConnection() { }
 
 void ToolConnection::connect(CableItem* cable) {
   this->cable = cable;
-  if (multi)
-    multi->updateConnections();
+  if (!multi.expired())
+    multi.lock()->updateConnections();
 }
 
 void ToolConnection::draw(QPainter* painter, bool showLabel) const {
@@ -61,14 +60,14 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
 
     if (currentCable &&
         currentCable->needOutput() &&
-        parent->bench->areCompatible(currentCable->getInput(), this))
+        parent->bench->areCompatible(currentCable->getInput().get(), this))
     {
       painter->setBrush(Qt::white);
       painter->setOpacity(1.0);
 //      painter->setFont(boldFont);
     } else if(parent->isCurrentItem() && !currentCable) {
       painter->setBrush(Qt::white);
-    } else if (currentCable && currentCable->getOutput() == this) {
+    } else if (currentCable && currentCable->getOutput().get() == this) {
       painter->setBrush(Qt::white);
     } else if (!currentCable && cable && cable->getInput()->parent->isCurrentItem()) {
       painter->setBrush(Qt::white);
@@ -83,14 +82,14 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
   case Output:
     if (currentCable &&
         currentCable->needInput() &&
-        parent->bench->areCompatible(this, currentCable->getOutput()))
+        parent->bench->areCompatible(this, currentCable->getOutput().get()))
     {
       painter->setBrush(Qt::white);
       painter->setOpacity(1.0);
 //      painter->setFont(boldFont);
     } else if(parent->isCurrentItem() && !currentCable) {
       painter->setBrush(Qt::white);
-    } else if (currentCable && currentCable->getInput() == this) {
+    } else if (currentCable && currentCable->getInput().get() == this) {
       painter->setBrush(Qt::white);
     } else if (!currentCable && cable && cable->getOutput()->parent->isCurrentItem()) {
       painter->setBrush(Qt::white);
@@ -130,15 +129,12 @@ MultiConnection::MultiConnection(const QString& label, ToolConnection::Direction
     ToolItem* parent, int id)
  : label(label), direction(direction), parent(parent), id(id), expanded(false)
 {
-  connections.push_back(new ToolConnection(label, direction, parent, id, this));
+  connections.push_back(boost::shared_ptr<ToolConnection>(new ToolConnection(label, direction, parent, id, shared_from_this())));
 }
 
-MultiConnection::~MultiConnection() {
-  for (unsigned i = 0; i < connections.size(); ++i)
-    delete connections[i];
-}
+MultiConnection::~MultiConnection() { }
 
-bool MultiConnection::hits(std::vector<ToolConnection*>& connections,
+bool MultiConnection::hits(std::vector<boost::shared_ptr<ToolConnection> >& connections,
     int x, int y) const
 {
   for (unsigned i = 0; i < this->connections.size(); ++i)
@@ -148,10 +144,10 @@ bool MultiConnection::hits(std::vector<ToolConnection*>& connections,
 }
 
 // TODO: deprecated. will be replaced by getConnections() or new connection
-ToolConnection* MultiConnection::getLastConnection() {
+boost::shared_ptr<ToolConnection> MultiConnection::getLastConnection() {
   if (connections.size())
     return connections[connections.size() - 1];
-  return 0;
+  return boost::shared_ptr<ToolConnection>();
 }
 
 void MultiConnection::adjust() {
@@ -173,13 +169,12 @@ void MultiConnection::setPos(int x, int y) {
 void MultiConnection::updateConnections() {
   for (unsigned i = 0; i < connections.size() - 1; ++i) {
     if (connections[i]->cable == 0) {
-      delete connections[i];
       connections.erase(connections.begin() + i);
       --i;
     }
   }
   if (connections.size() && connections[connections.size() - 1]->cable)
-    connections.push_back(new ToolConnection(label, direction, parent, id, this));
+    connections.push_back(boost::shared_ptr<ToolConnection>(new ToolConnection(label, direction, parent, id, shared_from_this())));
   parent->updateSize();
   parent->update();
 }
@@ -234,10 +229,9 @@ int MultiConnection::getHeight() const {
   }
 }
 
-ToolItem::ToolItem(const std::string& label, Workbench *bench)
+ToolItem::ToolItem(const std::string& label, Workbench* bench)
  : QObject(), label(label), bench(bench), width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
-   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), /*deletable(true),*/
-   progress(Neutral)
+   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), progress(Neutral)
 {
   setFlag(ItemIsMovable);
   setFlag(ItemIsSelectable);
@@ -258,53 +252,35 @@ ToolItem::ToolItem(const std::string& label, Workbench *bench)
 //  this->setGraphicsEffect(effect);
 }
 
-ToolItem::~ToolItem() {
-  vector<ToolConnection*> tempIn(inputs);
-  vector<MultiConnection*> tempOut(outputs);
-  inputs.clear();
-  outputs.clear();
-
-  for (unsigned i = 0; i < tempIn.size(); ++i)
-    delete tempIn[i];
-  for (unsigned i = 0; i < tempOut.size(); ++i)
-    delete tempOut[i];
-}
+ToolItem::~ToolItem() { }
 
 void ToolItem::setWorkbench(Workbench* bench) {
   this->bench = bench;
 }
-
-//bool ToolItem::isDeletable() const {
-//  return deletable;
-//}
-
-//void ToolItem::setDeletable(bool deletable) {
-//  this->deletable = deletable;
-//}
 
 void ToolItem::setProgress(double progress) {
   this->progress = progress;
   update();
 }
 
-ToolConnection* ToolItem::hitConnection(int x, int y, ToolConnection::Direction direction) const {
+boost::shared_ptr<ToolConnection> ToolItem::hitConnection(int x, int y, ToolConnection::Direction direction) const {
   if (direction == ToolConnection::Input) {
     for (unsigned i = 0; i < inputs.size(); ++i)
       if (inputs[i]->hit(x, y))
         return inputs[i];
   } else {
     for (unsigned i = 0; i < outputs.size(); ++i) {
-      vector<ToolConnection*> connections;
+      vector<boost::shared_ptr<ToolConnection> > connections;
       if (outputs[i]->hits(connections, x, y))
         return connections[0];
     }
   }
-  return 0;
+  return boost::shared_ptr<ToolConnection>();
 }
 
-bool ToolItem::hitConnections(std::vector<ToolConnection*>& connections, int x, int y, ToolConnection::Direction direction) const {
+bool ToolItem::hitConnections(std::vector<boost::shared_ptr<ToolConnection> >& connections, int x, int y, ToolConnection::Direction direction) const {
   if (direction == ToolConnection::Input) {
-    ToolConnection* connection = hitConnection(x, y, direction);
+    boost::shared_ptr<ToolConnection> connection = hitConnection(x, y, direction);
     if (connection) {
       connections.push_back(connection);
       return true;
@@ -318,7 +294,7 @@ bool ToolItem::hitConnections(std::vector<ToolConnection*>& connections, int x, 
   return false;
 }
 
-ToolConnection* ToolItem::getConnection(int id, ToolConnection::Direction direction) const {
+boost::shared_ptr<ToolConnection> ToolItem::getConnection(int id, ToolConnection::Direction direction) const {
   if (direction == ToolConnection::Input) {
     for (unsigned i = 0; i < inputs.size(); ++i)
       if (inputs[i]->id == id)
@@ -328,7 +304,7 @@ ToolConnection* ToolItem::getConnection(int id, ToolConnection::Direction direct
       if (outputs[i]->id == id)
         return outputs[i]->getLastConnection();
   }
-  return 0;
+  return boost::shared_ptr<ToolConnection>();
 }
 
 QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) {
@@ -562,7 +538,6 @@ void ToolItem::deleteConnection(int id, ToolConnection::Direction direction) {
   if (direction == ToolConnection::Input) {
     for (unsigned i = 0; i < inputs.size(); ++i) {
       if (inputs[i]->id == id) {
-        delete inputs[i];
         inputs.erase(inputs.begin() + i);
         break;
       }
@@ -570,7 +545,6 @@ void ToolItem::deleteConnection(int id, ToolConnection::Direction direction) {
   } else {
     for (unsigned i = 0; i < outputs.size(); ++i) {
       if (outputs[i]->id == id) {
-        delete outputs[i];
         outputs.erase(outputs.begin() + i);
         break;
       }
@@ -602,13 +576,13 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
   painter->restore();
 }
 
-std::vector<ToolConnection*>& ToolItem::getInputs() {
+std::vector<boost::shared_ptr<ToolConnection> >& ToolItem::getInputs() {
   return inputs;
 }
 
-void ToolItem::getOutputs(std::vector<ToolConnection*>& connections) {
+void ToolItem::getOutputs(std::vector<boost::shared_ptr<ToolConnection> >& connections) {
   for (unsigned i = 0; i < outputs.size(); ++i) {
-    MultiConnection* multi = outputs[i];
+    boost::shared_ptr<MultiConnection> multi = outputs[i];
     for (unsigned j = 0; j < multi->connections.size(); ++j)
       connections.push_back(multi->connections[j]);
   }

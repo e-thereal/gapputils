@@ -9,6 +9,8 @@
 
 #include "Node.h"
 
+#include <boost/weak_ptr.hpp>
+
 class PropertyReference;
 
 namespace gapputils {
@@ -26,19 +28,20 @@ class Edge : public capputils::reflection::ReflectableClass
 
   Property(OutputNode, std::string)
   Property(OutputProperty, std::string)
-  Property(OutputNodePtr, Node*)
+  // TODO: get rid of node pointers. Use property reference instead
+  Property(OutputNodePtr, boost::weak_ptr<Node>)
   Property(OutputReference, boost::shared_ptr<PropertyReference>)
 
   Property(InputNode, std::string)
   Property(InputProperty, std::string)
-  Property(InputNodePtr, Node*)
+  Property(InputNodePtr, boost::weak_ptr<Node>)
   Property(InputReference, boost::shared_ptr<PropertyReference>)
 
   Property(CableItem, CableItem*)
 
 private:
   capputils::EventHandler<Edge> handler;
-  int outputId;
+  int outputId; // TODO: get rid of outputId
 
 public:
   Edge(void);
@@ -53,10 +56,11 @@ public:
    * properties are kept in sync. Compatible means that both properties are
    * of the same type or a type suitable type conversion is available.
    */
-  bool activate(Node* outputNode, Node* inputNode);
+  // TODO: activate via workflow pointer: well create property references
+  bool activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> inputNode);
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
-  static bool areCompatible(const Node* outputNode, int outputId, const Node* inputNode, int inputId);
+  //static bool areCompatible(const Node* outputNode, int outputId, const Node* inputNode, int inputId);
   static bool areCompatible(const capputils::reflection::IClassProperty* outputProperty,
       const capputils::reflection::IClassProperty* inputProperty);
 };
