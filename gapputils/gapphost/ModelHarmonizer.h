@@ -12,12 +12,15 @@
 #include <capputils/ReflectableClass.h>
 #include <qobject.h>
 #include <capputils/ObservableClass.h>
+#include <capputils/EventHandler.h>
 
 namespace gapputils {
 
 namespace workflow {
   class Node;
 }
+
+namespace host {
 
 class ModelHarmonizer : public QObject {
   Q_OBJECT
@@ -26,6 +29,7 @@ private:
   gapputils::workflow::Node* node;
   QStandardItemModel* model;
   bool modelLocked;
+  capputils::EventHandler<ModelHarmonizer> handler;
 
 public:
   ModelHarmonizer(gapputils::workflow::Node* node);
@@ -38,6 +42,8 @@ public:
 private Q_SLOTS:
   void itemChanged(QStandardItem* item);
 };
+
+}
 
 }
 

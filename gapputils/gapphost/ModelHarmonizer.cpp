@@ -11,7 +11,6 @@
 #include <capputils/Enumerator.h>
 #include <capputils/IReflectableAttribute.h>
 #include <capputils/ScalarAttribute.h>
-#include <capputils/EventHandler.h>
 #include <iostream>
 #include <sstream>
 #include <gapputils/LabelAttribute.h>
@@ -35,7 +34,9 @@ namespace gapputils {
 using namespace attributes;
 using namespace workflow;
 
-void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node) {
+namespace host {
+
+void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node, const std::string& propertyPrefix = "") {
   vector<IClassProperty*> properties = object->getProperties();
   parentItem->removeRows(0, parentItem->rowCount());
 
@@ -50,7 +51,20 @@ void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node)
     QStandardItem* key = new QStandardItem(keyName.c_str());
     QStandardItem* value = new QStandardItem();
     key->setEditable(false);
-    value->setData(QVariant::fromValue(PropertyReference(object, properties[i], node)), Qt::UserRole);
+    PropertyReference ref(node->getWorkflow(), node->getUuid(), propertyPrefix + properties[i]->getName());
+    value->setData(QVariant::fromValue(ref), Qt::UserRole);
+
+    if (node->getGlobalProperty(ref)) {
+      QFont font = value->font();
+      font.setUnderline(true);
+      value->setFont(font);
+    }
+
+    if (node->getGlobalEdge(ref)) {
+      QFont font = value->font();
+      font.setItalic(true);
+      value->setFont(font);
+    }
 
     DescriptionAttribute* description = properties[i]->getAttribute<DescriptionAttribute>();
     if (description) {
@@ -84,7 +98,7 @@ void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node)
         //} else {
         //  value->setText(properties[i]->getStringValue(*object).c_str());
         //}
-        buildModel(key, subObject, node);
+        buildModel(key, subObject, node, propertyPrefix + properties[i]->getName() + ".");
       } else {
         // TODO: report problem
       }
@@ -97,7 +111,7 @@ void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node)
   }
 }
 
-void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node) {
+void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node, const std::string& propertyPrefix = "") {
   vector<IClassProperty*> properties = object.getProperties();
 
   for (unsigned i = 0, gridPos = 0; i < properties.size(); ++i) {
@@ -122,21 +136,16 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node
 
       // If the type of the reflectable object has changed, the subtree needs to be rebuild.
       // You need to know the previous type in order to detect a changed. ScalarAttributes are
-      // no longer supported in order to garantee, that the string value is always set to the
+      // no longer supported in order to guarantee, that the string value is always set to the
       // previous type name.
-      Enumerator* enumerator = dynamic_cast<Enumerator*>(subObject);
-      if (!enumerator && subObject) {
+      if (subObject) {
         std::string oldClassName(value->text().toAscii().data());
         if (oldClassName.compare(subObject->getClassName())) {
           value->setText(subObject->getClassName().c_str());
-          buildModel(parentItem->child(gridPos, 0), subObject, node);
+          buildModel(parentItem->child(gridPos, 0), subObject, node, propertyPrefix + properties[i]->getName() + ".");
         } else {
-          updateModel(parentItem->child(gridPos, 0), *subObject, node);
+          updateModel(parentItem->child(gridPos, 0), *subObject, node, propertyPrefix + properties[i]->getName() + ".");
         }
-        //if (!subObject->getAttribute<ScalarAttribute>()) {
-        //} else {
-        //  value->setText(properties[i]->getStringValue(object).c_str());
-        //}
       } else {
         value->setText(properties[i]->getStringValue(object).c_str());
       }
@@ -148,7 +157,7 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node
 }
 
 ModelHarmonizer::ModelHarmonizer(gapputils::workflow::Node* node)
- : QObject(), node(node), modelLocked(false)
+ : QObject(), node(node), modelLocked(false), handler(this, &ModelHarmonizer::changedHandler)
 {
   model = new QStandardItemModel(0, 2);
   model->setHorizontalHeaderItem(0, new QStandardItem("Property"));
@@ -161,11 +170,16 @@ ModelHarmonizer::ModelHarmonizer(gapputils::workflow::Node* node)
   connect(model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(itemChanged(QStandardItem*)));
   ObservableClass* observable = dynamic_cast<ObservableClass*>(node->getModule());
   if (observable) {
-    observable->Changed.connect(capputils::EventHandler<ModelHarmonizer>(this, &ModelHarmonizer::changedHandler));
+    observable->Changed.connect(handler);
   }
 }
 
 ModelHarmonizer::~ModelHarmonizer() {
+  disconnect(model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(itemChanged(QStandardItem*)));
+  ObservableClass* observable = dynamic_cast<ObservableClass*>(node->getModule());
+  if (observable) {
+    observable->Changed.disconnect(handler);
+  }
   delete model;
 }
 
@@ -199,16 +213,13 @@ void ModelHarmonizer::itemChanged(QStandardItem* item) {
           subObject->fromStream(stream);
           reflectable->setValuePtr(*object, prop, subObject);
         }
-        //if (subObject->getAttribute<ScalarAttribute>()) {
-        //  stringstream stream(str);
-        //  subObject->fromStream(stream);
-        //  reflectable->setValuePtr(*object, prop, subObject);
-        //}
       } else {
         prop->setStringValue(*object, str);
       }
     }
   }
+}
+
 }
 
 }

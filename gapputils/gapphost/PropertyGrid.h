@@ -14,6 +14,8 @@
 #include <qaction.h>
 #include <qpoint.h>
 
+#include <boost/shared_ptr.hpp>
+
 namespace gapputils {
 
 namespace workflow {
@@ -24,7 +26,9 @@ class Node;
 
 namespace host {
 
-class PropertyGrid : public QSplitter{
+class ModelHarmonizer;
+
+class PropertyGrid : public QSplitter {
 
   Q_OBJECT
 
@@ -33,6 +37,7 @@ private:
   QFormLayout* infoLayout;
   QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal;
   workflow::Node* node;
+  boost::shared_ptr<ModelHarmonizer> harmonizer;
 
 public:
   PropertyGrid(QWidget* parent = 0);

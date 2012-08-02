@@ -27,12 +27,12 @@ class Edge : public capputils::reflection::ReflectableClass
   Property(OutputNode, std::string)
   Property(OutputProperty, std::string)
   Property(OutputNodePtr, Node*)
-  Property(OutputReference, PropertyReference*)
+  Property(OutputReference, boost::shared_ptr<PropertyReference>)
 
   Property(InputNode, std::string)
   Property(InputProperty, std::string)
   Property(InputNodePtr, Node*)
-  Property(InputReference, PropertyReference*)
+  Property(InputReference, boost::shared_ptr<PropertyReference>)
 
   Property(CableItem, CableItem*)
 
