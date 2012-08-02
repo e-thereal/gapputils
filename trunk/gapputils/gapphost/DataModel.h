@@ -8,6 +8,7 @@
 #include <map>
 
 #include "Workflow.h"
+#include <boost/weak_ptr.hpp>
 
 class QLabel;
 
@@ -28,10 +29,11 @@ class DataModel : public capputils::reflection::ReflectableClass
   Property(WindowY, int)
   Property(WindowWidth, int)
   Property(WindowHeight, int)
-  Property(MainWorkflow, workflow::Workflow*)
+  Property(MainWorkflow, boost::shared_ptr<workflow::Workflow>)
   Property(OpenWorkflows, boost::shared_ptr<std::vector<std::string> >)
   Property(CurrentWorkflow, std::string)
-  Property(WorkflowMap, boost::shared_ptr<std::map<std::string CAPPUTILS_COMMA() workflow::Workflow*> >)     ///< Getter and setters only. No DefineProperty in the cpp file
+  // TODO: why do I need this map?
+  Property(WorkflowMap, boost::shared_ptr<std::map<std::string CAPPUTILS_COMMA() boost::shared_ptr<workflow::Workflow> > >)     ///< Getter and setters only. No DefineProperty in the cpp file
   Property(MainWindow, MainWindow*)
   Property(PassedLabel, QLabel*)
   Property(RemainingLabel, QLabel*)

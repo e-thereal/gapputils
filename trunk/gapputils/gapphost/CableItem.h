@@ -6,6 +6,10 @@
 #include <qgraphicsitem.h>
 #include <qpoint.h>
 
+#include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
+
 namespace capputils {
 class ObservableClass;
 }
@@ -18,9 +22,9 @@ class Workbench;
 class CableItem : public QGraphicsItem
 {
 private:
-  ToolConnection* input;
-  ToolConnection* output;
-  QPointF* dragPoint;
+  boost::weak_ptr<ToolConnection> input;
+  boost::weak_ptr<ToolConnection> output;
+  boost::shared_ptr<QPointF> dragPoint;
 
   QPointF sourcePoint;
   QPointF destPoint;
@@ -28,17 +32,19 @@ private:
   Workbench* bench;
 
 public:
-  CableItem(Workbench* bench, ToolConnection* input = 0, ToolConnection* output = 0);
+  CableItem(Workbench* bench,
+      boost::shared_ptr<ToolConnection> input = boost::shared_ptr<ToolConnection>(),
+      boost::shared_ptr<ToolConnection> output = boost::shared_ptr<ToolConnection>());
   virtual ~CableItem(void);
 
   void adjust();
   QRectF boundingRect() const;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
   void setDragPoint(QPointF point);
-  void setInput(ToolConnection* output);
-  void setOutput(ToolConnection* output);
-  ToolConnection* getInput() const;
-  ToolConnection* getOutput() const;
+  void setInput(boost::shared_ptr<ToolConnection> input);
+  void setOutput(boost::shared_ptr<ToolConnection> output);
+  boost::shared_ptr<ToolConnection> getInput() const;
+  boost::shared_ptr<ToolConnection> getOutput() const;
   bool needInput() const;
   bool needOutput() const;
   void endDrag();

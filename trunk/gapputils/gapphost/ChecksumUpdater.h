@@ -7,6 +7,7 @@
 
 #include <capputils/ReflectableClass.h>
 #include <gapputils/gapputils.h>
+#include <boost/weak_ptr.hpp>
 
 namespace gapputils {
 
@@ -27,7 +28,7 @@ public:
     OnlyNondependentParameters = ExcludeNoParameters | ExcludeDependent
   };
 private:
-  std::stack<workflow::Node*> nodesStack;
+  std::stack<boost::shared_ptr<workflow::Node> > nodesStack;
 
 public:
   ChecksumUpdater(void);
@@ -38,12 +39,12 @@ public:
    * If the given node is a workflow, the checksums of all output nodes of the workflow are updated as well
    * The workflow checksum is then build from the checksums of the output nodes
    */
-  void update(workflow::Node* node);
+  void update(boost::shared_ptr<workflow::Node> node);
 
-  static checksum_t GetChecksum(workflow::Node* node, int flags = OnlyNondependentParameters);
+  static checksum_t GetChecksum(boost::shared_ptr<workflow::Node> node, int flags = OnlyNondependentParameters);
 
 private:
-  void buildStack(workflow::Node* node);
+  void buildStack(boost::shared_ptr<workflow::Node> node);
 };
 
 }

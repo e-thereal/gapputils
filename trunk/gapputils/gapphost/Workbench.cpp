@@ -20,7 +20,7 @@ using namespace std;
 namespace gapputils {
 
 Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
-    modifiable(true), checker(0), viewScale(1.0)
+    modifiable(true), viewScale(1.0)
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -40,10 +40,9 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
   //scene->addItem(shadowRect);
 }
 
-Workbench::~Workbench() {
-}
+Workbench::~Workbench() { }
 
-void Workbench::setChecker(CompatibilityChecker* checker) {
+void Workbench::setChecker(boost::shared_ptr<CompatibilityChecker> checker) {
   this->checker = checker;
 }
 
@@ -57,13 +56,13 @@ void Workbench::addToolItem(ToolItem* item) {
 }
 
 void Workbench::removeToolItem(ToolItem* item) {
-  vector<ToolConnection*>& inputs = item->getInputs();
+  vector<boost::shared_ptr<ToolConnection> >& inputs = item->getInputs();
   for (unsigned i = 0; i < inputs.size(); ++i) {
     if (inputs[i]->cable)
       removeCableItem(inputs[i]->cable);
   }
 
-  vector<ToolConnection*> outputs;
+  vector<boost::shared_ptr<ToolConnection> > outputs;
   item->getOutputs(outputs);
   for (unsigned i = 0; i < outputs.size(); ++i) {
     if (outputs[i]->cable)
@@ -91,9 +90,9 @@ void Workbench::addCableItem(CableItem* cable) {
 
 void Workbench::removeCableItem(CableItem* cable) {
   if (cable->getInput() && cable->getInput()->cable == cable)
-    cable->setInput(0);
+    cable->setInput(boost::shared_ptr<ToolConnection>());
   if (cable->getOutput() && cable->getOutput()->cable == cable)
-    cable->setOutput(0);
+    cable->setOutput(boost::shared_ptr<ToolConnection>());
   scene()->removeItem(cable);
   delete cable;
 }
@@ -105,7 +104,7 @@ bool Workbench::isDependent(QGraphicsItem* item) {
 void addAllInputs(set<QGraphicsItem*>& items, ToolItem* item) {
   if (!item)
     return;
-  vector<ToolConnection*>& inputs = item->getInputs();
+  vector<boost::shared_ptr<ToolConnection> >& inputs = item->getInputs();
   for(unsigned i = 0; i < inputs.size(); ++i) {
     if (inputs[i]->cable) {
       items.insert(inputs[i]->cable);
@@ -120,7 +119,7 @@ void addAllInputs(set<QGraphicsItem*>& items, ToolItem* item) {
 void addAllOutputs(set<QGraphicsItem*>& items, ToolItem* item) {
   if (!item)
     return;
-  vector<ToolConnection*> outputs;
+  vector<boost::shared_ptr<ToolConnection> > outputs;
   item->getOutputs(outputs);
   for(unsigned i = 0; i < outputs.size(); ++i) {
     if (outputs[i]->cable) {
@@ -170,7 +169,7 @@ void Workbench::notifyItemChange(ToolItem* item) {
 }
 
 void Workbench::mousePressEvent(QMouseEvent* event) {
-  vector<ToolConnection*> connections;
+  vector<boost::shared_ptr<ToolConnection> > connections;
 
   if (!modifiable) {
     if (event->button() == Qt::LeftButton)
@@ -193,11 +192,11 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
       if (tool->hitConnections(connections, ex - tx, ey - ty, ToolConnection::Output)) {
         // all connected cables are current cables
         for (unsigned i = 0; i < connections.size(); ++i) {
-          ToolConnection* connection = connections[i];
+          boost::shared_ptr<ToolConnection> connection = connections[i];
           if (connection->cable) {
             CableItem* currentCable = connection->cable;
             currentCables.push_back(currentCable);
-            currentCable->setInput(0);
+            currentCable->setInput(boost::shared_ptr<ToolConnection>());
             currentCable->setDragPoint(mapToScene(event->pos()));
             Q_EMIT connectionRemoved(currentCable);
           }
@@ -213,16 +212,16 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
         }
         return;
       }
-      ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
+      boost::shared_ptr<ToolConnection> connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
       if (connection) {
         if (connection->cable) {
           CableItem* currentCable = connection->cable;
           currentCables.push_back(currentCable);
-          currentCable->setOutput(0);
+          currentCable->setOutput(boost::shared_ptr<ToolConnection>());
           currentCable->setDragPoint(mapToScene(event->pos()));
           Q_EMIT connectionRemoved(currentCable);
         } else {
-          CableItem* currentCable = new CableItem(this, 0, connection);
+          CableItem* currentCable = new CableItem(this, boost::shared_ptr<ToolConnection>(), connection);
           currentCables.push_back(currentCable);
           currentCable->setDragPoint(mapToScene(event->pos()));
           scene()->addItem(currentCable);
@@ -260,8 +259,8 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
         int tx = item->x();
         int ty = item->y();
         if (currentCables.size() == 1 && currentCables[0]->needOutput()) {
-          ToolConnection* connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
-          if (connection && areCompatible(currentCables[0]->getInput(), connection)) {
+          boost::shared_ptr<ToolConnection> connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
+          if (connection && areCompatible(currentCables[0]->getInput().get(), connection.get())) {
             foundConnection = true;
             CableItem* oldCable = connection->cable;
             currentCables[0]->setOutput(connection);
@@ -277,11 +276,11 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
 
           // Single Cable Case
           if (currentCables.size() == 1) {
-            vector<ToolConnection*> connections;
+            vector<boost::shared_ptr<ToolConnection> > connections;
             tool->hitConnections(connections, ex - tx, ey - ty, ToolConnection::Output);
             if (connections.size()) {
-              ToolConnection* connection = connections[connections.size()-1];
-              if (areCompatible(connection, currentCables[0]->getOutput())) {
+              boost::shared_ptr<ToolConnection> connection = connections[connections.size()-1];
+              if (areCompatible(connection.get(), currentCables[0]->getOutput().get())) {
                 foundConnection = true;
                 CableItem* oldCable = connection->cable;
                 currentCables[0]->setInput(connection);
@@ -315,7 +314,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 bool Workbench::areCompatible(const ToolConnection* output, const ToolConnection* input) const {
-  return !checker || checker->areCompatibleConnections(output, input);
+  return !checker.expired() && checker.lock()->areCompatibleConnections(output, input);
 }
 
 

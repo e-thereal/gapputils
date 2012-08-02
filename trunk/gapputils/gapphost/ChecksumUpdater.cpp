@@ -125,13 +125,13 @@ ChecksumUpdater::~ChecksumUpdater(void)
 {
 }
 
-void ChecksumUpdater::update(workflow::Node* node) {
+void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
   while(!nodesStack.empty())
     nodesStack.pop();
 
-  workflow::Workflow* workflow = dynamic_cast<workflow::Workflow*>(node);
+  boost::shared_ptr<workflow::Workflow> workflow = dynamic_pointer_cast<workflow::Workflow>(node);
   if (workflow) {
-    std::vector<workflow::Node*>& interfaceNodes = workflow->getInterfaceNodes();
+    std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
       if (workflow->isOutputNode(interfaceNodes[i]))
         buildStack(interfaceNodes[i]);
@@ -140,13 +140,13 @@ void ChecksumUpdater::update(workflow::Node* node) {
     buildStack(node);
   }
   while (!nodesStack.empty()) {
-    workflow::Node* currentNode = nodesStack.top();
+    boost::shared_ptr<workflow::Node> currentNode = nodesStack.top();
     nodesStack.pop();
 
     // Update checksum + checksum from dependent stuff
     boost::crc_32_type valueSum;
 
-    workflow::Workflow* subworkflow = dynamic_cast<workflow::Workflow*>(currentNode);
+    boost::shared_ptr<workflow::Workflow> subworkflow = dynamic_pointer_cast<workflow::Workflow>(currentNode);
     if (subworkflow) {
       ChecksumUpdater updater;
       updater.update(subworkflow);
@@ -154,14 +154,14 @@ void ChecksumUpdater::update(workflow::Node* node) {
       assert(currentNode->getModule());
       
       checksum_t dependentSum = 0;
-      checksum_t selfSum = getChecksum(currentNode->getModule(), currentNode);
+      checksum_t selfSum = getChecksum(currentNode->getModule().get(), currentNode.get());
 
       valueSum.process_bytes(&selfSum, sizeof(selfSum));
       //std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
 
       // TODO: test if it makes a difference when I cache the checksums in a vector and calculate the total sum in one go
 
-      std::vector<workflow::Node*> dependentNodes;
+      std::vector<boost::shared_ptr<workflow::Node> > dependentNodes;
       currentNode->getDependentNodes(dependentNodes);
       //std::cout << "  Dependent nodes: " << dependentNodes.size() << std::endl;
       for (unsigned i = 0; i < dependentNodes.size(); ++i) {
@@ -185,7 +185,7 @@ void ChecksumUpdater::update(workflow::Node* node) {
     // accumulate checksums of output nodes
     boost::crc_32_type valueSum;
 
-    std::vector<workflow::Node*>& interfaceNodes = workflow->getInterfaceNodes();
+    std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
       if (workflow->isOutputNode(interfaceNodes[i])) {
         checksum_t cs = interfaceNodes[i]->getInputChecksum();
@@ -198,23 +198,23 @@ void ChecksumUpdater::update(workflow::Node* node) {
   }
 }
 
-checksum_t ChecksumUpdater::GetChecksum(workflow::Node* node, int flags) {
+checksum_t ChecksumUpdater::GetChecksum(boost::shared_ptr<workflow::Node> node, int flags) {
   assert(node);
-  return getChecksum(node->getModule(), node, flags);
+  return getChecksum(node->getModule().get(), node.get(), flags);
 }
 
-void ChecksumUpdater::buildStack(workflow::Node* node) {
+void ChecksumUpdater::buildStack(boost::shared_ptr<workflow::Node> node) {
 
   //std::cout << "Building stack of: " << node->getUuid() << std::endl;
 
   // Rebuild the stack without node, thus guaranteeing that node appears only once
-  std::stack<workflow::Node*> oldStack;
+  std::stack<boost::shared_ptr<workflow::Node> > oldStack;
   while (!nodesStack.empty()) {
     oldStack.push(nodesStack.top());
     nodesStack.pop();
   }
   while (!oldStack.empty()) {
-    workflow::Node* n = oldStack.top();
+    boost::shared_ptr<workflow::Node> n = oldStack.top();
     if (n != node)
       nodesStack.push(n);
     oldStack.pop();
@@ -223,7 +223,7 @@ void ChecksumUpdater::buildStack(workflow::Node* node) {
   nodesStack.push(node);
 
   // call build stack for all output nodes
-  std::vector<workflow::Node*> dependentNodes;
+  std::vector<boost::shared_ptr<workflow::Node> > dependentNodes;
   node->getDependentNodes(dependentNodes);
   for (unsigned i = 0; i < dependentNodes.size(); ++i)
     buildStack(dependentNodes[i]);

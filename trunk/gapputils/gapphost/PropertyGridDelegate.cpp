@@ -97,7 +97,7 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
     const PropertyReference& reference = varient.value<PropertyReference>();
     IClassProperty* property = reference.getProperty();
     ReflectableClass* object = reference.getObject();
-    Node* node = reference.getNode();
+    boost::shared_ptr<Node> node = reference.getNode();
 
     //IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
     FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
@@ -123,7 +123,7 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
     } else if (reference.getProperty()->getAttribute<FilenameAttribute>()) {
       FilenameEdit* edit = static_cast<FilenameEdit*>(editor);
 
-      Expression* expression = node->getExpression(property->getName());
+      boost::shared_ptr<Expression> expression = node->getExpression(property->getName());
       if (expression) {
         edit->setText(expression->getExpression().c_str());
       } else {
@@ -133,7 +133,7 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
     } else if (stringProperty) {
       QLineEdit* edit = static_cast<QLineEdit*>(editor);
 
-      Expression* expression = node->getExpression(property->getName());
+      boost::shared_ptr<Expression> expression = node->getExpression(property->getName());
       if (expression) {
         edit->setText(expression->getExpression().c_str());
       } else {
@@ -159,7 +159,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
 
     IClassProperty* property = reference.getProperty();
     ReflectableClass* object = reference.getObject();
-    Node* node = reference.getNode();
+    boost::shared_ptr<Node> node = reference.getNode();
 
     //IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
     IEnumeratorAttribute* enumAttr = property->getAttribute<IEnumeratorAttribute>();
@@ -184,7 +184,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
       if (text[0] == '=') {
         std::string expressionString(text.toAscii().data());
         // TODO: use name field of PropertyReference instead
-        Expression* expression = node->getExpression(property->getName());
+        boost::shared_ptr<Expression> expression = node->getExpression(property->getName());
         if (expression) {
           expression->setExpression(expressionString);
         } else {
@@ -194,7 +194,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
           newExpression->setPropertyName(property->getName());
           newExpression->setNode(node);
           node->getExpressions()->push_back(newExpression);
-          expression = newExpression.get();
+          expression = newExpression;
         }
         model->setData(index, expression->evaluate().c_str());
         expression->resume();
@@ -210,7 +210,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
       if (text[0] == '=') {
         std::string expressionString(text.toAscii().data());
         // TODO: use name field of PropertyReference instead
-        Expression* expression = node->getExpression(property->getName());
+        boost::shared_ptr<Expression> expression = node->getExpression(property->getName());
         if (expression) {
           expression->setExpression(expressionString);
         } else {
@@ -219,7 +219,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
           newExpression->setPropertyName(property->getName());
           newExpression->setNode(node);
           node->getExpressions()->push_back(newExpression);
-          expression = newExpression.get();
+          expression = newExpression;
         }
         model->setData(index, expression->evaluate().c_str());
         expression->resume();

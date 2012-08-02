@@ -70,17 +70,17 @@ int Workflow::librariesId;
 BeginPropertyDefinitions(Workflow)
 
 // Libraries must be the first property since libraries must be loaded before all other modules
-DefineProperty(Libraries, Enumerable<vector<std::string>*, false>(), Observe(librariesId = Id))
+DefineProperty(Libraries, Enumerable<Type, false>(), Observe(librariesId = Id))
 
 // Add Properties of node after librarie
 // Original reason: module could be an object of a class of one of the libraries)
 // Shouldn't be the case anymore but just to be save, leave it here for now. (there's no harm)
 ReflectableBase(Node)
 
-DefineProperty(Edges, Enumerable<vector<Edge*>*, true>())
-DefineProperty(Nodes, Enumerable<vector<Node*>*, true>())
-DefineProperty(GlobalProperties, Enumerable<vector<GlobalProperty*>*, true>())
-DefineProperty(GlobalEdges, Enumerable<vector<GlobalEdge*>*, true>())
+DefineProperty(Edges, Enumerable<Type, true>())
+DefineProperty(Nodes, Enumerable<Type, true>())
+DefineProperty(GlobalProperties, Enumerable<Type, true>())
+DefineProperty(GlobalEdges, Enumerable<Type, true>())
 DefineProperty(ViewportScale)
 DefineProperty(ViewportPosition)
 DefineProperty(Logbook, Volatile())
@@ -90,15 +90,14 @@ EndPropertyDefinitions
 // TODO: If a node changes, check if global properties of the node are still valid.
 
 Workflow::Workflow()
- : _ViewportScale(1.0), _Logbook(new Logbook(&host::LogbookModel::GetInstance())),
-   ownWidget(true), progressNode(0), workflowUpdater(new host::WorkflowUpdater())
+ : _Libraries(new vector<std::string>()),
+   _Edges(new vector<Edge*>()),
+   _Nodes(new vector<Node*>()),
+   _GlobalProperties(new vector<GlobalProperty*>()),
+   _GlobalEdges(new vector<GlobalEdge*>()),
+   _ViewportScale(1.0), _Logbook(new Logbook(&host::LogbookModel::GetInstance())),
+   ownWidget(true), workflowUpdater(new host::WorkflowUpdater())
 {
-  _Libraries = new vector<std::string>();
-  _Edges = new vector<Edge*>();
-  _Nodes = new vector<Node*>();
-  _GlobalProperties = new vector<GlobalProperty*>();
-  _GlobalEdges = new vector<GlobalEdge*>();
-
   _ViewportPosition.push_back(0);
   _ViewportPosition.push_back(0);
 
@@ -106,7 +105,7 @@ Workflow::Workflow()
 
   workbench = new Workbench();
   workbench->setGeometry(0, 0, 600, 600);
-  workbench->setChecker(this);
+  workbench->setChecker(boost::enable_shared_from_this<Workflow>::shared_from_this());
   widget = workbench;
 
   connect(workbench, SIGNAL(createItemRequest(int, int, QString)), this, SLOT(createModule(int, int, QString)));
@@ -117,7 +116,7 @@ Workflow::Workflow()
   connect(workbench, SIGNAL(connectionRemoved(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
   connect(workbench, SIGNAL(viewportChanged()), this, SLOT(handleViewportChanged()));
 
-  connect(workflowUpdater.get(), SIGNAL(progressed(workflow::Node*, double)), this, SLOT(showProgress(workflow::Node*, double)));
+  connect(workflowUpdater.get(), SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double)), this, SLOT(showProgress(boost::shared_ptr<workflow::Node>, double)));
   connect(workflowUpdater.get(), SIGNAL(updateFinished()), this, SLOT(workflowUpdateFinished()));
 
   this->Changed.connect(EventHandler<Workflow>(this, &Workflow::changedHandler));
@@ -129,7 +128,7 @@ Workflow::~Workflow() {
   const std::string className = (getModule() ? getModule()->getClassName() : "none");
   const std::string uuid = getUuid();
 //  std::cout << "[Info] Start deleting " << className << " (" << uuid << ")" << std::endl;
-  Q_EMIT deleteCalled(this);
+  Q_EMIT deleteCalled(boost::enable_shared_from_this<Workflow>::shared_from_this());
 
   LibraryLoader& loader = LibraryLoader::getInstance();
 
@@ -137,37 +136,30 @@ Workflow::~Workflow() {
     delete widget;
   }
 
-  for (unsigned i = 0; i < _Edges->size(); ++i)
-    delete _Edges->at(i);
-  delete _Edges;
-
-  for (unsigned i = 0; i < _GlobalEdges->size(); ++i)
-    delete _GlobalEdges->at(i);
-  delete _GlobalEdges;
-
   // Delete expressions first because expressions link to nodes and
   // disconnect when deleted. Thus, the node must not be deleted before
   // deleting the expression
-  for (unsigned i = 0; i < _Nodes->size(); ++i)
-    _Nodes->at(i)->getExpressions()->clear();
+//  for (unsigned i = 0; i < _Nodes->size(); ++i)
+//    _Nodes->at(i)->getExpressions()->clear();
 
-  for (unsigned i = 0; i < _Nodes->size(); ++i)
-    delete _Nodes->at(i);
-  delete _Nodes;
-
-  for (unsigned i = 0; i < _GlobalProperties->size(); ++i)
-    delete _GlobalProperties->at(i);
-  delete _GlobalProperties;
+//  for (unsigned i = 0; i < _Nodes->size(); ++i)
+//    delete _Nodes->at(i);
+//  delete _Nodes;
+//
+//  for (unsigned i = 0; i < _GlobalProperties->size(); ++i)
+//    delete _GlobalProperties->at(i);
+//  delete _GlobalProperties;
 
   // Don't delete module before setting it to zero
   // The module property is observed and reflectable. Thus, when resetting
   // the module, the event listener is disconnected from the old module.
   // This will cause the application to crash when the module has already been
   // deleted.
-  ReflectableClass* module = getModule();
-  setModule(0);
-  if (module)
-    delete module;
+//  ReflectableClass* module = getModule();
+//  setModule(0);
+//  if (module)
+//    delete module;
+  setModule(boost::shared_ptr<ReflectableClass>());
 
   // Unload libraries
   for (unsigned i = 0; i < _Libraries->size(); ++i) {
@@ -175,21 +167,21 @@ Workflow::~Workflow() {
     loader.freeLibrary(_Libraries->at(i));
   }
 
-  delete _Libraries;
+//  delete _Libraries;
 
-  map<string, Workflow*>* workflowMap = host::DataModel::getInstance().getWorkflowMap().get();
+  map<string, boost::shared_ptr<Workflow> >& workflowMap = *host::DataModel::getInstance().getWorkflowMap();
   //assert(workflowMap->find(getUuid()) != workflowMap->end());
-  if (workflowMap && workflowMap->find(getUuid()) != workflowMap->end())
-    workflowMap->erase(getUuid());
+  if (workflowMap.find(getUuid()) != workflowMap.end())
+    workflowMap.erase(getUuid());
 
 //  std::cout << "[Info] Finished deleting " << className << " (" << uuid << ")" << std::endl;
 }
 
-void Workflow::addInterfaceNode(Node* node) {
+void Workflow::addInterfaceNode(boost::shared_ptr<Node> node) {
   Logbook& dlog = *getLogbook();
   interfaceNodes.push_back(node);
 
-  ReflectableClass* object = node->getModule();
+  boost::shared_ptr<ReflectableClass> object = node->getModule();
   assert(object);
 
   IClassProperty* prop = object->findProperty("Value");
@@ -216,12 +208,12 @@ void Workflow::addInterfaceNode(Node* node) {
   }
 }
   
-void Workflow::removeInterfaceNode(Node* node) {
+void Workflow::removeInterfaceNode(boost::shared_ptr<Node> node) {
   Logbook& dlog = *getLogbook();
 //  std::cout << "[Info] removing interface node" << std::endl;
 
   int deletedId = -1;
-  ReflectableClass* object = node->getModule();
+  boost::shared_ptr<ReflectableClass> object = node->getModule();
   assert(object);
 
   IClassProperty* prop = object->findProperty("Value");
@@ -232,11 +224,11 @@ void Workflow::removeInterfaceNode(Node* node) {
 //      std::cout << "[Info] removed idx = " << i << std::endl;
 
       // delete edges connected to the node/tool connection
-      Workflow* parent = getWorkflow();
+      boost::shared_ptr<Workflow> parent = getWorkflow().lock();
       if (parent) {
-        vector<Edge*>* edges = parent->getEdges();
+        boost::shared_ptr<vector<boost::shared_ptr<Edge> > > edges = parent->getEdges();
         for (int j = (int)edges->size() - 1; j >= 0; --j) {
-          Edge* edge = edges->at(j);
+          boost::shared_ptr<Edge> edge = edges->at(j);
           if (edge->getInputProperty() == node->getUuid() || edge->getOutputProperty() == node->getUuid()) {
             if (edge->getCableItem())
               parent->workbench->removeCableItem(edge->getCableItem());
@@ -279,7 +271,7 @@ void Workflow::removeInterfaceNode(Node* node) {
   if (!item) {
 //    std::cout << "[Info] Workflow does not have a ToolItem" << std::endl;
   } else {
-    std::vector<ToolConnection*> outputs;
+    std::vector<boost::shared_ptr<ToolConnection> > outputs;
     item->getOutputs(outputs);
 
     for (unsigned i = 0; i < outputs.size(); ++i) {
@@ -288,14 +280,14 @@ void Workflow::removeInterfaceNode(Node* node) {
 //        std::cout << "[Info] Found toolconnection. Current Id = " << outputs[i]->id << std::endl;
         --(outputs[i]->id);
 //        std::cout << "[Info] New id = " << outputs[i]->id << std::endl;
-        if (outputs[i]->multi) {
+        if (!outputs[i]->multi.expired()) {
 //          std::cout << "[Info] Changed multi id from " << outputs[i]->multi->id;
-          outputs[i]->multi->id = outputs[i]->id;
+          outputs[i]->multi.lock()->id = outputs[i]->id;
 //          std::cout << " to " << outputs[i]->multi->id << std::endl;
         }
       }
     }
-    std::vector<ToolConnection*>& inputs = item->getInputs();
+    std::vector<boost::shared_ptr<ToolConnection> >& inputs = item->getInputs();
 
     for (unsigned i = 0; i < inputs.size(); ++i) {
 //      std::cout << "[Info] Id = " << inputs[i]->id << std::endl;
@@ -303,9 +295,9 @@ void Workflow::removeInterfaceNode(Node* node) {
 //        std::cout << "[Info] Found toolconnection. Current Id = " << inputs[i]->id << std::endl;
         --(inputs[i]->id);
 //        std::cout << "[Info] New id = " << inputs[i]->id << std::endl;
-        if (inputs[i]->multi) {
+        if (!inputs[i]->multi.expired()) {
 //          std::cout << "[Info] Changed multi id from " << inputs[i]->multi->id;
-          inputs[i]->multi->id = inputs[i]->id;
+          inputs[i]->multi.lock()->id = inputs[i]->id;
 //          std::cout << " to " << inputs[i]->multi->id << std::endl;
         }
       }
@@ -314,22 +306,22 @@ void Workflow::removeInterfaceNode(Node* node) {
 }
 
 bool Workflow::hasCollectionElementInterface() const {
-  CollectionElement* collection = 0;
+  boost::shared_ptr<CollectionElement> collection;
   for (unsigned i = 0; i < interfaceNodes.size(); ++i)
-    if ((collection = dynamic_cast<CollectionElement*>(interfaceNodes[i]->getModule())) && collection->getCalculateCombinations())
+    if ((collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i]->getModule())) && collection->getCalculateCombinations())
       return true;
   return false;
 }
 
-const Node* Workflow::getInterfaceNode(int id) const {
+boost::shared_ptr<const Node> Workflow::getInterfaceNode(int id) const {
   assert(getModule());
   const int pos = id - getModule()->getProperties().size();
   if (pos >= 0 && (unsigned)pos < interfaceNodes.size())
     return interfaceNodes[pos];
-  return 0;
+  return boost::shared_ptr<Node>();
 }
 
-std::vector<Node*>& Workflow::getInterfaceNodes() {
+std::vector<boost::shared_ptr<Node> >& Workflow::getInterfaceNodes() {
   return interfaceNodes;
 }
 
@@ -343,9 +335,9 @@ void Workflow::makePropertyGlobal(const std::string& name, const PropertyReferen
 
 void Workflow::connectProperty(const std::string& name, const PropertyReference& propertyReference) {
   // Find global property instance by name
-  GlobalProperty* globalProp = getGlobalProperty(name);
+  boost::shared_ptr<GlobalProperty> globalProp = getGlobalProperty(name);
 
-  GlobalEdge* edge = new GlobalEdge();
+  boost::shared_ptr<GlobalEdge> edge(new GlobalEdge());
   edge->setOutputNode(globalProp->getModuleUuid());
   edge->setOutputProperty(globalProp->getPropertyId());
   edge->setInputNode(propertyReference.getNodeId());
@@ -356,25 +348,25 @@ void Workflow::connectProperty(const std::string& name, const PropertyReference&
   activateGlobalEdge(edge);
 }
 
-void Workflow::activateGlobalEdge(GlobalEdge* edge) {
+void Workflow::activateGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
   Logbook& dlog = *getLogbook();
-  Node* inputNode = getNode(edge->getInputNode());
+  boost::shared_ptr<Node> inputNode = getNode(edge->getInputNode());
 
-  GlobalProperty* globalProp = getGlobalProperty(edge->getGlobalProperty());
+  boost::shared_ptr<GlobalProperty> globalProp = getGlobalProperty(edge->getGlobalProperty());
   globalProp->addEdge(edge);
   if (!edge->activate(getNode(edge->getOutputNode()), inputNode)) {
     dlog(Severity::Error) << "Error in line " << __LINE__;
   }
 }
 
-void Workflow::removeGlobalProperty(GlobalProperty* gprop) {
+void Workflow::removeGlobalProperty(boost::shared_ptr<GlobalProperty> gprop) {
   // remove edges and expressions to that property first
   while(gprop->getEdges()->size()) {
-    removeGlobalEdge((GlobalEdge*)gprop->getEdges()->at(0));
+    removeGlobalEdge(boost::dynamic_pointer_cast<GlobalEdge>(gprop->getEdges()->at(0).lock()));
   }
 
   while(gprop->getExpressions()->size()) {
-    gprop->getExpressions()->at(0)->disconnect(gprop);
+    gprop->getExpressions()->at(0).lock()->disconnect(gprop);
   }
 
   for (unsigned i = 0; i < _GlobalProperties->size(); ++i) {
@@ -383,12 +375,10 @@ void Workflow::removeGlobalProperty(GlobalProperty* gprop) {
       break;
     }
   }
-  
-  delete gprop;
 }
 
-void Workflow::removeGlobalEdge(GlobalEdge* edge) {
-  GlobalProperty* gprop = getGlobalProperty(edge->getGlobalProperty());
+void Workflow::removeGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
+  boost::shared_ptr<GlobalProperty> gprop = getGlobalProperty(edge->getGlobalProperty());
   assert(gprop);
   gprop->removeEdge(edge);
   for (unsigned i = 0; i < _GlobalEdges->size(); ++i) {
@@ -397,14 +387,13 @@ void Workflow::removeGlobalEdge(GlobalEdge* edge) {
       break;
     }
   }
-  delete edge;
 }
 
-void addDependencies(Workflow* workflow, const std::string& classname) {
+void addDependencies(boost::shared_ptr<Workflow> workflow, const std::string& classname) {
   // Update libraries
   string libName = LibraryLoader::getInstance().classDefinedIn(classname);
   if (libName.size()) {
-    vector<string>* libraries = workflow->getLibraries();
+    boost::shared_ptr<vector<string> > libraries = workflow->getLibraries();
     unsigned i = 0;
     for (; i < libraries->size(); ++i)
       if (libraries->at(i).compare(libName) == 0)
@@ -422,24 +411,24 @@ void Workflow::createModule(int x, int y, QString classname) {
 
   std::string name = classname.toAscii().data();
 
-  ReflectableClass* object = ReflectableClassFactory::getInstance().newInstance(name);
-  addDependencies(this, name);
+  boost::shared_ptr<ReflectableClass> object = boost::shared_ptr<ReflectableClass>(ReflectableClassFactory::getInstance().newInstance(name));
+  addDependencies(boost::enable_shared_from_this<Workflow>::shared_from_this(), name);
 
-  Node* node = 0;
-  if (dynamic_cast<WorkflowInterface*>(object)) {
-    Workflow* workflow = new Workflow();
+  boost::shared_ptr<Node> node;
+  if (boost::dynamic_pointer_cast<WorkflowInterface>(object)) {
+    boost::shared_ptr<Workflow> workflow = boost::shared_ptr<Workflow>(new Workflow());
     workflow->setModule(object);
     addDependencies(workflow, name);
     workflow->resume();
-    connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
-    connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
+    connect(workflow.get(), SIGNAL(deleteCalled(boost::shared_ptr<workflow::Workflow>)), this, SLOT(delegateDeleteCalled(boost::shared_ptr<workflow::Workflow>)));
+    connect(workflow.get(), SIGNAL(showWorkflowRequest(boost::shared_ptr<workflow::Workflow>)), this, SLOT(showWorkflow(boost::shared_ptr<workflow::Workflow>)));
     node = workflow;
   } else {
-    node = new Node();
+    node = boost::shared_ptr<Node>(new Node());
     node->setModule(object);
     node->resume();
   }
-  node->setWorkflow(this);
+  node->setWorkflow(boost::enable_shared_from_this<Workflow>::shared_from_this());
   node->setX(x);
   node->setY(y);
   getNodes()->push_back(node);
@@ -459,7 +448,7 @@ const std::string& getPropertyLabel(IClassProperty* prop) {
   return prop->getName();
 }
 
-void Workflow::newItem(Node* node) {
+void Workflow::newItem(boost::shared_ptr<Node> node) {
   ToolItem* item;
   assert(node->getModule());
 
@@ -473,7 +462,7 @@ void Workflow::newItem(Node* node) {
     }
   }
 
-  Workflow* workflow = dynamic_cast<Workflow*>(node);
+  boost::shared_ptr<Workflow> workflow = boost::dynamic_pointer_cast<Workflow>(node);
   if (workflow) {
     item = new WorkflowItem(label);
     connect((WorkflowItem*)item, SIGNAL(showWorkflowRequest(ToolItem*)), this, SLOT(showWorkflow(ToolItem*)));
@@ -520,7 +509,7 @@ void Workflow::newItem(Node* node) {
   workbench->setCurrentItem(item);
 }
 
-bool Workflow::newCable(Edge* edge) {
+bool Workflow::newCable(boost::shared_ptr<Edge> edge) {
   Logbook& dlog = *getLogbook();
 
 //  cout << "Connecting " << edge->getOutputNode() << "." << edge->getOutputProperty()
@@ -529,18 +518,18 @@ bool Workflow::newCable(Edge* edge) {
   const string outputNodeUuid = edge->getOutputNode();
   const string inputNodeUuid = edge->getInputNode();
 
-  vector<Node*>* nodes = getNodes();
+  vector<boost::shared_ptr<Node> >& nodes = *getNodes();
 
-  Node *outputNode = 0, *inputNode = 0;
+  boost::shared_ptr<Node> outputNode, inputNode;
 
-  for (unsigned i = 0; i < nodes->size(); ++i) {
-    if (nodes->at(i)->getUuid().compare(outputNodeUuid) == 0)
-      outputNode = nodes->at(i);
-    if (nodes->at(i)->getUuid().compare(inputNodeUuid) == 0)
-      inputNode = nodes->at(i);
+  for (unsigned i = 0; i < nodes.size(); ++i) {
+    if (nodes[i]->getUuid().compare(outputNodeUuid) == 0)
+      outputNode = nodes[i];
+    if (nodes[i]->getUuid().compare(inputNodeUuid) == 0)
+      inputNode = nodes[i];
   }
 
-  ToolConnection *outputConnection = 0, *inputConnection = 0;
+  boost::shared_ptr<ToolConnection> outputConnection, inputConnection;
   if (outputNode && inputNode) {
 
     // TODO: try to find the correct propertyId. If the property is not a property
@@ -576,48 +565,48 @@ void Workflow::resumeViewport() {
   handleViewportChanged();
 }
 
-string replaceAll(const string& context, const string& from, const string& to)
-{
-  string str = context;
-  size_t lookHere = 0;
-  size_t foundHere;
-  while((foundHere = str.find(from, lookHere)) != string::npos)
-  {
-    str.replace(foundHere, from.size(), to);
-        lookHere = foundHere + to.size();
-  }
-  return str;
-}
+//string replaceAll(const string& context, const string& from, const string& to)
+//{
+//  string str = context;
+//  size_t lookHere = 0;
+//  size_t foundHere;
+//  while((foundHere = str.find(from, lookHere)) != string::npos)
+//  {
+//    str.replace(foundHere, from.size(), to);
+//        lookHere = foundHere + to.size();
+//  }
+//  return str;
+//}
 
 void Workflow::resume() {
   Logbook& dlog = *getLogbook();
 
-  map<string, Workflow*>* workflowMap = host::DataModel::getInstance().getWorkflowMap().get();
+  map<string, boost::shared_ptr<Workflow> >& workflowMap = *host::DataModel::getInstance().getWorkflowMap();
   //assert(workflowMap->find(getUuid()) == workflowMap->end());
-  if (workflowMap->find(getUuid()) == workflowMap->end())
-    workflowMap->insert(pair<string, Workflow*>(getUuid(), this));
+  if (workflowMap.find(getUuid()) == workflowMap.end())
+    workflowMap.insert(pair<string, boost::shared_ptr<Workflow> >(getUuid(), boost::enable_shared_from_this<Workflow>::shared_from_this()));
 
-  vector<Node*>* nodes = getNodes();
-  vector<Edge*>* edges = getEdges();
-  vector<GlobalProperty*>* globals = getGlobalProperties();
-  vector<GlobalEdge*>* gedges = getGlobalEdges();
+  vector<boost::shared_ptr<Node> >& nodes = *getNodes();
+  vector<boost::shared_ptr<Edge> >& edges = *getEdges();
+  vector<boost::shared_ptr<GlobalProperty> >& globals = *getGlobalProperties();
+  vector<boost::shared_ptr<GlobalEdge> >& gedges = *getGlobalEdges();
 
-  for (unsigned i = 0; i < nodes->size(); ++i)
-    resumeNode(nodes->at(i));
+  for (unsigned i = 0; i < nodes.size(); ++i)
+    resumeNode(nodes[i]);
 
-  for (unsigned i = 0; i < edges->size(); ++i) {
-    if (!newCable(edges->at(i))) {
-      removeEdge(edges->at(i));
+  for (unsigned i = 0; i < edges.size(); ++i) {
+    if (!newCable(edges[i])) {
+      removeEdge(edges[i]);
       --i;
       dlog() << "Edge has been removed from the model.";
     }
   }
 
-  for (unsigned i = 0; i < gedges->size(); ++i)
-    activateGlobalEdge(gedges->at(i));
+  for (unsigned i = 0; i < gedges.size(); ++i)
+    activateGlobalEdge(gedges[i]);
 
-  for (unsigned i = 0; i < nodes->size(); ++i)
-    nodes->at(i)->resumeExpressions();
+  for (unsigned i = 0; i < nodes.size(); ++i)
+    nodes[i]->resumeExpressions();
 
   // reset output checksum if at least one volatile output node
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
@@ -634,14 +623,14 @@ void Workflow::resume() {
   }
 }
 
-void Workflow::resumeNode(Node* node) {
-  node->setWorkflow(this);
+void Workflow::resumeNode(boost::shared_ptr<Node> node) {
+  node->setWorkflow(boost::enable_shared_from_this<Workflow>::shared_from_this());
   newItem(node);
   node->resume();
-  Workflow* workflow = dynamic_cast<Workflow*>(node);
+  boost::shared_ptr<Workflow> workflow = boost::dynamic_pointer_cast<Workflow>(node);
   if (workflow) {
-    connect(workflow, SIGNAL(deleteCalled(workflow::Workflow*)), this, SLOT(delegateDeleteCalled(workflow::Workflow*)));
-    connect(workflow, SIGNAL(showWorkflowRequest(workflow::Workflow*)), this, SLOT(showWorkflow(workflow::Workflow*)));
+    connect(workflow.get(), SIGNAL(deleteCalled(boost::shared_ptr<workflow::Workflow>)), this, SLOT(delegateDeleteCalled(boost::shared_ptr<workflow::Workflow>)));
+    connect(workflow.get(), SIGNAL(showWorkflowRequest(boost::shared_ptr<workflow::Workflow>)), this, SLOT(showWorkflow(boost::shared_ptr<workflow::Workflow>)));
   }
 
   if (node->getModule() && node->getModule()->getAttribute<InterfaceAttribute>())
@@ -658,7 +647,7 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
     //cout << "Libraries updated." << endl;
     LibraryLoader& loader = LibraryLoader::getInstance();
     set<string> unusedLibraries = loadedLibraries;
-    vector<string>* libraries = getLibraries();
+    boost::shared_ptr<vector<string> > libraries = getLibraries();
     for (unsigned i = 0; i < libraries->size(); ++i) {
 
       const string& lib = libraries->at(i);
@@ -684,12 +673,12 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
 }
 
 void Workflow::itemSelected(ToolItem* item) {
-  Node* node = getNode(item);
+  boost::shared_ptr<Node> node = getNode(item);
   Q_EMIT currentModuleChanged(node);
 }
 
 void Workflow::itemChangedHandler(ToolItem* item) {
-  Node* node = getNode(item);
+  boost::shared_ptr<Node> node = getNode(item);
   if (node) {
     node->setX(item->x());
     node->setY(item->y());
@@ -701,7 +690,7 @@ void Workflow::deleteModule(ToolItem* item) {
   Logbook& dlog = *getLogbook();
 
   unsigned i = 0;
-  Node* node = getNode(item, i);
+  boost::shared_ptr<Node> node = getNode(item, i);
 
   if (!node) {
     dlog(Severity::Error) << "Node not found! " << __FILE__ << ", " << __LINE__;
@@ -713,45 +702,45 @@ void Workflow::deleteModule(ToolItem* item) {
   }
 
   // delete global edges connected to the node
-  vector<GlobalEdge*>* gedges = getGlobalEdges();
-  for (int j = (int)gedges->size() - 1; j >= 0; --j) {
-    GlobalEdge* edge = gedges->at(j);
+  vector<boost::shared_ptr<GlobalEdge> >& gedges = *getGlobalEdges();
+  for (int j = (int)gedges.size() - 1; j >= 0; --j) {
+    boost::shared_ptr<GlobalEdge> edge = gedges[j];
     if (edge->getInputNode() == node->getUuid()) {
       removeGlobalEdge(edge);
     }
   }
 
   // delete global properties of the node
-  vector<GlobalProperty*>* gprops = getGlobalProperties();
-  for (int j = (int)gprops->size() - 1; j >= 0; --j) {
-    GlobalProperty* gprop = gprops->at(j);
+  vector<boost::shared_ptr<GlobalProperty> >& gprops = *getGlobalProperties();
+  for (int j = (int)gprops.size() - 1; j >= 0; --j) {
+    boost::shared_ptr<GlobalProperty> gprop = gprops[j];
     if (gprop->getModuleUuid() == node->getUuid()) {
       removeGlobalProperty(gprop);
     }
   }
 
   // delete edges connected to the node
-  vector<Edge*>* edges = getEdges();
-  for (int j = (int)edges->size() - 1; j >= 0; --j) {
-    Edge* edge = edges->at(j);
+  vector<boost::shared_ptr<Edge> >& edges = *getEdges();
+  for (int j = (int)edges.size() - 1; j >= 0; --j) {
+    boost::shared_ptr<Edge> edge = edges[j];
     if (edge->getInputNode() == node->getUuid() || edge->getOutputNode() == node->getUuid()) {
       removeEdge(edge);
     }
   }
 
   // remove and delete node
-  delete node;
+//  delete node;
   _Nodes->erase(_Nodes->begin() + i);
 }
 
-std::string Workflow::getPropertyName(const Node* node, int connectionId) const {
-  const ReflectableClass* object = node->getModule();
+std::string Workflow::getPropertyName(boost::shared_ptr<const Node> node, int connectionId) const {
+  boost::shared_ptr<ReflectableClass> object = node->getModule();
   assert(object);
   if (connectionId < 0)
     return "";
 
   int propertyCount = object->getProperties().size();
-  const Workflow* workflow = dynamic_cast<const Workflow*>(node);
+  boost::shared_ptr<const Workflow> workflow = boost::dynamic_pointer_cast<const Workflow>(node);
 
   if (connectionId < propertyCount) {
     return object->getProperties()[connectionId]->getName();
@@ -762,17 +751,17 @@ std::string Workflow::getPropertyName(const Node* node, int connectionId) const 
   }
 }
 
-bool Workflow::getToolConnectionId(const Node* node, const std::string& propertyName, unsigned& id) const {
+bool Workflow::getToolConnectionId(boost::shared_ptr<const Node> node, const std::string& propertyName, unsigned& id) const {
   assert(node);
-  ReflectableClass* object = node->getModule();
+  boost::shared_ptr<ReflectableClass> object = node->getModule();
   assert(object);
 
   if (object->getPropertyIndex(id, propertyName))
     return true;
 
-  const Workflow* workflow = dynamic_cast<const Workflow*>(node);
+  boost::shared_ptr<const Workflow> workflow = boost::dynamic_pointer_cast<const Workflow>(node);
   if (workflow) {
-    const std::vector<Node*>& interfaceNodes = workflow->interfaceNodes;
+    const std::vector<boost::shared_ptr<Node> >& interfaceNodes = workflow->interfaceNodes;
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
       if (interfaceNodes[i]->getUuid() == propertyName) {
         id = object->getProperties().size() + i;
@@ -783,25 +772,24 @@ bool Workflow::getToolConnectionId(const Node* node, const std::string& property
 
   return false;
 }
-
-void Workflow::removeEdge(Edge* edge) {
-  vector<Edge*>* edges = getEdges();
+//boost::enable_shared_from_this<Workflow>::
+void Workflow::removeEdge(boost::shared_ptr<Edge> edge) {
+  boost::shared_ptr<vector<boost::shared_ptr<Edge> > > edges = getEdges();
   for (unsigned i = 0; i < edges->size(); ++i) {
     if (edges->at(i) == edge) {
-      delete edges->at(i);
       edges->erase(edges->begin() + i);
     }
   }
 }
 
 void Workflow::createEdge(CableItem* cable) {
-  Node* outputNode = getNode(cable->getInput()->parent);
-  Node* inputNode = getNode(cable->getOutput()->parent);
+  boost::shared_ptr<Node> outputNode = getNode(cable->getInput()->parent);
+  boost::shared_ptr<Node> inputNode = getNode(cable->getOutput()->parent);
 
   // Sanity check. Should never fail
   assert(outputNode && outputNode->getModule() && inputNode && inputNode->getModule());
 
-  Edge* edge = new Edge();
+  boost::shared_ptr<Edge> edge(new Edge());
 
   edge->setOutputNode(outputNode->getUuid());
   edge->setOutputProperty(getPropertyName(outputNode, cable->getInput()->id));
@@ -810,7 +798,6 @@ void Workflow::createEdge(CableItem* cable) {
 
   edge->setCableItem(cable);
   if (!edge->activate(outputNode, inputNode)) {
-    delete edge;
     workbench->removeCableItem(cable);
   } else {
     getEdges()->push_back(edge);
@@ -821,43 +808,45 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
   assert(output);
   assert(input);
 
-  const Node* outputNode = getNode(output->parent);
+  // TODO: use property references here
+
+  boost::shared_ptr<const Node> outputNode = getNode(output->parent);
   unsigned outputId = output->id;
   if (output->id >= (int)outputNode->getModule()->getProperties().size()) {
     // Get interface node and ID of value property
-    const Workflow* workflow = dynamic_cast<const Workflow*>(outputNode);
+    boost::shared_ptr<const Workflow> workflow = boost::dynamic_pointer_cast<const Workflow>(outputNode);
     if (workflow) {
       outputNode = workflow->getInterfaceNode(output->id);
       assert(outputNode->getModule());
-      if (dynamic_cast<CollectionElement*>(outputNode->getModule())) {
+      if (boost::dynamic_pointer_cast<CollectionElement>(outputNode->getModule())) {
         if (!outputNode->getModule()->getPropertyIndex(outputId, "Values"))
-          outputNode = 0;
+          outputNode.reset();
       } else {
         if (!outputNode->getModule()->getPropertyIndex(outputId, "Value"))
-          outputNode = 0;
+          outputNode.reset();
       }
     } else {
-      outputNode = 0;
+      outputNode.reset();
     }
   }
 
-  const Node* inputNode = getNode(input->parent);
+  boost::shared_ptr<const Node> inputNode = getNode(input->parent);
   unsigned inputId = input->id;
   if (input->id >= (int)inputNode->getModule()->getProperties().size()) {
     // Get interface node and ID of Value property
-    const Workflow* workflow = dynamic_cast<const Workflow*>(inputNode);
+    boost::shared_ptr<const Workflow> workflow = boost::dynamic_pointer_cast<const Workflow>(inputNode);
     if (workflow) {
       inputNode = workflow->getInterfaceNode(input->id);
       assert(inputNode->getModule());
-      if (dynamic_cast<CollectionElement*>(inputNode->getModule())) {
+      if (boost::dynamic_pointer_cast<CollectionElement>(inputNode->getModule())) {
         if (!inputNode->getModule()->getPropertyIndex(inputId, "Values"))
-          inputNode = 0;
+          inputNode.reset();
       } else {
         if (!inputNode->getModule()->getPropertyIndex(inputId, "Value"))
-          inputNode = 0;
+          inputNode.reset();
       }
     } else {
-      inputNode = 0;
+      inputNode.reset();
     }
   }
 
@@ -866,18 +855,17 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
 
 void Workflow::deleteEdge(CableItem* cable) {
   unsigned pos;
-  Edge* edge = getEdge(cable, pos);
+  boost::shared_ptr<Edge> edge = getEdge(cable, pos);
   if (edge) {
-    delete edge;
     _Edges->erase(_Edges->begin() + pos);
   }
 }
 
-bool Workflow::isInputNode(const Node* node) const {
+bool Workflow::isInputNode(boost::shared_ptr<const Node> node) const {
   if (!node)
     return false;
 
-  ReflectableClass* module = node->getModule();
+  boost::shared_ptr<ReflectableClass> module = node->getModule();
 
   if (!module)
     return false;
@@ -885,11 +873,11 @@ bool Workflow::isInputNode(const Node* node) const {
   return module->getAttribute<InterfaceAttribute>() && module->findProperty("Value")->getAttribute<OutputAttribute>();
 }
 
-bool Workflow::isOutputNode(const Node* node) const {
+bool Workflow::isOutputNode(boost::shared_ptr<const Node> node) const {
   if (!node)
     return false;
 
-  ReflectableClass* module = node->getModule();
+  boost::shared_ptr<ReflectableClass> module = node->getModule();
 
   if (!module)
     return false;
@@ -897,38 +885,38 @@ bool Workflow::isOutputNode(const Node* node) const {
   return module->getAttribute<InterfaceAttribute>() && module->findProperty("Value")->getAttribute<InputAttribute>();
 }
 
-void Workflow::getDependentNodes(Node* node, std::vector<Node*>& dependendNodes) {
+void Workflow::getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost::shared_ptr<Node> >& dependendNodes) {
   // If input node see to which node of the parent workflow this node is connected
   if (isInputNode(node)) {
-    Workflow* workflow = getWorkflow();
+    boost::shared_ptr<Workflow> workflow = getWorkflow().lock();
     if (workflow) {
-      {vector<Edge*>* edges = workflow->getEdges();
-      for (unsigned i = 0; i < edges->size(); ++i) {
-        Edge* edge = edges->at(i);
+      {vector<boost::shared_ptr<Edge> >& edges = *workflow->getEdges();
+      for (unsigned i = 0; i < edges.size(); ++i) {
+        boost::shared_ptr<Edge> edge = edges[i];
         if (edge->getInputNode() == getUuid() && edge->getInputProperty() == node->getUuid())
           dependendNodes.push_back(workflow->getNode(edge->getOutputNode()));
       }}
 
-      {vector<GlobalEdge*>* gedges = workflow->getGlobalEdges();
-      for (unsigned i = 0; i < gedges->size(); ++i) {
-        GlobalEdge* gedge = gedges->at(i);
+      {vector<boost::shared_ptr<GlobalEdge> >& gedges = *workflow->getGlobalEdges();
+      for (unsigned i = 0; i < gedges.size(); ++i) {
+        boost::shared_ptr<GlobalEdge> gedge = gedges[i];
         if (gedge->getInputNode() == getUuid() && gedge->getInputProperty() == node->getUuid())
           dependendNodes.push_back(workflow->getNode(gedge->getOutputNode()));
       }}
     }
   } else {
-    vector<Edge*>* edges = getEdges();
-    for (unsigned i = 0; i < edges->size(); ++i) {
-      Edge* edge = edges->at(i);
+    vector<boost::shared_ptr<Edge> >& edges = *getEdges();
+    for (unsigned i = 0; i < edges.size(); ++i) {
+      boost::shared_ptr<Edge> edge = edges[i];
       if (edge->getInputNode() == node->getUuid()) {
         // TODO: check that the property does not have the NoParameter attribute
         dependendNodes.push_back(getNode(edge->getOutputNode()));
       }
     }
 
-    vector<GlobalEdge*>* gedges = getGlobalEdges();
-    for (unsigned i = 0; i < gedges->size(); ++i) {
-      GlobalEdge* gedge = gedges->at(i);
+    vector<boost::shared_ptr<GlobalEdge> >& gedges = *getGlobalEdges();
+    for (unsigned i = 0; i < gedges.size(); ++i) {
+      boost::shared_ptr<GlobalEdge> gedge = gedges[i];
       if (gedge->getInputNode() == node->getUuid()) {
         // TODO: check that the property does not have the NoParameter attribute
         dependendNodes.push_back(getNode(gedge->getOutputNode()));
@@ -937,41 +925,41 @@ void Workflow::getDependentNodes(Node* node, std::vector<Node*>& dependendNodes)
   }
 }
 
-bool Workflow::isDependentProperty(const Node* node, const std::string& propertyName) const {
+bool Workflow::isDependentProperty(boost::shared_ptr<const Node> node, const std::string& propertyName) const {
   if (isInputNode(node)) {
-    Workflow* workflow = getWorkflow();
+    boost::shared_ptr<Workflow> workflow = getWorkflow().lock();
     if (workflow && propertyName == "Value") {
-      vector<Edge*>* edges = workflow->getEdges();
+      boost::shared_ptr<vector<boost::shared_ptr<Edge> > > edges = workflow->getEdges();
       for (unsigned i = 0; i < edges->size(); ++i) {
-        Edge* edge = edges->at(i);
+        boost::shared_ptr<Edge> edge = edges->at(i);
         if (edge->getInputNode() == getUuid() && edge->getInputProperty() == node->getUuid())
           return true;
       }
 
-      vector<GlobalEdge*>* gedges = workflow->getGlobalEdges();
+      boost::shared_ptr<vector<boost::shared_ptr<GlobalEdge> > > gedges = workflow->getGlobalEdges();
       for (unsigned i = 0; i < gedges->size(); ++i) {
-        GlobalEdge* gedge = gedges->at(i);
+        boost::shared_ptr<GlobalEdge> gedge = gedges->at(i);
         if (gedge->getInputNode() == getUuid() && gedge->getInputProperty() == node->getUuid())
           return true;
       }
     }
   } else {
-    vector<Edge*>* edges = getEdges();
+    boost::shared_ptr<vector<boost::shared_ptr<Edge> > > edges = getEdges();
     for (unsigned i = 0; i < edges->size(); ++i) {
-      Edge* edge = edges->at(i);
+      boost::shared_ptr<Edge> edge = edges->at(i);
       if (edge->getInputNode() == node->getUuid() && edge->getInputProperty() == propertyName)
         return true;
     }
 
-    vector<GlobalEdge*>* gedges = getGlobalEdges();
+    boost::shared_ptr<vector<boost::shared_ptr<GlobalEdge> > > gedges = getGlobalEdges();
     for (unsigned i = 0; i < gedges->size(); ++i) {
-      GlobalEdge* gedge = gedges->at(i);
+      boost::shared_ptr<GlobalEdge> gedge = gedges->at(i);
       if (gedge->getInputNode() == node->getUuid() && gedge->getInputProperty() == propertyName)
         return true;
     }
   }
-  PropertyReference ref(this, node->getUuid(), propertyName);
-  const CollectionElement* collection = dynamic_cast<const CollectionElement*>(node->getModule());
+  PropertyReference ref(boost::enable_shared_from_this<Workflow>::shared_from_this(), node->getUuid(), propertyName);
+  boost::shared_ptr<const CollectionElement> collection = boost::dynamic_pointer_cast<const CollectionElement>(node->getModule());
   if (ref.getProperty() && ref.getProperty()->getAttribute<FromEnumerableAttribute>() && collection && collection->getCalculateCombinations())
     return true;
 
@@ -981,7 +969,7 @@ bool Workflow::isDependentProperty(const Node* node, const std::string& property
 void Workflow::updateCurrentModule() {
   
   // build stack
-  Node* node = getNode(workbench->getCurrentItem());
+  boost::shared_ptr<Node> node = getNode(workbench->getCurrentItem());
   if (!node)
     return;
 
@@ -990,19 +978,19 @@ void Workflow::updateCurrentModule() {
 }
 
 void Workflow::workflowUpdateFinished() {
-  for (std::set<Node*>::iterator iter = processedNodes.begin(); iter != processedNodes.end(); ++iter)
-    (*iter)->getToolItem()->setProgress(ToolItem::Neutral);
+  for (std::set<boost::weak_ptr<Node> >::iterator iter = processedNodes.begin(); iter != processedNodes.end(); ++iter)
+    iter->lock()->getToolItem()->setProgress(ToolItem::Neutral);
   processedNodes.clear();
 
-  Q_EMIT updateFinished(this);
+  Q_EMIT updateFinished(boost::enable_shared_from_this<Workflow>::shared_from_this());
 }
 
-Node* Workflow::getCurrentNode() {
+boost::shared_ptr<Node> Workflow::getCurrentNode() {
   return getNode(workbench->getCurrentItem());
 }
 
 void Workflow::updateOutputs() {
-  workflowUpdater->update(this);
+  workflowUpdater->update(boost::enable_shared_from_this<Workflow>::shared_from_this());
 }
 
 void Workflow::abortUpdate() {
@@ -1043,7 +1031,7 @@ std::string formatTime(int seconds) {
   return out.str() + std::string(25 - out.str().size(), ' ');
 }
 
-void Workflow::showProgress(Node* node, double progress) {
+void Workflow::showProgress(boost::shared_ptr<Node> node, double progress) {
   node->getToolItem()->setProgress(progress);
   processedNodes.insert(node);
 
@@ -1051,10 +1039,10 @@ void Workflow::showProgress(Node* node, double progress) {
   //       This function updates estimates total time and time and date when the operation
   //       will have finished.
 
-  if (dynamic_cast<Workflow*>(node))    // no progress for workflows
+  if (boost::dynamic_pointer_cast<Workflow>(node))    // no progress for workflows
     return;
 
-  if (node != progressNode) {           // new progress
+  if (node != progressNode.lock()) {           // new progress
     etaRegression.clear();
     startTime = time(0);
   }
@@ -1085,25 +1073,25 @@ void Workflow::showProgress(Node* node, double progress) {
   progressNode = node;
 }
 
-void Workflow::showWorkflow(Workflow* workflow) {
+void Workflow::showWorkflow(boost::shared_ptr<Workflow> workflow) {
   Q_EMIT showWorkflowRequest(workflow);
 }
 
 void Workflow::showWorkflow(ToolItem* item) {
-  Node* node = getNode(item);
-  Workflow* workflow = dynamic_cast<Workflow*>(node);
+  boost::shared_ptr<Node> node = getNode(item);
+  boost::shared_ptr<Workflow> workflow = boost::dynamic_pointer_cast<Workflow>(node);
   if (workflow)
     Q_EMIT showWorkflowRequest(workflow);
 }
 
 void Workflow::showModuleDialog(ToolItem* item) {
-  Node* node = getNode(item);
-  WorkflowElement* element = dynamic_cast<WorkflowElement*>(node->getModule());
+  boost::shared_ptr<Node> node = getNode(item);
+  boost::shared_ptr<WorkflowElement> element = boost::dynamic_pointer_cast<WorkflowElement>(node->getModule());
   if (element)
     element->show();
 }
 
-void Workflow::delegateDeleteCalled(workflow::Workflow* workflow) {
+void Workflow::delegateDeleteCalled(boost::shared_ptr<workflow::Workflow> workflow) {
   Q_EMIT deleteCalled(workflow);
 }
 
@@ -1113,13 +1101,13 @@ void Workflow::copySelectedNodesToClipboard() {
 
   // Temporarily add nodes to the node list for the xmlization.
   // Nodes have to be removed afterwards in order to avoid a double free memory
-  std::vector<Node*>* nodes = copyWorkflow.getNodes();
+  boost::shared_ptr<std::vector<boost::shared_ptr<Node> > > nodes = copyWorkflow.getNodes();
   Q_FOREACH(QGraphicsItem* item, workbench->scene()->selectedItems()) {
     ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
     if (toolItem) {
-      Node* node = getNode(toolItem);
+      boost::shared_ptr<Node> node = getNode(toolItem);
       // TODO: Workflows are not copied unless renewUuid() is fully implemented
-      if (!dynamic_cast<Workflow*>(node)) {
+      if (!boost::dynamic_pointer_cast<Workflow>(node)) {
         nodes->push_back(node);
         copied.insert(node->getUuid());
       }
@@ -1127,9 +1115,9 @@ void Workflow::copySelectedNodesToClipboard() {
   }
 
   // Add all edges to the workflow where both ends nodes are about to be copied
-  std::vector<Edge*>* edges = copyWorkflow.getEdges();
+  boost::shared_ptr<std::vector<boost::shared_ptr<Edge> > > edges = copyWorkflow.getEdges();
   for (unsigned i = 0; i < getEdges()->size(); ++i) {
-    Edge* edge = getEdges()->at(i);
+    boost::shared_ptr<Edge> edge = getEdges()->at(i);
     if (copied.find(edge->getInputNode()) != copied.end() &&
         copied.find(edge->getOutputNode()) != copied.end())
     {
@@ -1150,7 +1138,7 @@ void renewUuids(Workflow& workflow) {
   std::map<std::string, std::string> uuidMap;
 
   // Go through edges, nodes, global properties, global edges
-  std::vector<Node*>& nodes = *workflow.getNodes();
+  std::vector<boost::shared_ptr<Node> >& nodes = *workflow.getNodes();
   for (unsigned i = 0; i < nodes.size(); ++i) {
     Node& node = *nodes[i];
     const std::string uuid = node.getUuid();
@@ -1165,7 +1153,7 @@ void renewUuids(Workflow& workflow) {
 //      renewUuids(*subworkflow);
   }
 
-  std::vector<Edge*>& edges = *workflow.getEdges();
+  std::vector<boost::shared_ptr<Edge> >& edges = *workflow.getEdges();
   for (unsigned i = 0; i < edges.size(); ++i) {
     Edge& edge = *edges[i];
 
@@ -1192,7 +1180,7 @@ void Workflow::addNodesFromClipboard() {
     item->setSelected(false);
 
   renewUuids(pasteWorkflow);
-  std::vector<Node*>& nodes = *pasteWorkflow.getNodes();
+  std::vector<boost::shared_ptr<Node> >& nodes = *pasteWorkflow.getNodes();
   for (unsigned i = 0; i < nodes.size(); ++i) {
     getNodes()->push_back(nodes[i]);
     resumeNode(nodes[i]);
@@ -1200,7 +1188,7 @@ void Workflow::addNodesFromClipboard() {
   }
   nodes.clear(); // avoid double free memory
 
-  std::vector<Edge*>& edges = *pasteWorkflow.getEdges();
+  std::vector<boost::shared_ptr<Edge> >& edges = *pasteWorkflow.getEdges();
   for (unsigned i = 0; i < edges.size(); ++i) {
     getEdges()->push_back(edges[i]);
     if (!newCable(edges[i])) {
@@ -1215,48 +1203,48 @@ void Workflow::addNodesFromClipboard() {
 void Workflow::setUiEnabled(bool enabled) {
   workbench->setModifiable(enabled);
 
-  vector<Node*>* nodes = getNodes();
+  boost::shared_ptr<vector<boost::shared_ptr<Node> > > nodes = getNodes();
   for (unsigned i = 0; i < nodes->size(); ++i) {
-    Workflow* workflow = dynamic_cast<Workflow*>(nodes->at(i));
+    boost::shared_ptr<Workflow> workflow = boost::dynamic_pointer_cast<Workflow>(nodes->at(i));
     if (workflow)
       workflow->setUiEnabled(enabled);
   }
 }
 
-Node* Workflow::getNode(ToolItem* item) {
+boost::shared_ptr<Node> Workflow::getNode(ToolItem* item) {
   unsigned pos;
   return getNode(item, pos);
 }
 
-Node* Workflow::getNode(ToolItem* item, unsigned& pos) {
-  Node* node = 0;
+boost::shared_ptr<Node> Workflow::getNode(ToolItem* item, unsigned& pos) {
+  boost::shared_ptr<Node> node;
   for(pos = 0; pos < _Nodes->size(); ++pos) {
     node = _Nodes->at(pos);
     if (node->getToolItem() == item) {
       return node;
     }
   }
-  return 0;
+  return boost::shared_ptr<Node>();
 }
 
-Node* Workflow::getNode(capputils::reflection::ReflectableClass* object) {
+boost::shared_ptr<Node> Workflow::getNode(boost::shared_ptr<capputils::reflection::ReflectableClass> object) {
   unsigned pos;
   return getNode(object, pos);
 }
 
-Node* Workflow::getNode(capputils::reflection::ReflectableClass* object, unsigned& pos) {
-  Node* node = 0;
+boost::shared_ptr<Node> Workflow::getNode(boost::shared_ptr<capputils::reflection::ReflectableClass> object, unsigned& pos) {
+  boost::shared_ptr<Node> node;
   for(pos = 0; pos < _Nodes->size(); ++pos) {
     node = _Nodes->at(pos);
     if (node->getModule() == object) {
       return node;
     }
   }
-  return 0;
+  return boost::shared_ptr<Node>();
 }
 
-Node* Workflow::getNode(const std::string& uuid) const {
-  Node* node = 0;
+boost::shared_ptr<Node> Workflow::getNode(const std::string& uuid) const {
+  boost::shared_ptr<Node> node;
 
   for(unsigned pos = 0; pos < _Nodes->size(); ++pos) {
     node = _Nodes->at(pos);
@@ -1264,41 +1252,41 @@ Node* Workflow::getNode(const std::string& uuid) const {
       return node;
     }
   }
-  return 0;
+  return boost::shared_ptr<Node>();
 }
 
-Edge* Workflow::getEdge(CableItem* cable) {
+boost::shared_ptr<Edge> Workflow::getEdge(CableItem* cable) {
   unsigned pos;
   return getEdge(cable, pos);
 }
 
-Edge* Workflow::getEdge(CableItem* cable, unsigned& pos) {
-  Edge* edge = 0;
+boost::shared_ptr<Edge> Workflow::getEdge(CableItem* cable, unsigned& pos) {
+  boost::shared_ptr<Edge> edge;
   for(pos = 0; pos < _Edges->size(); ++pos) {
     edge = _Edges->at(pos);
     if (edge->getCableItem() == cable)
       return edge;
   }
-  return 0;
+  return boost::shared_ptr<Edge>();
 }
 
-const Node* Workflow::getNode(ToolItem* item) const {
+boost::shared_ptr<const Node> Workflow::getNode(ToolItem* item) const {
   unsigned pos;
   return getNode(item, pos);
 }
 
-const Node* Workflow::getNode(ToolItem* item, unsigned& pos) const {
-  Node* node = 0;
+boost::shared_ptr<const Node> Workflow::getNode(ToolItem* item, unsigned& pos) const {
+  boost::shared_ptr<Node> node;
   for(pos = 0; pos < _Nodes->size(); ++pos) {
     node = _Nodes->at(pos);
     if (node->getToolItem() == item) {
       return node;
     }
   }
-  return 0;
+  return boost::shared_ptr<Node>();
 }
 
-const Edge* Workflow::getEdge(CableItem* cable) const {
+boost::shared_ptr<const Edge> Workflow::getEdge(CableItem* cable) const {
   unsigned pos;
   return getEdge(cable, pos);
 }
@@ -1313,43 +1301,43 @@ void Workflow::handleViewportChanged() {
   setViewportPosition(position);
 }
 
-const Edge* Workflow::getEdge(CableItem* cable, unsigned& pos) const {
-  Edge* edge = 0;
+boost::shared_ptr<const Edge> Workflow::getEdge(CableItem* cable, unsigned& pos) const {
+  boost::shared_ptr<Edge> edge;
   for(pos = 0; pos < _Edges->size(); ++pos) {
     edge = _Edges->at(pos);
     if (edge->getCableItem() == cable)
       return edge;
   }
-  return 0;
+  return boost::shared_ptr<Edge>();
 }
 
-GlobalProperty* Workflow::getGlobalProperty(const std::string& name) {
-  GlobalProperty* property = 0;
+boost::shared_ptr<GlobalProperty> Workflow::getGlobalProperty(const std::string& name) {
+  boost::shared_ptr<GlobalProperty> property;
 
   for(unsigned pos = 0; pos < _GlobalProperties->size(); ++pos) {
     property = _GlobalProperties->at(pos);
     if (property->getName().compare(name) == 0)
       return property;
   }
-  return 0;
+  return boost::shared_ptr<GlobalProperty>();
 }
 
-GlobalProperty* Workflow::getGlobalProperty(const PropertyReference& reference)
+boost::shared_ptr<GlobalProperty> Workflow::getGlobalProperty(const PropertyReference& reference)
 {
-  GlobalProperty* gprop = 0;
+  boost::shared_ptr<GlobalProperty> gprop;
 
   for(unsigned pos = 0; pos < _GlobalProperties->size(); ++pos) {
     gprop = _GlobalProperties->at(pos);
     if (gprop->getModuleUuid() == reference.getNodeId() && gprop->getPropertyId() == reference.getPropertyId())
       return gprop;
   }
-  return 0;
+  return boost::shared_ptr<GlobalProperty>();
 }
 
 // TODO: re-think how to identify a global edge
-GlobalEdge* Workflow::getGlobalEdge(const PropertyReference& reference)
+boost::shared_ptr<GlobalEdge> Workflow::getGlobalEdge(const PropertyReference& reference)
 {
-  GlobalEdge* edge = 0;
+  boost::shared_ptr<GlobalEdge> edge;
   for(unsigned pos = 0; pos < _GlobalEdges->size(); ++pos) {
     edge = _GlobalEdges->at(pos);
     if (edge->getInputNode() == reference.getNodeId() &&
@@ -1358,11 +1346,11 @@ GlobalEdge* Workflow::getGlobalEdge(const PropertyReference& reference)
       return edge;
     }
   }
-  return 0;
+  return boost::shared_ptr<GlobalEdge>();
 }
 
 bool Workflow::trySelectNode(const std::string& uuid) {
-  Node* node = getNode(uuid);
+  boost::shared_ptr<Node> node = getNode(uuid);
   if (node && node->getToolItem()) {
     workbench->setExclusivelySelected(node->getToolItem());
     workbench->setCurrentItem(node->getToolItem());
@@ -1373,27 +1361,27 @@ bool Workflow::trySelectNode(const std::string& uuid) {
 }
 
 void Workflow::resetInputs() {
-  std::vector<workflow::Node*>& interfaceNodes = getInterfaceNodes();
+  std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = getInterfaceNodes();
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-    CollectionElement* collection = dynamic_cast<CollectionElement*>(interfaceNodes[i]->getModule());
+    boost::shared_ptr<CollectionElement> collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i]->getModule());
     if (collection && isInputNode(interfaceNodes[i]))
       collection->resetCombinations();
   }
 }
 
 void Workflow::incrementInputs() {
-  std::vector<workflow::Node*>& interfaceNodes = getInterfaceNodes();
+  std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = getInterfaceNodes();
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-    CollectionElement* collection = dynamic_cast<CollectionElement*>(interfaceNodes[i]->getModule());
+    boost::shared_ptr<CollectionElement> collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i]->getModule());
     if (collection && isInputNode(interfaceNodes[i]))
       collection->advanceCombinations();
   }
 }
 
 void Workflow::decrementInputs() {
-  std::vector<workflow::Node*>& interfaceNodes = getInterfaceNodes();
+  std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = getInterfaceNodes();
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-    CollectionElement* collection = dynamic_cast<CollectionElement*>(interfaceNodes[i]->getModule());
+    boost::shared_ptr<CollectionElement> collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i]->getModule());
     if (collection && isInputNode(interfaceNodes[i]))
       collection->regressCombinations();
   }

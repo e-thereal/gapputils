@@ -15,6 +15,7 @@
 #include <qpoint.h>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 
 namespace gapputils {
 
@@ -36,7 +37,7 @@ private:
   QTreeView* propertyGrid;
   QFormLayout* infoLayout;
   QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal;
-  workflow::Node* node;
+  boost::weak_ptr<workflow::Node> node;
   boost::shared_ptr<ModelHarmonizer> harmonizer;
 
 public:
@@ -46,7 +47,7 @@ public:
   void setEnabled(bool enabled);
 
 public Q_SLOTS:
-  void setNode(workflow::Node* node);
+  void setNode(boost::shared_ptr<workflow::Node> node);
 
 private Q_SLOTS:
   void showContextMenu(const QPoint &);

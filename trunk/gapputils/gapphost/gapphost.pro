@@ -10,7 +10,6 @@ SOURCES = main.cpp \
 		  FilenameEdit.cpp \
 		  ImageLoader.cpp \
 		  ImageViewer.cpp \
-		  NewObjectDialog.cpp \
 		  ShowImageDialog.cpp \
 		  DataModel.cpp \
 		  Node.cpp \
@@ -51,9 +50,7 @@ HEADERS = MainWindow.h \
           ModelHarmonizer.h \
           PropertyGridDelegate.h \
           Workbench.h \
-          GeneratedFiles/ui_NewObjectDialog.h \
           FilenameEdit.h \
-          NewObjectDialog.h \
           ShowImageDialog.h \
           Workflow.h \
           WorkflowItem.h \

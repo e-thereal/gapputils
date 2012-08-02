@@ -42,11 +42,11 @@ NodeCache::NodeCache() {
 NodeCache::~NodeCache() {
 }
 
-void NodeCache::Update(workflow::Node* node) {
+void NodeCache::Update(boost::shared_ptr<workflow::Node> node) {
   if (!node)
     return;
 
-  ReflectableClass* module = node->getModule();
+  boost::shared_ptr<ReflectableClass> module = node->getModule();
 
   if (!module)
     return;
@@ -96,10 +96,10 @@ void NodeCache::Update(workflow::Node* node) {
   cacheFile.write((char*)&checksum, sizeof(checksum));
 }
 
-bool NodeCache::Restore(workflow::Node* node) {
+bool NodeCache::Restore(boost::shared_ptr<workflow::Node> node) {
   assert(node);
 
-  ReflectableClass* module = node->getModule();
+  boost::shared_ptr<ReflectableClass> module = node->getModule();
 
   if (!module)
     return false;

@@ -26,13 +26,13 @@ class ModelHarmonizer : public QObject {
   Q_OBJECT
 
 private:
-  gapputils::workflow::Node* node;
+  boost::weak_ptr<gapputils::workflow::Node> node;
   QStandardItemModel* model;
   bool modelLocked;
   capputils::EventHandler<ModelHarmonizer> handler;
 
 public:
-  ModelHarmonizer(gapputils::workflow::Node* node);
+  ModelHarmonizer(boost::shared_ptr<gapputils::workflow::Node> node);
   virtual ~ModelHarmonizer();
 
   QStandardItemModel* getModel() const;

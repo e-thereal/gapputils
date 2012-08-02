@@ -9,19 +9,19 @@
 
 using namespace capputils::reflection;
 
-PropertyReference::PropertyReference() : workflow(0), node(0), object(0), prop(0) { }
+PropertyReference::PropertyReference() : object(0), prop(0) { }
 
-PropertyReference::PropertyReference(const gapputils::workflow::Workflow* workflow,
+PropertyReference::PropertyReference(boost::shared_ptr<const gapputils::workflow::Workflow> workflow,
     const std::string& nodeId,
     const std::string& propertyId)
- : workflow(workflow), nodeId(nodeId), propertyId(propertyId), node(0), object(0), prop(0)
+ : workflow(workflow), nodeId(nodeId), propertyId(propertyId), object(0), prop(0)
 {
   using namespace gapputils::workflow;
 
   node = workflow->getNode(nodeId);
-  assert(node);
+  assert(!node.expired());
 
-  Workflow* subworkflow = dynamic_cast<Workflow*>(node);
+  boost::shared_ptr<Workflow> subworkflow = boost::dynamic_pointer_cast<Workflow>(node.lock());
 
   std::string propertyPath = propertyId;
   size_t pos = propertyPath.find_first_of('.');
@@ -31,15 +31,15 @@ PropertyReference::PropertyReference(const gapputils::workflow::Workflow* workfl
   else
     propertyPath.clear();
 
-  object = node->getModule();
+  object = node.lock()->getModule().get();
   assert(object);
   prop = object->findProperty(propertyName);
 
   if (!prop && subworkflow) {
-    std::vector<Node*>& interfaceNodes = subworkflow->getInterfaceNodes();
+    std::vector<boost::shared_ptr<Node> >& interfaceNodes = subworkflow->getInterfaceNodes();
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
       if (interfaceNodes[i]->getUuid() == propertyName) {
-        object = interfaceNodes[i]->getModule();
+        object = interfaceNodes[i]->getModule().get();
         assert(object);
         if (dynamic_cast<CollectionElement*>(object))
           prop = object->findProperty("Values");
@@ -69,12 +69,10 @@ PropertyReference::PropertyReference(const gapputils::workflow::Workflow* workfl
   assert(propertyPath.size() == 0);
 }
 
-PropertyReference::~PropertyReference()
-{
-}
+PropertyReference::~PropertyReference() { }
 
-const gapputils::workflow::Workflow* PropertyReference::getWorkflow() const {
-  return workflow;
+boost::shared_ptr<const gapputils::workflow::Workflow> PropertyReference::getWorkflow() const {
+  return workflow.lock();
 }
 
 std::string PropertyReference::getNodeId() const {
@@ -85,8 +83,8 @@ std::string PropertyReference::getPropertyId() const {
   return propertyId;
 }
 
-gapputils::workflow::Node* PropertyReference::getNode() const {
-  return node;
+boost::shared_ptr<gapputils::workflow::Node> PropertyReference::getNode() const {
+  return node.lock();
 }
 
 capputils::reflection::ReflectableClass* PropertyReference::getObject() const {

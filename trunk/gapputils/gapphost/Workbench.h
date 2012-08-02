@@ -13,6 +13,9 @@
 
 #include <set>
 
+#include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
+
 namespace gapputils {
 
 class ToolItem;
@@ -30,7 +33,7 @@ class Workbench : public QGraphicsView {
 private:
   ToolItem* selectedItem;
   std::vector<CableItem*> currentCables;
-  CompatibilityChecker* checker;
+  boost::weak_ptr<CompatibilityChecker> checker;
   bool modifiable;
   qreal viewScale;
   QGraphicsRectItem* shadowRect;
@@ -42,7 +45,7 @@ public:
 
   void addToolItem(ToolItem* item);
   void addCableItem(CableItem* cable);
-  void setChecker(CompatibilityChecker* checker);
+  void setChecker(boost::shared_ptr<CompatibilityChecker> checker);
 
   // disconnects and deletes a cable and removes it from the list
   void removeCableItem(CableItem* cable);

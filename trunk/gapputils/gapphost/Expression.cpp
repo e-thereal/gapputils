@@ -32,7 +32,7 @@ BeginPropertyDefinitions(Expression)
 
 EndPropertyDefinitions
 
-Expression::Expression() : _Node(0), handler(this, &Expression::changedHandler) {
+Expression::Expression() : handler(this, &Expression::changedHandler) {
 
 }
 
@@ -44,7 +44,7 @@ std::string Expression::evaluate() const {
   assert(getNode());
   assert(getNode()->getWorkflow());
 
-  Workflow* workflow = getNode()->getWorkflow();
+  boost::weak_ptr<Workflow> workflow = getNode()->getWorkflow();
   std::stringstream input(getExpression());
   std::stringstream output;
 
@@ -94,7 +94,7 @@ void Expression::resume() {
 
   // Find global properties and add event handler to them
 
-  Workflow* workflow = getNode()->getWorkflow();
+  boost::weak_ptr<Workflow> workflow = getNode()->getWorkflow();
   std::stringstream input(getExpression());
 
   char ch;
@@ -106,7 +106,7 @@ void Expression::resume() {
         std::stringstream propertyName;
         for (input >> ch; !input.eof() && ch != ')'; input >> ch)
           propertyName << ch;
-        GlobalProperty* gprop = workflow->getGlobalProperty(propertyName.str());
+        boost::weak_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(propertyName.str());
         if (gprop) {
           PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
           capputils::ObservableClass* observable =
@@ -131,12 +131,12 @@ void Expression::resume() {
   object->findProperty(getPropertyName())->setStringValue(*object, evaluate());
 }
 
-void Expression::disconnect(GlobalProperty* gprop) {
+void Expression::disconnect(boost::shared_ptr<GlobalProperty> gprop) {
   // Mean I'll tell the global property that I'm gone now and I remove my event handler
   // and the pair
   assert(gprop);
 
-  Workflow* workflow = getNode()->getWorkflow();
+  boost::shared_ptr<Workflow> workflow = getNode()->getWorkflow();
   PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
 
   capputils::ObservableClass* observable =
