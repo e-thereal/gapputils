@@ -87,6 +87,7 @@ QLabel* createTopAlignedLabel(const std::string& text) {
 }
 
 void PropertyGrid::gridClicked(const QModelIndex& index) {
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
   assert(node);
 
   const QModelIndex& valueIndex = index.sibling(index.row(), 1);
@@ -124,11 +125,11 @@ void PropertyGrid::gridClicked(const QModelIndex& index) {
   infoLayout->addRow(createTopAlignedLabel("Type:"), typeLabel);
 
   // check if global and check if connected and fill actions list accordingly
-  GlobalProperty* gprop = node->getGlobalProperty(reference);
+  boost::shared_ptr<GlobalProperty> gprop = node->getGlobalProperty(reference);
   if (gprop)
     infoLayout->addRow("Name:", new QLabel(gprop->getName().c_str()));
 
-  GlobalEdge* edge = node->getGlobalEdge(reference);
+  boost::shared_ptr<GlobalEdge> edge = node->getGlobalEdge(reference);
   if (edge)
     infoLayout->addRow("Connection:", new QLabel(edge->getGlobalProperty().c_str()));
 
@@ -147,6 +148,8 @@ void PropertyGrid::gridClicked(const QModelIndex& index) {
 }
 
 void PropertyGrid::showContextMenu(const QPoint& point) {
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+
   QList<QAction*> actions;
   QModelIndex index = propertyGrid->indexAt(point);
   if (!index.isValid())
@@ -159,13 +162,13 @@ void PropertyGrid::showContextMenu(const QPoint& point) {
   const PropertyReference& reference = varient.value<PropertyReference>();
 
   // check if global and check if connected and fill actions list accordingly
-  GlobalProperty* gprop = node->getGlobalProperty(reference);
+  boost::shared_ptr<GlobalProperty> gprop = node->getGlobalProperty(reference);
   if (gprop)
     actions.append(removeGlobal);
   else
     actions.append(makeGlobal);
 
-  GlobalEdge* edge = node->getGlobalEdge(reference);
+  boost::shared_ptr<GlobalEdge> edge = node->getGlobalEdge(reference);
   if (edge)
     actions.append(disconnectFromGlobal);
   else
@@ -175,8 +178,8 @@ void PropertyGrid::showContextMenu(const QPoint& point) {
 }
 
 void PropertyGrid::makePropertyGlobal() {
-  assert(node);
-  assert(node->getWorkflow());
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
   MakeGlobalDialog dialog(propertyGrid);
   if (dialog.exec() == QDialog::Accepted) {
     QString text = dialog.getText();
@@ -191,7 +194,7 @@ void PropertyGrid::makePropertyGlobal() {
         item->setFont(font);
       }
 
-      node->getWorkflow()->makePropertyGlobal(text.toAscii().data(), index.data(Qt::UserRole).value<PropertyReference>());
+      workflow->makePropertyGlobal(text.toAscii().data(), index.data(Qt::UserRole).value<PropertyReference>());
     } else {
       QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for a global property!");
     }
@@ -199,8 +202,9 @@ void PropertyGrid::makePropertyGlobal() {
 }
 
 void PropertyGrid::removePropertyFromGlobal() {
-  assert(node);
-  assert(node->getWorkflow());
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
+
   QModelIndex index = propertyGrid->currentIndex();
   PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
 
@@ -212,15 +216,14 @@ void PropertyGrid::removePropertyFromGlobal() {
     item->setFont(font);
   }
 
-  GlobalProperty* gprop = node->getGlobalProperty(reference);
+  boost::shared_ptr<GlobalProperty> gprop = node->getGlobalProperty(reference);
   if (gprop)
-    node->getWorkflow()->removeGlobalProperty(gprop);
+    workflow->removeGlobalProperty(gprop);
 }
 
 void PropertyGrid::connectProperty() {
-  assert(node);
-  assert(node->getWorkflow());
-  workflow::Workflow* workflow = node->getWorkflow();
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
 
   // Get list of compatible global properties.
   // Show list windows.
@@ -229,7 +232,7 @@ void PropertyGrid::connectProperty() {
   PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
 
   PopUpList list;
-  std::vector<GlobalProperty*>* globals = workflow->getGlobalProperties();
+  boost::shared_ptr<std::vector<boost::shared_ptr<GlobalProperty> > > globals = workflow->getGlobalProperties();
   for (unsigned i = 0; i < globals->size(); ++i) {
     PropertyReference ref(reference.getWorkflow(), globals->at(i)->getModuleUuid(), globals->at(i)->getPropertyId());
     if (Edge::areCompatible(ref.getProperty(), reference.getProperty())) {
@@ -259,8 +262,9 @@ void PropertyGrid::connectProperty() {
 }
 
 void PropertyGrid::disconnectProperty() {
-  assert(node);
-  assert(node->getWorkflow());
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
+  
   QModelIndex index = propertyGrid->currentIndex();
   PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
 
@@ -272,9 +276,9 @@ void PropertyGrid::disconnectProperty() {
     item->setFont(font);
   }
 
-  GlobalEdge* edge = node->getGlobalEdge(reference);
+  boost::shared_ptr<GlobalEdge> edge = node->getGlobalEdge(reference);
   if (edge)
-    node->getWorkflow()->removeGlobalEdge(edge);
+    workflow->removeGlobalEdge(edge);
 }
 
 } /* namespace host */
