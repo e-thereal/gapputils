@@ -70,9 +70,9 @@ void PropertyGrid::setEnabled(bool enabled) {
 
 void PropertyGrid::setNode(boost::shared_ptr<workflow::Node> node) {
   this->node = node;
-  harmonizer = boost::shared_ptr<ModelHarmonizer>(new ModelHarmonizer(node));
 
   if (node) {
+    harmonizer = boost::shared_ptr<ModelHarmonizer>(new ModelHarmonizer(node));
     propertyGrid->setModel(harmonizer->getModel());
     propertyGrid->expandAll();
   } else {

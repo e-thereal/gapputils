@@ -15,7 +15,6 @@ SOURCES = main.cpp \
 		  Node.cpp \
 		  Edge.cpp \
 		  Workflow.cpp \
-		  TestWorkflow.cpp \
 		  Controller.cpp \
 		  DefaultInterface.cpp \
 		  GenericViewer.cpp \
@@ -24,7 +23,6 @@ SOURCES = main.cpp \
 		  GlobalProperty.cpp \
 		  PopUpList.cpp \
 		  GlobalEdge.cpp \
-		  EditInterfaceDialog.cpp \
 		  Expression.cpp \
 		  trace.cpp \
 		  HostInterface.cpp \
@@ -58,7 +56,6 @@ HEADERS = MainWindow.h \
           MakeGlobalDialog.h \
           PopUpList.h \
           ToolItem.h \
-          EditInterfaceDialog.h \
           WorkflowUpdater.h \
           WorkflowToolBox.h \
           PropertyGrid.h \

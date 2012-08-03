@@ -211,16 +211,17 @@ void MainWindow::resume() {
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
   workflow->resumeViewport(); // resume after the layout stuff is done.
   connect(workflow.get(), SIGNAL(showWorkflowRequest(boost::shared_ptr<workflow::Workflow>)), this, SLOT(showWorkflow(boost::shared_ptr<workflow::Workflow>)));
-  connect(workflow.get(), SIGNAL(deleteCalled(boost::shared_ptr<workflow::Workflow>)), this, SLOT(closeWorkflow(boost::shared_ptr<workflow::Workflow>)));
+  connect(workflow.get(), SIGNAL(deleteCalled(const std::string&)), this, SLOT(closeWorkflow(const std::string&)));
   connect(workflow.get(), SIGNAL(currentModuleChanged(boost::shared_ptr<workflow::Node>)), this, SLOT(handleCurrentNodeChanged(boost::shared_ptr<workflow::Node>)));
 
+//  std::cout << "Opening " << model.getOpenWorkflows()->size() << " workflows." << std::endl;
   for (unsigned i = 0; i < model.getOpenWorkflows()->size(); ++i) {
     string uuid = model.getOpenWorkflows()->at(i);
     assert(model.getWorkflowMap()->find(uuid) != model.getWorkflowMap()->end());
-    showWorkflow(model.getWorkflowMap()->at(uuid), false);
+    showWorkflow(model.getWorkflowMap()->at(uuid).lock(), false);
   }
   if(model.getWorkflowMap()->find(currentUuid) != model.getWorkflowMap()->end())
-    showWorkflow(model.getWorkflowMap()->at(currentUuid));
+    showWorkflow(model.getWorkflowMap()->at(currentUuid).lock());
 
   QSettings settings;
   if (settings.contains("windowState"))
@@ -236,11 +237,11 @@ void MainWindow::quit() {
 }
 
 void MainWindow::copy() {
-  openWorkflows[tabWidget->currentIndex()]->copySelectedNodesToClipboard();
+  openWorkflows[tabWidget->currentIndex()].lock()->copySelectedNodesToClipboard();
 }
 
 void MainWindow::paste() {
-  openWorkflows[tabWidget->currentIndex()]->addNodesFromClipboard();
+  openWorkflows[tabWidget->currentIndex()].lock()->addNodesFromClipboard();
 }
 
 void MainWindow::loadWorkflow() {
@@ -264,7 +265,7 @@ void MainWindow::saveWorkflow() {
     QStringList filenames = fileDialog.selectedFiles();
     if (filenames.size()) {
       //Controller::getInstance().saveCurrentWorkflow(filenames[0].toUtf8().data());
-      Xmlizer::ToXml(filenames[0].toUtf8().data(), *openWorkflows[tabWidget->currentIndex()]);
+      Xmlizer::ToXml(filenames[0].toUtf8().data(), *openWorkflows[tabWidget->currentIndex()].lock());
     }
   }
 }
@@ -278,7 +279,7 @@ void MainWindow::loadLibrary() {
   if (filename.isNull())
     return;
 
-  boost::shared_ptr<Workflow> workflow = openWorkflows[tabWidget->currentIndex()];
+  boost::shared_ptr<Workflow> workflow = openWorkflows[tabWidget->currentIndex()].lock();
   boost::shared_ptr<vector<string> > libs = workflow->getLibraries();
   libs->push_back(filename.toUtf8().data());
   workflow->setLibraries(libs);
@@ -288,6 +289,7 @@ void MainWindow::loadLibrary() {
 void MainWindow::reload() {
   DataModel& model = DataModel::getInstance();
   TiXmlElement* modelElement = Xmlizer::CreateXml(model);
+  model.setMainWorkflow(boost::shared_ptr<Workflow>());
   openWorkflows.clear();    // All tabs should now be closed. Either because they were closed due to delete or because they were removed manually
   tabWidget->removeTab(0);  // First tab is never automatically removed
 
@@ -315,13 +317,15 @@ void MainWindow::setGuiEnabled(bool enabled) {
   toolBox->setEnabled(enabled);
   propertyGrid->setEnabled(enabled);
   for (unsigned i = 0; i < openWorkflows.size(); ++i)
-    openWorkflows[i]->setUiEnabled(enabled);
+    openWorkflows[i].lock()->setUiEnabled(enabled);
 }
 
 void MainWindow::updateCurrentModule() {
   setGuiEnabled(false);
 
   workingWorkflow = openWorkflows[tabWidget->currentIndex()];
+
+  boost::shared_ptr<Workflow> workingWorkflow = this->workingWorkflow.lock();
   connect(workingWorkflow.get(), SIGNAL(updateFinished(boost::shared_ptr<workflow::Node>)), this, SLOT(updateFinished(boost::shared_ptr<workflow::Node>)));
   workingWorkflow->updateCurrentModule();
   abortAction->setEnabled(true);
@@ -329,8 +333,9 @@ void MainWindow::updateCurrentModule() {
 
 void MainWindow::updateWorkflow() {
   setGuiEnabled(false);
-
   workingWorkflow = openWorkflows[tabWidget->currentIndex()];
+
+  boost::shared_ptr<Workflow> workingWorkflow = this->workingWorkflow.lock();
   connect(workingWorkflow.get(), SIGNAL(updateFinished(boost::shared_ptr<workflow::Node>)), this, SLOT(updateFinished(boost::shared_ptr<workflow::Node>)));
   workingWorkflow->updateOutputs();
   abortAction->setEnabled(true);
@@ -340,19 +345,21 @@ void MainWindow::updateMainWorkflow() {
   setGuiEnabled(false);
 
   workingWorkflow = openWorkflows[0];
+
+  boost::shared_ptr<Workflow> workingWorkflow = openWorkflows[tabWidget->currentIndex()].lock();
   connect(workingWorkflow.get(), SIGNAL(updateFinished(boost::shared_ptr<workflow::Node>)), this, SLOT(updateFinished(boost::shared_ptr<workflow::Node>)));
   workingWorkflow->updateOutputs();
   abortAction->setEnabled(true);
 }
 
 void MainWindow::terminateUpdate() {
-  workingWorkflow->abortUpdate();
+  workingWorkflow.lock()->abortUpdate();
 }
 
 void MainWindow::updateFinished(boost::shared_ptr<Node> node) {
   abortAction->setEnabled(false);
   setGuiEnabled(true);
-  boost::shared_ptr<workflow::Workflow> workflow = workingWorkflow;
+  boost::shared_ptr<workflow::Workflow> workflow = workingWorkflow.lock();
   assert(workflow.get() == node.get());
   if (workflow)
     disconnect(workflow.get(), SIGNAL(updateFinished(boost::shared_ptr<workflow::Node>)), this, SLOT(updateFinished(boost::shared_ptr<workflow::Node>)));
@@ -380,7 +387,7 @@ void MainWindow::showWorkflow(boost::shared_ptr<workflow::Workflow> workflow, bo
 
   unsigned pos = 0;
   for(;pos < openWorkflows.size(); ++pos) {
-    if (openWorkflows[pos] == workflow)
+    if (openWorkflows[pos].lock() == workflow)
       break;
   }
 
@@ -398,13 +405,13 @@ void MainWindow::showWorkflow(boost::shared_ptr<workflow::Workflow> workflow, bo
   }
 }
 
-void MainWindow::closeWorkflow(boost::shared_ptr<workflow::Workflow> workflow) {
+void MainWindow::closeWorkflow(const std::string& uuid) {
+//  std::cout << "Closing workflow" << std::endl;
   assert((int)openWorkflows.size() == tabWidget->count());
 
   for(unsigned pos = 0; pos < openWorkflows.size(); ++pos) {
-    if (openWorkflows[pos] == workflow) {
+    if (openWorkflows[pos].expired() || openWorkflows[pos].lock()->getUuid() == uuid) {
       closeWorkflow(pos);
-      break;
     }
   }
 }
@@ -415,7 +422,9 @@ void MainWindow::closeWorkflow(int tabIndex) {
   if (tabIndex == 0)
     return;
 
-  disconnect(openWorkflows[tabIndex].get(), SIGNAL(currentModuleChanged(boost::shared_ptr<workflow::Node>)), this, SLOT(handleCurrentNodeChanged(boost::shared_ptr<workflow::Node>)));
+  boost::shared_ptr<Workflow> workflow = openWorkflows[tabIndex].lock();
+  if (workflow)
+    disconnect(workflow.get(), SIGNAL(currentModuleChanged(boost::shared_ptr<workflow::Node>)), this, SLOT(handleCurrentNodeChanged(boost::shared_ptr<workflow::Node>)));
 
   tabWidget->removeTab(tabIndex);
   openWorkflows.erase(openWorkflows.begin() + tabIndex);
@@ -424,8 +433,9 @@ void MainWindow::closeWorkflow(int tabIndex) {
 
 void MainWindow::currentTabChanged(int index) {
   if (index >= 0 && index < (int)openWorkflows.size()) {
-    DataModel::getInstance().setCurrentWorkflow(openWorkflows[index]->getUuid());
-    propertyGrid->setNode(openWorkflows[index]->getCurrentNode());
+    boost::shared_ptr<Workflow> workflow = openWorkflows[index].lock();
+    DataModel::getInstance().setCurrentWorkflow(workflow->getUuid());
+    propertyGrid->setNode(workflow->getCurrentNode());
   }
 }
 
@@ -437,7 +447,7 @@ void MainWindow::selectModule(const QString& quuid) {
   std::string uuid = quuid.toAscii().data();
 
   for (unsigned i = 0; i < openWorkflows.size(); ++i) {
-    if (openWorkflows[i]->trySelectNode(uuid)) {
+    if (openWorkflows[i].lock()->trySelectNode(uuid)) {
       tabWidget->setCurrentIndex(i);
       break;
     }
@@ -445,15 +455,15 @@ void MainWindow::selectModule(const QString& quuid) {
 }
 
 void MainWindow::resetInputs() {
-  openWorkflows[tabWidget->currentIndex()]->resetInputs();
+  openWorkflows[tabWidget->currentIndex()].lock()->resetInputs();
 }
 
 void MainWindow::incrementInputs() {
-  openWorkflows[tabWidget->currentIndex()]->incrementInputs();
+  openWorkflows[tabWidget->currentIndex()].lock()->incrementInputs();
 }
 
 void MainWindow::decrementInputs() {
-  openWorkflows[tabWidget->currentIndex()]->decrementInputs();
+  openWorkflows[tabWidget->currentIndex()].lock()->decrementInputs();
 }
 
 }

@@ -105,7 +105,7 @@ Workflow::Workflow()
 
   workbench = new Workbench();
   workbench->setGeometry(0, 0, 600, 600);
-  workbench->setChecker(boost::enable_shared_from_this<Workflow>::shared_from_this());
+  workbench->setChecker(this);
   widget = workbench;
 
   connect(workbench, SIGNAL(createItemRequest(int, int, QString)), this, SLOT(createModule(int, int, QString)));
@@ -125,10 +125,9 @@ Workflow::Workflow()
 #define TRACE std::cout << __LINE__ << std::endl;
 
 Workflow::~Workflow() {
-  const std::string className = (getModule() ? getModule()->getClassName() : "none");
-  const std::string uuid = getUuid();
-//  std::cout << "[Info] Start deleting " << className << " (" << uuid << ")" << std::endl;
-  Q_EMIT deleteCalled(boost::enable_shared_from_this<Workflow>::shared_from_this());
+//  std::cout << "Deleting workflow." << std::endl;
+
+  Q_EMIT deleteCalled(getUuid());
 
   LibraryLoader& loader = LibraryLoader::getInstance();
 
@@ -136,45 +135,21 @@ Workflow::~Workflow() {
     delete widget;
   }
 
-  // Delete expressions first because expressions link to nodes and
-  // disconnect when deleted. Thus, the node must not be deleted before
-  // deleting the expression
-//  for (unsigned i = 0; i < _Nodes->size(); ++i)
-//    _Nodes->at(i)->getExpressions()->clear();
-
-//  for (unsigned i = 0; i < _Nodes->size(); ++i)
-//    delete _Nodes->at(i);
-//  delete _Nodes;
-//
-//  for (unsigned i = 0; i < _GlobalProperties->size(); ++i)
-//    delete _GlobalProperties->at(i);
-//  delete _GlobalProperties;
-
-  // Don't delete module before setting it to zero
-  // The module property is observed and reflectable. Thus, when resetting
-  // the module, the event listener is disconnected from the old module.
-  // This will cause the application to crash when the module has already been
-  // deleted.
-//  ReflectableClass* module = getModule();
-//  setModule(0);
-//  if (module)
-//    delete module;
+  // Clean up before releasing the libraries
+  _Edges->clear();
+  _GlobalEdges->clear();
+  _Nodes->clear();
+  _GlobalProperties->clear();
   setModule(boost::shared_ptr<ReflectableClass>());
 
   // Unload libraries
   for (unsigned i = 0; i < _Libraries->size(); ++i) {
-//    std::cout << _Libraries->at(i) << std::endl;
     loader.freeLibrary(_Libraries->at(i));
   }
 
-//  delete _Libraries;
-
-  map<string, boost::shared_ptr<Workflow> >& workflowMap = *host::DataModel::getInstance().getWorkflowMap();
-  //assert(workflowMap->find(getUuid()) != workflowMap->end());
+  map<string, boost::weak_ptr<Workflow> >& workflowMap = *host::DataModel::getInstance().getWorkflowMap();
   if (workflowMap.find(getUuid()) != workflowMap.end())
     workflowMap.erase(getUuid());
-
-//  std::cout << "[Info] Finished deleting " << className << " (" << uuid << ")" << std::endl;
 }
 
 void Workflow::addInterfaceNode(boost::shared_ptr<Node> node) {
@@ -280,9 +255,9 @@ void Workflow::removeInterfaceNode(boost::shared_ptr<Node> node) {
 //        std::cout << "[Info] Found toolconnection. Current Id = " << outputs[i]->id << std::endl;
         --(outputs[i]->id);
 //        std::cout << "[Info] New id = " << outputs[i]->id << std::endl;
-        if (!outputs[i]->multi.expired()) {
+        if (outputs[i]->multi) {
 //          std::cout << "[Info] Changed multi id from " << outputs[i]->multi->id;
-          outputs[i]->multi.lock()->id = outputs[i]->id;
+          outputs[i]->multi->id = outputs[i]->id;
 //          std::cout << " to " << outputs[i]->multi->id << std::endl;
         }
       }
@@ -295,9 +270,9 @@ void Workflow::removeInterfaceNode(boost::shared_ptr<Node> node) {
 //        std::cout << "[Info] Found toolconnection. Current Id = " << inputs[i]->id << std::endl;
         --(inputs[i]->id);
 //        std::cout << "[Info] New id = " << inputs[i]->id << std::endl;
-        if (!inputs[i]->multi.expired()) {
+        if (inputs[i]->multi) {
 //          std::cout << "[Info] Changed multi id from " << inputs[i]->multi->id;
-          inputs[i]->multi.lock()->id = inputs[i]->id;
+          inputs[i]->multi->id = inputs[i]->id;
 //          std::cout << " to " << inputs[i]->multi->id << std::endl;
         }
       }
@@ -412,7 +387,7 @@ void Workflow::createModule(int x, int y, QString classname) {
   std::string name = classname.toAscii().data();
 
   boost::shared_ptr<ReflectableClass> object = boost::shared_ptr<ReflectableClass>(ReflectableClassFactory::getInstance().newInstance(name));
-  addDependencies(boost::enable_shared_from_this<Workflow>::shared_from_this(), name);
+  addDependencies(shared_from_this(), name);
 
   boost::shared_ptr<Node> node;
   if (boost::dynamic_pointer_cast<WorkflowInterface>(object)) {
@@ -420,7 +395,7 @@ void Workflow::createModule(int x, int y, QString classname) {
     workflow->setModule(object);
     addDependencies(workflow, name);
     workflow->resume();
-    connect(workflow.get(), SIGNAL(deleteCalled(boost::shared_ptr<workflow::Workflow>)), this, SLOT(delegateDeleteCalled(boost::shared_ptr<workflow::Workflow>)));
+    connect(workflow.get(), SIGNAL(deleteCalled(const std::string&)), this, SLOT(delegateDeleteCalled(const std::string&)));
     connect(workflow.get(), SIGNAL(showWorkflowRequest(boost::shared_ptr<workflow::Workflow>)), this, SLOT(showWorkflow(boost::shared_ptr<workflow::Workflow>)));
     node = workflow;
   } else {
@@ -428,7 +403,7 @@ void Workflow::createModule(int x, int y, QString classname) {
     node->setModule(object);
     node->resume();
   }
-  node->setWorkflow(boost::enable_shared_from_this<Workflow>::shared_from_this());
+  node->setWorkflow(shared_from_this());
   node->setX(x);
   node->setY(y);
   getNodes()->push_back(node);
@@ -581,10 +556,10 @@ void Workflow::resumeViewport() {
 void Workflow::resume() {
   Logbook& dlog = *getLogbook();
 
-  map<string, boost::shared_ptr<Workflow> >& workflowMap = *host::DataModel::getInstance().getWorkflowMap();
+  map<string, boost::weak_ptr<Workflow> >& workflowMap = *host::DataModel::getInstance().getWorkflowMap();
   //assert(workflowMap->find(getUuid()) == workflowMap->end());
   if (workflowMap.find(getUuid()) == workflowMap.end())
-    workflowMap.insert(pair<string, boost::shared_ptr<Workflow> >(getUuid(), boost::enable_shared_from_this<Workflow>::shared_from_this()));
+    workflowMap.insert(pair<string, boost::shared_ptr<Workflow> >(getUuid(), shared_from_this()));
 
   vector<boost::shared_ptr<Node> >& nodes = *getNodes();
   vector<boost::shared_ptr<Edge> >& edges = *getEdges();
@@ -624,12 +599,12 @@ void Workflow::resume() {
 }
 
 void Workflow::resumeNode(boost::shared_ptr<Node> node) {
-  node->setWorkflow(boost::enable_shared_from_this<Workflow>::shared_from_this());
+  node->setWorkflow(shared_from_this());
   newItem(node);
   node->resume();
   boost::shared_ptr<Workflow> workflow = boost::dynamic_pointer_cast<Workflow>(node);
   if (workflow) {
-    connect(workflow.get(), SIGNAL(deleteCalled(boost::shared_ptr<workflow::Workflow>)), this, SLOT(delegateDeleteCalled(boost::shared_ptr<workflow::Workflow>)));
+    connect(workflow.get(), SIGNAL(deleteCalled(const std::string&)), this, SLOT(delegateDeleteCalled(const std::string&)));
     connect(workflow.get(), SIGNAL(showWorkflowRequest(boost::shared_ptr<workflow::Workflow>)), this, SLOT(showWorkflow(boost::shared_ptr<workflow::Workflow>)));
   }
 
@@ -686,7 +661,7 @@ void Workflow::itemChangedHandler(ToolItem* item) {
 }
 
 void Workflow::deleteModule(ToolItem* item) {
-  //cout << "Deleting module: " << item->getLabel() << endl;
+  cout << "Deleting module: " << item->getLabel() << endl;
   Logbook& dlog = *getLogbook();
 
   unsigned i = 0;
@@ -962,7 +937,7 @@ bool Workflow::isDependentProperty(boost::shared_ptr<const Node> node, const std
         return true;
     }
   }
-  PropertyReference ref(boost::enable_shared_from_this<Workflow>::shared_from_this(), node->getUuid(), propertyName);
+  PropertyReference ref(shared_from_this(), node->getUuid(), propertyName);
   boost::shared_ptr<const CollectionElement> collection = boost::dynamic_pointer_cast<const CollectionElement>(node->getModule());
   if (ref.getProperty() && ref.getProperty()->getAttribute<FromEnumerableAttribute>() && collection && collection->getCalculateCombinations())
     return true;
@@ -986,7 +961,7 @@ void Workflow::workflowUpdateFinished() {
     iter->lock()->getToolItem()->setProgress(ToolItem::Neutral);
   processedNodes.clear();
 
-  Q_EMIT updateFinished(boost::enable_shared_from_this<Workflow>::shared_from_this());
+  Q_EMIT updateFinished(shared_from_this());
 }
 
 boost::shared_ptr<Node> Workflow::getCurrentNode() {
@@ -994,7 +969,7 @@ boost::shared_ptr<Node> Workflow::getCurrentNode() {
 }
 
 void Workflow::updateOutputs() {
-  workflowUpdater->update(boost::enable_shared_from_this<Workflow>::shared_from_this());
+  workflowUpdater->update(shared_from_this());
 }
 
 void Workflow::abortUpdate() {
@@ -1095,8 +1070,9 @@ void Workflow::showModuleDialog(ToolItem* item) {
     element->show();
 }
 
-void Workflow::delegateDeleteCalled(boost::shared_ptr<workflow::Workflow> workflow) {
-  Q_EMIT deleteCalled(workflow);
+void Workflow::delegateDeleteCalled(const std::string& uuid) {
+//  std::cout << "delegate delete called" << std::endl;
+  Q_EMIT deleteCalled(uuid);
 }
 
 void Workflow::copySelectedNodesToClipboard() {

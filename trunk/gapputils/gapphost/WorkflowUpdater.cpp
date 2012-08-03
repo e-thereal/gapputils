@@ -20,11 +20,11 @@ namespace gapputils {
 
 namespace host {
 
-WorkflowUpdater::WorkflowUpdater(boost::shared_ptr<WorkflowUpdater> rootThread)
+WorkflowUpdater::WorkflowUpdater(WorkflowUpdater* rootThread)
   : rootThread(rootThread), abortRequested(false)
 {
   if (!rootThread) {
-    updater = boost::shared_ptr<WorkflowUpdater>(new WorkflowUpdater(shared_from_this()));
+    updater = boost::shared_ptr<WorkflowUpdater>(new WorkflowUpdater(this));
 
     // One workflow updater instance is executed in the root thread
     // this instance can be used to synchronize the root thread with the updater threads
@@ -40,7 +40,7 @@ WorkflowUpdater::~WorkflowUpdater(void) { }
 
 void WorkflowUpdater::update(boost::shared_ptr<workflow::Node> node) {
   abortRequested = false;
-  if (rootThread.expired()) {
+  if (!rootThread) {
     updater->update(node);
   } else {
     capputils::Logbook dlog(&LogbookModel::GetInstance());
@@ -153,8 +153,8 @@ void WorkflowUpdater::reportNodeUpdateFinished(boost::shared_ptr<workflow::Node>
 }
 
 bool WorkflowUpdater::getAbortRequested() const {
-  if (!rootThread.expired())
-    return rootThread.lock()->getAbortRequested();
+  if (rootThread)
+    return rootThread->getAbortRequested();
   return abortRequested;
 }
 
@@ -184,11 +184,6 @@ void WorkflowUpdater::buildStack(boost::shared_ptr<workflow::Node> node) {
     nodesStack.push(node);
   } else {
     boost::shared_ptr<workflow::WorkflowElement> element = boost::dynamic_pointer_cast<workflow::WorkflowElement>(node->getModule());
-    if (element) {
-      dlog.setModule(element->getClassName());
-      dlog.setUuid(node->getUuid());
-      dlog(capputils::Severity::Trace) << "Module is up-to-date. (" << node->getInputChecksum() << ", " << node->getOutputChecksum() << ")";
-    }
     reportProgress(node, 100, false);
   }
   
@@ -213,11 +208,11 @@ void WorkflowUpdater::updateNodes() {
     if (workflow) {
 
       // Create a new worker for the sub workflow
-      WorkflowUpdater updater(rootThread.lock());
+      WorkflowUpdater updater(rootThread);
 
       // Just sit and watch if he is doing a good job
-      connect(&updater, SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double, bool)), rootThread.lock().get(), SLOT(handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node>, double, bool)), Qt::BlockingQueuedConnection);
-      connect(&updater, SIGNAL(nodeUpdateFinished(boost::shared_ptr<workflow::Node>)), rootThread.lock().get(), SLOT(handleNodeUpdateFinished(boost::shared_ptr<workflow::Node>)), Qt::BlockingQueuedConnection);
+      connect(&updater, SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double, bool)), rootThread, SLOT(handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node>, double, bool)), Qt::BlockingQueuedConnection);
+      connect(&updater, SIGNAL(nodeUpdateFinished(boost::shared_ptr<workflow::Node>)), rootThread, SLOT(handleNodeUpdateFinished(boost::shared_ptr<workflow::Node>)), Qt::BlockingQueuedConnection);
 
       // Let him get started
       updater.update(currentNode.lock());
@@ -241,11 +236,6 @@ void WorkflowUpdater::updateNodes() {
         }
       } else {
         boost::shared_ptr<workflow::WorkflowElement> element = boost::dynamic_pointer_cast<workflow::WorkflowElement>(currentNode.lock()->getModule());
-        if (element) {
-          dlog.setModule(element->getClassName());
-          dlog.setUuid(currentNode.lock()->getUuid());
-          dlog(capputils::Severity::Trace) << "Module is up-to-date. (" << currentNode.lock()->getInputChecksum() << ", " << currentNode.lock()->getOutputChecksum() << ")";
-        }
       }
     }
 

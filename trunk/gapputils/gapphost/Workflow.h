@@ -48,8 +48,7 @@ class WorkflowUpdater;
 
 namespace workflow {
 
-class Workflow : public QObject, public Node, public CompatibilityChecker, public capputils::TimedClass,
-                 public boost::enable_shared_from_this<Workflow>
+class Workflow : public QObject, public Node, public CompatibilityChecker, public capputils::TimedClass
 {
   Q_OBJECT
 
@@ -82,6 +81,9 @@ private:
 public:
   Workflow();
   virtual ~Workflow();
+
+  boost::shared_ptr<Workflow> shared_from_this()       { return boost::static_pointer_cast<Workflow>(Node::shared_from_this()); }
+  boost::shared_ptr<const Workflow> shared_from_this() const { return boost::static_pointer_cast<const Workflow>(Node::shared_from_this()); }
 
   void newItem(boost::shared_ptr<Node> node);
   bool newCable(boost::shared_ptr<Edge> edge);
@@ -183,7 +185,7 @@ private Q_SLOTS:
   void showWorkflow(boost::shared_ptr<workflow::Workflow> workflow);
   void showWorkflow(ToolItem* item);
   void showModuleDialog(ToolItem* item);
-  void delegateDeleteCalled(boost::shared_ptr<workflow::Workflow> workflow);
+  void delegateDeleteCalled(const std::string& uuid);
   void handleViewportChanged();
 
   void workflowUpdateFinished();
@@ -191,7 +193,7 @@ private Q_SLOTS:
 Q_SIGNALS:
   void updateFinished(boost::shared_ptr<workflow::Node> node);
   void showWorkflowRequest(boost::shared_ptr<workflow::Workflow> workflow);
-  void deleteCalled(boost::shared_ptr<workflow::Workflow> workflow);
+  void deleteCalled(const std::string& uuid);
   void currentModuleChanged(boost::shared_ptr<workflow::Node> node);
 };
 

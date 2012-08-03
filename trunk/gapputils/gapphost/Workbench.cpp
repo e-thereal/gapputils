@@ -20,7 +20,7 @@ using namespace std;
 namespace gapputils {
 
 Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
-    modifiable(true), viewScale(1.0)
+    checker(0), modifiable(true), viewScale(1.0)
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -42,7 +42,7 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
 
 Workbench::~Workbench() { }
 
-void Workbench::setChecker(boost::shared_ptr<CompatibilityChecker> checker) {
+void Workbench::setChecker(CompatibilityChecker* checker) {
   this->checker = checker;
 }
 
@@ -314,7 +314,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 bool Workbench::areCompatible(const ToolConnection* output, const ToolConnection* input) const {
-  return !checker.expired() && checker.lock()->areCompatibleConnections(output, input);
+  return checker && checker->areCompatibleConnections(output, input);
 }
 
 

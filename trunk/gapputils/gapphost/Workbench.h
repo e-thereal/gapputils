@@ -33,7 +33,7 @@ class Workbench : public QGraphicsView {
 private:
   ToolItem* selectedItem;
   std::vector<CableItem*> currentCables;
-  boost::weak_ptr<CompatibilityChecker> checker;
+  CompatibilityChecker* checker;
   bool modifiable;
   qreal viewScale;
   QGraphicsRectItem* shadowRect;
@@ -45,7 +45,7 @@ public:
 
   void addToolItem(ToolItem* item);
   void addCableItem(CableItem* cable);
-  void setChecker(boost::shared_ptr<CompatibilityChecker> checker);
+  void setChecker(CompatibilityChecker* checker);
 
   // disconnects and deletes a cable and removes it from the list
   void removeCableItem(CableItem* cable);

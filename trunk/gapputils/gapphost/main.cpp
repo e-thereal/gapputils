@@ -128,6 +128,7 @@ int main(int argc, char *argv[])
   }
 
   model.save();
+  model.setMainWorkflow(boost::shared_ptr<Workflow>());
 //  delete model.getMainWorkflow();
 
   cublasShutdown();

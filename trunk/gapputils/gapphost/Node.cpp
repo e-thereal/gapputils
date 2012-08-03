@@ -76,7 +76,7 @@ BeginPropertyDefinitions(Node)
 EndPropertyDefinitions
 
 Node::Node(void)
- : _Uuid(Node::CreateUuid()), _X(0), _Y(0), _InputChecksum(0), _OutputChecksum(0),
+ : _Uuid(Node::CreateUuid()), _X(0), _Y(0), _InputChecksum(0), _OutputChecksum(0), _ToolItem(0),
    _Expressions(new std::vector<boost::shared_ptr<Expression> >()), readFromCache(false)
 {
   Changed.connect(EventHandler<Node>(this, &Node::changedHandler));
