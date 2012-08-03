@@ -17,8 +17,6 @@
 #include "ModelHarmonizer.h"
 #include "Node.h"
 
-#include <boost/enable_shared_from_this.hpp>
-
 namespace gapputils {
 
 class Workbench;
@@ -35,13 +33,13 @@ public:
   QString label;
   Direction direction;
   ToolItem* parent;
-  boost::weak_ptr<MultiConnection> multi;
+  MultiConnection* multi;
   CableItem* cable;
   int id;                 ///< PropertyId
 
 public:
   ToolConnection(const QString& label, Direction direction, ToolItem* parent,
-      int id, boost::shared_ptr<MultiConnection> multi = boost::shared_ptr<MultiConnection>());
+      int id, MultiConnection* multi = 0);
   virtual ~ToolConnection();
 
   void draw(QPainter* painter, bool showLabel = true) const;
@@ -51,7 +49,7 @@ public:
   void connect(CableItem* cable);
 };
 
-class MultiConnection : public boost::enable_shared_from_this<MultiConnection> {
+class MultiConnection {
   friend class ToolItem;
 
 public:

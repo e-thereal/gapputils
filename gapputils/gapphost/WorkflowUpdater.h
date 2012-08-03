@@ -5,7 +5,8 @@
 #include <qthread.h>
 
 #include <gapputils/IProgressMonitor.h>
-#include <boost/enable_shared_from_this.hpp>
+#include <boost/weak_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <stack>
 
@@ -19,22 +20,21 @@ class Node;
 
 namespace host {
 
-class WorkflowUpdater : public QThread, public virtual workflow::IProgressMonitor,
-                        public boost::enable_shared_from_this<WorkflowUpdater>
+class WorkflowUpdater : public QThread, public virtual workflow::IProgressMonitor
 {
   Q_OBJECT
 
 private:
   boost::weak_ptr<workflow::Node> node;
   boost::weak_ptr<workflow::Node> currentNode;
-  boost::weak_ptr<WorkflowUpdater> rootThread;
+  WorkflowUpdater* rootThread;
   bool abortRequested;
 
   std::stack<boost::weak_ptr<workflow::Node> > nodesStack;
   boost::shared_ptr<WorkflowUpdater> updater;
 
 public:
-  WorkflowUpdater(boost::shared_ptr<WorkflowUpdater> rootThread = boost::shared_ptr<WorkflowUpdater>());
+  WorkflowUpdater(WorkflowUpdater* rootThread = 0);
   virtual ~WorkflowUpdater(void);
 
   void update(boost::shared_ptr<workflow::Node> node);

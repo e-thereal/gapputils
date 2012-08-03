@@ -56,7 +56,7 @@ DataModel* DataModel::instance = 0;
 DataModel::DataModel(void) : _Run(false), _Help(false), _AutoReload(false),
     _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600),
     _OpenWorkflows(new std::vector<std::string>()),
-    _WorkflowMap(new std::map<std::string, boost::shared_ptr<workflow::Workflow> >),
+    _WorkflowMap(new std::map<std::string, boost::weak_ptr<workflow::Workflow> >),
     _Configuration(".gapphost/config.xml")
 {
 }

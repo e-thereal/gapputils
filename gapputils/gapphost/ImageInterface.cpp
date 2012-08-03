@@ -16,6 +16,7 @@ namespace interfaces {
 namespace inputs {
 
 BeginPropertyDefinitions(Image, Interface())
+  ReflectableBase(gapputils::workflow::DefaultWorkflowElement<Image>)
   WorkflowProperty(Value, Output(""));
 EndPropertyDefinitions
 
@@ -28,6 +29,7 @@ Image::Image(void) {
 namespace outputs {
 
 BeginPropertyDefinitions(Image, Interface())
+  ReflectableBase(gapputils::workflow::DefaultWorkflowElement<Image>)
   WorkflowProperty(Value, Input(""));
 EndPropertyDefinitions
 

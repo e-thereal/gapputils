@@ -33,7 +33,7 @@ class DataModel : public capputils::reflection::ReflectableClass
   Property(OpenWorkflows, boost::shared_ptr<std::vector<std::string> >)
   Property(CurrentWorkflow, std::string)
   // TODO: why do I need this map?
-  Property(WorkflowMap, boost::shared_ptr<std::map<std::string CAPPUTILS_COMMA() boost::shared_ptr<workflow::Workflow> > >)     ///< Getter and setters only. No DefineProperty in the cpp file
+  Property(WorkflowMap, boost::shared_ptr<std::map<std::string CAPPUTILS_COMMA() boost::weak_ptr<workflow::Workflow> > >)     ///< Getter and setters only. No DefineProperty in the cpp file
   Property(MainWindow, MainWindow*)
   Property(PassedLabel, QLabel*)
   Property(RemainingLabel, QLabel*)

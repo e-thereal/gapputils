@@ -30,7 +30,7 @@ namespace gapputils {
 using namespace workflow;
 
 ToolConnection::ToolConnection(const QString& label, Direction direction,
-    ToolItem* parent, int id, boost::shared_ptr<MultiConnection> multi)
+    ToolItem* parent, int id, MultiConnection* multi)
   : x(0), y(0), width(6), height(7), label(label), direction(direction),
     parent(parent), id(id), cable(0), multi(multi)
 {
@@ -40,8 +40,8 @@ ToolConnection::~ToolConnection() { }
 
 void ToolConnection::connect(CableItem* cable) {
   this->cable = cable;
-  if (!multi.expired())
-    multi.lock()->updateConnections();
+  if (multi)
+    multi->updateConnections();
 }
 
 void ToolConnection::draw(QPainter* painter, bool showLabel) const {
@@ -129,7 +129,7 @@ MultiConnection::MultiConnection(const QString& label, ToolConnection::Direction
     ToolItem* parent, int id)
  : label(label), direction(direction), parent(parent), id(id), expanded(false)
 {
-  connections.push_back(boost::shared_ptr<ToolConnection>(new ToolConnection(label, direction, parent, id, shared_from_this())));
+  connections.push_back(boost::shared_ptr<ToolConnection>(new ToolConnection(label, direction, parent, id, this)));
 }
 
 MultiConnection::~MultiConnection() { }
@@ -174,7 +174,7 @@ void MultiConnection::updateConnections() {
     }
   }
   if (connections.size() && connections[connections.size() - 1]->cable)
-    connections.push_back(boost::shared_ptr<ToolConnection>(new ToolConnection(label, direction, parent, id, shared_from_this())));
+    connections.push_back(boost::shared_ptr<ToolConnection>(new ToolConnection(label, direction, parent, id, this)));
   parent->updateSize();
   parent->update();
 }
