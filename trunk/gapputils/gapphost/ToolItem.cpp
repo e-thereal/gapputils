@@ -524,10 +524,10 @@ void ToolItem::setLabel(const std::string& label) {
 void ToolItem::addConnection(const QString& label, int id, ToolConnection::Direction direction) {
   //ToolConnection* connection = new ToolConnection()
   if (direction == ToolConnection::Input) {
-    inputs.push_back(new ToolConnection(label, direction, this, id));
+    inputs.push_back(boost::shared_ptr<ToolConnection>(new ToolConnection(label, direction, this, id)));
 
   } else {
-    outputs.push_back(new MultiConnection(label, direction, this, id));
+    outputs.push_back(boost::shared_ptr<MultiConnection>(new MultiConnection(label, direction, this, id)));
   }
   updateConnectionPositions();
   updateSize();

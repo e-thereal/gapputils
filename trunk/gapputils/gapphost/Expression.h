@@ -14,6 +14,8 @@
 
 #include <set>
 
+#include <boost/enable_shared_from_this.hpp>
+
 namespace gapputils {
 
 namespace workflow {
@@ -21,7 +23,9 @@ namespace workflow {
 class Node;
 class GlobalProperty;
 
-class Expression : public capputils::reflection::ReflectableClass {
+class Expression : public capputils::reflection::ReflectableClass,
+                   public boost::enable_shared_from_this<Expression>
+{
 
   InitReflectableClass(Expression)
 

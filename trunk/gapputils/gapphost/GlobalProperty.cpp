@@ -38,7 +38,7 @@ void GlobalProperty::addEdge(boost::shared_ptr<Edge> edge) {
 
 void GlobalProperty::removeEdge(boost::shared_ptr<Edge> edge) {
   for (unsigned i = 0; i < _Edges->size(); ++i) {
-    if (_Edges->at(i) == edge) {
+    if (_Edges->at(i).lock() == edge) {
       _Edges->erase(_Edges->begin() + i);
       return;
     }

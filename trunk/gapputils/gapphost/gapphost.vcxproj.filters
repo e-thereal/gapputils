@@ -86,15 +86,6 @@
     <ClCompile Include="ImageLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NewObjectDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_NewObjectDialog.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_NewObjectDialog.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
     <ClCompile Include="CableItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -126,9 +117,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Node.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TestWorkflow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Workflow.cpp">
@@ -194,18 +182,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_ToolItem.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="XslTransformation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_EditInterfaceDialog.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_EditInterfaceDialog.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="EditInterfaceDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Expression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -226,15 +202,6 @@
     </ClCompile>
     <ClCompile Include="ChecksumUpdater.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TestThread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_TestThread.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_TestThread.cpp">
-      <Filter>Generated Files\Release</Filter>
     </ClCompile>
     <ClCompile Include="WorkflowUpdater.cpp">
       <Filter>Source Files</Filter>
@@ -319,9 +286,6 @@
     <CustomBuild Include="Workbench.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="NewObjectDialog.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="NewObjectDialog.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
@@ -347,12 +311,6 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="ToolItem.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="EditInterfaceDialog.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="TestThread.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="WorkflowUpdater.h">
@@ -405,9 +363,6 @@
     <ClInclude Include="Node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TestWorkflow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Controller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -418,9 +373,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GlobalProperty.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XslTransformation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Expression.h">

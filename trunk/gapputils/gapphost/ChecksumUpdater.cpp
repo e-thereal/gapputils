@@ -129,7 +129,7 @@ void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
   while(!nodesStack.empty())
     nodesStack.pop();
 
-  boost::shared_ptr<workflow::Workflow> workflow = dynamic_pointer_cast<workflow::Workflow>(node);
+  boost::shared_ptr<workflow::Workflow> workflow = boost::dynamic_pointer_cast<workflow::Workflow>(node);
   if (workflow) {
     std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
@@ -146,7 +146,7 @@ void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
     // Update checksum + checksum from dependent stuff
     boost::crc_32_type valueSum;
 
-    boost::shared_ptr<workflow::Workflow> subworkflow = dynamic_pointer_cast<workflow::Workflow>(currentNode);
+    boost::shared_ptr<workflow::Workflow> subworkflow = boost::dynamic_pointer_cast<workflow::Workflow>(currentNode);
     if (subworkflow) {
       ChecksumUpdater updater;
       updater.update(subworkflow);

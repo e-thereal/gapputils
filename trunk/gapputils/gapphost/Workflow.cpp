@@ -91,10 +91,10 @@ EndPropertyDefinitions
 
 Workflow::Workflow()
  : _Libraries(new vector<std::string>()),
-   _Edges(new vector<Edge*>()),
-   _Nodes(new vector<Node*>()),
-   _GlobalProperties(new vector<GlobalProperty*>()),
-   _GlobalEdges(new vector<GlobalEdge*>()),
+   _Edges(new vector<boost::shared_ptr<Edge> >()),
+   _Nodes(new vector<boost::shared_ptr<Node> >()),
+   _GlobalProperties(new vector<boost::shared_ptr<GlobalProperty> >()),
+   _GlobalEdges(new vector<boost::shared_ptr<GlobalEdge> >()),
    _ViewportScale(1.0), _Logbook(new Logbook(&host::LogbookModel::GetInstance())),
    ownWidget(true), workflowUpdater(new host::WorkflowUpdater())
 {
@@ -326,7 +326,7 @@ std::vector<boost::shared_ptr<Node> >& Workflow::getInterfaceNodes() {
 }
 
 void Workflow::makePropertyGlobal(const std::string& name, const PropertyReference& propertyReference) {
-  GlobalProperty* globalProperty = new GlobalProperty();
+  boost::shared_ptr<GlobalProperty> globalProperty(new GlobalProperty());
   globalProperty->setName(name);
   globalProperty->setModuleUuid(propertyReference.getNodeId());
   globalProperty->setPropertyId(propertyReference.getPropertyId());
@@ -850,7 +850,11 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
     }
   }
 
-  return Edge::areCompatible(outputNode, outputId, inputNode, inputId);
+
+  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->getProperties()[inputId];
+  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->getProperties()[outputId];
+
+  return Edge::areCompatible(inProp, outProp);
 }
 
 void Workflow::deleteEdge(CableItem* cable) {

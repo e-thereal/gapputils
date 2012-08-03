@@ -41,10 +41,10 @@ Expression::~Expression() {
 }
 
 std::string Expression::evaluate() const {
-  assert(getNode());
-  assert(getNode()->getWorkflow());
+  assert(!getNode().expired());
+  assert(!getNode().lock()->getWorkflow().expired());
 
-  boost::weak_ptr<Workflow> workflow = getNode()->getWorkflow();
+  boost::shared_ptr<Workflow> workflow = getNode().lock()->getWorkflow().lock();
   std::stringstream input(getExpression());
   std::stringstream output;
 
@@ -57,7 +57,7 @@ std::string Expression::evaluate() const {
         std::stringstream propertyName;
         for (input >> ch; !input.eof() && ch != ')'; input >> ch)
           propertyName << ch;
-        GlobalProperty* gprop = workflow->getGlobalProperty(propertyName.str());
+        boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(propertyName.str());
         if (gprop) {
           PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
           output << ref.getProperty()->getStringValue(*ref.getObject());
@@ -87,14 +87,14 @@ int getPropertyPos(const capputils::reflection::ReflectableClass& object,
 }
 
 void Expression::resume() {
-  assert(getNode());
-  assert(getNode()->getWorkflow());
+  assert(!getNode().expired());
+  assert(!getNode().lock()->getWorkflow().expired());
 
   disconnectAll();
 
   // Find global properties and add event handler to them
 
-  boost::weak_ptr<Workflow> workflow = getNode()->getWorkflow();
+  boost::shared_ptr<Workflow> workflow = getNode().lock()->getWorkflow().lock();
   std::stringstream input(getExpression());
 
   char ch;
@@ -106,7 +106,7 @@ void Expression::resume() {
         std::stringstream propertyName;
         for (input >> ch; !input.eof() && ch != ')'; input >> ch)
           propertyName << ch;
-        boost::weak_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(propertyName.str());
+        boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(propertyName.str());
         if (gprop) {
           PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
           capputils::ObservableClass* observable =
@@ -117,7 +117,7 @@ void Expression::resume() {
               observable->Changed.connect(handler);
               observedProperties.insert(std::pair<capputils::ObservableClass*, int>(observable,
                   getPropertyPos(*ref.getObject(), ref.getProperty())));
-              gprop->getExpressions()->push_back(this);
+              gprop->getExpressions()->push_back(shared_from_this());
               globalProperties.insert(gprop);
             }
           }
@@ -126,7 +126,7 @@ void Expression::resume() {
     }
   }
 
-  ReflectableClass* object = getNode()->getModule();
+  ReflectableClass* object = getNode().lock()->getModule().get();
   assert(object);
   object->findProperty(getPropertyName())->setStringValue(*object, evaluate());
 }
@@ -136,7 +136,7 @@ void Expression::disconnect(boost::shared_ptr<GlobalProperty> gprop) {
   // and the pair
   assert(gprop);
 
-  boost::shared_ptr<Workflow> workflow = getNode()->getWorkflow();
+  boost::shared_ptr<Workflow> workflow = getNode().lock()->getWorkflow().lock();
   PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
 
   capputils::ObservableClass* observable =
@@ -145,7 +145,7 @@ void Expression::disconnect(boost::shared_ptr<GlobalProperty> gprop) {
   if (observable) {
     if (globalProperties.find(gprop) != globalProperties.end()) {
       for (unsigned i = 0; i < gprop->getExpressions()->size(); ++i) {
-        if (gprop->getExpressions()->at(i) == this)
+        if (gprop->getExpressions()->at(i).lock().get() == this)
           gprop->getExpressions()->erase(gprop->getExpressions()->begin() + i);
       }
       observable->Changed.disconnect(handler);
@@ -162,20 +162,20 @@ void Expression::disconnect(boost::shared_ptr<GlobalProperty> gprop) {
 
 void Expression::disconnectAll() {
   while (globalProperties.size()) {
-    disconnect(*globalProperties.begin());
+    disconnect(globalProperties.begin()->lock());
   }
 }
 
 void Expression::changedHandler(capputils::ObservableClass* sender, int eventId) {
   using namespace capputils::reflection;
 
-  assert(getNode());
-  assert(getNode()->getModule());
+  assert(!getNode().expired());
+  assert(getNode().lock()->getModule());
 
   std::pair<capputils::ObservableClass*, int> senderEventId(sender, eventId);
 
   if (observedProperties.find(senderEventId) != observedProperties.end()) {
-    ReflectableClass* object = getNode()->getModule();
+    ReflectableClass* object = getNode().lock()->getModule().get();
     IClassProperty* property = object->findProperty(getPropertyName());
     if (property) {
       property->setStringValue(*object, evaluate());
