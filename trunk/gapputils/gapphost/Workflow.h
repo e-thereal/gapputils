@@ -85,11 +85,11 @@ public:
   boost::shared_ptr<Workflow> shared_from_this()       { return boost::static_pointer_cast<Workflow>(Node::shared_from_this()); }
   boost::shared_ptr<const Workflow> shared_from_this() const { return boost::static_pointer_cast<const Workflow>(Node::shared_from_this()); }
 
-  void newItem(boost::shared_ptr<Node> node);
-  bool newCable(boost::shared_ptr<Edge> edge);
+//  void newItem(boost::shared_ptr<Node> node);
   virtual void resume();
   void resumeViewport();
   void resumeNode(boost::shared_ptr<Node> node);
+  bool resumeEdge(boost::shared_ptr<Edge> edge);
 
   bool isInputNode(boost::shared_ptr<const Node> node) const;
   bool isOutputNode(boost::shared_ptr<const Node> node) const;
@@ -107,7 +107,7 @@ public:
   bool trySelectNode(const std::string& uuid);
 
   void copySelectedNodesToClipboard();
-  void addNodesFromClipboard();
+//  void addNodesFromClipboard();
 
   void addInterfaceNode(boost::shared_ptr<Node> node);
   void removeInterfaceNode(boost::shared_ptr<Node> node);
@@ -170,8 +170,8 @@ public:
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
-private Q_SLOTS:
-  void createModule(int x, int y, QString classname);
+public Q_SLOTS:
+//  void createModule(int x, int y, QString classname);
   void deleteModule(ToolItem* item);
   void itemSelected(ToolItem* item);
 

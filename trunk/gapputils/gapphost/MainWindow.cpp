@@ -31,6 +31,10 @@
 #include "PropertyGrid.h"
 #include "LogbookWidget.h"
 #include "GlobalPropertiesView.h"
+#include "WorkbenchWindow.h"
+
+#include <qmdiarea.h>
+#include <qtextedit.h>
 
 using namespace std;
 using namespace capputils;
@@ -56,7 +60,17 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeWorkflow(int)));
   connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
 
-  setCentralWidget(tabWidget);
+  area = new QMdiArea();
+  area->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  area->setViewMode(QMdiArea::TabbedView);
+  area->setTabsClosable(true);
+  area->setTabsMovable(true);
+  setCentralWidget(area);
+
+  //area->addSubWindow(new WorkbenchWindow())->show();
+//  QMdiSubWindow* sub = new QMdiSubWindow();
+
 
   fileMenu = menuBar()->addMenu("&File");
   fileMenu->addAction("Load Library", this, SLOT(loadLibrary()), QKeySequence(Qt::CTRL + Qt::Key_L));
@@ -209,6 +223,9 @@ void MainWindow::resume() {
   workflow->resume();
   openWorkflows.push_back(workflow);
   tabWidget->addTab(workflow->dispenseWidget(), "Main");
+
+  area->addSubWindow(new WorkbenchWindow(workflow));
+
   workflow->resumeViewport(); // resume after the layout stuff is done.
   connect(workflow.get(), SIGNAL(showWorkflowRequest(boost::shared_ptr<workflow::Workflow>)), this, SLOT(showWorkflow(boost::shared_ptr<workflow::Workflow>)));
   connect(workflow.get(), SIGNAL(deleteCalled(const std::string&)), this, SLOT(closeWorkflow(const std::string&)));
@@ -241,7 +258,8 @@ void MainWindow::copy() {
 }
 
 void MainWindow::paste() {
-  openWorkflows[tabWidget->currentIndex()].lock()->addNodesFromClipboard();
+  // TODO: use MDI
+//  openWorkflows[tabWidget->currentIndex()].lock()->addNodesFromClipboard();
 }
 
 void MainWindow::loadWorkflow() {
