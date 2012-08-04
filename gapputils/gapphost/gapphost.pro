@@ -40,7 +40,8 @@ SOURCES = main.cpp \
 		  LogbookWidget.cpp \
 		  GlobalPropertiesView.cpp \
 		  ImageInterface.cpp \
-		  ImagesInterface.cpp
+		  ImagesInterface.cpp \
+		  WorkbenchWindow.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -61,7 +62,8 @@ HEADERS = MainWindow.h \
           PropertyGrid.h \
           LogbookModel.h \
           LogbookWidget.h \
-          GlobalPropertiesView.h
+          GlobalPropertiesView.h \
+          WorkbenchWindow.h
           
 RESOURCES = res.qrc
           

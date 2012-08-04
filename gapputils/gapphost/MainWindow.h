@@ -10,6 +10,7 @@
 #include "Workflow.h"
 
 #include <map>
+#include <qmdiarea.h>
 
 namespace gapputils {
 
@@ -31,6 +32,7 @@ private:
   QTabWidget* tabWidget;
   WorkflowToolBox* toolBox;
   PropertyGrid* propertyGrid;
+  QMdiArea* area;
 
   QTimer reloadTimer;
   bool libsChanged, autoQuit;  ///< quits the problem when the workflow has been updated.

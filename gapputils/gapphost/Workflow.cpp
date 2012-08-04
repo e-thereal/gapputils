@@ -96,7 +96,8 @@ Workflow::Workflow()
    _GlobalProperties(new vector<boost::shared_ptr<GlobalProperty> >()),
    _GlobalEdges(new vector<boost::shared_ptr<GlobalEdge> >()),
    _ViewportScale(1.0), _Logbook(new Logbook(&host::LogbookModel::GetInstance())),
-   ownWidget(true), workflowUpdater(new host::WorkflowUpdater())
+   ownWidget(true),
+   workflowUpdater(new host::WorkflowUpdater())
 {
   _ViewportPosition.push_back(0);
   _ViewportPosition.push_back(0);
@@ -131,9 +132,9 @@ Workflow::~Workflow() {
 
   LibraryLoader& loader = LibraryLoader::getInstance();
 
-  if (ownWidget) {
-    delete widget;
-  }
+//  if (ownWidget) {
+//    delete widget;
+//  }
 
   // Clean up before releasing the libraries
   _Edges->clear();
@@ -380,40 +381,40 @@ void addDependencies(boost::shared_ptr<Workflow> workflow, const std::string& cl
   }
 }
 
-void Workflow::createModule(int x, int y, QString classname) {
-  if (classname.count() == 0)
-    return;
-
-  std::string name = classname.toAscii().data();
-
-  boost::shared_ptr<ReflectableClass> object = boost::shared_ptr<ReflectableClass>(ReflectableClassFactory::getInstance().newInstance(name));
-  addDependencies(shared_from_this(), name);
-
-  boost::shared_ptr<Node> node;
-  if (boost::dynamic_pointer_cast<WorkflowInterface>(object)) {
-    boost::shared_ptr<Workflow> workflow = boost::shared_ptr<Workflow>(new Workflow());
-    workflow->setModule(object);
-    addDependencies(workflow, name);
-    workflow->resume();
-    connect(workflow.get(), SIGNAL(deleteCalled(const std::string&)), this, SLOT(delegateDeleteCalled(const std::string&)));
-    connect(workflow.get(), SIGNAL(showWorkflowRequest(boost::shared_ptr<workflow::Workflow>)), this, SLOT(showWorkflow(boost::shared_ptr<workflow::Workflow>)));
-    node = workflow;
-  } else {
-    node = boost::shared_ptr<Node>(new Node());
-    node->setModule(object);
-    node->resume();
-  }
-  node->setWorkflow(shared_from_this());
-  node->setX(x);
-  node->setY(y);
-  getNodes()->push_back(node);
-
-  if (object->getAttribute<InterfaceAttribute>()) {
-    addInterfaceNode(node);
-  }
-
-  newItem(node);
-}
+//void Workflow::createModule(int x, int y, QString classname) {
+//  if (classname.count() == 0)
+//    return;
+//
+//  std::string name = classname.toAscii().data();
+//
+//  boost::shared_ptr<ReflectableClass> object = boost::shared_ptr<ReflectableClass>(ReflectableClassFactory::getInstance().newInstance(name));
+//  addDependencies(shared_from_this(), name);
+//
+//  boost::shared_ptr<Node> node;
+//  if (boost::dynamic_pointer_cast<WorkflowInterface>(object)) {
+//    boost::shared_ptr<Workflow> workflow = boost::shared_ptr<Workflow>(new Workflow());
+//    workflow->setModule(object);
+//    addDependencies(workflow, name);
+//    workflow->resume();
+//    connect(workflow.get(), SIGNAL(deleteCalled(const std::string&)), this, SLOT(delegateDeleteCalled(const std::string&)));
+//    connect(workflow.get(), SIGNAL(showWorkflowRequest(boost::shared_ptr<workflow::Workflow>)), this, SLOT(showWorkflow(boost::shared_ptr<workflow::Workflow>)));
+//    node = workflow;
+//  } else {
+//    node = boost::shared_ptr<Node>(new Node());
+//    node->setModule(object);
+//    node->resume();
+//  }
+//  node->setWorkflow(shared_from_this());
+//  node->setX(x);
+//  node->setY(y);
+//  getNodes()->push_back(node);
+//
+//  if (object->getAttribute<InterfaceAttribute>()) {
+//    addInterfaceNode(node);
+//  }
+//
+//  newItem(node);
+//}
 
 const std::string& getPropertyLabel(IClassProperty* prop) {
   ShortNameAttribute* shortName = prop->getAttribute<ShortNameAttribute>();
@@ -423,68 +424,68 @@ const std::string& getPropertyLabel(IClassProperty* prop) {
   return prop->getName();
 }
 
-void Workflow::newItem(boost::shared_ptr<Node> node) {
-  ToolItem* item;
-  assert(node->getModule());
+//void Workflow::newItem(boost::shared_ptr<Node> node) {
+//  ToolItem* item;
+//  assert(node->getModule());
+//
+//  // Get the label
+//  string label = string("[") + node->getModule()->getClassName() + "]";
+//  vector<IClassProperty*>& properties = node->getModule()->getProperties();
+//  for (unsigned i = 0; i < properties.size(); ++i) {
+//    if (properties[i]->getAttribute<LabelAttribute>()) {
+//      label = properties[i]->getStringValue(*node->getModule());
+//      break;
+//    }
+//  }
+//
+//  boost::shared_ptr<Workflow> workflow = boost::dynamic_pointer_cast<Workflow>(node);
+//  if (workflow) {
+//    item = new WorkflowItem(label);
+//    connect((WorkflowItem*)item, SIGNAL(showWorkflowRequest(ToolItem*)), this, SLOT(showWorkflow(ToolItem*)));
+//
+//    for (unsigned i = 0; i < properties.size(); ++i) {
+//      IClassProperty* prop = properties[i];
+//      if (prop->getAttribute<InputAttribute>() && !prop->getAttribute<FromEnumerableAttribute>())
+//        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
+//      if (prop->getAttribute<OutputAttribute>() && !prop->getAttribute<ToEnumerableAttribute>())
+//        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
+//    }
+//  } else if (node->getModule()->getAttribute<InterfaceAttribute>()) {
+//    item = new ToolItem(label);
+//    connect(item, SIGNAL(showDialogRequested(ToolItem*)), this, SLOT(showModuleDialog(ToolItem*)));
+//
+//    // Search for the value property and add it. Don't add any other stuff
+//    for (unsigned i = 0; i < properties.size(); ++i) {
+//      IClassProperty* prop = properties[i];
+//      //if (prop->getName() != "Value")
+//      //  continue;
+//      if (prop->getAttribute<InputAttribute>())
+//        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
+//      if (prop->getAttribute<OutputAttribute>())
+//        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
+//      //break;
+//    }
+//  } else {
+//    item = new ToolItem(label);
+//    connect(item, SIGNAL(showDialogRequested(ToolItem*)), this, SLOT(showModuleDialog(ToolItem*)));
+//
+//    for (unsigned i = 0; i < properties.size(); ++i) {
+//      IClassProperty* prop = properties[i];
+//      if (prop->getAttribute<InputAttribute>())
+//        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
+//      if (prop->getAttribute<OutputAttribute>())
+//        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
+//    }
+//  }
+//
+//  item->setPos(node->getX(), node->getY());
+//  node->setToolItem(item);
+//
+//  workbench->addToolItem(item);
+//  workbench->setCurrentItem(item);
+//}
 
-  // Get the label
-  string label = string("[") + node->getModule()->getClassName() + "]";
-  vector<IClassProperty*>& properties = node->getModule()->getProperties();
-  for (unsigned i = 0; i < properties.size(); ++i) {
-    if (properties[i]->getAttribute<LabelAttribute>()) {
-      label = properties[i]->getStringValue(*node->getModule());
-      break;
-    }
-  }
-
-  boost::shared_ptr<Workflow> workflow = boost::dynamic_pointer_cast<Workflow>(node);
-  if (workflow) {
-    item = new WorkflowItem(label);
-    connect((WorkflowItem*)item, SIGNAL(showWorkflowRequest(ToolItem*)), this, SLOT(showWorkflow(ToolItem*)));
-
-    for (unsigned i = 0; i < properties.size(); ++i) {
-      IClassProperty* prop = properties[i];
-      if (prop->getAttribute<InputAttribute>() && !prop->getAttribute<FromEnumerableAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
-      if (prop->getAttribute<OutputAttribute>() && !prop->getAttribute<ToEnumerableAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
-    }
-  } else if (node->getModule()->getAttribute<InterfaceAttribute>()) {
-    item = new ToolItem(label);
-    connect(item, SIGNAL(showDialogRequested(ToolItem*)), this, SLOT(showModuleDialog(ToolItem*)));
-
-    // Search for the value property and add it. Don't add any other stuff
-    for (unsigned i = 0; i < properties.size(); ++i) {
-      IClassProperty* prop = properties[i];
-      //if (prop->getName() != "Value")
-      //  continue;
-      if (prop->getAttribute<InputAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
-      if (prop->getAttribute<OutputAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
-      //break;
-    }
-  } else {
-    item = new ToolItem(label);
-    connect(item, SIGNAL(showDialogRequested(ToolItem*)), this, SLOT(showModuleDialog(ToolItem*)));
-
-    for (unsigned i = 0; i < properties.size(); ++i) {
-      IClassProperty* prop = properties[i];
-      if (prop->getAttribute<InputAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Input);
-      if (prop->getAttribute<OutputAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), i, ToolConnection::Output);
-    }
-  }
-
-  item->setPos(node->getX(), node->getY());
-  node->setToolItem(item);
-
-  workbench->addToolItem(item);
-  workbench->setCurrentItem(item);
-}
-
-bool Workflow::newCable(boost::shared_ptr<Edge> edge) {
+bool Workflow::resumeEdge(boost::shared_ptr<Edge> edge) {
   Logbook& dlog = *getLogbook();
 
 //  cout << "Connecting " << edge->getOutputNode() << "." << edge->getOutputProperty()
@@ -504,27 +505,8 @@ bool Workflow::newCable(boost::shared_ptr<Edge> edge) {
       inputNode = nodes[i];
   }
 
-  boost::shared_ptr<ToolConnection> outputConnection, inputConnection;
   if (outputNode && inputNode) {
-
-    // TODO: try to find the correct propertyId. If the property is not a property
-    //       of the module, go through the list of interface nodes and try to find
-    //       the property there. PropertyNames of interface nodes are the node ID.
-    unsigned outputPropertyId, inputPropertyId;
-    if (getToolConnectionId(outputNode, edge->getOutputProperty(), outputPropertyId) &&
-        getToolConnectionId(inputNode, edge->getInputProperty(), inputPropertyId))
-    {
-      outputConnection = outputNode->getToolItem()->getConnection(outputPropertyId, ToolConnection::Output);
-      inputConnection = inputNode->getToolItem()->getConnection(inputPropertyId, ToolConnection::Input);
-
-      if (outputConnection && inputConnection) {
-        CableItem* cable = new CableItem(workbench, outputConnection, inputConnection);
-        workbench->addCableItem(cable);
-        edge->setCableItem(cable);
-
-        edge->activate(outputNode, inputNode);
-      }
-    }
+    edge->activate(outputNode, inputNode);
   } else {
     dlog(Severity::Warning) << "Can not find connections for edge '" << edge->getInputNode() << "' -> '" << edge->getOutputNode() << "'";
     return false;
@@ -570,7 +552,7 @@ void Workflow::resume() {
     resumeNode(nodes[i]);
 
   for (unsigned i = 0; i < edges.size(); ++i) {
-    if (!newCable(edges[i])) {
+    if (!resumeEdge(edges[i])) {
       removeEdge(edges[i]);
       --i;
       dlog() << "Edge has been removed from the model.";
@@ -600,7 +582,7 @@ void Workflow::resume() {
 
 void Workflow::resumeNode(boost::shared_ptr<Node> node) {
   node->setWorkflow(shared_from_this());
-  newItem(node);
+//  newItem(node);
   node->resume();
   boost::shared_ptr<Workflow> workflow = boost::dynamic_pointer_cast<Workflow>(node);
   if (workflow) {
@@ -661,7 +643,7 @@ void Workflow::itemChangedHandler(ToolItem* item) {
 }
 
 void Workflow::deleteModule(ToolItem* item) {
-  cout << "Deleting module: " << item->getLabel() << endl;
+//  cout << "Deleting module: " << item->getLabel() << endl;
   Logbook& dlog = *getLogbook();
 
   unsigned i = 0;
@@ -1148,37 +1130,37 @@ void renewUuids(Workflow& workflow) {
   // TODO: replace UUIDs of other parts as well
 }
 
-void Workflow::addNodesFromClipboard() {
-  Logbook& dlog = *getLogbook();
-
-  Workflow pasteWorkflow;
-  const std::string clipboardText = QApplication::clipboard()->text().toUtf8().data();
-  Xmlizer::FromXmlString(pasteWorkflow, clipboardText);
-
-  // Unselect selected items
-  Q_FOREACH(QGraphicsItem* item, workbench->scene()->selectedItems())
-    item->setSelected(false);
-
-  renewUuids(pasteWorkflow);
-  std::vector<boost::shared_ptr<Node> >& nodes = *pasteWorkflow.getNodes();
-  for (unsigned i = 0; i < nodes.size(); ++i) {
-    getNodes()->push_back(nodes[i]);
-    resumeNode(nodes[i]);
-    nodes[i]->getToolItem()->setSelected(true);
-  }
-  nodes.clear(); // avoid double free memory
-
-  std::vector<boost::shared_ptr<Edge> >& edges = *pasteWorkflow.getEdges();
-  for (unsigned i = 0; i < edges.size(); ++i) {
-    getEdges()->push_back(edges[i]);
-    if (!newCable(edges[i])) {
-      removeEdge(edges[i]);
-      dlog() << "Edge has been removed from the model." << endl;
-    }
-  }
-
-  edges.clear(); // avoid double free memory
-}
+//void Workflow::addNodesFromClipboard() {
+//  Logbook& dlog = *getLogbook();
+//
+//  Workflow pasteWorkflow;
+//  const std::string clipboardText = QApplication::clipboard()->text().toUtf8().data();
+//  Xmlizer::FromXmlString(pasteWorkflow, clipboardText);
+//
+//  // Unselect selected items
+//  Q_FOREACH(QGraphicsItem* item, workbench->scene()->selectedItems())
+//    item->setSelected(false);
+//
+//  renewUuids(pasteWorkflow);
+//  std::vector<boost::shared_ptr<Node> >& nodes = *pasteWorkflow.getNodes();
+//  for (unsigned i = 0; i < nodes.size(); ++i) {
+//    getNodes()->push_back(nodes[i]);
+//    resumeNode(nodes[i]);
+//    nodes[i]->getToolItem()->setSelected(true);
+//  }
+//  nodes.clear(); // avoid double free memory
+//
+//  std::vector<boost::shared_ptr<Edge> >& edges = *pasteWorkflow.getEdges();
+//  for (unsigned i = 0; i < edges.size(); ++i) {
+//    getEdges()->push_back(edges[i]);
+//    if (!newCable(edges[i])) {
+//      removeEdge(edges[i]);
+//      dlog() << "Edge has been removed from the model." << endl;
+//    }
+//  }
+//
+//  edges.clear(); // avoid double free memory
+//}
 
 void Workflow::setUiEnabled(bool enabled) {
   workbench->setModifiable(enabled);
