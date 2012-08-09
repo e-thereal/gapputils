@@ -35,11 +35,11 @@ public:
   ToolItem* parent;
   MultiConnection* multi;
   CableItem* cable;
-  int id;                 ///< PropertyId
+  std::string id;                 ///< PropertyId
 
 public:
   ToolConnection(const QString& label, Direction direction, ToolItem* parent,
-      int id, MultiConnection* multi = 0);
+      const std::string& id, MultiConnection* multi = 0);
   virtual ~ToolConnection();
 
   void draw(QPainter* painter, bool showLabel = true) const;
@@ -47,6 +47,8 @@ public:
   void setPos(int x, int y);
   QPointF attachmentPos() const;
   void connect(CableItem* cable);
+
+  void setLabel(const QString& label);
 };
 
 class MultiConnection {
@@ -56,14 +58,14 @@ public:
   QString label;
   ToolConnection::Direction direction;
   ToolItem* parent;
-  int id;
+  std::string id;
   std::vector<boost::shared_ptr<ToolConnection> > connections;
   int x, y;
   bool expanded;
 
 public:
   MultiConnection(const QString& label, ToolConnection::Direction direction, ToolItem* parent,
-      int id);
+      const std::string& id);
   virtual ~MultiConnection();
 
   bool hits(std::vector<boost::shared_ptr<ToolConnection> >& connections, int x, int y) const;
@@ -107,14 +109,14 @@ public:
   /// Adds the connections to the connections vector
   bool hitConnections(std::vector<boost::shared_ptr<ToolConnection> >& connections, int x, int y, ToolConnection::Direction direction) const;
 
-  boost::shared_ptr<ToolConnection> getConnection(int id, ToolConnection::Direction direction) const;
+  boost::shared_ptr<ToolConnection> getConnection(const std::string& id, ToolConnection::Direction direction) const;
   std::vector<boost::shared_ptr<ToolConnection> >& getInputs();
   void getOutputs(std::vector<boost::shared_ptr<ToolConnection> >& connections);
   void updateSize();
 
   void updateConnectionPositions();
-  void addConnection(const QString& label, int id, ToolConnection::Direction direction);
-  void deleteConnection(int id, ToolConnection::Direction direction);
+  void addConnection(const QString& label, const std::string& id, ToolConnection::Direction direction);
+  void deleteConnection(const std::string& id, ToolConnection::Direction direction);
   void drawConnections(QPainter* painter, bool showLabel = true);
   void drawBox(QPainter* painter);
   virtual std::string getLabel() const;

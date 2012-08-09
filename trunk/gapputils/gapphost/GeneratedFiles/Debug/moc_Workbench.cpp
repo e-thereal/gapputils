@@ -1,8 +1,8 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Workbench.h'
 **
-** Created: Thu Aug 2 17:19:55 2012
-**      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
+** Created: Sun Aug 5 17:15:00 2012
+**      by: The Qt Meta Object Compiler version 63 (Qt 4.8.2)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -10,8 +10,8 @@
 #include "../../Workbench.h"
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'Workbench.h' doesn't include <QObject>."
-#elif Q_MOC_OUTPUT_REVISION != 62
-#error "This file was generated using the moc from 4.7.2. It"
+#elif Q_MOC_OUTPUT_REVISION != 63
+#error "This file was generated using the moc from 4.8.2. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -20,7 +20,7 @@ QT_BEGIN_MOC_NAMESPACE
 static const uint qt_meta_data_gapputils__Workbench[] = {
 
  // content:
-       5,       // revision
+       6,       // revision
        0,       // classname
        0,    0, // classinfo
        7,   14, // methods
@@ -53,9 +53,31 @@ static const char qt_meta_stringdata_gapputils__Workbench[] = {
     "viewportChanged()\0"
 };
 
+void gapputils::Workbench::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+{
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        Q_ASSERT(staticMetaObject.cast(_o));
+        Workbench *_t = static_cast<Workbench *>(_o);
+        switch (_id) {
+        case 0: _t->createItemRequest((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< QString(*)>(_a[3]))); break;
+        case 1: _t->currentItemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 2: _t->preItemDeleted((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 3: _t->itemChanged((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
+        case 4: _t->connectionCompleted((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 5: _t->connectionRemoved((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
+        case 6: _t->viewportChanged(); break;
+        default: ;
+        }
+    }
+}
+
+const QMetaObjectExtraData gapputils::Workbench::staticMetaObjectExtraData = {
+    0,  qt_static_metacall 
+};
+
 const QMetaObject gapputils::Workbench::staticMetaObject = {
     { &QGraphicsView::staticMetaObject, qt_meta_stringdata_gapputils__Workbench,
-      qt_meta_data_gapputils__Workbench, 0 }
+      qt_meta_data_gapputils__Workbench, &staticMetaObjectExtraData }
 };
 
 #ifdef Q_NO_DATA_RELOCATION
@@ -81,16 +103,8 @@ int gapputils::Workbench::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        switch (_id) {
-        case 0: createItemRequest((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< QString(*)>(_a[3]))); break;
-        case 1: currentItemSelected((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 2: preItemDeleted((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 3: itemChanged((*reinterpret_cast< ToolItem*(*)>(_a[1]))); break;
-        case 4: connectionCompleted((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
-        case 5: connectionRemoved((*reinterpret_cast< CableItem*(*)>(_a[1]))); break;
-        case 6: viewportChanged(); break;
-        default: ;
-        }
+        if (_id < 7)
+            qt_static_metacall(this, _c, _id, _a);
         _id -= 7;
     }
     return _id;

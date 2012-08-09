@@ -13,9 +13,16 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <ctime>
+#include <set>
+
+#include "linreg.h"
+
 namespace gapputils {
 
 class Workbench;
+class ToolItem;
+class CableItem;
 
 namespace workflow {
   class Workflow;
@@ -25,6 +32,8 @@ namespace workflow {
 
 namespace host {
 
+  class WorkflowUpdater;
+
 class WorkbenchWindow : public QMdiSubWindow {
 
   Q_OBJECT
@@ -32,21 +41,54 @@ class WorkbenchWindow : public QMdiSubWindow {
 private:
   boost::weak_ptr<workflow::Workflow> workflow;
   Workbench* workbench;
+  boost::shared_ptr<WorkflowUpdater> workflowUpdater;
+  std::set<boost::weak_ptr<workflow::Node> > processedNodes;
+  boost::weak_ptr<workflow::Node> progressNode;
+  LinearRegression etaRegression;
+  time_t startTime;
 
 public:
   WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow, QWidget* parent = 0);
   virtual ~WorkbenchWindow();
 
+  boost::shared_ptr<workflow::Workflow> getWorkflow() const;
+
   void createItem(boost::shared_ptr<workflow::Node> node);
   bool createCable(boost::shared_ptr<workflow::Edge> edge);
 
+  void copySelectedNodesToClipboard();
   void addNodesFromClipboard();
+
+  void setUiEnabled(bool enabled);
+  void resumeViewport();
+  bool trySelectNode(const std::string& uuid);
+  boost::shared_ptr<workflow::Node> getCurrentNode();
+
+  // Update stuff
+  void updateCurrentModule();
+  void updateOutputs();
+  void abortUpdate();
 
 protected:
   void closeEvent(QCloseEvent *event);
 
-private Q_SLOTS:
+public Q_SLOTS:
   void createModule(int x, int y, QString classname);
+  void createEdge(CableItem* cable);
+  void deleteEdge(CableItem* cable);
+  void deleteModule(ToolItem* item);
+
+  void itemChangedHandler(ToolItem* item);
+  void itemSelected(ToolItem* item);
+  void showModuleDialog(ToolItem* item);
+  void showWorkflow(ToolItem* item);
+  void handleViewportChanged();
+
+  void showProgress(boost::shared_ptr<workflow::Node> node, double progress);
+  void workflowUpdateFinished();
+
+Q_SIGNALS:
+  void updateFinished();
 };
 
 } /* namespace host */

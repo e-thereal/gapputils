@@ -30,7 +30,7 @@ namespace gapputils {
 using namespace workflow;
 
 ToolConnection::ToolConnection(const QString& label, Direction direction,
-    ToolItem* parent, int id, MultiConnection* multi)
+    ToolItem* parent, const std::string& id, MultiConnection* multi)
   : x(0), y(0), width(6), height(7), label(label), direction(direction),
     parent(parent), id(id), cable(0), multi(multi)
 {
@@ -125,8 +125,20 @@ QPointF ToolConnection::attachmentPos() const {
     return QPointF(x+width+2, y);
 }
 
+void ToolConnection::setLabel(const QString& label) {
+  if (multi) {
+    multi->label = label;
+    for (unsigned i = 0; i < multi->connections.size(); ++i)
+      multi->connections[i]->label = label;
+  } else {
+    this->label = label;
+  }
+  parent->updateSize();
+  parent->update();
+}
+
 MultiConnection::MultiConnection(const QString& label, ToolConnection::Direction direction,
-    ToolItem* parent, int id)
+    ToolItem* parent, const std::string& id)
  : label(label), direction(direction), parent(parent), id(id), expanded(false)
 {
   connections.push_back(boost::shared_ptr<ToolConnection>(new ToolConnection(label, direction, parent, id, this)));
@@ -294,7 +306,7 @@ bool ToolItem::hitConnections(std::vector<boost::shared_ptr<ToolConnection> >& c
   return false;
 }
 
-boost::shared_ptr<ToolConnection> ToolItem::getConnection(int id, ToolConnection::Direction direction) const {
+boost::shared_ptr<ToolConnection> ToolItem::getConnection(const std::string& id, ToolConnection::Direction direction) const {
   if (direction == ToolConnection::Input) {
     for (unsigned i = 0; i < inputs.size(); ++i)
       if (inputs[i]->id == id)
@@ -521,7 +533,7 @@ void ToolItem::setLabel(const std::string& label) {
   update();
 }
 
-void ToolItem::addConnection(const QString& label, int id, ToolConnection::Direction direction) {
+void ToolItem::addConnection(const QString& label, const std::string& id, ToolConnection::Direction direction) {
   //ToolConnection* connection = new ToolConnection()
   if (direction == ToolConnection::Input) {
     inputs.push_back(boost::shared_ptr<ToolConnection>(new ToolConnection(label, direction, this, id)));
@@ -534,10 +546,12 @@ void ToolItem::addConnection(const QString& label, int id, ToolConnection::Direc
   update();
 }
 
-void ToolItem::deleteConnection(int id, ToolConnection::Direction direction) {
+void ToolItem::deleteConnection(const std::string& id, ToolConnection::Direction direction) {
   if (direction == ToolConnection::Input) {
     for (unsigned i = 0; i < inputs.size(); ++i) {
       if (inputs[i]->id == id) {
+        if (inputs[i]->cable)
+          bench->removeCableItem(inputs[i]->cable);
         inputs.erase(inputs.begin() + i);
         break;
       }
@@ -545,6 +559,11 @@ void ToolItem::deleteConnection(int id, ToolConnection::Direction direction) {
   } else {
     for (unsigned i = 0; i < outputs.size(); ++i) {
       if (outputs[i]->id == id) {
+        std::vector<boost::shared_ptr<ToolConnection> >& connections = outputs[i]->connections;
+        for (unsigned j = 0; j < connections.size(); ++j) {
+          if (connections[j]->cable)
+            bench->removeCableItem(connections[j]->cable);
+        }
         outputs.erase(outputs.begin() + i);
         break;
       }
