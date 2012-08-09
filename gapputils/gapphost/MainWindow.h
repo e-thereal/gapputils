@@ -18,6 +18,7 @@ namespace host {
 
 class WorkflowToolBox;
 class PropertyGrid;
+class WorkbenchWindow;
 
 class MainWindow : public QMainWindow
 {
@@ -29,15 +30,16 @@ private:
   QMenu* runMenu;
   QMenu* windowMenu;
   QAction* abortAction;
-  QTabWidget* tabWidget;
+  //QTabWidget* tabWidget;
   WorkflowToolBox* toolBox;
   PropertyGrid* propertyGrid;
   QMdiArea* area;
 
   QTimer reloadTimer;
   bool libsChanged, autoQuit;  ///< quits the problem when the workflow has been updated.
-  std::vector<boost::weak_ptr<workflow::Workflow> > openWorkflows;
-  boost::weak_ptr<workflow::Workflow> workingWorkflow;
+  //std::vector<boost::weak_ptr<workflow::Workflow> > openWorkflows;
+  //boost::weak_ptr<workflow::Workflow> workingWorkflow;
+  WorkbenchWindow* workingWindow;
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
@@ -47,6 +49,7 @@ public:
   void setGuiEnabled(bool enabled);
   void resume();
   void setAutoQuit(bool autoQuit);
+  WorkbenchWindow* showWorkflow(boost::shared_ptr<workflow::Workflow> workflow);
 
 public Q_SLOTS:
   void quit();
@@ -67,11 +70,11 @@ public Q_SLOTS:
   void updateWorkflow();
   void updateMainWorkflow();
   void terminateUpdate();
-  void updateFinished(boost::shared_ptr<workflow::Node> node);
-  void showWorkflow(boost::shared_ptr<workflow::Workflow> workflow, bool addUuid = true);
+  void updateFinished();
+  
+  //void showWorkflow(boost::shared_ptr<workflow::Workflow> workflow, bool addUuid = true);
   void closeWorkflow(const std::string& uuid);
-  void closeWorkflow(int tabIndex);
-  void currentTabChanged(int index);
+  void subWindowActivated(QMdiSubWindow* window);
   void handleCurrentNodeChanged(boost::shared_ptr<workflow::Node> node);
   void selectModule(const QString& uuid);
 };

@@ -46,9 +46,6 @@
 #include "Workflow.h"
 #include "LogbookModel.h"
 
-// TODO: shouldn't need to use the controller
-#include "WorkflowController.h"
-
 using namespace std;
 using namespace capputils;
 using namespace capputils::reflection;

@@ -1,8 +1,8 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'FilenameEdit.h'
 **
-** Created: Tue Jul 10 20:12:55 2012
-**      by: The Qt Meta Object Compiler version 62 (Qt 4.7.2)
+** Created: Sun Aug 5 17:14:57 2012
+**      by: The Qt Meta Object Compiler version 63 (Qt 4.8.2)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -10,8 +10,8 @@
 #include "../../FilenameEdit.h"
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'FilenameEdit.h' doesn't include <QObject>."
-#elif Q_MOC_OUTPUT_REVISION != 62
-#error "This file was generated using the moc from 4.7.2. It"
+#elif Q_MOC_OUTPUT_REVISION != 63
+#error "This file was generated using the moc from 4.8.2. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -20,7 +20,7 @@ QT_BEGIN_MOC_NAMESPACE
 static const uint qt_meta_data_FilenameEdit[] = {
 
  // content:
-       5,       // revision
+       6,       // revision
        0,       // classname
        0,    0, // classinfo
        3,   14, // methods
@@ -45,9 +45,28 @@ static const char qt_meta_stringdata_FilenameEdit[] = {
     "editingFinishedHandler()\0clickedHandler()\0"
 };
 
+void FilenameEdit::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+{
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        Q_ASSERT(staticMetaObject.cast(_o));
+        FilenameEdit *_t = static_cast<FilenameEdit *>(_o);
+        switch (_id) {
+        case 0: _t->editingFinished(); break;
+        case 1: _t->editingFinishedHandler(); break;
+        case 2: _t->clickedHandler(); break;
+        default: ;
+        }
+    }
+    Q_UNUSED(_a);
+}
+
+const QMetaObjectExtraData FilenameEdit::staticMetaObjectExtraData = {
+    0,  qt_static_metacall 
+};
+
 const QMetaObject FilenameEdit::staticMetaObject = {
     { &QFrame::staticMetaObject, qt_meta_stringdata_FilenameEdit,
-      qt_meta_data_FilenameEdit, 0 }
+      qt_meta_data_FilenameEdit, &staticMetaObjectExtraData }
 };
 
 #ifdef Q_NO_DATA_RELOCATION
@@ -73,12 +92,8 @@ int FilenameEdit::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        switch (_id) {
-        case 0: editingFinished(); break;
-        case 1: editingFinishedHandler(); break;
-        case 2: clickedHandler(); break;
-        default: ;
-        }
+        if (_id < 3)
+            qt_static_metacall(this, _c, _id, _a);
         _id -= 3;
     }
     return _id;

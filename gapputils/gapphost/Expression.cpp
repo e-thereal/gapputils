@@ -84,6 +84,7 @@ int getPropertyPos(const capputils::reflection::ReflectableClass& object,
       return i;
   }
   assert(0);
+  return 0;
 }
 
 void Expression::resume() {

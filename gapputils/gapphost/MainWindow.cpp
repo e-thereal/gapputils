@@ -18,7 +18,6 @@
 #include "DataModel.h"
 #include "Controller.h"
 #include "ToolItem.h"
-//#include "EditInterfaceDialog.h"
 #include <capputils/ReflectableClassFactory.h>
 #include <qbrush.h>
 #include <gapputils/WorkflowElement.h>
@@ -46,7 +45,7 @@ using namespace workflow;
 namespace host {
 
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
-    : QMainWindow(parent, flags), libsChanged(false), autoQuit(false)
+    : QMainWindow(parent, flags), libsChanged(false), autoQuit(false), workingWindow(0)
 {
   DataModel& model = DataModel::getInstance();
 
@@ -55,11 +54,6 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
   setWindowIcon(QIcon(":/icons/application.png"));
 
-  tabWidget = new QTabWidget();
-  tabWidget->setTabsClosable(true);
-  connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeWorkflow(int)));
-  connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(currentTabChanged(int)));
-
   area = new QMdiArea();
   area->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -67,10 +61,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   area->setTabsClosable(true);
   area->setTabsMovable(true);
   setCentralWidget(area);
-
-  //area->addSubWindow(new WorkbenchWindow())->show();
-//  QMdiSubWindow* sub = new QMdiSubWindow();
-
+  connect(area, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(subWindowActivated(QMdiSubWindow*)));
 
   fileMenu = menuBar()->addMenu("&File");
   fileMenu->addAction("Load Library", this, SLOT(loadLibrary()), QKeySequence(Qt::CTRL + Qt::Key_L));
@@ -221,28 +212,38 @@ void MainWindow::resume() {
   }
 
   workflow->resume();
-  openWorkflows.push_back(workflow);
-  tabWidget->addTab(workflow->dispenseWidget(), "Main");
+  showWorkflow(workflow);
 
-  area->addSubWindow(new WorkbenchWindow(workflow));
-
-  workflow->resumeViewport(); // resume after the layout stuff is done.
-  connect(workflow.get(), SIGNAL(showWorkflowRequest(boost::shared_ptr<workflow::Workflow>)), this, SLOT(showWorkflow(boost::shared_ptr<workflow::Workflow>)));
-  connect(workflow.get(), SIGNAL(deleteCalled(const std::string&)), this, SLOT(closeWorkflow(const std::string&)));
-  connect(workflow.get(), SIGNAL(currentModuleChanged(boost::shared_ptr<workflow::Node>)), this, SLOT(handleCurrentNodeChanged(boost::shared_ptr<workflow::Node>)));
-
-//  std::cout << "Opening " << model.getOpenWorkflows()->size() << " workflows." << std::endl;
   for (unsigned i = 0; i < model.getOpenWorkflows()->size(); ++i) {
     string uuid = model.getOpenWorkflows()->at(i);
     assert(model.getWorkflowMap()->find(uuid) != model.getWorkflowMap()->end());
-    showWorkflow(model.getWorkflowMap()->at(uuid).lock(), false);
+    showWorkflow(model.getWorkflowMap()->at(uuid).lock());
   }
+
   if(model.getWorkflowMap()->find(currentUuid) != model.getWorkflowMap()->end())
     showWorkflow(model.getWorkflowMap()->at(currentUuid).lock());
 
   QSettings settings;
   if (settings.contains("windowState"))
     restoreState(settings.value("windowState").toByteArray());
+}
+
+WorkbenchWindow* MainWindow::showWorkflow(boost::shared_ptr<workflow::Workflow> workflow) {
+  Q_FOREACH (QMdiSubWindow *window, area->subWindowList()) {
+    WorkbenchWindow* wwindow = dynamic_cast<WorkbenchWindow*>(window);
+    if (wwindow && wwindow->getWorkflow() == workflow) {
+      area->setActiveSubWindow(window);
+      return wwindow;
+    }
+  }
+
+  WorkbenchWindow* window = new WorkbenchWindow(workflow);
+  area->addSubWindow(window);
+  window->show();
+  window->resumeViewport();
+  window->setUiEnabled(!workingWindow);
+
+  return window;
 }
 
 void MainWindow::setAutoQuit(bool autoQuit) {
@@ -254,12 +255,13 @@ void MainWindow::quit() {
 }
 
 void MainWindow::copy() {
-  openWorkflows[tabWidget->currentIndex()].lock()->copySelectedNodesToClipboard();
+  WorkbenchWindow* window = static_cast<WorkbenchWindow*>(area->activeSubWindow());
+  window->copySelectedNodesToClipboard();
 }
 
 void MainWindow::paste() {
-  // TODO: use MDI
-//  openWorkflows[tabWidget->currentIndex()].lock()->addNodesFromClipboard();
+  WorkbenchWindow* window = static_cast<WorkbenchWindow*>(area->activeSubWindow());
+  window->addNodesFromClipboard();
 }
 
 void MainWindow::loadWorkflow() {
@@ -267,9 +269,8 @@ void MainWindow::loadWorkflow() {
   if (!filename.isNull()) {
     DataModel& model = DataModel::getInstance();
     model.setConfiguration(filename.toAscii().data());
-    openWorkflows.clear();    // All tabs should now be closed. Either because they were closed due to delete or because they were removed manually
-    tabWidget->removeTab(0);  // First tab is never automatically removed
 
+    area->closeAllSubWindows();
     setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
     Xmlizer::FromXml(model, model.getConfiguration());
     resume();
@@ -282,8 +283,7 @@ void MainWindow::saveWorkflow() {
   if (fileDialog.exec() == QDialog::Accepted) {
     QStringList filenames = fileDialog.selectedFiles();
     if (filenames.size()) {
-      //Controller::getInstance().saveCurrentWorkflow(filenames[0].toUtf8().data());
-      Xmlizer::ToXml(filenames[0].toUtf8().data(), *openWorkflows[tabWidget->currentIndex()].lock());
+      Xmlizer::ToXml(filenames[0].toUtf8().data(), *static_cast<WorkbenchWindow*>(area->activeSubWindow())->getWorkflow());
     }
   }
 }
@@ -297,7 +297,7 @@ void MainWindow::loadLibrary() {
   if (filename.isNull())
     return;
 
-  boost::shared_ptr<Workflow> workflow = openWorkflows[tabWidget->currentIndex()].lock();
+  boost::shared_ptr<Workflow> workflow = static_cast<WorkbenchWindow*>(area->activeSubWindow())->getWorkflow();
   boost::shared_ptr<vector<string> > libs = workflow->getLibraries();
   libs->push_back(filename.toUtf8().data());
   workflow->setLibraries(libs);
@@ -307,9 +307,10 @@ void MainWindow::loadLibrary() {
 void MainWindow::reload() {
   DataModel& model = DataModel::getInstance();
   TiXmlElement* modelElement = Xmlizer::CreateXml(model);
+
+  // close all windows
   model.setMainWorkflow(boost::shared_ptr<Workflow>());
-  openWorkflows.clear();    // All tabs should now be closed. Either because they were closed due to delete or because they were removed manually
-  tabWidget->removeTab(0);  // First tab is never automatically removed
+  area->closeAllSubWindows();
 
   Xmlizer::FromXml(model, *modelElement);
   resume();
@@ -334,56 +335,53 @@ void MainWindow::setGuiEnabled(bool enabled) {
   editMenu->setEnabled(enabled);
   toolBox->setEnabled(enabled);
   propertyGrid->setEnabled(enabled);
-  for (unsigned i = 0; i < openWorkflows.size(); ++i)
-    openWorkflows[i].lock()->setUiEnabled(enabled);
+
+  Q_FOREACH (QMdiSubWindow *w, area->subWindowList()) {
+    WorkbenchWindow* window = static_cast<WorkbenchWindow*>(w);
+    window->setUiEnabled(enabled);
+  }
 }
 
 void MainWindow::updateCurrentModule() {
   setGuiEnabled(false);
 
-  workingWorkflow = openWorkflows[tabWidget->currentIndex()];
-
-  boost::shared_ptr<Workflow> workingWorkflow = this->workingWorkflow.lock();
-  connect(workingWorkflow.get(), SIGNAL(updateFinished(boost::shared_ptr<workflow::Node>)), this, SLOT(updateFinished(boost::shared_ptr<workflow::Node>)));
-  workingWorkflow->updateCurrentModule();
+  workingWindow = static_cast<WorkbenchWindow*>(area->activeSubWindow());
+  connect(workingWindow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+  workingWindow->updateCurrentModule();
   abortAction->setEnabled(true);
 }
 
 void MainWindow::updateWorkflow() {
   setGuiEnabled(false);
-  workingWorkflow = openWorkflows[tabWidget->currentIndex()];
-
-  boost::shared_ptr<Workflow> workingWorkflow = this->workingWorkflow.lock();
-  connect(workingWorkflow.get(), SIGNAL(updateFinished(boost::shared_ptr<workflow::Node>)), this, SLOT(updateFinished(boost::shared_ptr<workflow::Node>)));
-  workingWorkflow->updateOutputs();
+  
+  workingWindow = static_cast<WorkbenchWindow*>(area->activeSubWindow());
+  connect(workingWindow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+  workingWindow->updateOutputs();
   abortAction->setEnabled(true);
 }
 
 void MainWindow::updateMainWorkflow() {
   setGuiEnabled(false);
 
-  workingWorkflow = openWorkflows[0];
-
-  boost::shared_ptr<Workflow> workingWorkflow = openWorkflows[tabWidget->currentIndex()].lock();
-  connect(workingWorkflow.get(), SIGNAL(updateFinished(boost::shared_ptr<workflow::Node>)), this, SLOT(updateFinished(boost::shared_ptr<workflow::Node>)));
-  workingWorkflow->updateOutputs();
+  workingWindow = showWorkflow(DataModel::getInstance().getMainWorkflow());
+  connect(workingWindow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+  workingWindow->updateOutputs();
   abortAction->setEnabled(true);
 }
 
 void MainWindow::terminateUpdate() {
-  workingWorkflow.lock()->abortUpdate();
+  workingWindow->abortUpdate();
 }
 
-void MainWindow::updateFinished(boost::shared_ptr<Node> node) {
+void MainWindow::updateFinished() {
   abortAction->setEnabled(false);
   setGuiEnabled(true);
-  boost::shared_ptr<workflow::Workflow> workflow = workingWorkflow.lock();
-  assert(workflow.get() == node.get());
-  if (workflow)
-    disconnect(workflow.get(), SIGNAL(updateFinished(boost::shared_ptr<workflow::Node>)), this, SLOT(updateFinished(boost::shared_ptr<workflow::Node>)));
+  if (workingWindow)
+    disconnect(workingWindow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
 
   if (autoQuit)
     quit();
+  workingWindow = 0;
 }
 
 void MainWindow::save() {
@@ -400,61 +398,26 @@ void MainWindow::saveAs() {
   }
 }
 
-void MainWindow::showWorkflow(boost::shared_ptr<workflow::Workflow> workflow, bool addUuid) {
-  assert((int)openWorkflows.size() == tabWidget->count());
-
-  unsigned pos = 0;
-  for(;pos < openWorkflows.size(); ++pos) {
-    if (openWorkflows[pos].lock() == workflow)
-      break;
-  }
-
-  if (pos < openWorkflows.size()) {
-    tabWidget->setCurrentIndex(pos);
-  } else {
-    int currentIndex = tabWidget->count();
-    openWorkflows.push_back(workflow);
-    tabWidget->addTab(workflow->dispenseWidget(), workflow->getToolItem()->getLabel().c_str());
-    workflow->resumeViewport();
-    if (addUuid)
-      DataModel::getInstance().getOpenWorkflows()->push_back(workflow->getUuid());
-    tabWidget->setCurrentIndex(currentIndex);
-    connect(workflow.get(), SIGNAL(currentModuleChanged(boost::shared_ptr<workflow::Node>)), this, SLOT(handleCurrentNodeChanged(boost::shared_ptr<workflow::Node>)));
-  }
-}
-
 void MainWindow::closeWorkflow(const std::string& uuid) {
 //  std::cout << "Closing workflow" << std::endl;
-  assert((int)openWorkflows.size() == tabWidget->count());
-
-  for(unsigned pos = 0; pos < openWorkflows.size(); ++pos) {
-    if (openWorkflows[pos].expired() || openWorkflows[pos].lock()->getUuid() == uuid) {
-      closeWorkflow(pos);
+  Q_FOREACH (QMdiSubWindow *w, area->subWindowList()) {
+    WorkbenchWindow* window = static_cast<WorkbenchWindow*>(w);
+    if (window->getWorkflow()->getUuid() == uuid) {
+      area->removeSubWindow(window);
+      delete window;
     }
   }
 }
 
-void MainWindow::closeWorkflow(int tabIndex) {
-  vector<string>* openWorkflowUuids = DataModel::getInstance().getOpenWorkflows().get();
-  assert(openWorkflows.size() == openWorkflowUuids->size() + 1);
-  if (tabIndex == 0)
+void MainWindow::subWindowActivated(QMdiSubWindow* w) {
+  if (!w)
     return;
-
-  boost::shared_ptr<Workflow> workflow = openWorkflows[tabIndex].lock();
-  if (workflow)
-    disconnect(workflow.get(), SIGNAL(currentModuleChanged(boost::shared_ptr<workflow::Node>)), this, SLOT(handleCurrentNodeChanged(boost::shared_ptr<workflow::Node>)));
-
-  tabWidget->removeTab(tabIndex);
-  openWorkflows.erase(openWorkflows.begin() + tabIndex);
-  openWorkflowUuids->erase(openWorkflowUuids->begin() + (tabIndex - 1));
-}
-
-void MainWindow::currentTabChanged(int index) {
-  if (index >= 0 && index < (int)openWorkflows.size()) {
-    boost::shared_ptr<Workflow> workflow = openWorkflows[index].lock();
-    DataModel::getInstance().setCurrentWorkflow(workflow->getUuid());
-    propertyGrid->setNode(workflow->getCurrentNode());
-  }
+  WorkbenchWindow* window = static_cast<WorkbenchWindow*>(w);
+  boost::shared_ptr<Workflow> workflow = window->getWorkflow();
+  if (!workflow)
+    return;
+  DataModel::getInstance().setCurrentWorkflow(workflow->getUuid());
+  propertyGrid->setNode(window->getCurrentNode());
 }
 
 void MainWindow::handleCurrentNodeChanged(boost::shared_ptr<workflow::Node> node) {
@@ -464,24 +427,25 @@ void MainWindow::handleCurrentNodeChanged(boost::shared_ptr<workflow::Node> node
 void MainWindow::selectModule(const QString& quuid) {
   std::string uuid = quuid.toAscii().data();
 
-  for (unsigned i = 0; i < openWorkflows.size(); ++i) {
-    if (openWorkflows[i].lock()->trySelectNode(uuid)) {
-      tabWidget->setCurrentIndex(i);
+  Q_FOREACH (QMdiSubWindow *w, area->subWindowList()) {
+    WorkbenchWindow* window = static_cast<WorkbenchWindow*>(w);
+    if (window->trySelectNode(uuid)) {
+      area->setActiveSubWindow(w);
       break;
     }
   }
 }
 
 void MainWindow::resetInputs() {
-  openWorkflows[tabWidget->currentIndex()].lock()->resetInputs();
+  static_cast<WorkbenchWindow*>(area->activeSubWindow())->getWorkflow()->resetInputs();
 }
 
 void MainWindow::incrementInputs() {
-  openWorkflows[tabWidget->currentIndex()].lock()->incrementInputs();
+  static_cast<WorkbenchWindow*>(area->activeSubWindow())->getWorkflow()->incrementInputs();
 }
 
 void MainWindow::decrementInputs() {
-  openWorkflows[tabWidget->currentIndex()].lock()->decrementInputs();
+  static_cast<WorkbenchWindow*>(area->activeSubWindow())->getWorkflow()->decrementInputs();
 }
 
 }
