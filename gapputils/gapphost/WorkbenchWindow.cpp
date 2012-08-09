@@ -31,6 +31,7 @@
 #include <capputils/Xmlizer.h>
 #include <capputils/ReflectableClassFactory.h>
 #include <capputils/LibraryLoader.h>
+#include <capputils/ObservableClass.h>
 
 #include <qevent.h>
 #include <qmdiarea.h>
@@ -55,7 +56,7 @@ using namespace workflow;
 namespace host {
 
 WorkbenchWindow::WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow, QWidget* parent)
-: QMdiSubWindow(parent), workflow(workflow), workflowUpdater(new WorkflowUpdater())
+: QMdiSubWindow(parent), workflow(workflow), workflowUpdater(new WorkflowUpdater()), handler(this, &WorkbenchWindow::changedHandler)
 {
   setAttribute(Qt::WA_DeleteOnClose);
 
@@ -90,12 +91,18 @@ WorkbenchWindow::WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow,
   }
 
   boost::shared_ptr<WorkflowInterface> winterface;
-  if (DataModel::getInstance().getMainWorkflow() == workflow)
+  if (DataModel::getInstance().getMainWorkflow() == workflow) {
     setWindowTitle("Main Workflow");
-  else if ((winterface = boost::dynamic_pointer_cast<WorkflowInterface>(workflow->getModule())))
+  } else if ((winterface = boost::dynamic_pointer_cast<WorkflowInterface>(workflow->getModule()))) {
     setWindowTitle(winterface->getLabel().c_str());
-  else
+  } else {
     setWindowTitle("Unknown Title");
+  }
+
+  capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(workflow->getModule().get());
+  if (observable) {
+    observable->Changed.connect(handler);
+  }
 }
 
 WorkbenchWindow::~WorkbenchWindow() {
@@ -108,6 +115,11 @@ WorkbenchWindow::~WorkbenchWindow() {
     std::vector<boost::shared_ptr<Edge> >& edges = *workflow->getEdges();
     for (unsigned i = 0; i < edges.size(); ++i)
       edges[i]->setCableItem(0);
+
+    capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(workflow->getModule().get());
+    if (observable) {
+      observable->Changed.disconnect(handler);
+    }
   }
 }
 
@@ -415,6 +427,14 @@ void WorkbenchWindow::updateOutputs() {
 
 void WorkbenchWindow::abortUpdate() {
   workflowUpdater->abort();
+}
+
+void WorkbenchWindow::changedHandler(capputils::ObservableClass* sender, int eventId) {
+  workflow::WorkflowInterface* interface = dynamic_cast<workflow::WorkflowInterface*>(sender);
+  
+  if (interface && eventId == workflow::WorkflowInterface::LabelId) {
+    setWindowTitle(interface->getLabel().c_str());
+  }
 }
 
 /*** SLOTS ***/

@@ -21,8 +21,10 @@ namespace gapputils {
 
 namespace workflow {
 
+int WorkflowInterface::LabelId = -1;
+
 BeginPropertyDefinitions(WorkflowInterface)
-  DefineProperty(Label, Label(), Observe(Id))
+  DefineProperty(Label, Label(), Observe(LabelId = Id))
 EndPropertyDefinitions
 
 WorkflowInterface::WorkflowInterface() : _Label("Interface") {

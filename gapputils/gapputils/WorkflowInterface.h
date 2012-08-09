@@ -26,10 +26,10 @@ class WorkflowInterface : public capputils::reflection::ReflectableClass,
 
   InitReflectableClass(WorkflowInterface)
 
-
-
-
   Property(Label, std::string)
+
+public:
+  static int LabelId;
 
 public:
   WorkflowInterface();

@@ -13,6 +13,8 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <capputils/EventHandler.h>
+
 #include <ctime>
 #include <set>
 
@@ -46,6 +48,7 @@ private:
   boost::weak_ptr<workflow::Node> progressNode;
   LinearRegression etaRegression;
   time_t startTime;
+  capputils::EventHandler<WorkbenchWindow> handler;
 
 public:
   WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow, QWidget* parent = 0);
@@ -68,6 +71,8 @@ public:
   void updateCurrentModule();
   void updateOutputs();
   void abortUpdate();
+
+  void changedHandler(capputils::ObservableClass* sender, int eventId);
 
 protected:
   void closeEvent(QCloseEvent *event);
