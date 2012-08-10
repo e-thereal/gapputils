@@ -1,5 +1,6 @@
 #include "DataModel.h"
 
+#include <capputils/ObserveAttribute.h>
 #include <capputils/ReuseAttribute.h>
 #include <capputils/VolatileAttribute.h>
 #include <capputils/FlagAttribute.h>
@@ -19,6 +20,8 @@ namespace gapputils {
 using namespace workflow;
 
 namespace host {
+
+int DataModel::WorkflowMapId = -1;
 
 BeginPropertyDefinitions(DataModel)
   DefineProperty(Run, Flag(), Volatile(),
@@ -40,6 +43,8 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(OpenWorkflows, Enumerable<boost::shared_ptr<std::vector<std::string> >, false>(),
       Description(""))
   DefineProperty(CurrentWorkflow,
+      Description(""))
+  DefineProperty(WorkflowMap, Volatile(), Observe(WorkflowMapId = Id),
       Description(""))
   DefineProperty(MainWindow, Volatile(),
       Description(""))

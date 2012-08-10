@@ -48,7 +48,7 @@ private:
   boost::weak_ptr<workflow::Node> progressNode;
   LinearRegression etaRegression;
   time_t startTime;
-  capputils::EventHandler<WorkbenchWindow> handler;
+  capputils::EventHandler<WorkbenchWindow> handler, modelEventHandler;
   bool closable;
 
 public:
@@ -77,6 +77,7 @@ public:
   void abortUpdate();
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
+  void handleModelEvents(capputils::ObservableClass* sender, int eventId);
 
 protected:
   void closeEvent(QCloseEvent *event);
