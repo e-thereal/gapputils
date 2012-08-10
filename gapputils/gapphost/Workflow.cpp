@@ -129,9 +129,12 @@ Workflow::~Workflow() {
     loader.freeLibrary(_Libraries->at(i));
   }
 
-  map<string, boost::weak_ptr<Workflow> >& workflowMap = *host::DataModel::getInstance().getWorkflowMap();
-  if (workflowMap.find(getUuid()) != workflowMap.end())
-    workflowMap.erase(getUuid());
+  host::DataModel& model = host::DataModel::getInstance();
+  boost::shared_ptr<map<string, boost::weak_ptr<Workflow> > > workflowMap = model.getWorkflowMap();
+  if (workflowMap->find(getUuid()) != workflowMap->end()) {
+    workflowMap->erase(getUuid());
+    model.setWorkflowMap(workflowMap);
+  }
 }
 
 void Workflow::addInterfaceNode(boost::shared_ptr<Node> node) {

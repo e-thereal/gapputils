@@ -4,6 +4,7 @@
 #define _GAPPHOST_DATAMODEL_H_
 
 #include <capputils/ReflectableClass.h>
+#include <capputils/ObservableClass.h>
 
 #include <map>
 
@@ -18,7 +19,8 @@ namespace host {
 
 class MainWindow;
 
-class DataModel : public capputils::reflection::ReflectableClass
+class DataModel : public capputils::reflection::ReflectableClass,
+                  public capputils::ObservableClass
 {
   InitReflectableClass(DataModel)
 
@@ -32,14 +34,18 @@ class DataModel : public capputils::reflection::ReflectableClass
   Property(MainWorkflow, boost::shared_ptr<workflow::Workflow>)
   Property(OpenWorkflows, boost::shared_ptr<std::vector<std::string> >)
   Property(CurrentWorkflow, std::string)
-  // TODO: why do I need this map?
-  Property(WorkflowMap, boost::shared_ptr<std::map<std::string CAPPUTILS_COMMA() boost::weak_ptr<workflow::Workflow> > >)     ///< Getter and setters only. No DefineProperty in the cpp file
+
+  // Map is used for opening and closing workflows by UUID
+  Property(WorkflowMap, boost::shared_ptr<std::map<std::string CAPPUTILS_COMMA() boost::weak_ptr<workflow::Workflow> > >)
   Property(MainWindow, MainWindow*)
   Property(PassedLabel, QLabel*)
   Property(RemainingLabel, QLabel*)
   Property(TotalLabel, QLabel*)
   Property(FinishedLabel, QLabel*)
   Property(Configuration, std::string)
+
+public:
+  static int WorkflowMapId;
 
 private:
   static DataModel* instance;
