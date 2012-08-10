@@ -56,7 +56,7 @@ using namespace workflow;
 namespace host {
 
 WorkbenchWindow::WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow, QWidget* parent)
-: QMdiSubWindow(parent), workflow(workflow), workflowUpdater(new WorkflowUpdater()), handler(this, &WorkbenchWindow::changedHandler)
+: QMdiSubWindow(parent), workflow(workflow), workflowUpdater(new WorkflowUpdater()), handler(this, &WorkbenchWindow::changedHandler), closable(true)
 {
   setAttribute(Qt::WA_DeleteOnClose);
 
@@ -133,6 +133,14 @@ const std::string& getPropertyLabel(capputils::reflection::IClassProperty* prop)
 
 boost::shared_ptr<workflow::Workflow> WorkbenchWindow::getWorkflow() const {
   return workflow.lock();
+}
+
+void WorkbenchWindow::setClosable(bool closable) {
+  this->closable = closable;
+}
+
+bool WorkbenchWindow::getClosable() const {
+  return closable;
 }
 
 void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
@@ -356,10 +364,10 @@ void WorkbenchWindow::addNodesFromClipboard() {
 }
 
 void WorkbenchWindow::closeEvent(QCloseEvent *event) {
-  //if (workflow.expired() || workflow.lock() != DataModel::getInstance().getMainWorkflow())
+  if (closable)
     event->accept();
-  //else
-  //  event->ignore();
+  else
+    event->ignore();
 }
 
 void addDependencies(boost::shared_ptr<Workflow> workflow, const std::string& classname) {
@@ -507,6 +515,12 @@ void WorkbenchWindow::deleteEdge(CableItem* cable) {
 
 void WorkbenchWindow::deleteModule(ToolItem* item) {
   boost::shared_ptr<Workflow> workflow = this->workflow.lock();
+
+  boost::shared_ptr<Workflow> subworkflow = boost::dynamic_pointer_cast<Workflow>(workflow->getNode(item));
+  if (subworkflow) {
+    DataModel::getInstance().getMainWindow()->closeWorkflow(subworkflow->getUuid());
+  }
+
   workflow->removeNode(workflow->getNode(item));
 }
 
