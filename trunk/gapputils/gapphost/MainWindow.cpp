@@ -189,14 +189,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   model.setWindowWidth(width());
   model.setWindowHeight(height());
 
-  boost::shared_ptr<std::vector<std::string> > workflows(new std::vector<std::string>());
-  Q_FOREACH (QMdiSubWindow *w, area->subWindowList()) {
-    WorkbenchWindow* window = dynamic_cast<WorkbenchWindow*>(w);
-    if (window && window->getWorkflow()) {
-      workflows->push_back(window->getWorkflow()->getUuid());
-    }
-  }
-  model.setOpenWorkflows(workflows);
+  saveWorkflowList();
   //std::cout << "Save: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
 
   QSettings settings;
@@ -255,6 +248,19 @@ WorkbenchWindow* MainWindow::showWorkflow(boost::shared_ptr<workflow::Workflow> 
   return window;
 }
 
+void MainWindow::saveWorkflowList() {
+  DataModel& model = DataModel::getInstance();
+
+  boost::shared_ptr<std::vector<std::string> > workflows(new std::vector<std::string>());
+  Q_FOREACH (QMdiSubWindow *w, area->subWindowList()) {
+    WorkbenchWindow* window = dynamic_cast<WorkbenchWindow*>(w);
+    if (window && window->getWorkflow()) {
+      workflows->push_back(window->getWorkflow()->getUuid());
+    }
+  }
+  model.setOpenWorkflows(workflows);
+}
+
 void MainWindow::setAutoQuit(bool autoQuit) {
   this->autoQuit = autoQuit;
 }
@@ -277,10 +283,11 @@ void MainWindow::loadWorkflow() {
   QString filename = QFileDialog::getOpenFileName(this, "Load configuration", "", "Host Configuration (*.xml *.config)");
   if (!filename.isNull()) {
     DataModel& model = DataModel::getInstance();
+
+    model.setMainWorkflow(boost::shared_ptr<workflow::Workflow>());
+    model.getOpenWorkflows()->clear();
     model.setConfiguration(filename.toAscii().data());
 
-    showWorkflow(model.getMainWorkflow())->setClosable(true);
-    area->closeAllSubWindows();
     setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
     Xmlizer::FromXml(model, model.getConfiguration());
     resume();
@@ -289,6 +296,7 @@ void MainWindow::loadWorkflow() {
 }
 
 void MainWindow::saveWorkflow() {
+  saveWorkflowList();
   QFileDialog fileDialog(this);
   if (fileDialog.exec() == QDialog::Accepted) {
     QStringList filenames = fileDialog.selectedFiles();
@@ -318,19 +326,10 @@ void MainWindow::reload() {
   DataModel& model = DataModel::getInstance();
   TiXmlElement* modelElement = Xmlizer::CreateXml(model);
 
-  boost::shared_ptr<std::vector<std::string> > workflows(new std::vector<std::string>());
-  Q_FOREACH (QMdiSubWindow *w, area->subWindowList()) {
-    WorkbenchWindow* window = dynamic_cast<WorkbenchWindow*>(w);
-    if (window && window->getWorkflow()) {
-      workflows->push_back(window->getWorkflow()->getUuid());
-    }
-  }
-  model.setOpenWorkflows(workflows);
+  saveWorkflowList();
 
   // close all windows
-  showWorkflow(model.getMainWorkflow())->setClosable(true);
   model.setMainWorkflow(boost::shared_ptr<Workflow>());
-  area->closeAllSubWindows();
 
   Xmlizer::FromXml(model, *modelElement);
   resume();

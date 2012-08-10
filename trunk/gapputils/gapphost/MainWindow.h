@@ -50,6 +50,7 @@ public:
   void resume();
   void setAutoQuit(bool autoQuit);
   WorkbenchWindow* showWorkflow(boost::shared_ptr<workflow::Workflow> workflow);
+  void saveWorkflowList();
 
 public Q_SLOTS:
   void quit();

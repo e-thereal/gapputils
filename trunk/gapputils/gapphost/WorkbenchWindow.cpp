@@ -370,10 +370,11 @@ void WorkbenchWindow::addNodesFromClipboard() {
 }
 
 void WorkbenchWindow::closeEvent(QCloseEvent *event) {
-  if (closable)
+  if (closable) {
     event->accept();
-  else
+  } else {
     event->ignore();
+  }
 }
 
 void addDependencies(boost::shared_ptr<Workflow> workflow, const std::string& classname) {
@@ -453,6 +454,7 @@ void WorkbenchWindow::changedHandler(capputils::ObservableClass* sender, int eve
 
 void WorkbenchWindow::handleModelEvents(capputils::ObservableClass* sender, int eventId) {
   if (eventId == DataModel::WorkflowMapId && workflow.expired()) {
+    setClosable(true);
     close();
   }
 }
