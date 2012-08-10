@@ -188,6 +188,15 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   model.setWindowY(y());
   model.setWindowWidth(width());
   model.setWindowHeight(height());
+
+  boost::shared_ptr<std::vector<std::string> > workflows(new std::vector<std::string>());
+  Q_FOREACH (QMdiSubWindow *w, area->subWindowList()) {
+    WorkbenchWindow* window = dynamic_cast<WorkbenchWindow*>(w);
+    if (window && window->getWorkflow()) {
+      workflows->push_back(window->getWorkflow()->getUuid());
+    }
+  }
+  model.setOpenWorkflows(workflows);
   //std::cout << "Save: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
 
   QSettings settings;
@@ -212,7 +221,7 @@ void MainWindow::resume() {
   }
 
   workflow->resume();
-  showWorkflow(workflow);
+  showWorkflow(workflow)->setClosable(false);
 
   for (unsigned i = 0; i < model.getOpenWorkflows()->size(); ++i) {
     string uuid = model.getOpenWorkflows()->at(i);
@@ -270,6 +279,7 @@ void MainWindow::loadWorkflow() {
     DataModel& model = DataModel::getInstance();
     model.setConfiguration(filename.toAscii().data());
 
+    showWorkflow(model.getMainWorkflow())->setClosable(true);
     area->closeAllSubWindows();
     setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
     Xmlizer::FromXml(model, model.getConfiguration());
@@ -308,7 +318,17 @@ void MainWindow::reload() {
   DataModel& model = DataModel::getInstance();
   TiXmlElement* modelElement = Xmlizer::CreateXml(model);
 
+  boost::shared_ptr<std::vector<std::string> > workflows(new std::vector<std::string>());
+  Q_FOREACH (QMdiSubWindow *w, area->subWindowList()) {
+    WorkbenchWindow* window = dynamic_cast<WorkbenchWindow*>(w);
+    if (window && window->getWorkflow()) {
+      workflows->push_back(window->getWorkflow()->getUuid());
+    }
+  }
+  model.setOpenWorkflows(workflows);
+
   // close all windows
+  showWorkflow(model.getMainWorkflow())->setClosable(true);
   model.setMainWorkflow(boost::shared_ptr<Workflow>());
   area->closeAllSubWindows();
 

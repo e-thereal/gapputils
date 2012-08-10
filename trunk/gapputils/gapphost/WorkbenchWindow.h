@@ -49,12 +49,16 @@ private:
   LinearRegression etaRegression;
   time_t startTime;
   capputils::EventHandler<WorkbenchWindow> handler;
+  bool closable;
 
 public:
   WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow, QWidget* parent = 0);
   virtual ~WorkbenchWindow();
 
   boost::shared_ptr<workflow::Workflow> getWorkflow() const;
+
+  void setClosable(bool closable);
+  bool getClosable() const;
 
   void createItem(boost::shared_ptr<workflow::Node> node);
   bool createCable(boost::shared_ptr<workflow::Edge> edge);
