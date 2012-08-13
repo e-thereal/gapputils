@@ -32,6 +32,9 @@
 								<option id="gnu.cpp.compiler.so.debug.option.optimization.level.180622033" name="Optimization Level" superClass="gnu.cpp.compiler.so.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.so.debug.option.debugging.level.218658745" name="Debug Level" superClass="gnu.cpp.compiler.so.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.954571367" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 								</option>
@@ -57,7 +60,9 @@
 								<option defaultValue="true" id="gnu.cpp.link.so.debug.option.shared.1499759318" name="Shared (-shared)" superClass="gnu.cpp.link.so.debug.option.shared" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.101300980" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
 								</option>
@@ -75,6 +80,9 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.so.debug.1270087473" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.so.debug">
 								<option id="gnu.both.asm.option.include.paths.2017163824" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.232514623" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
