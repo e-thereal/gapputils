@@ -48,11 +48,6 @@
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.2093880077" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
 								<option id="gnu.cpp.compiler.option.include.paths.865061349" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
