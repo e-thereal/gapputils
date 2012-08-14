@@ -6,6 +6,7 @@
 #include <capputils/IEnumerableAttribute.h>
 #include <capputils/IReflectableAttribute.h>
 #include <capputils/ScalarAttribute.h>
+#include <capputils/OutputAttribute.h>
 
 #include <gapputils/ChecksumAttribute.h>
 #include <gapputils/LabelAttribute.h>
@@ -72,6 +73,8 @@ checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags
   boost::crc_32_type checksum;
   assert(object);
 
+  workflow::CollectionElement* collection = dynamic_cast<workflow::CollectionElement*>(object);
+
   std::vector<capputils::reflection::IClassProperty*>& properties = object->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<LabelAttribute>()) {
@@ -82,7 +85,10 @@ checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags
 
   // Add more for each parameter
   for (unsigned i = 0; i < properties.size(); ++i) {
-    if ((flags & ChecksumUpdater::ExcludeNoParameters) ==  ChecksumUpdater::ExcludeNoParameters
+
+    if (node->isInputNode() && properties[i]->getAttribute<OutputAttribute>()) {
+      // skip NoParameter test
+    } else if ((flags & ChecksumUpdater::ExcludeNoParameters) ==  ChecksumUpdater::ExcludeNoParameters
         && properties[i]->getAttribute<NoParameterAttribute>())
     {
       //std::cout << "No parameter: " << properties[i]->getName() << std::endl;
@@ -108,8 +114,7 @@ checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags
   std::string className = object->getClassName();
   checksum.process_bytes((void*)&className[0], className.size());
 
-  // If it is a combiner class, add to progress to it
-  workflow::CollectionElement* collection = dynamic_cast<workflow::CollectionElement*>(object);
+  // If it is a combiner class, add the progress to it
   if (collection && !collection->getCalculateCombinations()) {
     double progress = collection->getProgress();
     checksum.process_bytes(&progress, sizeof(progress));
