@@ -184,6 +184,22 @@ bool Node::isDependentProperty(const std::string& propertyName) const {
   return false;
 }
 
+bool Node::isInputNode() {
+  boost::shared_ptr<Workflow> workflow = getWorkflow().lock();
+  if (workflow) {
+    return workflow->isInputNode(shared_from_this());
+  }
+  return false;
+}
+
+bool Node::isOutputNode() {
+  boost::shared_ptr<Workflow> workflow = getWorkflow().lock();
+  if (workflow) {
+    return workflow->isOutputNode(shared_from_this());
+  }
+  return false;
+}
+
 boost::shared_ptr<GlobalProperty> Node::getGlobalProperty(const PropertyReference& reference) {
   if (!getWorkflow().expired()) {
     return getWorkflow().lock()->getGlobalProperty(reference);

@@ -41,11 +41,11 @@ WorkflowUpdater::~WorkflowUpdater(void) { }
 void WorkflowUpdater::update(boost::shared_ptr<workflow::Node> node) {
   abortRequested = false;
   if (!rootThread) {
-    updater->update(node);
-  } else {
     capputils::Logbook dlog(&LogbookModel::GetInstance());
     dlog.setModule("gapputils::host::WorkflowUpdater");
     dlog() << "Workflow update started.";
+    updater->update(node);
+  } else {
     this->node = node;
     start();
   }
@@ -57,10 +57,16 @@ void WorkflowUpdater::run() {
   //       2. Workflow case: workflow
   //       3. Single node case: else
 
+  capputils::Logbook dlog(&LogbookModel::GetInstance());
+  dlog.setModule("gapputils::host::WorkflowUpdater");
+  dlog.setSeverity(capputils::Severity::Trace);
+
   ChecksumUpdater checksumUpdater;
   boost::shared_ptr<workflow::Workflow> workflow = boost::dynamic_pointer_cast<workflow::Workflow>(node.lock());
   if (workflow) {
     if (workflow->hasCollectionElementInterface()) {
+
+      dlog() << "Combiner case";
 
       /*** Combiner case ***/
 
@@ -71,6 +77,7 @@ void WorkflowUpdater::run() {
       // append results at the end
       std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
       std::vector<boost::shared_ptr<workflow::CollectionElement> > collectionElements;
+      std::set<boost::shared_ptr<workflow::CollectionElement> > inputElements;
 
       bool needsUpdate = true;
       bool lastIteration = false;
@@ -82,14 +89,23 @@ void WorkflowUpdater::run() {
             needsUpdate = false;
           collectionElements.push_back(collection);
           collection->setCalculateCombinations(false);
-          if (collection->getCurrentIteration() + 1 == collection->getIterationCount())
-            lastIteration = true;
+          if (workflow->isInputNode(interfaceNodes[i])) {
+            inputElements.insert(collection);
+            if (collection->getCurrentIteration() + 1 == collection->getIterationCount()) {
+              lastIteration = true;
+              dlog() << "Last iteration";
+            }
+          }
         }
       }
+
+      dlog() << "#Elements: " << collectionElements.size();
+      dlog() << "#Inputs: " << inputElements.size();
 
       while (needsUpdate) {
         
         if (lastIteration) {
+          dlog() << "Resetting combiner flag";
           for (unsigned i = 0; i < collectionElements.size(); ++i)
             collectionElements[i]->setCalculateCombinations(true);
         }
@@ -111,15 +127,25 @@ void WorkflowUpdater::run() {
 
         // advance collections
         for (unsigned i = 0; i < collectionElements.size(); ++i) {
-          if (!collectionElements[i]->advanceCombinations())
+          const bool isInput = inputElements.find(collectionElements[i]) != inputElements.end();
+          if (!collectionElements[i]->advanceCombinations() && isInput)
             needsUpdate = false;
-          if (collectionElements[i]->getCurrentIteration() + 1 == collectionElements[i]->getIterationCount())
+
+          if (isInput && collectionElements[i]->getCurrentIteration() + 1 == collectionElements[i]->getIterationCount())
             lastIteration = true;
         }
       }
+
+      // The combiner flag should be reset in all cases.
+      // Resetting is necessary if not a single update cycle was performed
+      for (unsigned i = 0; i < collectionElements.size(); ++i)
+        collectionElements[i]->setCalculateCombinations(true);
+
     } else {
 
       /*** Workflow case ***/
+
+      dlog() << "Workflow case";
 
       checksumUpdater.update(node.lock());
       std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
@@ -140,8 +166,8 @@ void WorkflowUpdater::run() {
 }
 
 void WorkflowUpdater::reportProgress(double progress, bool updateNode) {
-  if (!currentNode.expired())
-    reportProgress(currentNode.lock(), progress, updateNode);
+  if (currentNode)
+    reportProgress(currentNode, progress, updateNode);
 }
 
 void WorkflowUpdater::reportProgress(boost::shared_ptr<workflow::Node> node, double progress, bool updateNode) {
@@ -199,53 +225,52 @@ void WorkflowUpdater::updateNodes() {
   
   // Go through the stack and update all nodes
   while(!nodesStack.empty() && !getAbortRequested()) {
-    currentNode = nodesStack.top();
+    currentNode = nodesStack.top().lock();
     nodesStack.pop();
 
-    reportProgress(currentNode.lock(), ToolItem::InProgress, false);
+    reportProgress(currentNode, ToolItem::InProgress, false);
 
-    boost::shared_ptr<workflow::Workflow> workflow = boost::dynamic_pointer_cast<workflow::Workflow>(currentNode.lock());
-    if (workflow) {
+    // update node
+    // TODO: check if value could be read from cache. Never read it from cache if it is the last node
+    if (nodesStack.empty() || currentNode->getInputChecksum() != currentNode->getOutputChecksum()) {
+      boost::shared_ptr<workflow::Workflow> workflow = boost::dynamic_pointer_cast<workflow::Workflow>(currentNode);
+      if (workflow) {
 
-      // Create a new worker for the sub workflow
-      WorkflowUpdater updater(rootThread);
+        // Create a new worker for the sub workflow
+        WorkflowUpdater updater(rootThread);
 
-      // Just sit and watch if he is doing a good job
-      connect(&updater, SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double, bool)), rootThread, SLOT(handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node>, double, bool)), Qt::BlockingQueuedConnection);
-      connect(&updater, SIGNAL(nodeUpdateFinished(boost::shared_ptr<workflow::Node>)), rootThread, SLOT(handleNodeUpdateFinished(boost::shared_ptr<workflow::Node>)), Qt::BlockingQueuedConnection);
+        // Just sit and watch if he is doing a good job
+        connect(&updater, SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double, bool)), rootThread, SLOT(handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node>, double, bool)), Qt::BlockingQueuedConnection);
+        connect(&updater, SIGNAL(nodeUpdateFinished(boost::shared_ptr<workflow::Node>)), rootThread, SLOT(handleNodeUpdateFinished(boost::shared_ptr<workflow::Node>)), Qt::BlockingQueuedConnection);
 
-      // Let him get started
-      updater.update(currentNode.lock());
+        dlog.setModule(currentNode->getModule()->getClassName());
+        dlog.setUuid(currentNode->getUuid());
+        dlog(capputils::Severity::Trace) << "Starting update. (" << currentNode->getInputChecksum() << ", " << currentNode->getOutputChecksum() << ")";
 
-      // And chill until the work is done
-      updater.wait();
+        // Let him get started
+        updater.update(currentNode);
 
-    } else {
-      // update node
-      // TODO: check if value could be read from cache. Never read it from cache if it is the last node
-      if (nodesStack.empty() || (currentNode.lock()->getInputChecksum() != currentNode.lock()->getOutputChecksum()
-          && !NodeCache::Restore(currentNode.lock())))
-      {
+        // And chill until the work is done
+        updater.wait();
 
-        boost::shared_ptr<workflow::WorkflowElement> element = boost::dynamic_pointer_cast<workflow::WorkflowElement>(currentNode.lock()->getModule());
+      } else if (nodesStack.empty() || !NodeCache::Restore(currentNode)) {
+        boost::shared_ptr<workflow::WorkflowElement> element = boost::dynamic_pointer_cast<workflow::WorkflowElement>(currentNode->getModule());
         if (element) {
           dlog.setModule(element->getClassName());
-          dlog.setUuid(currentNode.lock()->getUuid());
-          dlog(capputils::Severity::Trace) << "Starting update. (" << currentNode.lock()->getInputChecksum() << ", " << currentNode.lock()->getOutputChecksum() << ")";
+          dlog.setUuid(currentNode->getUuid());
+          dlog(capputils::Severity::Trace) << "Starting update. (" << currentNode->getInputChecksum() << ", " << currentNode->getOutputChecksum() << ")";
           element->execute(this);
         }
-      } else {
-        boost::shared_ptr<workflow::WorkflowElement> element = boost::dynamic_pointer_cast<workflow::WorkflowElement>(currentNode.lock()->getModule());
       }
     }
 
     // update finished
     if (!getAbortRequested()) {
-      reportProgress(currentNode.lock(), 100.0, false);
-      reportNodeUpdateFinished(currentNode.lock());
+      reportProgress(currentNode, 100.0, false);
+      reportNodeUpdateFinished(currentNode);
     }
 
-    currentNode.reset();
+    this->currentNode.reset();
   }
 }
 

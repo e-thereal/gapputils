@@ -26,7 +26,7 @@ class WorkflowUpdater : public QThread, public virtual workflow::IProgressMonito
 
 private:
   boost::weak_ptr<workflow::Node> node;
-  boost::weak_ptr<workflow::Node> currentNode;
+  boost::shared_ptr<workflow::Node> currentNode;
   WorkflowUpdater* rootThread;
   bool abortRequested;
 

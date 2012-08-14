@@ -625,7 +625,10 @@ void Workflow::getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost
 bool Workflow::isDependentProperty(boost::shared_ptr<const Node> node, const std::string& propertyName) const {
   if (isInputNode(node)) {
     boost::shared_ptr<Workflow> workflow = getWorkflow().lock();
-    if (workflow && propertyName == "Value") {
+    const bool isCollection = boost::dynamic_pointer_cast<const CollectionElement>(node->getModule());
+    if (((!isCollection && propertyName == "Value") || (isCollection && propertyName == "Values"))
+        && workflow)
+    {
       boost::shared_ptr<vector<boost::shared_ptr<Edge> > > edges = workflow->getEdges();
       for (unsigned i = 0; i < edges->size(); ++i) {
         boost::shared_ptr<Edge> edge = edges->at(i);
@@ -658,6 +661,10 @@ bool Workflow::isDependentProperty(boost::shared_ptr<const Node> node, const std
   PropertyReference ref(shared_from_this(), node->getUuid(), propertyName);
   boost::shared_ptr<const CollectionElement> collection = boost::dynamic_pointer_cast<const CollectionElement>(node->getModule());
   if (ref.getProperty() && ref.getProperty()->getAttribute<FromEnumerableAttribute>() && collection && collection->getCalculateCombinations())
+    return true;
+
+  // Is there a property with a ToEnumerable attribute that points to this property?
+  if (isOutputNode(node) && collection && collection->getCalculateCombinations() && propertyName == "Values")
     return true;
 
   return false;
