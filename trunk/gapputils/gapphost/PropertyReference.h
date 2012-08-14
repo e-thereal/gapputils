@@ -46,6 +46,11 @@ public:
       const std::string& propertyId);
   virtual ~PropertyReference();
 
+  static boost::shared_ptr<PropertyReference> TryCreate(
+      boost::shared_ptr<const gapputils::workflow::Workflow> workflow,
+      const std::string& nodeId,
+      const std::string& propertyId);
+
 public:
   boost::shared_ptr<const gapputils::workflow::Workflow> getWorkflow() const;
   std::string getNodeId() const;

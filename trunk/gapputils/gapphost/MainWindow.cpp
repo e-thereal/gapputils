@@ -270,12 +270,12 @@ void MainWindow::quit() {
 }
 
 void MainWindow::copy() {
-  WorkbenchWindow* window = static_cast<WorkbenchWindow*>(area->activeSubWindow());
+  WorkbenchWindow* window = static_cast<WorkbenchWindow*>(area->currentSubWindow());
   window->copySelectedNodesToClipboard();
 }
 
 void MainWindow::paste() {
-  WorkbenchWindow* window = static_cast<WorkbenchWindow*>(area->activeSubWindow());
+  WorkbenchWindow* window = static_cast<WorkbenchWindow*>(area->currentSubWindow());
   window->addNodesFromClipboard();
 }
 
@@ -301,7 +301,7 @@ void MainWindow::saveWorkflow() {
   if (fileDialog.exec() == QDialog::Accepted) {
     QStringList filenames = fileDialog.selectedFiles();
     if (filenames.size()) {
-      Xmlizer::ToXml(filenames[0].toUtf8().data(), *static_cast<WorkbenchWindow*>(area->activeSubWindow())->getWorkflow());
+      Xmlizer::ToXml(filenames[0].toUtf8().data(), *static_cast<WorkbenchWindow*>(area->currentSubWindow())->getWorkflow());
     }
   }
 }
@@ -315,7 +315,13 @@ void MainWindow::loadLibrary() {
   if (filename.isNull())
     return;
 
-  boost::shared_ptr<Workflow> workflow = static_cast<WorkbenchWindow*>(area->activeSubWindow())->getWorkflow();
+  WorkbenchWindow* window = dynamic_cast<WorkbenchWindow*>(area->currentSubWindow());
+  if (!window) {
+    std::cout << area->currentSubWindow() << std::endl;
+    std::cout << window << std::endl;
+    return;
+  }
+  boost::shared_ptr<Workflow> workflow = window->getWorkflow();
   boost::shared_ptr<vector<string> > libs = workflow->getLibraries();
   libs->push_back(filename.toUtf8().data());
   workflow->setLibraries(libs);
@@ -364,7 +370,7 @@ void MainWindow::setGuiEnabled(bool enabled) {
 void MainWindow::updateCurrentModule() {
   setGuiEnabled(false);
 
-  workingWindow = static_cast<WorkbenchWindow*>(area->activeSubWindow());
+  workingWindow = static_cast<WorkbenchWindow*>(area->currentSubWindow());
   connect(workingWindow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
   workingWindow->updateCurrentModule();
   abortAction->setEnabled(true);
@@ -373,7 +379,7 @@ void MainWindow::updateCurrentModule() {
 void MainWindow::updateWorkflow() {
   setGuiEnabled(false);
   
-  workingWindow = static_cast<WorkbenchWindow*>(area->activeSubWindow());
+  workingWindow = static_cast<WorkbenchWindow*>(area->currentSubWindow());
   connect(workingWindow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
   workingWindow->updateOutputs();
   abortAction->setEnabled(true);
@@ -456,15 +462,15 @@ void MainWindow::selectModule(const QString& quuid) {
 }
 
 void MainWindow::resetInputs() {
-  static_cast<WorkbenchWindow*>(area->activeSubWindow())->getWorkflow()->resetInputs();
+  static_cast<WorkbenchWindow*>(area->currentSubWindow())->getWorkflow()->resetInputs();
 }
 
 void MainWindow::incrementInputs() {
-  static_cast<WorkbenchWindow*>(area->activeSubWindow())->getWorkflow()->incrementInputs();
+  static_cast<WorkbenchWindow*>(area->currentSubWindow())->getWorkflow()->incrementInputs();
 }
 
 void MainWindow::decrementInputs() {
-  static_cast<WorkbenchWindow*>(area->activeSubWindow())->getWorkflow()->decrementInputs();
+  static_cast<WorkbenchWindow*>(area->currentSubWindow())->getWorkflow()->decrementInputs();
 }
 
 }

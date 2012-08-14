@@ -48,7 +48,7 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
     ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
 
     if (enumAttr) {
-      std::shared_ptr<capputils::Enumerator> enumerator = enumAttr->getEnumerator(*object, property);
+      boost::shared_ptr<capputils::Enumerator> enumerator = enumAttr->getEnumerator(*object, property);
       if (enumerator) {
         QComboBox* box = new QComboBox(parent);
         vector<string>& values = enumerator->getValues();
@@ -104,7 +104,7 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
     ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
     IEnumeratorAttribute* enumAttr = property->getAttribute<IEnumeratorAttribute>();
     if (enumAttr) {
-      std::shared_ptr<capputils::Enumerator> enumerator = enumAttr->getEnumerator(*object, property);
+      boost::shared_ptr<capputils::Enumerator> enumerator = enumAttr->getEnumerator(*object, property);
       if (enumerator) {
         QComboBox* box = static_cast<QComboBox*>(editor);
         box->setCurrentIndex(enumerator->toInt());
@@ -166,7 +166,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
     FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
     ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
     if (enumAttr) {
-      std::shared_ptr<capputils::Enumerator> enumerator = enumAttr->getEnumerator(*object, property);
+      boost::shared_ptr<capputils::Enumerator> enumerator = enumAttr->getEnumerator(*object, property);
       if (enumerator) {
         QComboBox* box = static_cast<QComboBox*>(editor);
         QString str = box->currentText();

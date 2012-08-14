@@ -16,7 +16,7 @@ namespace gapputils {
 
 namespace cv {
 
-CapputilsEnumerator(ConvolutionType, Valid, Full, Same);
+CapputilsEnumerator(ConvolutionType, Valid, Full, Circular);
 
 class Convolve : public workflow::DefaultWorkflowElement<Convolve> {
   InitReflectableClass(Convolve)

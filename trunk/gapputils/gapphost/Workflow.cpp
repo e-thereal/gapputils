@@ -346,14 +346,11 @@ bool Workflow::resumeEdge(boost::shared_ptr<Edge> edge) {
       inputNode = nodes[i];
   }
 
-  if (outputNode && inputNode) {
-    edge->activate(outputNode, inputNode);
-  } else {
-    dlog(Severity::Warning) << "Can not find connections for edge '" << edge->getInputNode() << "' -> '" << edge->getOutputNode() << "'";
-    return false;
-  }
-//  cout << "DONE!" << endl;
-  return true;
+  if (outputNode && inputNode && edge->activate(outputNode, inputNode))
+    return true;
+
+  dlog(Severity::Warning) << "Can not find connections for edge '" << edge->getInputNode() << "' -> '" << edge->getOutputNode() << "'";
+  return false;
 }
 
 void Workflow::resume() {
