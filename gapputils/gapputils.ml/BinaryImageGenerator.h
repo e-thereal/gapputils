@@ -21,8 +21,9 @@ class BinaryImageGenerator : public gapputils::workflow::WorkflowElement {
   Property(RowCount, int)
   Property(ColumnCount, int)
   Property(ImageCount, int)
-  Property(FeatureCount, int)
   Property(IsBinary, bool)
+  Property(Density, int)
+  Property(FeatureCount, int)
   Property(Data, boost::shared_ptr<std::vector<double> >)
 
 private:

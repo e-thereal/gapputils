@@ -57,7 +57,9 @@ bool Edge::activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> 
   setOutputNodePtr(outputNode);
   setInputNodePtr(inputNode);
 
-  boost::shared_ptr<PropertyReference> outputRef(new PropertyReference(outputNode->getWorkflow().lock(), outputNode->getUuid(), getOutputProperty()));
+  boost::shared_ptr<PropertyReference> outputRef = PropertyReference::TryCreate(outputNode->getWorkflow().lock(), outputNode->getUuid(), getOutputProperty());
+  if (!outputRef)
+    return false;
 
   std::vector<capputils::reflection::IClassProperty*>& properties = outputRef->getObject()->getProperties();
   for (unsigned i = 0; i < properties.size(); ++i) {
@@ -67,7 +69,9 @@ bool Edge::activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> 
     }
   }
 
-  boost::shared_ptr<PropertyReference> inputRef(new PropertyReference(inputNode->getWorkflow().lock(), inputNode->getUuid(), getInputProperty()));
+  boost::shared_ptr<PropertyReference> inputRef = PropertyReference::TryCreate(inputNode->getWorkflow().lock(), inputNode->getUuid(), getInputProperty());
+  if (!inputRef)
+    return false;
 
   if (!Edge::areCompatible(outputRef->getProperty(), inputRef->getProperty())) {
     return false;
