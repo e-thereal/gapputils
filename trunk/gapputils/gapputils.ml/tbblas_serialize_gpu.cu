@@ -112,7 +112,7 @@ void serialize_trait<boost::shared_ptr<tbblas::device_vector<double> > >::readFr
   thrust::copy(buffer.begin(), buffer.end(), vec->data().begin());
 }
 
-void serialize_trait<boost::shared_ptr<tbblas::host_tensor<double, 3> > >::writeToFile(const ptensor_t& tensor, std::ostream& file) {
+void serialize_trait<boost::shared_ptr<tbblas::tensor_base<double, 3, false> > >::writeToFile(const ptensor_t& tensor, std::ostream& file) {
   assert(tensor);
 
   const unsigned count = tensor->data().size();
@@ -124,7 +124,7 @@ void serialize_trait<boost::shared_ptr<tbblas::host_tensor<double, 3> > >::write
   file.write((char*)&buffer[0], sizeof(value_t) * count);
 }
 
-void serialize_trait<boost::shared_ptr<tbblas::host_tensor<double, 3> > >::readFromFile(ptensor_t& tensor, std::istream& file) {
+void serialize_trait<boost::shared_ptr<tbblas::tensor_base<double, 3, false> > >::readFromFile(ptensor_t& tensor, std::istream& file) {
   tensor_t::dim_t size;
   serialize_trait<tensor_t::dim_t>::readFromFile(size, file);
 

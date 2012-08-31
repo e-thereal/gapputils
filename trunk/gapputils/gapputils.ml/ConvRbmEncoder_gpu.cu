@@ -10,7 +10,10 @@
 
 #include <capputils/Verifier.h>
 
-#include <tbblas/tensor_proxy.hpp>
+#include <tbblas/subrange.hpp>
+#include <tbblas/plus.hpp>
+#include <tbblas/conv.hpp>
+
 #include <curand.h>
 
 #include "RbmModel.h"
@@ -181,7 +184,7 @@ void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) cons
       // Get and normalize current sample
       thrust::copy(X[iSample]->begin(), X[iSample]->end(), v.begin());
       if (crbm->getIsGaussian()) {
-        v += -crbm->getMean();
+        v = v - crbm->getMean();
         v = tbblas::copy(v / crbm->getStddev());
       }
 
@@ -191,8 +194,8 @@ void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) cons
       for (unsigned k = 0; k < filterCount; ++k) {
 
         // Calculate p(h_k | v, F) = sigm((~F_k * v) + c_k)
-        poshidstates = tbblas::conv(tbblas::flip(F[k]), v, (k ? tbblas::ReuseFT2 : tbblas::ReuseFTNone));
-        poshidstates += c[k];               // x = ~F_k * v + c_k
+        poshidstates = tbblas::conv(tbblas::flip(F[k]), v);
+        poshidstates = poshidstates + c[k];               // x = ~F_k * v + c_k
 
         // I'm using the state array here for the sum. Not nice but works fine and saves some space
         thrust::transform(poshidstates.data().begin(), poshidstates.data().end(),
@@ -351,10 +354,10 @@ void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) cons
 //          std::cout << tbblas::dot(padded, padded) << ", " << std::flush;
 //        }
 
-        vneg += vtemp;
+        vneg = vneg + vtemp;
       }
 //      std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
-      vneg += b;
+      vneg = vneg + b;
 //      std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
 
       // For the binary case
@@ -396,7 +399,7 @@ void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) cons
 //        std::cout << "[Encoding] Mean = " << mean << "; Stddev = " << stddev << std::endl;
         vneg = tbblas::copy(vneg * stddev);
 //        std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
-        vneg += mean;
+        vneg = vneg + mean;
 //        std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
       }
 //      std::cout << tbblas::dot(vneg, vneg) << std::endl;

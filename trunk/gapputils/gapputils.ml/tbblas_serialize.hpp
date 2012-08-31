@@ -3,7 +3,7 @@
 
 #include <capputils/SerializeAttribute.h>
 #include <tbblas/device_matrix.hpp>
-#include <tbblas/host_tensor.hpp>
+#include <tbblas/tensor_base.hpp>
 
 namespace capputils {
 
@@ -51,9 +51,9 @@ public:
 };
 
 template<>
-class serialize_trait<boost::shared_ptr<tbblas::host_tensor<double, 3> > > {
+class serialize_trait<boost::shared_ptr<tbblas::tensor_base<double, 3, false> > > {
   typedef double value_t;
-  typedef tbblas::host_tensor<value_t, 3> tensor_t;
+  typedef tbblas::tensor_base<value_t, 3, false> tensor_t;
   typedef boost::shared_ptr<tensor_t> ptensor_t;
 
 public:

@@ -26,6 +26,10 @@
 
 #include "sampling.hpp"
 
+#include <tbblas/sum.hpp>
+#include <tbblas/dot.hpp>
+#include <tbblas/plus.hpp>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
@@ -124,11 +128,11 @@ void InitializeConvRbmModel::execute(gapputils::workflow::IProgressMonitor* moni
     // Calculate the mean and normalize the data
     value_t mean = 0;
     for (unsigned i = 0; i < X.size(); ++i)
-      mean += tbblas::sum(*X[i]) / X[i]->data().size();
+      mean = mean + tbblas::sum(*X[i]) / X[i]->data().size();
     mean /= X.size();
 
     for (unsigned i = 0; i < X.size(); ++i)
-      *X[i] += -mean;
+      *X[i] = *X[i] - mean;
 
     // Calculate the stddev and normalize the data
     value_t var = 0;
