@@ -15,6 +15,9 @@
 #include <curand.h>
 
 #include <tbblas/device_matrix.hpp>
+#include <tbblas/subrange.hpp>
+#include <tbblas/plus.hpp>
+#include <tbblas/conv.hpp>
 
 namespace gapputils {
 
@@ -117,9 +120,9 @@ void ConvRbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
           hiddens[iSample]->data().begin() + (k + 1) * layerVoxelCount, paddedProxy.begin());
 
       vtemp = tbblas::conv(F[k], padded);
-      vneg += vtemp;
+      vneg = vneg + vtemp;
     }
-    vneg += b;
+    vneg = vneg + b;
 
     // For the binary case
     if (!crbm->getIsGaussian()) {
@@ -159,7 +162,7 @@ void ConvRbmDecoder::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
 //      std::cout << "[Encoding] Mean = " << mean << "; Stddev = " << stddev << std::endl;
       vneg = tbblas::copy(vneg * stddev);
-      vneg += mean;
+      vneg = vneg + mean;
     }
 
     visibles->push_back(boost::shared_ptr<host_tensor_t>(new host_tensor_t(tbblas::copy(vneg))));

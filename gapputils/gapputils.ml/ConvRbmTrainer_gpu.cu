@@ -14,7 +14,12 @@
 #include <capputils/Verifier.h>
 
 #include <boost/timer.hpp>
-#include <tbblas/tensor_proxy.hpp>
+#include <tbblas/subrange.hpp>
+#include <tbblas/plus.hpp>
+#include <tbblas/conv.hpp>
+#include <tbblas/sum.hpp>
+
+#include <thrust/inner_product.h>
 
 //#include "sampling.hpp"
 
@@ -163,7 +168,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
     value_t stddev = crbm->getStddev();
 
     for (unsigned i = 0; i < X.size(); ++i)
-      *X[i] += -mean;
+      *X[i] = *X[i] - mean;
 
     for (unsigned  i = 0; i < X.size(); ++i) {
       *X[i] = tbblas::copy(*X[i] / stddev);
@@ -270,8 +275,8 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
         for (unsigned k = 0; k < filterCount && (monitor ? !monitor->getAbortRequested() : true); ++k) {
 
           // Calculate p(h_k | v, F) = sigm((~F_k * v) + c_k)
-          poshidstates[k] = tbblas::conv(tbblas::flip(F[k]), v, (k ? tbblas::ReuseFT2 : tbblas::ReuseFTNone));
-          poshidstates[k] += c[k];               // x = ~F_k * v + c_k
+          poshidstates[k] = tbblas::conv(tbblas::flip(F[k]), v);
+          poshidstates[k] = poshidstates[k]+ c[k];               // x = ~F_k * v + c_k
 
           // I'm using the state array here for the sum. Not nice but works fine and saves some space
           thrust::transform(poshidstates[k].data().begin(), poshidstates[k].data().end(),
@@ -282,11 +287,11 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
 //              poshidprobs[k].data().begin(), sigmoid<value_t>());
 
           // Calculate energy and the total activation of the hidden units
-          posvishid[k] = tbblas::conv(tbblas::flip(poshidprobs[k]), v, tbblas::ReuseFT2);     // ~h_k * v
+          posvishid[k] = tbblas::conv(tbblas::flip(poshidprobs[k]), v);     // ~h_k * v
           poshidact[k] = tbblas::sum(poshidprobs[k]);
 
           if (iEpoch || !getCalculateBaseline())
-            cspabatch[k] += getSparsityTarget() - tbblas::sum(poshidprobs[k]) / poshidprobs[k].data().size();
+            cspabatch[k] = cspabatch[k] + getSparsityTarget() - tbblas::sum(poshidprobs[k]) / poshidprobs[k].data().size();
 
           // fill states with random numbers which are then used to sample the units
           // TODO: use curandGenerateUniform if value_t == float
@@ -319,9 +324,9 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
           device_proxy_t paddedProxy = tbblas::subrange(padded, start, layerDim);
           thrust::copy(poshidstates[k].begin(), poshidstates[k].end(), paddedProxy.begin());
           vtemp = tbblas::conv(F[k], padded);
-          vneg += vtemp;
+          vneg = vneg+ vtemp;
         }
-        vneg += b;
+        vneg = vneg + b;
 
         // For the binary case
         if (!crbm->getIsGaussian()) {
@@ -361,9 +366,8 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
         for (unsigned k = 0; k < filterCount; ++k) {
 
           // Calculate p(h_k | vneg, F) = sigm((~F_k * v) + c_k)
-          neghidstates[k] = tbblas::conv(tbblas::flip(F[k]), vneg,
-              (k ? tbblas::ReuseFT2 : tbblas::ReuseFTNone));               // x = ~F_k * v + c_k
-          neghidstates[k] += c[k];
+          neghidstates[k] = tbblas::conv(tbblas::flip(F[k]), vneg);               // x = ~F_k * v + c_k
+          neghidstates[k] = neghidstates[k] + c[k];
 
           thrust::transform(neghidstates[k].data().begin(), neghidstates[k].data().end(),
               thrust::make_counting_iterator(0), neghidprobs[k].data().begin(),
@@ -373,7 +377,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
 //              neghidprobs[k].data().begin(), sigmoid<value_t>());
 
           // Calculate energy and the total activation of the hidden units
-          negvishid[k] = tbblas::conv(tbblas::flip(neghidprobs[k]), vneg, tbblas::ReuseFT2);     // ~h_k * v
+          negvishid[k] = tbblas::conv(tbblas::flip(neghidprobs[k]), vneg);     // ~h_k * v
           neghidact[k] = tbblas::sum(neghidprobs[k]);
         }
 
@@ -390,7 +394,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
         /*** UPDATE WEIGHTS AND BIASES ***/
         if (iEpoch || !getCalculateBaseline()) {
           for (unsigned k = 0; k < filterCount; ++k) {
-            Fincbatch[k] += (posvishid[k] += (-1.0 * negvishid[k]));
+            Fincbatch[k] = Fincbatch[k] + (posvishid[k] = posvishid[k] - negvishid[k]);
             cincbatch[k] += (poshidact[k] - neghidact[k]);
           }
           bincbatch = posvisact - negvisact;
@@ -402,8 +406,8 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
         cinc[k] = momentum * cinc[k] + (epsilonhb / batchSize / layerVoxelCount) * cincbatch[k]
                   + getSparsityPenalty() * cspabatch[k] / batchSize;
 
-        F[k] += Finc[k];
-        c[k] += cinc[k];
+        F[k] = F[k] + Finc[k];
+        c[k] = c[k] + cinc[k];
       }
       binc = momentum * binc + (epsilonvb / batchSize / inputVoxelCount) * bincbatch;
       b += binc;

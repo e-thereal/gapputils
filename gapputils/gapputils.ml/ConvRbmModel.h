@@ -10,7 +10,7 @@
 
 #include <capputils/ReflectableClass.h>
 
-#include <tbblas/host_tensor.hpp>
+#include <tbblas/tensor_base.hpp>
 
 namespace gapputils {
 
@@ -25,7 +25,7 @@ class ConvRbmModel : public capputils::reflection::ReflectableClass {
 public:
   const static unsigned dimCount = 3;
   typedef double value_t;
-  typedef tbblas::host_tensor<value_t, dimCount> tensor_t;
+  typedef tbblas::tensor_base<value_t, dimCount, false> tensor_t;
 
 private:
   InitReflectableClass(ConvRbmModel)
