@@ -4,6 +4,7 @@
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
+#include <capputils/NoParameterAttribute.h>
 #include <capputils/InputAttribute.h>
 #include <capputils/ObserveAttribute.h>
 #include <capputils/OutputAttribute.h>
@@ -40,9 +41,9 @@ BeginPropertyDefinitions(Grid)
   DefineProperty(RowCount, Observe(rowCountId = Id), TimeStamp(Id))
   DefineProperty(ColumnCount, Observe(columnCountId = Id), TimeStamp(Id))
   ReflectableProperty(Model, Hide(), Observe(modelId = Id), TimeStamp(Id))
-  DefineProperty(Grid, Output("Out"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
-  DefineProperty(InputGrid, Input("In"), Hide(), Volatile(), Observe(inputGridId = Id), TimeStamp(Id))
-  DefineProperty(BackgroundImage, ReadOnly(), Volatile(), Observe(backgroundId = Id))
+  DefineProperty(Grid, Output("Out"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InputGrid, Input("In"), ReadOnly(), Volatile(), Observe(inputGridId = Id), TimeStamp(Id))
+  DefineProperty(BackgroundImage, NoParameter(), ReadOnly(), Volatile(), Observe(backgroundId = Id))
   DefineProperty(Width, Observe(widthId = Id), TimeStamp(Id))
   DefineProperty(Height, Observe(heightId = Id), TimeStamp(Id))
   DefineProperty(GridName, Input("Name"), Volatile(), Observe(nameId = Id), TimeStamp(Id))

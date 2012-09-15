@@ -119,7 +119,7 @@ public:
   void removeGlobalEdge(boost::shared_ptr<GlobalEdge> edge);
   void removeGlobalProperty(boost::shared_ptr<GlobalProperty> gprop);
 
-  void activateGlobalEdge(boost::shared_ptr<GlobalEdge> edge);
+  bool activateGlobalEdge(boost::shared_ptr<GlobalEdge> edge);
 
   void resetInputs();
   void incrementInputs();

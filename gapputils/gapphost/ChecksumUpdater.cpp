@@ -85,22 +85,23 @@ checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags
 
   // Add more for each parameter
   for (unsigned i = 0; i < properties.size(); ++i) {
+    if (node) {
+      if (node->isInputNode() && properties[i]->getAttribute<OutputAttribute>()) {
+        // skip NoParameter test
+      } else if ((flags & ChecksumUpdater::ExcludeNoParameters) ==  ChecksumUpdater::ExcludeNoParameters
+          && properties[i]->getAttribute<NoParameterAttribute>())
+      {
+        //std::cout << "No parameter: " << properties[i]->getName() << std::endl;
+        continue;
+      }
 
-    if (node->isInputNode() && properties[i]->getAttribute<OutputAttribute>()) {
-      // skip NoParameter test
-    } else if ((flags & ChecksumUpdater::ExcludeNoParameters) ==  ChecksumUpdater::ExcludeNoParameters
-        && properties[i]->getAttribute<NoParameterAttribute>())
-    {
-      //std::cout << "No parameter: " << properties[i]->getName() << std::endl;
-      continue;
-    }
-
-    // Check if the property depends on something else
-    if ((flags & ChecksumUpdater::ExcludeDependent) == ChecksumUpdater::ExcludeDependent
-        && node && node->isDependentProperty(properties[i]->getName()))
-    {
-      //std::cout << "Dependent: " << properties[i]->getName() << std::endl;
-      continue;
+      // Check if the property depends on something else
+      if ((flags & ChecksumUpdater::ExcludeDependent) == ChecksumUpdater::ExcludeDependent
+          && node && node->isDependentProperty(properties[i]->getName()))
+      {
+        //std::cout << "Dependent: " << properties[i]->getName() << std::endl;
+        continue;
+      }
     }
     //std::cout << "Parameter: " << properties[i]->getName() << std::endl;
 

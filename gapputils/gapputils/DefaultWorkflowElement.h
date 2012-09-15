@@ -27,8 +27,6 @@
 #include <capputils/FromEnumerableAttribute.h>
 #include <capputils/ToEnumerableAttribute.h>
 
-// TODO: Introduce WorkflowProperty macro. This macro automatically sets certain attributes
-
 namespace gapputils {
 
 namespace workflow {

@@ -41,15 +41,16 @@ namespace cv {
 BeginPropertyDefinitions(ImageWarp)
   ReflectableBase(workflow::WorkflowElement)
 
-  DefineProperty(InputImage, Input("Img"), Hide(), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(InputImage, Input("Img"), ReadOnly(), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
   DefineProperty(OutputImage, Output("Img"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
-  DefineProperty(BackgroundImage, Input("BG"), Volatile(), Hide(), Observe(Id), TimeStamp(Id))
-  DefineProperty(BaseGrid, Input("Base"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
-  DefineProperty(WarpedGrid, Input("Warped"), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(BackgroundImage, Input("BG"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
+  DefineProperty(FillColor, Observe(Id))
+  DefineProperty(BaseGrid, Input("Base"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
+  DefineProperty(WarpedGrid, Input("Warped"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 
-ImageWarp::ImageWarp(void) : data(0)
+ImageWarp::ImageWarp(void) : _FillColor(0.f), data(0)
 {
   setLabel("ImageWarp");
   Changed.connect(capputils::EventHandler<ImageWarp>(this, &ImageWarp::changedEventHandler));
@@ -94,9 +95,19 @@ void ImageWarp::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     return;
 
   boost::shared_ptr<ICudaImage> inputImage = make_cuda_image(*getInputImage());
-  boost::shared_ptr<ICudaImage> bgImage = make_cuda_image(*getBackgroundImage());
+  boost::shared_ptr<ICudaImage> bgImage;
+  if (getBackgroundImage())
+    bgImage = make_cuda_image(*getBackgroundImage());
 
   boost::shared_ptr<ICudaImage> warpedImage((bgImage ? new CudaImage(*bgImage) : new CudaImage(inputImage->getSize(), inputImage->getVoxelSize())));
+
+  const int count = getInputImage()->getCount();
+
+  if (!bgImage) {
+    std::fill(warpedImage->getOriginalImage(), warpedImage->getOriginalImage() + count, getFillColor());
+    warpedImage->resetWorkingCopy();
+  }
+
   warpImage(warpedImage->getDevicePointer(), inputImage->getCudaArray(), inputImage->getSize(),
       (float2*)baseGrid->getDeviceFeatures(), (float2*)warpedGrid->getDeviceFeatures(),
       dim3(columnCount, rowCount));

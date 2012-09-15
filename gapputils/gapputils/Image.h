@@ -53,11 +53,16 @@ public:
   const dim_t& getPixelSize() const { return pixelSize; }
   value_t* getData() const { return data; }
 
-  void fill(const value_t& value) {
+  size_t getCount() const {
     size_t count = 1;
     for (unsigned i = 0; i < dimCount; ++i) {
       count *= size[i];
     }
+    return count;
+  }
+
+  void fill(const value_t& value) {
+    size_t count = getCount();
     for (size_t i = 0; i < count; ++i)
       data[i] = value;
   }

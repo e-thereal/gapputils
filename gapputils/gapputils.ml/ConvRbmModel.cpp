@@ -18,13 +18,13 @@ namespace ml {
 BeginPropertyDefinitions(ConvRbmModel)
   using namespace capputils::attributes;
 
-  DefineProperty(Filters, Serialize<TYPE_OF(Filters)>())
-  DefineProperty(VisibleBias, Serialize<TYPE_OF(VisibleBias)>())
-  DefineProperty(HiddenBiases, Serialize<TYPE_OF(HiddenBiases)>())
-  DefineProperty(Mean, Serialize<TYPE_OF(Mean)>())
-  DefineProperty(Stddev, Serialize<TYPE_OF(Stddev)>())
-  DefineProperty(PoolingBlockSize, Serialize<TYPE_OF(PoolingBlockSize)>())
-  DefineProperty(IsGaussian, Serialize<TYPE_OF(IsGaussian)>())
+  DefineProperty(Filters, Serialize<Type>())
+  DefineProperty(VisibleBias, Serialize<Type>())
+  DefineProperty(HiddenBiases, Serialize<Type>())
+  DefineProperty(Mean, Serialize<Type>())
+  DefineProperty(Stddev, Serialize<Type>())
+  DefineProperty(PoolingBlockSize, Serialize<Type>())
+  DefineProperty(IsGaussian, Serialize<Type>())
 
 EndPropertyDefinitions
 

@@ -20,6 +20,7 @@ InitReflectableClass(ImageWarp)
   Property(InputImage, boost::shared_ptr<image_t>)
   Property(OutputImage, boost::shared_ptr<image_t>)
   Property(BackgroundImage, boost::shared_ptr<image_t>)
+  Property(FillColor, float)
   Property(BaseGrid, boost::shared_ptr<GridModel>)
   Property(WarpedGrid, boost::shared_ptr<GridModel>)
 
