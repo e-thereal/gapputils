@@ -261,15 +261,19 @@ void Workflow::connectProperty(const std::string& name, const PropertyReference&
   activateGlobalEdge(edge);
 }
 
-void Workflow::activateGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
+bool Workflow::activateGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
   Logbook& dlog = *getLogbook();
   boost::shared_ptr<Node> inputNode = getNode(edge->getInputNode());
 
   boost::shared_ptr<GlobalProperty> globalProp = getGlobalProperty(edge->getGlobalProperty());
-  globalProp->addEdge(edge);
+  if (!globalProp)
+    return false;
+
   if (!edge->activate(getNode(edge->getOutputNode()), inputNode)) {
-    dlog(Severity::Error) << "Error in line " << __LINE__;
+    return false;
   }
+  globalProp->addEdge(edge);
+  return true;
 }
 
 void Workflow::removeGlobalProperty(boost::shared_ptr<GlobalProperty> gprop) {
@@ -292,8 +296,8 @@ void Workflow::removeGlobalProperty(boost::shared_ptr<GlobalProperty> gprop) {
 
 void Workflow::removeGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
   boost::shared_ptr<GlobalProperty> gprop = getGlobalProperty(edge->getGlobalProperty());
-  assert(gprop);
-  gprop->removeEdge(edge);
+  if(gprop)
+    gprop->removeEdge(edge);
   for (unsigned i = 0; i < _GlobalEdges->size(); ++i) {
     if (_GlobalEdges->at(i) == edge) {
       _GlobalEdges->erase(_GlobalEdges->begin() + i);
@@ -366,6 +370,20 @@ void Workflow::resume() {
   vector<boost::shared_ptr<GlobalProperty> >& globals = *getGlobalProperties();
   vector<boost::shared_ptr<GlobalEdge> >& gedges = *getGlobalEdges();
 
+  for (unsigned i = 0; i < globals.size(); ++i) {
+    boost::shared_ptr<GlobalProperty> gprop = globals[i];
+    if (!PropertyReference::TryCreate(
+        shared_from_this(), gprop->getModuleUuid(), gprop->getPropertyId()))
+    {
+      globals.erase(globals.begin() + i);
+      --i;
+      dlog.setUuid(gprop->getModuleUuid());
+      dlog() << "Global property '" << gprop->getName() << "' has been removed from the model: "
+          << gprop->getPropertyId();
+      dlog.setUuid("");
+    }
+  }
+
   for (unsigned i = 0; i < nodes.size(); ++i)
     resumeNode(nodes[i]);
 
@@ -377,8 +395,13 @@ void Workflow::resume() {
     }
   }
 
-  for (unsigned i = 0; i < gedges.size(); ++i)
-    activateGlobalEdge(gedges[i]);
+  for (unsigned i = 0; i < gedges.size(); ++i) {
+    if (!activateGlobalEdge(gedges[i])) {
+      removeGlobalEdge(gedges[i]);
+      --i;
+      dlog() << "Global edge has been removed from the model.";
+    }
+  }
 
   for (unsigned i = 0; i < nodes.size(); ++i)
     nodes[i]->resumeExpressions();
@@ -606,8 +629,9 @@ void Workflow::getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost
     for (unsigned i = 0; i < edges.size(); ++i) {
       boost::shared_ptr<Edge> edge = edges[i];
       if (edge->getInputNode() == node->getUuid()) {
-        // TODO: check that the property does not have the NoParameter attribute
-        dependendNodes.push_back(getNode(edge->getOutputNode()));
+        PropertyReference ref(shared_from_this(), node->getUuid(), edge->getInputProperty());
+        if (!ref.getProperty()->getAttribute<NoParameterAttribute>())
+          dependendNodes.push_back(getNode(edge->getOutputNode()));
       }
     }
 
@@ -615,8 +639,9 @@ void Workflow::getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost
     for (unsigned i = 0; i < gedges.size(); ++i) {
       boost::shared_ptr<GlobalEdge> gedge = gedges[i];
       if (gedge->getInputNode() == node->getUuid()) {
-        // TODO: check that the property does not have the NoParameter attribute
-        dependendNodes.push_back(getNode(gedge->getOutputNode()));
+        PropertyReference ref(shared_from_this(), node->getUuid(), gedge->getInputProperty());
+        if (!ref.getProperty()->getAttribute<NoParameterAttribute>())
+          dependendNodes.push_back(getNode(gedge->getOutputNode()));
       }
     }
   }

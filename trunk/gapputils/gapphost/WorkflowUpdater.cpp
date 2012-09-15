@@ -208,8 +208,8 @@ void WorkflowUpdater::buildStack(boost::shared_ptr<workflow::Node> node) {
   if (node->getInputChecksum() != node->getOutputChecksum() || nodesStack.empty()) {
     reportProgress(node, 0, false);
     nodesStack.push(node);
+    //dlog() << "Added node to build stack: " << node->getUuid();
   } else {
-    boost::shared_ptr<workflow::WorkflowElement> element = boost::dynamic_pointer_cast<workflow::WorkflowElement>(node->getModule());
     reportProgress(node, 100, false);
   }
   

@@ -59,8 +59,14 @@ std::string Expression::evaluate() const {
           propertyName << ch;
         boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(propertyName.str());
         if (gprop) {
-          PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
-          output << ref.getProperty()->getStringValue(*ref.getObject());
+          boost::shared_ptr<PropertyReference> sref = PropertyReference::TryCreate(
+              workflow, gprop->getModuleUuid(), gprop->getPropertyId());
+          if (sref) {
+            PropertyReference& ref = *sref;
+            output << ref.getProperty()->getStringValue(*ref.getObject());
+          } else {
+            output << "{" << propertyName.str() << " not found}";
+          }
         } else {
           output << "{" << propertyName.str() << " not found}";
         }
@@ -109,17 +115,21 @@ void Expression::resume() {
           propertyName << ch;
         boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(propertyName.str());
         if (gprop) {
-          PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
-          capputils::ObservableClass* observable =
-              dynamic_cast<capputils::ObservableClass*>(ref.getObject());
-          if (observable) {
-            // don't link twice for the same global property
-            if (globalProperties.find(gprop) == globalProperties.end()) {
-              observable->Changed.connect(handler);
-              observedProperties.insert(std::pair<capputils::ObservableClass*, int>(observable,
-                  getPropertyPos(*ref.getObject(), ref.getProperty())));
-              gprop->getExpressions()->push_back(shared_from_this());
-              globalProperties.insert(gprop);
+          boost::shared_ptr<PropertyReference> sref = PropertyReference::TryCreate(
+              workflow, gprop->getModuleUuid(), gprop->getPropertyId());
+          if (sref) {
+            PropertyReference& ref = *sref;
+            capputils::ObservableClass* observable =
+                dynamic_cast<capputils::ObservableClass*>(ref.getObject());
+            if (observable) {
+              // don't link twice for the same global property
+              if (globalProperties.find(gprop) == globalProperties.end()) {
+                observable->Changed.connect(handler);
+                observedProperties.insert(std::pair<capputils::ObservableClass*, int>(observable,
+                    getPropertyPos(*ref.getObject(), ref.getProperty())));
+                gprop->getExpressions()->push_back(shared_from_this());
+                globalProperties.insert(gprop);
+              }
             }
           }
         }

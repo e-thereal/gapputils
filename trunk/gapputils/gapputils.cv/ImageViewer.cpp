@@ -38,7 +38,7 @@ BeginPropertyDefinitions(ImageViewer)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(BackgroundImage, Input(""), NoParameter(), Volatile(), ReadOnly(), Observe(backgroundId = Id), TimeStamp(Id))
+  DefineProperty(BackgroundImage, Input(""), Volatile(), ReadOnly(), Observe(backgroundId = Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 
