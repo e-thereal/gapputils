@@ -3,11 +3,6 @@
 	<name>gapputils.ml</name>
 	<comment></comment>
 	<projects>
-		<project>capputils</project>
-		<project>gapputils</project>
-		<project>tinyxml</project>
-		<project>culib</project>
-		<project>tbblas</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

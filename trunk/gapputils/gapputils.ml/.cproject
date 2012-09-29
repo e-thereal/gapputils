@@ -33,11 +33,6 @@
 								<option id="cuda.toolchain.compiler.option.debugging.level.1966762153" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level"/>
 								<option id="cuda.toolchain.compiler.option.misc.other.1153762761" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot;" valueType="string"/>
 								<option id="cuda.toolchain.compiler.general.incpath.173093293" name="Include paths (-I)" superClass="cuda.toolchain.compiler.general.incpath" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
@@ -61,11 +56,6 @@
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.907590060" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
 								<option id="gnu.c.compiler.option.include.paths.764088970" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
@@ -78,21 +68,16 @@
 							<tool id="cuda.toolchain.gnu.cpp.linker.666070791" name="NVCC Linker" superClass="cuda.toolchain.gnu.cpp.linker">
 								<option defaultValue="true" id="gnu.cpp.link.option.shared.1922687467" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.cuda.190396936" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths.cuda" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
 									<listOptionValue builtIn="false" value="/res1/software/cuda/lib"/>
 									<listOptionValue builtIn="false" value="/res1/software/cula/lib"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Projects/tbblas/Debug"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Projects/tinyxml/Debug"/>
+									<listOptionValue builtIn="false" value="&quot;/home/tombr/Projects/capputils/Debug Shared&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;/home/tombr/Projects/gapputils/Debug Shared&quot;"/>
+									<listOptionValue builtIn="false" value="/home/tombr/Projects/culib/Debug"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.cuda.1668097258" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs.cuda" valueType="libs">
-									<listOptionValue builtIn="false" value="tbblas"/>
-									<listOptionValue builtIn="false" value="culib"/>
-									<listOptionValue builtIn="false" value="tinyxml"/>
-									<listOptionValue builtIn="false" value="gapputils"/>
-									<listOptionValue builtIn="false" value="capputils"/>
 									<listOptionValue builtIn="false" value="cudart"/>
 									<listOptionValue builtIn="false" value="cublas"/>
 									<listOptionValue builtIn="false" value="curand"/>
@@ -100,6 +85,11 @@
 									<listOptionValue builtIn="false" value="cula_lapack"/>
 									<listOptionValue builtIn="false" value="cuda"/>
 									<listOptionValue builtIn="false" value="cufft"/>
+									<listOptionValue builtIn="false" value="tbblas"/>
+									<listOptionValue builtIn="false" value="tinyxml"/>
+									<listOptionValue builtIn="false" value="capputils"/>
+									<listOptionValue builtIn="false" value="gapputils"/>
+									<listOptionValue builtIn="false" value="culib"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1251689944" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -107,22 +97,8 @@
 								</inputType>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.linker.834219561" name="NVCC LinkerC" superClass="cuda.toolchain.gnu.c.linker">
-								<option id="gnu.cpp.link.option.libs.798601414" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="tbblas"/>
-									<listOptionValue builtIn="false" value="culib"/>
-									<listOptionValue builtIn="false" value="tinyxml"/>
-									<listOptionValue builtIn="false" value="gapputils"/>
-									<listOptionValue builtIn="false" value="capputils"/>
-								</option>
-								<option id="gnu.cpp.link.option.paths.1097237842" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
-								</option>
+								<option id="gnu.cpp.link.option.libs.798601414" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs"/>
+								<option id="gnu.cpp.link.option.paths.1097237842" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths"/>
 								<option defaultValue="true" id="gnu.cpp.link.option.shared.1769045046" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.125247459" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -131,11 +107,6 @@
 							</tool>
 							<tool id="cuda.toolchain.gnu.assembler.1584797244" name="GCC Assembler" superClass="cuda.toolchain.gnu.assembler">
 								<option id="gnu.both.asm.option.include.paths.1261879637" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
@@ -151,45 +122,7 @@
 					</sourceEntries>
 				</configuration>
 			</storageModule>
-			<storageModule moduleId="org.eclipse.cdt.core.externalSettings">
-				<externalSettings containerId="capputils;cdt.managedbuild.config.gnu.so.debug.682393224.209620118.348295726" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
-					<externalSetting>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/capputils"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/capputils/Debug"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/capputils/Debug Shared"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="capputils"/>
-					</externalSetting>
-				</externalSettings>
-				<externalSettings containerId="gapputils;cdt.managedbuild.config.gnu.lib.debug.520549529.1615196657" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
-					<externalSetting>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils/Debug"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils/Debug Shared"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gapputils"/>
-					</externalSetting>
-				</externalSettings>
-				<externalSettings containerId="tinyxml;" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
-					<externalSetting>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/tinyxml"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/tinyxml/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="tinyxml"/>
-					</externalSetting>
-				</externalSettings>
-				<externalSettings containerId="culib;" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
-					<externalSetting>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/culib"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/culib/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="culib"/>
-					</externalSetting>
-				</externalSettings>
-				<externalSettings containerId="tbblas;cdt.managedbuild.config.gnu.lib.debug.1108083634" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
-					<externalSetting>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/tbblas"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/tbblas/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="tbblas"/>
-					</externalSetting>
-				</externalSettings>
-			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.so.release.210418597">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.so.release.210418597" moduleId="org.eclipse.cdt.core.settings" name="Release">
