@@ -122,7 +122,6 @@
     <ClInclude Include="tbblas_io.hpp" />
     <ClInclude Include="tbblas_serialize.hpp" />
     <ClInclude Include="TensorsToFeatures.h" />
-    <ClInclude Include="TensorTest.h" />
     <ClInclude Include="ublas_io.hpp" />
     <ClInclude Include="cuda_util.h" />
   </ItemGroup>
@@ -163,7 +162,6 @@
     <ClCompile Include="RbmWriter.cpp" />
     <ClCompile Include="ResampleFgrbmModel.cpp" />
     <ClCompile Include="TensorsToFeatures.cpp" />
-    <ClCompile Include="TensorTest.cpp" />
     <ClCompile Include="ublas_io.cpp" />
     <ClCompile Include="cuda_util.cpp" />
   </ItemGroup>
@@ -187,7 +185,6 @@
     <CudaCompile Include="RbmTrainer_gpu.cu" />
     <CudaCompile Include="ResampleFgrbmModel_gpu.cu" />
     <CudaCompile Include="tbblas_serialize_gpu.cu" />
-    <CudaCompile Include="TensorTest_gpu.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
