@@ -135,9 +135,6 @@
     <ClInclude Include="TensorsToFeatures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TensorTest.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sampling.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -254,9 +251,6 @@
     <ClCompile Include="TensorsToFeatures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TensorTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FgrbmDecoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -320,9 +314,6 @@
       <Filter>CUDA</Filter>
     </CudaCompile>
     <CudaCompile Include="ResampleFgrbmModel_gpu.cu">
-      <Filter>CUDA</Filter>
-    </CudaCompile>
-    <CudaCompile Include="TensorTest_gpu.cu">
       <Filter>CUDA</Filter>
     </CudaCompile>
     <CudaCompile Include="FunctionFilter_gpu.cu">

@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'GlobalPropertiesView.h'
 **
-** Created: Sun Aug 5 17:14:53 2012
+** Created: Fri Sep 28 19:50:09 2012
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.2)
 **
 ** WARNING! All changes made in this file will be lost!
