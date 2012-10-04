@@ -64,7 +64,7 @@ class Workflow : public QObject, public Node, public CompatibilityChecker, publi
 private:
   std::set<std::string> loadedLibraries;
   static int librariesId;
-  std::vector<boost::shared_ptr<Node> > interfaceNodes;
+  std::vector<boost::weak_ptr<Node> > interfaceNodes;
 
 public:
   Workflow();
@@ -88,7 +88,7 @@ public:
 
   // id is as set by ToolItem (propertyCount + pos)
   boost::shared_ptr<const Node> getInterfaceNode(int id) const;
-  std::vector<boost::shared_ptr<Node> >& getInterfaceNodes();
+  std::vector<boost::weak_ptr<Node> >& getInterfaceNodes();
 
   /// Returns true if the propertyName was found
   bool getToolConnectionId(boost::shared_ptr<const Node> node, const std::string& propertyName, unsigned& id) const;

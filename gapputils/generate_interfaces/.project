@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>gapphost</name>
+	<name>generate_interfaces</name>
 	<comment></comment>
 	<projects>
+		<project>capputils</project>
+		<project>tinyxml</project>
+		<project>gapputils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -30,7 +33,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${workspace_loc:/gapphost/Debug}</value>
+					<value>${workspace_loc:/generate_interfaces}</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>

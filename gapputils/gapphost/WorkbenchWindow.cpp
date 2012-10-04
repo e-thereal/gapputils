@@ -611,7 +611,8 @@ std::string formatTime(int seconds) {
 }
 
 void WorkbenchWindow::showProgress(boost::shared_ptr<Node> node, double progress) {
-  node->getToolItem()->setProgress(progress);
+  if (node->getToolItem())
+    node->getToolItem()->setProgress(progress);
   processedNodes.insert(node);
 
   // TODO: Implement the ETA feature. A timer updates passed time and remaining time.
@@ -653,8 +654,10 @@ void WorkbenchWindow::showProgress(boost::shared_ptr<Node> node, double progress
 }
 
 void WorkbenchWindow::workflowUpdateFinished() {
-  for (std::set<boost::weak_ptr<Node> >::iterator iter = processedNodes.begin(); iter != processedNodes.end(); ++iter)
-    iter->lock()->getToolItem()->setProgress(ToolItem::Neutral);
+  for (std::set<boost::weak_ptr<Node> >::iterator iter = processedNodes.begin(); iter != processedNodes.end(); ++iter) {
+    if (iter->lock()->getToolItem())
+      iter->lock()->getToolItem()->setProgress(ToolItem::Neutral);
+  }
   processedNodes.clear();
 
   Q_EMIT updateFinished();

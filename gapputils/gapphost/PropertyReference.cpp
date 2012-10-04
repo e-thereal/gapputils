@@ -36,10 +36,10 @@ PropertyReference::PropertyReference(boost::shared_ptr<const gapputils::workflow
   prop = object->findProperty(propertyName);
 
   if (!prop && subworkflow) {
-    std::vector<boost::shared_ptr<Node> >& interfaceNodes = subworkflow->getInterfaceNodes();
+    std::vector<boost::weak_ptr<Node> >& interfaceNodes = subworkflow->getInterfaceNodes();
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-      if (interfaceNodes[i]->getUuid() == propertyName) {
-        object = interfaceNodes[i]->getModule().get();
+      if (interfaceNodes[i].lock()->getUuid() == propertyName) {
+        object = interfaceNodes[i].lock()->getModule().get();
         assert(object);
         if (dynamic_cast<CollectionElement*>(object))
           prop = object->findProperty("Values");
@@ -101,10 +101,10 @@ boost::shared_ptr<PropertyReference> PropertyReference::TryCreate(
 
   prop = object->findProperty(propertyName);
   if (!prop && subworkflow) {
-    std::vector<boost::shared_ptr<Node> >& interfaceNodes = subworkflow->getInterfaceNodes();
+    std::vector<boost::weak_ptr<Node> >& interfaceNodes = subworkflow->getInterfaceNodes();
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-      if (interfaceNodes[i]->getUuid() == propertyName) {
-        object = interfaceNodes[i]->getModule().get();
+      if (interfaceNodes[i].lock()->getUuid() == propertyName) {
+        object = interfaceNodes[i].lock()->getModule().get();
         assert(object);
         if (dynamic_cast<CollectionElement*>(object))
           prop = object->findProperty("Values");

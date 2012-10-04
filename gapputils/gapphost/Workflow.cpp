@@ -179,7 +179,7 @@ void Workflow::removeInterfaceNode(boost::shared_ptr<Node> node) {
   IClassProperty* prop = object->findProperty("Value");
 
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-    if (interfaceNodes[i] == node) {
+    if (interfaceNodes[i].lock() == node) {
       interfaceNodes.erase(interfaceNodes.begin() + i);
 
       // delete edges connected to the node/tool connection
@@ -221,7 +221,7 @@ void Workflow::removeInterfaceNode(boost::shared_ptr<Node> node) {
 bool Workflow::hasCollectionElementInterface() const {
   boost::shared_ptr<CollectionElement> collection;
   for (unsigned i = 0; i < interfaceNodes.size(); ++i)
-    if ((collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i]->getModule())) && collection->getCalculateCombinations())
+    if ((collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i].lock()->getModule())) && collection->getCalculateCombinations())
       return true;
   return false;
 }
@@ -230,11 +230,11 @@ boost::shared_ptr<const Node> Workflow::getInterfaceNode(int id) const {
   assert(getModule());
   const int pos = id - getModule()->getProperties().size();
   if (pos >= 0 && (unsigned)pos < interfaceNodes.size())
-    return interfaceNodes[pos];
+    return interfaceNodes[pos].lock();
   return boost::shared_ptr<Node>();
 }
 
-std::vector<boost::shared_ptr<Node> >& Workflow::getInterfaceNodes() {
+std::vector<boost::weak_ptr<Node> >& Workflow::getInterfaceNodes() {
   return interfaceNodes;
 }
 
@@ -408,12 +408,12 @@ void Workflow::resume() {
 
   // reset output checksum if at least one volatile output node
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-    IClassProperty* prop = interfaceNodes[i]->getModule()->findProperty("Value");
+    IClassProperty* prop = interfaceNodes[i].lock()->getModule()->findProperty("Value");
     if (prop && prop->getAttribute<InputAttribute>() && prop->getAttribute<VolatileAttribute>()) {
       setOutputChecksum(0);
       break;
     }
-    prop = interfaceNodes[i]->getModule()->findProperty("Values");
+    prop = interfaceNodes[i].lock()->getModule()->findProperty("Values");
     if (prop && prop->getAttribute<InputAttribute>() && prop->getAttribute<VolatileAttribute>()) {
       setOutputChecksum(0);
       break;
@@ -543,9 +543,9 @@ bool Workflow::getToolConnectionId(boost::shared_ptr<const Node> node, const std
 
   boost::shared_ptr<const Workflow> workflow = boost::dynamic_pointer_cast<const Workflow>(node);
   if (workflow) {
-    const std::vector<boost::shared_ptr<Node> >& interfaceNodes = workflow->interfaceNodes;
+    const std::vector<boost::weak_ptr<Node> >& interfaceNodes = workflow->interfaceNodes;
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-      if (interfaceNodes[i]->getUuid() == propertyName) {
+      if (interfaceNodes[i].lock()->getUuid() == propertyName) {
         id = object->getProperties().size() + i;
         return true;
       }
@@ -824,28 +824,28 @@ boost::shared_ptr<GlobalEdge> Workflow::getGlobalEdge(const PropertyReference& r
 }
 
 void Workflow::resetInputs() {
-  std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = getInterfaceNodes();
+  std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = getInterfaceNodes();
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-    boost::shared_ptr<CollectionElement> collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i]->getModule());
-    if (collection && isInputNode(interfaceNodes[i]))
+    boost::shared_ptr<CollectionElement> collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i].lock()->getModule());
+    if (collection && isInputNode(interfaceNodes[i].lock()))
       collection->resetCombinations();
   }
 }
 
 void Workflow::incrementInputs() {
-  std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = getInterfaceNodes();
+  std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = getInterfaceNodes();
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-    boost::shared_ptr<CollectionElement> collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i]->getModule());
-    if (collection && isInputNode(interfaceNodes[i]))
+    boost::shared_ptr<CollectionElement> collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i].lock()->getModule());
+    if (collection && isInputNode(interfaceNodes[i].lock()))
       collection->advanceCombinations();
   }
 }
 
 void Workflow::decrementInputs() {
-  std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = getInterfaceNodes();
+  std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = getInterfaceNodes();
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-    boost::shared_ptr<CollectionElement> collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i]->getModule());
-    if (collection && isInputNode(interfaceNodes[i]))
+    boost::shared_ptr<CollectionElement> collection = boost::dynamic_pointer_cast<CollectionElement>(interfaceNodes[i].lock()->getModule());
+    if (collection && isInputNode(interfaceNodes[i].lock()))
       collection->regressCombinations();
   }
 }
