@@ -137,10 +137,10 @@ void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
 
   boost::shared_ptr<workflow::Workflow> workflow = boost::dynamic_pointer_cast<workflow::Workflow>(node);
   if (workflow) {
-    std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
+    std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-      if (workflow->isOutputNode(interfaceNodes[i]))
-        buildStack(interfaceNodes[i]);
+      if (workflow->isOutputNode(interfaceNodes[i].lock()))
+        buildStack(interfaceNodes[i].lock());
     }
   } else {
     buildStack(node);
@@ -191,10 +191,10 @@ void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
     // accumulate checksums of output nodes
     boost::crc_32_type valueSum;
 
-    std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
+    std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-      if (workflow->isOutputNode(interfaceNodes[i])) {
-        checksum_t cs = interfaceNodes[i]->getInputChecksum();
+      if (workflow->isOutputNode(interfaceNodes[i].lock())) {
+        checksum_t cs = interfaceNodes[i].lock()->getInputChecksum();
         valueSum.process_bytes(&cs, sizeof(cs));
       }
     }

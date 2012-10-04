@@ -10,6 +10,7 @@
 
 #include "WorkflowElement.h"
 
+#include <capputils/DescriptionAttribute.h>
 #include <capputils/NotNullAttribute.h>
 #include <capputils/NotEmptyAttribute.h>
 #include <capputils/EnumeratorAttribute.h>
@@ -36,8 +37,11 @@ class DefaultWorkflowElement : public WorkflowElement {
 protected:
   mutable T* newState;
 
+private:
+  mutable bool writeEnabled;
+
 public:
-  DefaultWorkflowElement() : newState(0) { }
+  DefaultWorkflowElement() : newState(0), writeEnabled(true) { }
 
   virtual ~DefaultWorkflowElement() {
     if (newState)
@@ -59,7 +63,7 @@ public:
   }
 
   virtual void writeResults() {
-    if (!newState)
+    if (!newState || !writeEnabled)
       return;
 
     std::vector<capputils::reflection::IClassProperty*>& properties = getProperties();
@@ -76,6 +80,7 @@ public:
 protected:
   virtual void update(IProgressMonitor* monitor) const {
     CAPPUTILS_UNUSED(monitor);
+    writeEnabled = false;
   }
 };
 

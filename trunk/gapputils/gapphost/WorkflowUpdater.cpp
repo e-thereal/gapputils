@@ -75,7 +75,7 @@ void WorkflowUpdater::run() {
       // add all interface nodes to the stack
       // and update nodes
       // append results at the end
-      std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
+      std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
       std::vector<boost::shared_ptr<workflow::CollectionElement> > collectionElements;
       std::set<boost::shared_ptr<workflow::CollectionElement> > inputElements;
 
@@ -83,13 +83,13 @@ void WorkflowUpdater::run() {
       bool lastIteration = false;
 
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-        boost::shared_ptr<workflow::CollectionElement> collection = boost::dynamic_pointer_cast<workflow::CollectionElement>(interfaceNodes[i]->getModule());
+        boost::shared_ptr<workflow::CollectionElement> collection = boost::dynamic_pointer_cast<workflow::CollectionElement>(interfaceNodes[i].lock()->getModule());
         if (collection && collection->getCalculateCombinations()) {
           if (!collection->resetCombinations())
             needsUpdate = false;
           collectionElements.push_back(collection);
           collection->setCalculateCombinations(false);
-          if (workflow->isInputNode(interfaceNodes[i])) {
+          if (workflow->isInputNode(interfaceNodes[i].lock())) {
             inputElements.insert(collection);
             if (collection->getCurrentIteration() + 1 == collection->getIterationCount()) {
               lastIteration = true;
@@ -113,8 +113,8 @@ void WorkflowUpdater::run() {
         // build stacks
         checksumUpdater.update(node.lock());
         for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-          if (workflow->isOutputNode(interfaceNodes[i]))
-            buildStack(interfaceNodes[i]);
+          if (workflow->isOutputNode(interfaceNodes[i].lock()))
+            buildStack(interfaceNodes[i].lock());
         }
 
         // update
@@ -148,10 +148,10 @@ void WorkflowUpdater::run() {
       dlog() << "Workflow case";
 
       checksumUpdater.update(node.lock());
-      std::vector<boost::shared_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
+      std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-        if (workflow->isOutputNode(interfaceNodes[i]))
-          buildStack(interfaceNodes[i]);
+        if (workflow->isOutputNode(interfaceNodes[i].lock()))
+          buildStack(interfaceNodes[i].lock());
       }
       updateNodes();
     }
