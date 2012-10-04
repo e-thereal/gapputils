@@ -5,7 +5,7 @@
  *      Author: tombr
  */
 
-#include "Trainer.h"
+#include "Filter.h"
 
 #include <capputils/PropertyMap.h>
 
@@ -13,31 +13,35 @@ namespace gapputils {
 namespace ml {
 namespace segmentation {
 
-BeginPropertyDefinitions(Trainer)
+BeginPropertyDefinitions(Filter)
   using namespace capputils::attributes;
   using namespace gapputils::attributes;
 
-  ReflectableBase(workflow::DefaultWorkflowElement<Trainer>)
+  ReflectableBase(workflow::DefaultWorkflowElement<Filter>)
 
   WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>())
   WorkflowProperty(Image, Input("Img"), NotNull<Type>())
+  WorkflowProperty(Padded, Output("Pad"))
+  WorkflowProperty(Centered, Output("Cent"))
   WorkflowProperty(Output, Output("Img"))
 
 EndPropertyDefinitions
 
-Trainer::Trainer() {
-  setLabel("Trainer");
+Filter::Filter() {
+  setLabel("Filter");
 }
 
-Trainer::~Trainer() {
+  Filter::~Filter() {
 }
 
-void update_trainer(capputils::PropertyMap& properties, capputils::Logbook& logbook,
+void update_filter(capputils::PropertyMap& properties, capputils::Logbook& logbook,
     workflow::IProgressMonitor* monitor);
 
-void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
+void Filter::update(gapputils::workflow::IProgressMonitor* monitor) const {
   capputils::PropertyMap properties(*this);
-  update_trainer(properties, getLogbook(), monitor);
+  update_filter(properties, getLogbook(), monitor);
+  newState->setPadded(properties.getValue<boost::shared_ptr<image_t> >("Padded"));
+  newState->setCentered(properties.getValue<boost::shared_ptr<image_t> >("Centered"));
   newState->setOutput(properties.getValue<boost::shared_ptr<image_t> >("Output"));
 }
 

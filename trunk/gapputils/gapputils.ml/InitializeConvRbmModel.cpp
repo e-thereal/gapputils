@@ -121,7 +121,7 @@ void InitializeConvRbmModel::execute(gapputils::workflow::IProgressMonitor* moni
   std::vector<boost::shared_ptr<tensor_t> > X;
 
   for (unsigned i = 0; i < tensors.size(); ++i) {
-    X.push_back(boost::shared_ptr<tensor_t>(new tensor_t(tbblas::copy(*tensors[i]))));
+    X.push_back(boost::shared_ptr<tensor_t>(new tensor_t(*tensors[i])));
   }
 
   if (getIsGaussian()) {

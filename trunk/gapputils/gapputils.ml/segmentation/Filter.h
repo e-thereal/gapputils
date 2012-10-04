@@ -1,17 +1,17 @@
 /*
- * Trainer.h
+ * Filter.h
  *
  *  Created on: Sep 28, 2012
  *      Author: tombr
  */
 
-#ifndef GAPPUTLS_ML_SEGMENTATION_TRAINER_H_
-#define GAPPUTLS_ML_SEGMENTATION_TRAINER_H_
+#ifndef GAPPUTLS_ML_SEGMENTATION_FILTER_H_
+#define GAPPUTLS_ML_SEGMENTATION_FILTER_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/Image.h>
 
-#include <tbblas/tensor_base.hpp>
+#include <tbblas/tensor.hpp>
 
 namespace gapputils {
 
@@ -19,19 +19,21 @@ namespace ml {
 
 namespace segmentation {
 
-class Trainer : public gapputils::workflow::DefaultWorkflowElement<Trainer> {
+class Filter : public gapputils::workflow::DefaultWorkflowElement<Filter> {
 
-  typedef tbblas::tensor_base<double, 3, false> tensor_t;
+  typedef tbblas::tensor<double, 3, false> tensor_t;
 
-  InitReflectableClass(Trainer)
+  InitReflectableClass(Filter)
 
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(Image, boost::shared_ptr<image_t>)
+  Property(Padded, boost::shared_ptr<image_t>)
+  Property(Centered, boost::shared_ptr<image_t>)
   Property(Output, boost::shared_ptr<image_t>)
 
 public:
-  Trainer();
-  virtual ~Trainer();
+  Filter();
+  virtual ~Filter();
 
 protected:
   virtual void update(gapputils::workflow::IProgressMonitor* monitor) const;
@@ -43,4 +45,4 @@ protected:
 
 } /* namespace gapputils */
 
-#endif /* GAPPUTLS_ML_SEGMENTATION_TRAINER_H_ */
+#endif /* GAPPUTLS_ML_SEGMENTATION_FILTER_H_ */

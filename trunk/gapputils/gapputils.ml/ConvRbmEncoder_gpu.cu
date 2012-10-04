@@ -10,9 +10,15 @@
 
 #include <capputils/Verifier.h>
 
-#include <tbblas/subrange.hpp>
 #include <tbblas/plus.hpp>
 #include <tbblas/conv.hpp>
+#include <tbblas/flip.hpp>
+#include <tbblas/random.hpp>
+#include <tbblas/dot.hpp>
+#include <tbblas/real.hpp>
+#include <tbblas/shift.hpp>
+#include <tbblas/math.hpp>
+#include <tbblas/expand.hpp>
 
 #include <curand.h>
 
@@ -46,11 +52,12 @@ private:
 #define LOCATE(a,b) std::cout << #b": " << (char*)&a._##b - (char*)&a << std::endl
 #define LOCATE2(a,b) std::cout << #b": " << (char*)&a.b - (char*)&a << std::endl
 
+typedef tbblas::tensor<tbblas::complex<double>, 3, true> ctensor_t;
+
 void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace capputils;
   using namespace thrust::placeholders;
-  typedef tbblas::tensor_proxy<host_tensor_t::iterator, 3> host_proxy_t;
-  typedef tbblas::tensor_proxy<device_tensor_t::iterator, 3> device_proxy_t;
+  using namespace tbblas;
   
   Logbook& dlog = getLogbook();
   dlog.setSeverity(Severity::Trace);
@@ -185,7 +192,7 @@ void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) cons
       thrust::copy(X[iSample]->begin(), X[iSample]->end(), v.begin());
       if (crbm->getIsGaussian()) {
         v = v - crbm->getMean();
-        v = tbblas::copy(v / crbm->getStddev());
+        v = v / crbm->getStddev();
       }
 
       boost::shared_ptr<host_tensor_t> h(new host_tensor_t(hiddenDim));
@@ -287,7 +294,7 @@ void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) cons
       }
     } else { /*** DECODING ***/
       host_tensor_t unpooled(hiddenDim);
-//      std::cout << "Filter " << iSample + 1 << ": " << std::flush;
+//      dlog(Severity::Message) << "Filter " << iSample + 1;
       if (getPooling()) {
         host_tensor_t& input = *X[iSample];
 
@@ -332,33 +339,32 @@ void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) cons
           }
         }
       } else {
-        unpooled = tbblas::copy(*X[iSample]);
+        unpooled = *X[iSample];
       }
-
-//      std::cout << tbblas::dot(unpooled, unpooled) << ", " << std::flush;
 
       /*** START NEGATIVE PHASE ***/
 
       // Calculate p(v | H, F) = sigm(sum(W_k * h_k) + b)
       thrust::fill(vneg.data().begin(), vneg.data().end(), value_t(0));
-      for (unsigned k = 0; k < filterCount; ++k) {
-        device_proxy_t paddedProxy = tbblas::subrange(padded, start, layerDim);
+      if (getSingleFilter() < 0) {
+        for (unsigned k = 0; k < filterCount; ++k) {
+          thrust::copy(unpooled.data().begin() + k * layerVoxelCount,
+                unpooled.data().begin() + (k + 1) * layerVoxelCount,
+                padded[start, layerDim].begin());
 
+          vtemp = tbblas::conv(padded,F[k]);
+          vneg = vneg + vtemp;
+        }
+      } else {
+        const unsigned k = getSingleFilter();
         thrust::copy(unpooled.data().begin() + k * layerVoxelCount,
-            unpooled.data().begin() + (k + 1) * layerVoxelCount, paddedProxy.begin());
+              unpooled.data().begin() + (k + 1) * layerVoxelCount,
+              padded[start, layerDim].begin());
 
-        vtemp = tbblas::conv(F[k], padded);
-
-//        if (k == 0) {
-//          std::cout << tbblas::dot(F[k], F[k]) << ", " << std::flush;
-//          std::cout << tbblas::dot(padded, padded) << ", " << std::flush;
-//        }
-
+        vtemp = tbblas::conv(padded,F[k]);
         vneg = vneg + vtemp;
       }
-//      std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
       vneg = vneg + b;
-//      std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
 
       // For the binary case
       if (!crbm->getIsGaussian()) {
@@ -396,14 +402,14 @@ void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) cons
         value_t mean = crbm->getMean();
         value_t stddev = crbm->getStddev();
 
-//        std::cout << "[Encoding] Mean = " << mean << "; Stddev = " << stddev << std::endl;
-        vneg = tbblas::copy(vneg * stddev);
-//        std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
+//        dlog() << "Mean = " << mean << "; Stddev = " << stddev;
+        vneg = vneg * stddev;
+//        dlog() << "vneg * stddev: " << vneg[seq(0,0,0)] << ", " << vneg[seq(1,0,0)] << ", " << vneg[seq(2,0,0)];
         vneg = vneg + mean;
-//        std::cout << tbblas::dot(vneg, vneg) << ", " << std::flush;
+//        dlog() << "vneg + mean: " << vneg[seq(0,0,0)] << ", " << vneg[seq(1,0,0)] << ", " << vneg[seq(2,0,0)];
       }
-//      std::cout << tbblas::dot(vneg, vneg) << std::endl;
-      Y->push_back(boost::shared_ptr<host_tensor_t>(new host_tensor_t(tbblas::copy(vneg))));
+//      dlog(Severity::Message) << "Result: " << vneg[seq(0,0,0)] << ", " << vneg[seq(1,0,0)] << ", " << vneg[seq(2,0,0)];
+      Y->push_back(boost::shared_ptr<host_tensor_t>(new host_tensor_t(vneg)));
     }
     if (monitor) monitor->reportProgress(iSample * 100 / X.size());
   } // for samples
