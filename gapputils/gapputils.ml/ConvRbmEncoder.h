@@ -11,6 +11,8 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <capputils/Enumerators.h>
 
+#include <gapputils/Image.h>
+
 #include "ConvRbmModel.h"
 
 namespace gapputils {
@@ -24,17 +26,21 @@ class ConvRbmEncoder : public gapputils::workflow::DefaultWorkflowElement<ConvRb
 public:
   typedef ConvRbmModel::tensor_t host_tensor_t;
   typedef ConvRbmModel::value_t value_t;
-  typedef tbblas::tensor_base<value_t, 3, true> device_tensor_t;
+  typedef tbblas::tensor<value_t, 3, true> device_tensor_t;
 
   InitReflectableClass(ConvRbmEncoder)
 
   Property(Model, boost::shared_ptr<ConvRbmModel>)
   Property(Inputs, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(Outputs, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+//  Property(Debug1, boost::shared_ptr<image_t>)
+//  Property(Debug2, boost::shared_ptr<image_t>)
+//  Property(Debug3, boost::shared_ptr<image_t>)
   Property(Direction, CodingDirection)
   Property(Sampling, bool)
   Property(Pooling, PoolingMethod)
   Property(Auto, bool)
+  Property(SingleFilter, int)
   Property(OutputDimension, std::vector<int>)
 
 private:

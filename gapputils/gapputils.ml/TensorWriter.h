@@ -9,7 +9,7 @@
 #define GAPPUTILS_ML_TENSORWRITER_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
-#include <tbblas/tensor_base.hpp>
+#include <tbblas/tensor.hpp>
 
 namespace gapputils {
 
@@ -17,7 +17,7 @@ namespace ml {
 
 class TensorWriter : public gapputils::workflow::DefaultWorkflowElement<TensorWriter> {
 
-  typedef tbblas::tensor_base<double, 3, false> tensor_t;
+  typedef tbblas::tensor<double, 3, false> tensor_t;
 
   InitReflectableClass(TensorWriter)
 

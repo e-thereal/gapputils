@@ -22,6 +22,7 @@
 
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
+#include <gapputils/GenerateInterfaceAttribute.h>
 
 #include <iostream>
 
@@ -37,18 +38,24 @@ int ConvRbmEncoder::inputId;
 BeginPropertyDefinitions(ConvRbmEncoder)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Model, Input("CRBM"), Volatile(), ReadOnly(), Observe(Id))
+  WorkflowProperty(Model, Input("CRBM"))
   DefineProperty(Inputs, Input("X"), Volatile(), ReadOnly(), Observe(inputId = Id))
-  DefineProperty(Outputs, Output("Y"), Volatile(), ReadOnly(), Observe(Id))
-  DefineProperty(Direction, Enumerator<CodingDirection>(), Observe(Id))
-  DefineProperty(Sampling, Observe(Id))
-  DefineProperty(Pooling, Enumerator<PoolingMethod>(), Observe(Id))
-  DefineProperty(Auto, Observe(Id))
-  DefineProperty(OutputDimension, NoParameter(), Observe(Id))
+  WorkflowProperty(Outputs, Output("Y"), GenerateInterface("Tensors", "tbblas/tensor.hpp"))
+//  WorkflowProperty(Debug1, Output("D1"))
+//  WorkflowProperty(Debug2, Output("D2"))
+//  WorkflowProperty(Debug3, Output("D3"))
+  WorkflowProperty(Direction, Enumerator<CodingDirection>())
+  WorkflowProperty(Sampling)
+  WorkflowProperty(Pooling, Enumerator<PoolingMethod>())
+  WorkflowProperty(Auto)
+  WorkflowProperty(SingleFilter, Description("-1 indicates use all filters, otherwise the specified filter is used for the reconstruction."))
+  WorkflowProperty(OutputDimension, NoParameter())
 
 EndPropertyDefinitions
 
-ConvRbmEncoder::ConvRbmEncoder() : _Sampling(false), _Pooling(PoolingMethod::NoPooling), _Auto(false) {
+ConvRbmEncoder::ConvRbmEncoder()
+ : _Sampling(false), _Pooling(PoolingMethod::NoPooling), _Auto(false), _SingleFilter(-1)
+{
   WfeUpdateTimestamp
   setLabel("ConvRbmEncoder");
 

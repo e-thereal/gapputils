@@ -12,12 +12,14 @@
 #include <sstream>
 
 #include <capputils/Verifier.h>
+#include <capputils/Logbook.h>
 
 #include <boost/timer.hpp>
-#include <tbblas/subrange.hpp>
 #include <tbblas/plus.hpp>
 #include <tbblas/conv.hpp>
 #include <tbblas/sum.hpp>
+#include <tbblas/flip.hpp>
+#include <tbblas/dot.hpp>
 
 #include <thrust/inner_product.h>
 
@@ -85,10 +87,11 @@ public:
 
 void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace thrust::placeholders;
+  using capputils::Severity;
+
+  capputils::Logbook& dlog = getLogbook();
 
   ml::timer timer;
-
-  typedef tbblas::tensor_proxy<device_tensor_t::iterator, 3> device_proxy_t;
 
   if (!data)
     data = new ConvRbmTrainer();
@@ -103,16 +106,16 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   //  LOCATE(test, LearningRate);
   //  LOCATE(test, Model);
 
-  if (!capputils::Verifier::Valid(*this))
+  if (!capputils::Verifier::Valid(*this, dlog))
     return;
 
   if (!getInitialModel()) {
-    std::cout << "[Warning] No initial model given. Aborting!" << std::endl;
+    dlog(Severity::Warning) << "No initial model given. Aborting!";
     return;
   }
 
   if (!getTensors() || getTensors()->size() == 0) {
-    std::cout << "[Warning] No training data given. Aborting!" << std::endl;
+    dlog(Severity::Warning) << "No training data given. Aborting!";
     return;
   }
 
@@ -122,7 +125,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   curandGenerator_t gen;
   curandStatus_t status;
   if ((status = curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT)) != CURAND_STATUS_SUCCESS) {
-    std::cout << "[Warning] Could not create random number generator: " << status << std::endl;
+    dlog(Severity::Warning) << "Could not create random number generator: " << status;
     return;
   }
 
@@ -159,7 +162,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   std::vector<boost::shared_ptr<host_tensor_t> > X;
 
   for (unsigned i = 0; i < tensors.size(); ++i) {
-    X.push_back(boost::shared_ptr<host_tensor_t>(new host_tensor_t(tbblas::copy(*tensors[i]))));
+    X.push_back(boost::shared_ptr<host_tensor_t>(new host_tensor_t(*tensors[i])));
   }
 
   if (crbm->getIsGaussian()) {
@@ -171,7 +174,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
       *X[i] = *X[i] - mean;
 
     for (unsigned  i = 0; i < X.size(); ++i) {
-      *X[i] = tbblas::copy(*X[i] / stddev);
+      *X[i] = *X[i] / stddev;
     }
   }
 
@@ -241,7 +244,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
     boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
         new std::vector<boost::shared_ptr<host_tensor_t> >());
     for (unsigned i = 0; i < filterCount; ++i)
-      debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(tbblas::copy(F[i]))));
+      debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(F[i])));
     data->setFilters(debugFilters);
   }
 
@@ -299,7 +302,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
               poshidstates[k].data().data().get(),
               poshidstates[k].data().size())) != CURAND_STATUS_SUCCESS)
           {
-            std::cout << "[Error] Could not generate random numbers: " << status << std::endl;
+            dlog(Severity::Error) << "Could not generate random numbers: " << status;
             return;
           }
 
@@ -321,10 +324,11 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
         // Calculate p(v | H, F) = sigm(sum(W_k * h_k) + b)
         thrust::fill(vneg.data().begin(), vneg.data().end(), value_t(0));
         for (unsigned k = 0; k < filterCount; ++k) {
-          device_proxy_t paddedProxy = tbblas::subrange(padded, start, layerDim);
-          thrust::copy(poshidstates[k].begin(), poshidstates[k].end(), paddedProxy.begin());
+//          device_proxy_t paddedProxy = tbblas::subrange(padded, start, layerDim);
+//          thrust::copy(poshidstates[k].begin(), poshidstates[k].end(), paddedProxy.begin());
+          padded[start, layerDim] = poshidstates[k];
           vtemp = tbblas::conv(F[k], padded);
-          vneg = vneg+ vtemp;
+          vneg = vneg + vtemp;
         }
         vneg = vneg + b;
 
@@ -336,7 +340,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
           if (getSampleVisibles()) {
             if ((status = curandGenerateUniformDouble(gen, vtemp.data().data().get(), vtemp.data().size())) != CURAND_STATUS_SUCCESS)
             {
-              std::cout << "[Error] Could not generate random numbers: " << status << std::endl;
+              dlog(Severity::Error) << "Could not generate random numbers: " << status;
               return;
             }
 
@@ -352,7 +356,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
                 vtemp.data().size(),
                 0, 1.0)) != CURAND_STATUS_SUCCESS)
             {
-              std::cout << "[Error] Could not generate random numbers: " << status << std::endl;
+              dlog(Severity::Error) << "Could not generate random numbers: " << status;
               return;
             }
 
@@ -428,7 +432,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
       boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
           new std::vector<boost::shared_ptr<host_tensor_t> >());
       for (unsigned i = 0; i < filterCount; ++i)
-        debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(tbblas::copy(F[i]))));
+        debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(F[i])));
       data->setFilters(debugFilters);
     }
 
@@ -438,7 +442,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
   if ((status = curandDestroyGenerator(gen)) != CURAND_STATUS_SUCCESS)
   {
-    std::cout << "[Error] Could not destroy random number generator: " << status << std::endl;
+    dlog(Severity::Error) << "Could not destroy random number generator: " << status;
     return;
   }
 
@@ -446,9 +450,10 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
     boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
         new std::vector<boost::shared_ptr<host_tensor_t> >());
     for (unsigned i = 0; i < filterCount; ++i) {
-      debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(tbblas::copy(F[i]))));
-//      std::cout << "Filter " << i + 1 << ": "
-//                << tbblas::dot(*debugFilters->at(i), *debugFilters->at(i)) << std::endl;
+      debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(F[i])));
+
+//      dlog(Severity::Message) << "Filter " << i + 1 << ": "
+//                << tbblas::dot(*debugFilters->at(i), *debugFilters->at(i));
     }
     data->setFilters(debugFilters);
   }

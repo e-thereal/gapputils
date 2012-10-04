@@ -20,7 +20,7 @@ class ConvRbmTrainer : public gapputils::workflow::WorkflowElement {
 public:
   typedef ConvRbmModel::tensor_t host_tensor_t;
   typedef ConvRbmModel::value_t value_t;
-  typedef tbblas::tensor_base<value_t, 3, true> device_tensor_t;
+  typedef tbblas::tensor<value_t, 3, true> device_tensor_t;
 
   InitReflectableClass(ConvRbmTrainer)
 

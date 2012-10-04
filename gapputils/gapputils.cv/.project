@@ -3,10 +3,7 @@
 	<name>gapputils.cv</name>
 	<comment></comment>
 	<projects>
-		<project>capputils</project>
-		<project>culib</project>
-		<project>gapputils</project>
-		<project>optlib</project>
+		<project>gapputils.cv.cuda</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
