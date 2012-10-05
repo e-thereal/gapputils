@@ -178,9 +178,10 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
     }
 
     // Add tool connections for interface nodes
-    std::vector<boost::shared_ptr<Node> >& nodes = workflow->getInterfaceNodes();
+    std::vector<boost::weak_ptr<Node> >& nodes = workflow->getInterfaceNodes();
     for (unsigned i = 0; i < nodes.size(); ++i) {
-      boost::shared_ptr<ReflectableClass> object = nodes[i]->getModule();
+      boost::shared_ptr<Node> node = nodes[i].lock();
+      boost::shared_ptr<ReflectableClass> object = node->getModule();
       assert(object);
 
       IClassProperty* prop = object->findProperty("Value");
@@ -188,10 +189,10 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
         return;
 
       if (prop->getAttribute<InputAttribute>())
-        item->addConnection(QString(object->getProperty("Label").c_str()), nodes[i]->getUuid(), ToolConnection::Output);
+        item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Output);
       
       if (prop->getAttribute<OutputAttribute>()) {
-        item->addConnection(QString(object->getProperty("Label").c_str()), nodes[i]->getUuid(), ToolConnection::Input);
+        item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Input);
       }
     }
   } else if (node->getModule()->getAttribute<InterfaceAttribute>()) {
@@ -273,15 +274,12 @@ void WorkbenchWindow::copySelectedNodesToClipboard() {
     ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
     if (toolItem) {
       boost::shared_ptr<Node> node = workflow->getNode(toolItem);
-      // TODO: Workflows are not copied unless renewUuid() is fully implemented
-      if (!boost::dynamic_pointer_cast<Workflow>(node)) {
-        nodes->push_back(node);
-        copied.insert(node->getUuid());
-      }
+      nodes->push_back(node);
+      copied.insert(node->getUuid());
     }
   }
 
-  // Add all edges to the workflow where both ends nodes are about to be copied
+  // Add all edges to the workflow where both end nodes are about to be copied
   boost::shared_ptr<std::vector<boost::shared_ptr<Edge> > > edges = copyWorkflow->getEdges();
   for (unsigned i = 0; i < workflow->getEdges()->size(); ++i) {
     boost::shared_ptr<Edge> edge = workflow->getEdges()->at(i);
@@ -301,8 +299,7 @@ void WorkbenchWindow::copySelectedNodesToClipboard() {
   QApplication::clipboard()->setText(xmlStream.str().c_str());
 }
 
-void renewUuids(workflow::Workflow& workflow) {
-  std::map<std::string, std::string> uuidMap;
+void renewUuids(workflow::Workflow& workflow, std::map<std::string, std::string>& uuidMap) {
 
   // Go through edges, nodes, global properties, global edges
   std::vector<boost::shared_ptr<workflow::Node> >& nodes = *workflow.getNodes();
@@ -313,11 +310,9 @@ void renewUuids(workflow::Workflow& workflow) {
       uuidMap[uuid] = workflow::Node::CreateUuid();
     node.setUuid(uuidMap[uuid]);
 
-    // TODO: Not implemented unless the ID change is applied to all
-    // occurances of an UUID in the workflow
-//    Workflow* subworkflow = dynamic_cast<Workflow*>(&node);
-//    if (subworkflow)
-//      renewUuids(*subworkflow);
+    Workflow* subworkflow = dynamic_cast<Workflow*>(&node);
+    if (subworkflow)
+      renewUuids(*subworkflow, uuidMap);
   }
 
   std::vector<boost::shared_ptr<workflow::Edge> >& edges = *workflow.getEdges();
@@ -325,14 +320,49 @@ void renewUuids(workflow::Workflow& workflow) {
     workflow::Edge& edge = *edges[i];
 
     // Change IDs only if mapping is available. If no mapping is availabe,
-    // the ID will likely not need a change (input or output node IDs)
+    // the ID will likely not need a change
     if (uuidMap.find(edge.getInputNode()) != uuidMap.end())
       edge.setInputNode(uuidMap[edge.getInputNode()]);
     if (uuidMap.find(edge.getOutputNode()) != uuidMap.end())
       edge.setOutputNode(uuidMap[edge.getOutputNode()]);
+
+    if (uuidMap.find(edge.getInputProperty()) != uuidMap.end())
+      edge.setInputProperty(uuidMap[edge.getInputProperty()]);
+    if (uuidMap.find(edge.getOutputProperty()) != uuidMap.end())
+      edge.setOutputProperty(uuidMap[edge.getOutputProperty()]);
   }
 
-  // TODO: replace UUIDs of other parts as well
+  std::vector<boost::shared_ptr<workflow::GlobalProperty> >& gprops = *workflow.getGlobalProperties();
+  for (unsigned i = 0; i < gprops.size(); ++i) {
+    workflow::GlobalProperty& gprop = *gprops[i];
+
+    if (uuidMap.find(gprop.getModuleUuid()) != uuidMap.end())
+      gprop.setModuleUuid(uuidMap[gprop.getModuleUuid()]);
+    if (uuidMap.find(gprop.getPropertyId()) != uuidMap.end())
+      gprop.setPropertyId(uuidMap[gprop.getPropertyId()]);
+  }
+
+  std::vector<boost::shared_ptr<workflow::GlobalEdge> >& gedges = *workflow.getGlobalEdges();
+  for (unsigned i = 0; i < gedges.size(); ++i) {
+    workflow::GlobalEdge& edge = *gedges[i];
+
+    // Change IDs only if mapping is available. If no mapping is availabe,
+    // the ID will likely not need a change
+    if (uuidMap.find(edge.getInputNode()) != uuidMap.end())
+      edge.setInputNode(uuidMap[edge.getInputNode()]);
+    if (uuidMap.find(edge.getOutputNode()) != uuidMap.end())
+      edge.setOutputNode(uuidMap[edge.getOutputNode()]);
+
+    if (uuidMap.find(edge.getInputProperty()) != uuidMap.end())
+      edge.setInputProperty(uuidMap[edge.getInputProperty()]);
+    if (uuidMap.find(edge.getOutputProperty()) != uuidMap.end())
+      edge.setOutputProperty(uuidMap[edge.getOutputProperty()]);
+  }
+}
+
+void renewUuids(workflow::Workflow& workflow) {
+  std::map<std::string, std::string> uuidMap;
+  renewUuids(workflow, uuidMap);
 }
 
 void WorkbenchWindow::addNodesFromClipboard() {
@@ -355,7 +385,7 @@ void WorkbenchWindow::addNodesFromClipboard() {
     createItem(nodes[i]);
     nodes[i]->getToolItem()->setSelected(true);
   }
-  nodes.clear(); // avoid double free memory
+  nodes.clear();
 
   std::vector<boost::shared_ptr<workflow::Edge> >& edges = *pasteWorkflow.getEdges();
   for (unsigned i = 0; i < edges.size(); ++i) {
@@ -366,7 +396,7 @@ void WorkbenchWindow::addNodesFromClipboard() {
     }
   }
 
-  edges.clear(); // avoid double free memory
+  edges.clear();
 }
 
 void WorkbenchWindow::closeEvent(QCloseEvent *event) {
