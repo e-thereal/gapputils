@@ -27,7 +27,7 @@
 					<folderInfo id="cuda.toolchain.configuration.lib.debug.57341343." name="/" resourcePath="">
 						<toolChain id="cuda.toolchain.lib.debug.1371050602" name="CUDA Toolchain" superClass="cuda.toolchain.lib.debug">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cuda.toolchain.targetplatform.exe.debug.702932000" isAbstract="false" name="Linux Release Platform" osList="linux" superClass="cuda.toolchain.targetplatform.exe.debug"/>
-							<builder buildPath="${workspace_loc:/gapputils.cv.cuda/Debug}" enableAutoBuild="true" id="cuda.toolchain.builder.exe.debug.824960782" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cuda.toolchain.builder.exe.debug"/>
+							<builder buildPath="${workspace_loc:/gapputils.cv.cuda/Debug}" enableAutoBuild="true" id="cuda.toolchain.builder.exe.debug.824960782" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="7" superClass="cuda.toolchain.builder.exe.debug"/>
 							<tool id="cuda.toolchain.compiler.exe.debug.1148797807" name="NVIDIA CUDA Compiler" superClass="cuda.toolchain.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="cuda.toolchain.compiler.option.optimization.level.691356722" name="Optimization Level" superClass="cuda.toolchain.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="cuda.toolchain.compiler.option.debugging.level.1259719107" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level"/>
@@ -38,7 +38,7 @@
 									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
 								<option id="cuda.toolchain.compiler.option.debugging.gprof.889312858" name="Generate gprof information (-pg)" superClass="cuda.toolchain.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
-								<option id="cuda.toolchain.compiler.option.misc.other.25096987" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot;" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.25096987" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot;" valueType="string"/>
 								<inputType id="cuda.toolchain.compiler.input.1051704669" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.755194832" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
@@ -160,7 +160,9 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="gapputils.cv.cuda.cuda.toolchain.lib.1525119693" name="Static Library" projectType="cuda.toolchain.lib"/>
 	</storageModule>
-	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/gapputils.cv.cuda"/>
+	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">

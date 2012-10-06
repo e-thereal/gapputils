@@ -19,6 +19,8 @@ public:
   typedef T value_t;
   typedef size_t dim_t[dim];
 
+  typedef value_t* iterator;
+
 protected:
   dim_t size;
   dim_t pixelSize;   ///< In microns
@@ -65,6 +67,14 @@ public:
     size_t count = getCount();
     for (size_t i = 0; i < count; ++i)
       data[i] = value;
+  }
+
+  iterator begin() {
+    return data;
+  }
+
+  iterator end() {
+    return data + getCount();
   }
 };
 

@@ -30,7 +30,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.so.debug.2111420753." name="/" resourcePath="">
 						<toolChain id="ai3.toolchain.qt.250552507" name="C++ Toolchain with QT">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ai3.target.qt.526466344" name="CUDA Platform" osList="linux,hpux,aix,qnx"/>
-							<builder buildPath="${workspace_loc:/gapputils.cv/Debug}" enableAutoBuild="true" id="ai3.target.cuda.builder.1911447805" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="CUDA Builder"/>
+							<builder arguments="" autoBuildTarget="-j7 all" buildPath="${workspace_loc:/gapputils.cv/Debug}" cleanBuildTarget="clean" enableAutoBuild="true" id="ai3.target.cuda.builder.1911447805" incrementalBuildTarget="-j7 all" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="CUDA Builder"/>
 						</toolChain>
 					</folderInfo>
 				</configuration>
