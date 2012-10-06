@@ -48,11 +48,11 @@ bool CollectionElement::resetCombinations() {
   using namespace capputils;
   using namespace capputils::reflection;
 
-  Logbook& dlog = getLogbook();
-  if (!Verifier::Valid(*this, dlog)) {
-    dlog(Severity::Warning) << "Aborting interface reset.";
-    return false;
-  }
+//  Logbook& dlog = getLogbook();
+//  if (!Verifier::Valid(*this, dlog)) {
+//    dlog(Severity::Warning) << "Aborting interface reset.";
+//    return false;
+//  }
 
   //cout << "Reset combinations" << endl;
 
@@ -107,11 +107,11 @@ bool CollectionElement::resetCombinations() {
 }
 
 void CollectionElement::appendResults() {
-  capputils::Logbook& dlog = getLogbook();
-  if (!capputils::Verifier::Valid(*this, dlog)) {
-    dlog(capputils::Severity::Warning) << "Aborting append results.";
-    return;
-  }
+//  capputils::Logbook& dlog = getLogbook();
+//  if (!capputils::Verifier::Valid(*this, dlog)) {
+//    dlog(capputils::Severity::Warning) << "Aborting append results.";
+//    return;
+//  }
 
   //cout << "Append results" << endl;
   for (unsigned i = 0; i < outputIterators.size(); ++i) {
@@ -121,11 +121,11 @@ void CollectionElement::appendResults() {
 }
 
 bool CollectionElement::advanceCombinations() {
-  capputils::Logbook& dlog = getLogbook();
-  if (!capputils::Verifier::Valid(*this, dlog)) {
-    dlog(capputils::Severity::Warning) << "Aborting interface incrementation.";
-    return false;
-  }
+//  capputils::Logbook& dlog = getLogbook();
+//  if (!capputils::Verifier::Valid(*this, dlog)) {
+//    dlog(capputils::Severity::Warning) << "Aborting interface incrementation.";
+//    return false;
+//  }
 
   //cout << "Advance combinations" << endl;
   if (currentIteration >= iterationCount)
@@ -146,11 +146,11 @@ bool CollectionElement::advanceCombinations() {
 }
 
 void CollectionElement::regressCombinations() {
-  capputils::Logbook& dlog = getLogbook();
-  if (!capputils::Verifier::Valid(*this, dlog)) {
-    dlog(capputils::Severity::Warning) << "Aborting interface decrementation.";
-    return;
-  }
+//  capputils::Logbook& dlog = getLogbook();
+//  if (!capputils::Verifier::Valid(*this, dlog)) {
+//    dlog(capputils::Severity::Warning) << "Aborting interface decrementation.";
+//    return;
+//  }
 
   if (currentIteration)
     --currentIteration;

@@ -100,7 +100,7 @@ void update_filter(capputils::PropertyMap& properties, capputils::Logbook& logbo
 
 //    filtered = (filtered - minimum) / (maximum - minimum);
     filtered = filtered / stddev;
-    filtered = filtered == ones<double>(filtered.size()) * max(filtered);
+//    filtered = filtered == ones<double>(filtered.size()) * max(filtered);
     thrust::copy(filtered.begin(), filtered.end(), output->getData() + i * filtered.count());
   }
   properties.setValue<boost::shared_ptr<image_t> >("Padded", padded);
