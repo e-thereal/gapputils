@@ -79,6 +79,7 @@
     <ClCompile Include="CacheableAttribute.cpp" />
     <ClCompile Include="CollectionElement.cpp" />
     <ClCompile Include="CombinerInterface.cpp" />
+    <ClCompile Include="GenerateInterfaceAttribute.cpp" />
     <ClCompile Include="HideAttribute.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="InterfaceAttribute.cpp" />
@@ -97,6 +98,7 @@
     <ClInclude Include="CombinerInterface.h" />
     <ClInclude Include="DefaultWorkflowElement.h" />
     <ClInclude Include="gapputils.h" />
+    <ClInclude Include="GenerateInterfaceAttribute.h" />
     <ClInclude Include="HideAttribute.h" />
     <ClInclude Include="IGapphostInterface.h" />
     <ClInclude Include="Image.h" />
