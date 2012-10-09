@@ -45,8 +45,128 @@ using namespace std;
 
 #include "gapphost.h"
 
+
+
+
+
+
+
+#include "client.h"
+#include "messagesessionhandler.h"
+#include "messageeventhandler.h"
+#include "messageeventfilter.h"
+#include "chatstatehandler.h"
+#include "chatstatefilter.h"
+#include "connectionlistener.h"
+#include "disco.h"
+#include "message.h"
+#include "gloox.h"
+#include "lastactivity.h"
+#include "loghandler.h"
+#include "logsink.h"
+#include "connectiontcpclient.h"
+#include "connectionsocks5proxy.h"
+#include "connectionhttpproxy.h"
+#include "messagehandler.h"
+using namespace gloox;
+
+#include <stdio.h>
+#include <string>
+
+#include <cstdio> // [s]print[f]
+
+#if defined( WIN32 ) || defined( _WIN32 )
+# include <windows.h>
+#endif
+
+// create your own wrapper around this here. Will use qthread and send signals. Maybe not.
+class MessageTest : public MessageSessionHandler, ConnectionListener, MessageHandler
+{
+  public:
+    MessageTest() : m_session( 0 ), connected(false) {}
+
+    virtual ~MessageTest() {}
+
+    void start() {
+      JID jid( "gapphost@gmail.com/gloox" );
+      j = new Client( jid, "powergrapevinepinkpower" );
+      j->registerConnectionListener(this);
+      j->registerMessageSessionHandler(this, 0);
+      if( j->connect( false ) )
+      {
+        ConnectionError ce = ConnNoError;
+        while( ce == ConnNoError )
+        {
+          ce = j->recv();
+        }
+        printf( "ce: %d\n", ce );
+      }
+
+      delete( j );
+    }
+
+    virtual void onConnect()
+    {
+      printf( "connected!!!\n" );
+      connected = true;
+    }
+
+    virtual void onDisconnect( ConnectionError e )
+    {
+      connected = false;
+      printf( "message_test: disconnected: %d\n", e );
+      if( e == ConnAuthenticationFailed )
+        printf( "auth failed. reason: %d\n", j->authError() );
+    }
+
+    virtual bool onTLSConnect( const CertInfo& info )
+    {
+      time_t from( info.date_from );
+      time_t to( info.date_to );
+
+      printf( "status: %d\nissuer: %s\npeer: %s\nprotocol: %s\nmac: %s\ncipher: %s\ncompression: %s\n"
+              "from: %s\nto: %s\n",
+              info.status, info.issuer.c_str(), info.server.c_str(),
+              info.protocol.c_str(), info.mac.c_str(), info.cipher.c_str(),
+              info.compression.c_str(), ctime( &from ), ctime( &to ) );
+      return true;
+    }
+
+    virtual void handleMessage( const Message& msg, MessageSession * /*session*/ )
+    {
+      printf( "type: %d, subject: %s, message: %s, thread id: %s\n", msg.subtype(),
+              msg.subject().c_str(), msg.body().c_str(), msg.thread().c_str() );
+
+      std::string re = "You said:\n> " + msg.body() + "\nI like that statement.";
+      Sleep(1000);
+      m_session->send(re);
+
+      if( msg.body() == "quit" )
+        j->disconnect();
+    }
+
+    virtual void handleMessageSession(MessageSession *session) {
+      printf( "got new session\n");
+      // this example can handle only one session. so we get rid of the old session
+      j->disposeMessageSession(m_session);
+      m_session = session;
+      m_session->registerMessageHandler(this);
+    }
+
+  private:
+    Client *j;
+    MessageSession *m_session;
+    bool connected;
+};
+
+
 int main(int argc, char *argv[])
 {
+  MessageTest *r = new MessageTest();
+  r->start();
+  delete(r);
+  return 0;
+
   qRegisterMetaType<std::string>("std::string");
 
   QCoreApplication::setOrganizationName("gapputils");

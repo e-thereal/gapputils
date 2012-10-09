@@ -84,9 +84,6 @@
     <ClInclude Include="ImageMatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ConvRbmDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ConvRbmEncoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -203,9 +200,6 @@
     <ClCompile Include="ImageMatrix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConvRbmDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ConvRbmEncoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -281,9 +275,6 @@
       <Filter>CUDA</Filter>
     </CudaCompile>
     <CudaCompile Include="ImageMatrix_gpu.cu">
-      <Filter>CUDA</Filter>
-    </CudaCompile>
-    <CudaCompile Include="ConvRbmDecoder_gpu.cu">
       <Filter>CUDA</Filter>
     </CudaCompile>
     <CudaCompile Include="ConvRbmEncoder_gpu.cu">
