@@ -1,0 +1,6 @@
+module {cxx grapevine}
+
+lappend link::SYSLIBS boost_regex
+
+lappend link::OPTIONS lib_in_lib
+
