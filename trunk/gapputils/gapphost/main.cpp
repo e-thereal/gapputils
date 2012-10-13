@@ -34,7 +34,6 @@ using namespace gapputils;
 using namespace capputils;
 using namespace std;
 
-#include <culib/lintrans.h>
 #include <boost/filesystem.hpp>
 
 #include <algorithm>
@@ -45,31 +44,6 @@ using namespace std;
 
 #include "gapphost.h"
 
-
-
-
-
-
-
-#include "client.h"
-#include "messagesessionhandler.h"
-#include "messageeventhandler.h"
-#include "messageeventfilter.h"
-#include "chatstatehandler.h"
-#include "chatstatefilter.h"
-#include "connectionlistener.h"
-#include "disco.h"
-#include "message.h"
-#include "gloox.h"
-#include "lastactivity.h"
-#include "loghandler.h"
-#include "logsink.h"
-#include "connectiontcpclient.h"
-#include "connectionsocks5proxy.h"
-#include "connectionhttpproxy.h"
-#include "messagehandler.h"
-using namespace gloox;
-
 #include <stdio.h>
 #include <string>
 
@@ -79,93 +53,10 @@ using namespace gloox;
 # include <windows.h>
 #endif
 
-// create your own wrapper around this here. Will use qthread and send signals. Maybe not.
-class MessageTest : public MessageSessionHandler, ConnectionListener, MessageHandler
-{
-  public:
-    MessageTest() : m_session( 0 ), connected(false) {}
-
-    virtual ~MessageTest() {}
-
-    void start() {
-      JID jid( "gapphost@gmail.com/gloox" );
-      j = new Client( jid, "powergrapevinepinkpower" );
-      j->registerConnectionListener(this);
-      j->registerMessageSessionHandler(this, 0);
-      if( j->connect( false ) )
-      {
-        ConnectionError ce = ConnNoError;
-        while( ce == ConnNoError )
-        {
-          ce = j->recv();
-        }
-        printf( "ce: %d\n", ce );
-      }
-
-      delete( j );
-    }
-
-    virtual void onConnect()
-    {
-      printf( "connected!!!\n" );
-      connected = true;
-    }
-
-    virtual void onDisconnect( ConnectionError e )
-    {
-      connected = false;
-      printf( "message_test: disconnected: %d\n", e );
-      if( e == ConnAuthenticationFailed )
-        printf( "auth failed. reason: %d\n", j->authError() );
-    }
-
-    virtual bool onTLSConnect( const CertInfo& info )
-    {
-      time_t from( info.date_from );
-      time_t to( info.date_to );
-
-      printf( "status: %d\nissuer: %s\npeer: %s\nprotocol: %s\nmac: %s\ncipher: %s\ncompression: %s\n"
-              "from: %s\nto: %s\n",
-              info.status, info.issuer.c_str(), info.server.c_str(),
-              info.protocol.c_str(), info.mac.c_str(), info.cipher.c_str(),
-              info.compression.c_str(), ctime( &from ), ctime( &to ) );
-      return true;
-    }
-
-    virtual void handleMessage( const Message& msg, MessageSession * /*session*/ )
-    {
-      printf( "type: %d, subject: %s, message: %s, thread id: %s\n", msg.subtype(),
-              msg.subject().c_str(), msg.body().c_str(), msg.thread().c_str() );
-
-      std::string re = "You said:\n> " + msg.body() + "\nI like that statement.";
-      Sleep(1000);
-      m_session->send(re);
-
-      if( msg.body() == "quit" )
-        j->disconnect();
-    }
-
-    virtual void handleMessageSession(MessageSession *session) {
-      printf( "got new session\n");
-      // this example can handle only one session. so we get rid of the old session
-      j->disposeMessageSession(m_session);
-      m_session = session;
-      m_session->registerMessageHandler(this);
-    }
-
-  private:
-    Client *j;
-    MessageSession *m_session;
-    bool connected;
-};
-
-
 int main(int argc, char *argv[])
 {
-  MessageTest *r = new MessageTest();
-  r->start();
-  delete(r);
-  return 0;
+  Logbook dlog(&LogbookModel::GetInstance());
+  dlog.setModule("host");
 
   qRegisterMetaType<std::string>("std::string");
 
@@ -174,8 +65,6 @@ int main(int argc, char *argv[])
   QCoreApplication::setApplicationName("grapevine");
 
   cublasInit();
-  Logbook dlog(&LogbookModel::GetInstance());
-  dlog.setModule("host");
 
   //MSMRI::CProcessInfo::getInstance().getCommandLine(argc, argv);
 
@@ -233,27 +122,34 @@ int main(int argc, char *argv[])
     w.show();
     dlog() << "Start resuming ...";
     w.resume();
-    //dlog() << "[Info] Resuming done.";
     if (model.getRun()) {
       w.setAutoQuit(true);
-      //std::cout << "[Info] Update main workflow." << std::endl;
       w.updateMainWorkflow();
     }
-    //std::cout << "[Info] Entering event loop." << std::endl;
     ret = a.exec();
-    //std::cout << "[Info] Quitting." << std::endl;
   } catch (char const* error) {
     cout << error << endl;
     return 1;
   }
 
-  model.save();
+  if (model.getSaveConfiguration())
+    model.save();
   model.setMainWorkflow(boost::shared_ptr<Workflow>());
-//  delete model.getMainWorkflow();
+
+#if !defined( WIN32 ) && !defined( _WIN32 )
+  if (model.getEmailLog().size()) {
+    std::stringstream mailCommand;
+    mailCommand << "cat " << model.getLogfileName() << " | mutt -s \"Grapevine logfile\" -a \"" << model.getConfiguration() << "\" " << model.getEmailLog();
+    dlog() << "Executing: " << mailCommand.str() << std::endl;
+    system(mailCommand.str().c_str());
+  }
+#endif
 
   cublasShutdown();
 #ifdef GAPPHOST_CULA_SUPPORT
   culaShutdown();
 #endif
+  std::cout << "Good bye." << std::endl;
+
   return ret;
 }

@@ -14,10 +14,16 @@ namespace gapputils {
 
 namespace host {
 
+boost::shared_ptr<HostInterface> HostInterface::pointer;
+
+HostInterface::HostInterface() {
+}
+
 HostInterface::~HostInterface() {
 }
 
-HostInterface::HostInterface() {
+boost::shared_ptr<HostInterface> HostInterface::GetPointer() {
+  return (pointer ? pointer : (pointer = boost::shared_ptr<HostInterface>(new HostInterface())));
 }
 
 void HostInterface::saveDataModel(const std::string& filename) const {

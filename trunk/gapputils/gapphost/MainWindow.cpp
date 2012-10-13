@@ -307,6 +307,7 @@ void MainWindow::saveWorkflow() {
 }
 
 void MainWindow::loadLibrary() {
+  DataModel& model = DataModel::getInstance();
 #ifdef _WIN32
   QString filename = QFileDialog::getOpenFileName(this, "Open Library", "", "Library (*.dll)");
 #else
@@ -323,6 +324,16 @@ void MainWindow::loadLibrary() {
   }
   boost::shared_ptr<Workflow> workflow = window->getWorkflow();
   boost::shared_ptr<vector<string> > libs = workflow->getLibraries();
+
+  std::string path = model.getLibraryPath();
+  if (path.size()) {
+    if (filename.startsWith(path.c_str())) {
+      filename = filename.right(filename.size() - path.size());
+      if (filename[0] == '/')
+        filename = filename.right(filename.size() - 1);
+    }
+  }
+
   libs->push_back(filename.toUtf8().data());
   workflow->setLibraries(libs);
   toolBox->update();

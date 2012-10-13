@@ -12,6 +12,7 @@
 #include <qlabel.h>
 #include <qclipboard.h>
 #include <qapplication.h>
+#include <qfile.h>
 
 #include <cassert>
 
@@ -153,7 +154,7 @@ void Workflow::addInterfaceNode(boost::shared_ptr<Node> node) {
   if (prop->getAttribute<InputAttribute>()) {
     ToolItem* item = getToolItem();
     if (!item) {
-      dlog(Severity::Trace) << "Workflow does not have a ToolItem";
+      //dlog(Severity::Trace) << "Workflow does not have a ToolItem";
     } else {
       item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Output);
     }
@@ -161,13 +162,13 @@ void Workflow::addInterfaceNode(boost::shared_ptr<Node> node) {
   if (prop->getAttribute<OutputAttribute>()) {
     ToolItem* item = getToolItem();
     if (!item) {
-      dlog(Severity::Trace) << "Workflow does not have a ToolItem";
+      //dlog(Severity::Trace) << "Workflow does not have a ToolItem";
     } else {
       item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Input);
     }
   }
 }
-  
+
 void Workflow::removeInterfaceNode(boost::shared_ptr<Node> node) {
   Logbook& dlog = *getLogbook();
 //  std::cout << "[Info] removing interface node" << std::endl;
@@ -198,7 +199,7 @@ void Workflow::removeInterfaceNode(boost::shared_ptr<Node> node) {
         if (prop->getAttribute<InputAttribute>()) {
           ToolItem* item = getToolItem();
           if (!item) {
-            dlog(Severity::Trace) << "[Info] Workflow does not have a ToolItem";
+            //dlog(Severity::Trace) << "[Info] Workflow does not have a ToolItem";
           } else {
             item->deleteConnection(node->getUuid(), ToolConnection::Output);
           }
@@ -207,7 +208,7 @@ void Workflow::removeInterfaceNode(boost::shared_ptr<Node> node) {
         if (prop->getAttribute<OutputAttribute>()) {
           ToolItem* item = getToolItem();
           if (!item) {
-            dlog(Severity::Trace) << "[Info] Workflow does not have a ToolItem";
+            //dlog(Severity::Trace) << "[Info] Workflow does not have a ToolItem";
           } else {
             item->deleteConnection(node->getUuid(), ToolConnection::Input);
           }
@@ -302,22 +303,6 @@ void Workflow::removeGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
     if (_GlobalEdges->at(i) == edge) {
       _GlobalEdges->erase(_GlobalEdges->begin() + i);
       break;
-    }
-  }
-}
-
-void addDependencies(boost::shared_ptr<Workflow> workflow, const std::string& classname) {
-  // Update libraries
-  string libName = LibraryLoader::getInstance().classDefinedIn(classname);
-  if (libName.size()) {
-    boost::shared_ptr<vector<string> > libraries = workflow->getLibraries();
-    unsigned i = 0;
-    for (; i < libraries->size(); ++i)
-      if (libraries->at(i).compare(libName) == 0)
-        break;
-    if (i == libraries->size()) {
-      libraries->push_back(libName);
-      workflow->setLibraries(libraries);
     }
   }
 }
@@ -435,13 +420,18 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
     LibraryLoader& loader = LibraryLoader::getInstance();
     set<string> unusedLibraries = loadedLibraries;
     boost::shared_ptr<vector<string> > libraries = getLibraries();
+    const std::string path = host::DataModel::getInstance().getLibraryPath();
     for (unsigned i = 0; i < libraries->size(); ++i) {
 
       const string& lib = libraries->at(i);
 
       // Check if new library
       if (loadedLibraries.find(lib) == loadedLibraries.end()) {
-        loader.loadLibrary(lib);
+
+        if (path.size() && QFile::exists(QString(path.c_str()) + "/" + lib.c_str()))
+          loader.loadLibrary(path + "/" + lib);
+        else
+          loader.loadLibrary(lib);
         loadedLibraries.insert(lib);
       }
       // Check if library is still marked for unloading
@@ -454,7 +444,10 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
     for (set<string>::iterator pos = unusedLibraries.begin();
         pos != unusedLibraries.end(); ++pos)
     {
-      loader.freeLibrary(*pos);
+      if (path.size() && QFile::exists(QString(path.c_str()) + "/" + pos->c_str()))
+        loader.freeLibrary(path + "/" + *pos);
+      else
+        loader.freeLibrary(*pos);
     }
   }
 }
