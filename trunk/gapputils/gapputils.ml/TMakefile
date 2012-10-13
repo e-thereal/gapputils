@@ -1,0 +1,6 @@
+module {cxx grapevine cuda cula}
+
+lappend link::SYSLIBS culib tbblas boost_thread curand
+
+lappend link::OPTIONS lib_in_lib
+
