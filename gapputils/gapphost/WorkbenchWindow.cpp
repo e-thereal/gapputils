@@ -43,6 +43,7 @@
 #include <iomanip>
 
 #include "WorkflowUpdater.h"
+#include "DataModel.h"
 
 using namespace capputils;
 using namespace capputils::attributes;
@@ -54,6 +55,34 @@ using namespace attributes;
 using namespace workflow;
 
 namespace host {
+
+void addDependencies(boost::shared_ptr<Workflow> workflow, const std::string& classname) {
+  // Update libraries
+  std::string libName = LibraryLoader::getInstance().classDefinedIn(classname);
+
+  std::string path = DataModel::getInstance().getLibraryPath();
+
+  if (path.size() && libName.size() > path.size()) {
+    if (libName.compare(0, path.size(), path) == 0) {
+      if (path.size() > 1 && path[path.size() - 1] == '/')
+        libName = libName.substr(path.size());
+      else
+        libName = libName.substr(path.size() + 1);
+    }
+  }
+
+  if (libName.size()) {
+    boost::shared_ptr<std::vector<std::string> > libraries = workflow->getLibraries();
+    unsigned i = 0;
+    for (; i < libraries->size(); ++i)
+      if (libraries->at(i).compare(libName) == 0)
+        break;
+    if (i == libraries->size()) {
+      libraries->push_back(libName);
+      workflow->setLibraries(libraries);
+    }
+  }
+}
 
 WorkbenchWindow::WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow, QWidget* parent)
 : QMdiSubWindow(parent), workflow(workflow), workflowUpdater(new WorkflowUpdater()),
@@ -380,6 +409,8 @@ void WorkbenchWindow::addNodesFromClipboard() {
   renewUuids(pasteWorkflow);
   std::vector<boost::shared_ptr<workflow::Node> >& nodes = *pasteWorkflow.getNodes();
   for (unsigned i = 0; i < nodes.size(); ++i) {
+    if (nodes[i]->getModule())
+      addDependencies(workflow, nodes[i]->getModule()->getClassName());
     workflow->getNodes()->push_back(nodes[i]);
     workflow->resumeNode(nodes[i]);
     createItem(nodes[i]);
@@ -404,22 +435,6 @@ void WorkbenchWindow::closeEvent(QCloseEvent *event) {
     event->accept();
   } else {
     event->ignore();
-  }
-}
-
-void addDependencies(boost::shared_ptr<Workflow> workflow, const std::string& classname) {
-  // Update libraries
-  std::string libName = LibraryLoader::getInstance().classDefinedIn(classname);
-  if (libName.size()) {
-    boost::shared_ptr<std::vector<std::string> > libraries = workflow->getLibraries();
-    unsigned i = 0;
-    for (; i < libraries->size(); ++i)
-      if (libraries->at(i).compare(libName) == 0)
-        break;
-    if (i == libraries->size()) {
-      libraries->push_back(libName);
-      workflow->setLibraries(libraries);
-    }
   }
 }
 

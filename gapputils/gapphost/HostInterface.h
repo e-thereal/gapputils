@@ -11,23 +11,24 @@
 #include <gapputils/IGapphostInterface.h>
 
 #include <boost/shared_ptr.hpp>
+#include <iostream>
 
 namespace gapputils {
 
 namespace host {
 
 class HostInterface : public gapputils::IGapphostInterface {
+
+private:
+  static boost::shared_ptr<HostInterface> pointer;
+
 protected:
   HostInterface();
 
 public:
   virtual ~HostInterface();
 
-  static boost::shared_ptr<HostInterface> GetPointer() {
-    static boost::shared_ptr<HostInterface> pointer;
-    return (pointer ? pointer : (pointer = boost::shared_ptr<HostInterface>(new HostInterface())));
-  }
-
+  static boost::shared_ptr<HostInterface> GetPointer();
   virtual void saveDataModel(const std::string& filename) const;
 };
 

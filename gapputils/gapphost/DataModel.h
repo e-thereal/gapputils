@@ -43,6 +43,10 @@ class DataModel : public capputils::reflection::ReflectableClass,
   Property(TotalLabel, QLabel*)
   Property(FinishedLabel, QLabel*)
   Property(Configuration, std::string)
+  Property(LibraryPath, std::string)
+  Property(LogfileName, std::string)
+  Property(SaveConfiguration, bool)
+  Property(EmailLog, std::string)
 
 public:
   static int WorkflowMapId;

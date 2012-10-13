@@ -10,6 +10,8 @@
 #include <capputils/ReuseAttribute.h>
 #include <capputils/DescriptionAttribute.h>
 
+#include <cstdlib>
+
 #include <qdir.h>
 
 using namespace capputils;
@@ -54,6 +56,14 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(FinishedLabel, Volatile())
   DefineProperty(Configuration, Volatile(),
       Description("Name of the workflow configuration file"))
+  DefineProperty(LibraryPath, Volatile(),
+      Description("Path where default libraries are searched. The default value is read from 'GRAPEVINE_LIBRARY_PATH'"))
+  DefineProperty(LogfileName, Volatile(),
+      Description("Name of the file to which log messages will be written. Default is 'grapevine.log'."))
+  DefineProperty(SaveConfiguration, Volatile(),
+      Description("If set to true, the current configuration is saved when the program exists. Default is true."))
+  DefineProperty(EmailLog, Volatile(),
+      Description("If set, the final logfile will be send by e-mail to the given address."))
 EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;
@@ -62,8 +72,11 @@ DataModel::DataModel(void) : _Run(false), _Help(false), _AutoReload(false),
     _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600),
     _OpenWorkflows(new std::vector<std::string>()),
     _WorkflowMap(new std::map<std::string, boost::weak_ptr<workflow::Workflow> >),
-    _Configuration(".gapphost/config.xml")
+    _Configuration(".gapphost/config.xml"), _LogfileName("grapevine.log"), _SaveConfiguration(true)
 {
+  char* path = std::getenv("GRAPEVINE_LIBRARY_PATH");
+  if (path)
+    setLibraryPath(path);
 }
 
 DataModel::~DataModel(void)

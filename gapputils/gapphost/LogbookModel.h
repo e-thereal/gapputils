@@ -11,6 +11,7 @@
 #include <capputils/AbstractLogbookModel.h>
 
 #include <qobject.h>
+#include <fstream>
 
 namespace gapputils {
 
@@ -19,6 +20,10 @@ namespace host {
 class LogbookModel : public QObject, public capputils::AbstractLogbookModel {
 
   Q_OBJECT
+
+private:
+  std::ofstream logfile;
+  std::string logname;
 
 protected:
   LogbookModel();
