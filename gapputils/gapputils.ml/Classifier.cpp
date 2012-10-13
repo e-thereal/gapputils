@@ -41,18 +41,14 @@ void Classifier::update(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace dlib;
 
   typedef matrix<float, 0, 1> sample_t;
-  typedef linear_kernel<sample_t> kernel_t;
+  typedef radial_basis_kernel<sample_t> kernel_t;
+  typedef normalized_function<decision_function<kernel_t> > function_t;
 
   float* features = getFeatures()->getData();
 
   std::ifstream model(getModelName().c_str(), std::ios::binary);
-
-  vector_normalizer<sample_t> normalizer;
-  deserialize(normalizer, model);
-
-  decision_function<kernel_t> df;
+  function_t df;
   deserialize(df, model);
-
   model.close();
 
   image_t::dim_t size = {getFeatures()->getSize()[0], getFeatures()->getSize()[1], 1};
@@ -69,7 +65,7 @@ void Classifier::update(gapputils::workflow::IProgressMonitor* monitor) const {
     for (int j = 0; j < sample.size(); ++j) {
       sample(j) = features[i + j * count];
     }
-    result[i] = df(normalizer(sample)) > 0;
+    result[i] = df(sample) > 0;
   }
 
   newState->setSegmentation(segmentation);

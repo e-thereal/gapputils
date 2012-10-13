@@ -10,6 +10,7 @@
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/Image.h>
+#include <capputils/Enumerators.h>
 
 namespace gapputils {
 namespace ml {
@@ -22,9 +23,16 @@ class Trainer : public workflow::DefaultWorkflowElement<Trainer> {
   Property(FeatureMaps, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(Segmentations, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(ModelName, std::string)
-  Property(MinC, double)
-  Property(MaxC, double)
-  Property(CStep, double)
+  Property(Rank, int)
+  Property(Min, double)
+  Property(Max, double)
+  Property(Steps, int)
+  Property(Tolerance, double)
+  Property(MaxIterations, int)
+  Property(CvFolds, int)
+  Property(CvImageCount, int)
+  Property(RandomizeSamples, bool)
+  Property(OutputName, std::string)
 
 public:
   Trainer();
