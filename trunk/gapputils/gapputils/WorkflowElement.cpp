@@ -29,7 +29,6 @@ int WorkflowElement::labelId;
 BeginAbstractPropertyDefinitions(WorkflowElement)
 
   DefineProperty(Label, Label(), Observe(labelId = Id))
-  DefineProperty(HostInterface, Volatile(), Hide(), NoParameter(), Observe(Id))
 
 EndPropertyDefinitions
 
@@ -38,6 +37,14 @@ WorkflowElement::WorkflowElement() : _Label("Element"), logbook(new Logbook()) {
 
 Logbook& WorkflowElement::getLogbook() const {
   return *logbook;
+}
+
+boost::shared_ptr<IGapphostInterface> WorkflowElement::getHostInterface() const {
+  return hostInterface;
+}
+
+void WorkflowElement::setHostInterface(const boost::shared_ptr<IGapphostInterface>& interface) {
+  hostInterface = interface;
 }
 
 }
