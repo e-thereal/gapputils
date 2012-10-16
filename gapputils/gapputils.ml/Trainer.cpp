@@ -11,10 +11,10 @@
 
 #include <algorithm>
 #include <fstream>
-#include <capputils/FilenameAttribute.h>
 #include <capputils/EnumeratorAttribute.h>
+#include <capputils/FilenameAttribute.h>
 
-//#include <capputils/Logbook.h>
+#include <gpusvm/svmTrain.h>
 
 namespace gapputils {
 namespace ml {
@@ -32,7 +32,8 @@ BeginPropertyDefinitions(Trainer)
   WorkflowProperty(ModelName, Filename(), NotEmpty<Type>("Not a valid filename."))
   WorkflowProperty(Rank, Description("Number of support vectors."))
   WorkflowProperty(Min)
-  WorkflowProperty(Max)
+  WorkflowProperty(MaxGamma)
+  WorkflowProperty(MaxC)
   WorkflowProperty(Steps)
   WorkflowProperty(Tolerance)
   WorkflowProperty(MaxIterations)
@@ -43,7 +44,7 @@ BeginPropertyDefinitions(Trainer)
 
 EndPropertyDefinitions
 
-Trainer::Trainer() : _Rank(10), _Min(1e-5), _Max(1), _Steps(4), _Tolerance(0.01), _MaxIterations(10),
+Trainer::Trainer() : _Rank(10), _Min(1e-5), _MaxGamma(1), _MaxC(1e5), _Steps(4), _Tolerance(0.01), _MaxIterations(10),
 _CvFolds(4), _CvImageCount(1), _RandomizeSamples(true)
 {
   setLabel("Trainer");
@@ -67,16 +68,16 @@ struct objective {
 
   value_t operator()(const matrix<value_t>& params) const {
     const value_t gamma = exp(params(0));
-    const value_t nu = exp(params(1));
+    const value_t c = exp(params(1));
 
-    svm_nu_trainer<kernel_t> trainer;
+    svm_c_trainer<kernel_t> trainer;
     trainer.set_kernel(kernel_t(gamma));
-    trainer.set_nu(nu);
+    trainer.set_c(c);
 
     matrix<value_t> result;
     result = cross_validate_trainer_threaded(trainer, samples, labels, this->trainer.getCvFolds(), this->trainer.getCvFolds());
 
-    this->trainer.getLogbook()(Severity::Trace) << "CV SEN " << result(0) << " SPE " << result(1) << " at gamma = " << gamma << " and nu = " << nu;
+    this->trainer.getLogbook()(Severity::Trace) << "CV SEN " << result(0) << " SPE " << result(1) << " at gamma = " << gamma << " and C = " << c;
 
     if (sum(result) > best_value || best_value == 0) {
       best_value = sum(result);
@@ -102,6 +103,97 @@ private:
   mutable matrix<value_t> best_params;
 };
 
+void create_fold(std::vector<float>& samples, std::vector<float>& labels, int iFold, int foldCount,
+    std::vector<float>& trainingSamples, std::vector<float>& trainingLabels,
+    std::vector<float>& testSamples, std::vector<float>& testLabels)
+{
+  const size_t sampleCount = labels.size();
+  const size_t featureCount = samples.size() / sampleCount;
+  const int samplesPerFold = sampleCount / foldCount;
+  const int usedSamples = foldCount * samplesPerFold;
+  const int trainingSampleCount = (foldCount - 1) * samplesPerFold;
+
+  trainingSamples.clear();
+  trainingLabels.clear();
+  testSamples.clear();
+  testLabels.clear();
+
+  for (int j = 0; j < featureCount; ++j) {
+    for (int i = 0; i < usedSamples; ++i) {
+      if (i / samplesPerFold == iFold)
+        testSamples.push_back(samples[i + j * sampleCount]);
+      else
+        trainingSamples.push_back(samples[i + j * sampleCount]);
+    }
+  }
+  for (int i = 0; i < usedSamples; ++i) {
+    if (i / samplesPerFold == iFold)
+      testLabels.push_back(labels[i]);
+    else
+      trainingLabels.push_back(labels[i]);
+  }
+}
+
+struct gpu_objective {
+
+  gpu_objective(const std::vector<float>& samples,
+      const std::vector<float>& labels,
+      const Trainer& trainer)
+  : samples(samples), labels(labels), trainer(trainer), best_value(0) { }
+
+  value_t operator()(const matrix<value_t>& params) const {
+    const value_t gamma = exp(params(0));
+    const value_t c = exp(params(1));
+
+    std::vector<float> trainingSamples, trainingLabels, testSamples, testLabels;
+
+    float* alphas;
+    gpusvm::Kernel_params kp;
+    kp.kernel_type = "rbf";
+    kp.gamma = gamma;
+
+    for (int iFold = 0; iFold < trainer.getCvFolds(); ++iFold) {
+      create_fold(samples, labels, iFold, trainer.getCvFolds(), trainingSamples, trainingLabels, testSamples, testLabels);
+
+      gpusvm::performTraining(&trainingSamples[0], trainingLabels.size(),
+          trainingSamples.size() / trainingLabels.size(), &trainingLabels[0],
+          &alphas, &kp, c);
+
+      // form the model
+      // classify test set
+      // add total pos, total neg, true pos, true negs.
+
+      delete [] alphas;
+    }
+
+    // calculate SEN and SPE based on counts
+
+    this->trainer.getLogbook()(Severity::Trace) << "CV SEN " << result(0) << " SPE " << result(1) << " at gamma = " << gamma << " and C = " << c;
+
+    if (sum(result) > best_value || best_value == 0) {
+      best_value = sum(result);
+      best_params = params;
+    }
+
+    return sum(result);
+  }
+
+  matrix<value_t> params() const {
+    return best_params;
+  }
+
+  value_t value() const {
+    return best_value;
+  }
+
+private:
+  const std::vector<float>& samples;
+  const std::vector<float>& labels;
+  const Trainer& trainer;
+  mutable value_t best_value;
+  mutable matrix<value_t> best_params;
+};
+
 void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
   dlog.setSeverity(Severity::Trace);
@@ -119,6 +211,9 @@ void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
 
   std::vector<sample_t> cvsamples;
   std::vector<value_t> cvlabels;
+
+  const size_t featureCount = featureMaps[0]->getSize()[2];
+  const size_t sampleCount = featureMaps.size();
 
   for (size_t iSample = 0; iSample < featureMaps.size(); ++iSample) {
 
@@ -170,10 +265,21 @@ void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
     dlog() << "Dataset randomized.";
   }
 
-  const value_t max_nu = 0.999 * maximum_nu(labels);
+  std::vector<float> gpusamples;
+  std::vector<float> gpulabels;
 
-  matrix<value_t> params = cartesian_product(logspace(log10(getMax()), log10(getMin()), getSteps()),
-      logspace(log10(max_nu), log10(getMin()), getSteps()));
+  for (size_t i = 0; i < featureCount; ++i) {
+    for (size_t j = 0; j < sampleCount; ++j)
+      gpusamples.push_back(samples[j](i));
+  }
+
+  for (size_t j = 0; j < sampleCount; ++j)
+    gpulabels.push_back(labels[j]);
+
+//  const value_t max_nu = 0.999 * maximum_nu(labels);
+
+  matrix<value_t> params = cartesian_product(logspace(log10(getMaxGamma()), log10(getMin()), getSteps()),
+      logspace(log10(getMaxC()), log10(getMin()), getSteps()));
 
   const int maxSteps = params.nc() + getMaxIterations() + 1;
 
@@ -184,26 +290,26 @@ void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
 
   value_t best_result;
   best_result = 0;
-  value_t best_gamma = 0.1, best_nu = max_nu;
+  value_t best_gamma = 0.1, best_c = getMaxC();
   for (long col = 0; col < params.nc() && (monitor ? !monitor->getAbortRequested() : true); ++col) {
     value_t result = obj(log(colm(params, col)));
     if (result > best_result) {
       best_result = result;
       best_gamma = params(0, col);
-      best_nu = params(1, col);
+      best_c = params(1, col);
     }
     if (monitor)
       monitor->reportProgress(100. * col / maxSteps);
   }
-  dlog() << "Best result of grid search: " << best_result << " at gamma = " << best_gamma << " and nu = " << best_nu;
+  dlog() << "Best result of grid search: " << best_result << " at gamma = " << best_gamma << " and C = " << best_c;
 
   // Optimization of parameters
   params.set_size(2,1);
-  params = best_gamma, best_nu;
+  params = best_gamma, best_c;
 
   matrix<value_t> lower_bound(2,1), upper_bound(2,1);
   lower_bound = getMin() / 10., getMin() / 10.;
-  upper_bound = 10. * getMax(), max_nu;
+  upper_bound = 10. * getMaxGamma(), getMaxC();
 
   params = log(params);
   lower_bound = log(lower_bound);
@@ -221,11 +327,11 @@ void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
   }
 
   params = exp(obj.params());
-  dlog() << "Best result of BOBYQA: " << obj.value() << " at gamma = " << params(0) << " and nu = " << params(1);
+  dlog() << "Best result of BOBYQA: " << obj.value() << " at gamma = " << params(0) << " and C = " << params(1);
 
-  svm_nu_trainer<kernel_t> trainer;
+  svm_c_trainer<kernel_t> trainer;
   trainer.set_kernel(kernel_t(params(0)));
-  trainer.set_nu(params(1));
+  trainer.set_c(params(1));
 
   typedef normalized_function<decision_function<kernel_t> > function_t;
 
