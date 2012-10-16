@@ -1,0 +1,34 @@
+# additional libs needed for using libgapputilscvcuda.a
+# (enables tmk to do transitive linking)
+
+namespace eval ::tmk::tmp {
+
+  # path for finding all the libs
+  variable libpath {
+    /res1/software/usr/lib64
+    /res1/software/x64/cula/lib64
+    /res1/software/x64/NVIDIA_GPU_COMPUTING_SDK/C/lib
+    /res1/software/x64/cuda/lib64
+  }
+
+  # external/system libraries
+  variable syslibs {
+    cula
+    cublas
+    cufft
+    cutil_x86_64
+    cudart
+    cuda
+    X11
+    culib
+  }
+
+  # project libraries (project-relative path)
+  variable projlibs {}
+
+  # misc lib options
+  variable options {shared}
+
+  return [::link::libspec create \{$libpath\} \{$syslibs\} \{$projlibs\} \{$options\}]
+}
+

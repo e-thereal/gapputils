@@ -1,0 +1,10 @@
+module {cxx cuda cula resprog}
+
+# don't make shared libs
+set link::MAKE_SHLIB 0
+
+# make static libs
+set link::MAKE_LIB 1
+
+lappend link::SYSLIBS X11 culib
+
