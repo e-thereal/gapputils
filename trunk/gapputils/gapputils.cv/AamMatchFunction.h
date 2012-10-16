@@ -7,7 +7,7 @@
 #include <boost/shared_ptr.hpp>
 #include <culib/similarity.h>
 
-#include <gapputils.cv.cuda/AamMatchFunction.h>
+#include "../gapputils.cv.cuda/AamMatchFunction.h"
 
 #include <thrust/device_vector.h>
 

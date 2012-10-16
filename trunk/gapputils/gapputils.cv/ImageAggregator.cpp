@@ -22,7 +22,7 @@
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
-#include <gapputils.cv.cuda/aggregate.h>
+#include "../gapputils.cv.cuda/aggregate.h"
 #include <culib/CudaImage.h>
 
 #include <algorithm>

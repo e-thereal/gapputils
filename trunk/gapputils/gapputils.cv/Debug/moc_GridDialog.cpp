@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'GridDialog.h'
 **
-** Created: Thu Oct 4 14:16:21 2012
+** Created: Fri Oct 12 10:26:28 2012
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.2)
 **
 ** WARNING! All changes made in this file will be lost!
