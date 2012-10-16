@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<gapputils-host-DataModel>
+    <!--X position of the top left corner of the main window-->
+    <WindowX value="1280" />
+    <!--Y position of the top left corner of the main window-->
+    <WindowY value="0" />
+    <!--Width of the main window-->
+    <WindowWidth value="1280" />
+    <!--Height of the main window-->
+    <WindowHeight value="999" />
+    <!---->
+    <MainWorkflow>
+        <gapputils-workflow-Workflow>
+            <Libraries>
+                <Collection>
+                    <Item value="/res1/software/x64/grapevine_libs/libgapputils.cv.so" />
+                </Collection>
+            </Libraries>
+            <Uuid value="deaf2b03-dbad-4323-97db-d778e143cc62" />
+            <X value="0" />
+            <Y value="0" />
+            <Module>
+                <gapputils-host-DefaultInterface>
+                    <Label value="DefaultInterface" />
+                </gapputils-host-DefaultInterface>
+            </Module>
+            <!--Checksum calculated over all inputs and parameters.-->
+            <InputChecksum value="0" />
+            <!--Set to InputsChecksum after update.-->
+            <OutputChecksum value="0" />
+            <Expressions>
+                <Collection />
+            </Expressions>
+            <Edges>
+                <Collection />
+            </Edges>
+            <Nodes>
+                <Collection />
+            </Nodes>
+            <GlobalProperties>
+                <Collection />
+            </GlobalProperties>
+            <GlobalEdges>
+                <Collection />
+            </GlobalEdges>
+            <ViewportScale value="0.769231" />
+            <ViewportPosition value="1040 624" />
+        </gapputils-workflow-Workflow>
+    </MainWorkflow>
+    <!---->
+    <OpenWorkflows>
+        <Collection>
+            <Item value="deaf2b03-dbad-4323-97db-d778e143cc62" />
+        </Collection>
+    </OpenWorkflows>
+    <!---->
+    <CurrentWorkflow value="deaf2b03-dbad-4323-97db-d778e143cc62" />
+</gapputils-host-DataModel>
