@@ -40,7 +40,8 @@ Classifier::~Classifier() { }
 void Classifier::update(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace dlib;
 
-  typedef matrix<float, 0, 1> sample_t;
+  typedef double value_t;
+  typedef matrix<value_t, 0, 1> sample_t;
   typedef radial_basis_kernel<sample_t> kernel_t;
   typedef normalized_function<decision_function<kernel_t> > function_t;
 
