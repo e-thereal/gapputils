@@ -52,13 +52,12 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Release}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.141158274" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="gapputils"/>
-									<listOptionValue builtIn="false" value="tinyxml"/>
+									<listOptionValue builtIn="false" value="tinyxmld"/>
 									<listOptionValue builtIn="false" value="capputils"/>
 									<listOptionValue builtIn="false" value="dl"/>
 									<listOptionValue builtIn="false" value="boost_system"/>
@@ -87,8 +86,7 @@
 				<externalSettings containerId="capputils;" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/capputils"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/capputils/Debug"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/capputils/Debug Shared"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/capputils/Release"/>
 						<entry flags="RESOLVED" kind="libraryFile" name="capputils"/>
 					</externalSetting>
 				</externalSettings>
@@ -96,7 +94,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/tinyxml"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/tinyxml/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="tinyxml"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="tinyxmld"/>
 					</externalSetting>
 				</externalSettings>
 				<externalSettings containerId="gapputils;" factoryId="org.eclipse.cdt.core.cfg.export.settings.sipplier">
