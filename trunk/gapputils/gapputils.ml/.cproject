@@ -71,11 +71,12 @@
 									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
 									<listOptionValue builtIn="false" value="/res1/software/cuda/lib"/>
 									<listOptionValue builtIn="false" value="/res1/software/cula/lib"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Projects/tbblas/Debug"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Projects/tinyxml/Debug"/>
-									<listOptionValue builtIn="false" value="&quot;/home/tombr/Projects/capputils/Debug Shared&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;/home/tombr/Projects/gapputils/Debug Shared&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/Projects/culib/Debug"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gpusvm/Debug}&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.cuda.1668097258" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs.cuda" valueType="libs">
 									<listOptionValue builtIn="false" value="cudart"/>
@@ -90,6 +91,7 @@
 									<listOptionValue builtIn="false" value="capputils"/>
 									<listOptionValue builtIn="false" value="gapputils"/>
 									<listOptionValue builtIn="false" value="culib"/>
+									<listOptionValue builtIn="false" value="gpusvmd"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1251689944" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -148,7 +150,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.so.release.210418597." name="/" resourcePath="">
 						<toolChain id="cuda.toolchain.exe.debug.1754403111" name="CUDA Toolchain" superClass="cuda.toolchain.exe.debug">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cuda.toolchain.targetplatform.exe.debug.939643040" isAbstract="false" name="Linux Release Platform" osList="linux" superClass="cuda.toolchain.targetplatform.exe.debug"/>
-							<builder buildPath="${workspace_loc:/gapputils.ml/Release}" enableAutoBuild="false" id="cuda.toolchain.builder.exe.debug.1837592758" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="7" superClass="cuda.toolchain.builder.exe.debug"/>
+							<builder buildPath="${workspace_loc:/gapputils.ml/Release}" enableAutoBuild="false" id="cuda.toolchain.builder.exe.debug.1837592758" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="false" parallelizationNumber="7" superClass="cuda.toolchain.builder.exe.debug"/>
 							<tool id="cuda.toolchain.compiler.exe.debug.2075854431" name="NVIDIA CUDA Compiler" superClass="cuda.toolchain.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.most" id="cuda.toolchain.compiler.option.optimization.level.1512753267" name="Optimization Level" superClass="cuda.toolchain.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="cuda.toolchain.compiler.option.debugging.level.148611815" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level" value="cuda.toolchain.compiler.option.debugging.level.none" valueType="enumerated"/>
@@ -196,6 +198,7 @@
 									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
 									<listOptionValue builtIn="false" value="/res1/software/cuda/lib"/>
 									<listOptionValue builtIn="false" value="/res1/software/cula/lib"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gpusvm/Release}&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.cuda.529106046" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs.cuda" valueType="libs">
 									<listOptionValue builtIn="false" value="cudart"/>
@@ -210,6 +213,7 @@
 									<listOptionValue builtIn="false" value="cula_lapack"/>
 									<listOptionValue builtIn="false" value="curand"/>
 									<listOptionValue builtIn="false" value="boost_thread"/>
+									<listOptionValue builtIn="false" value="gpusvm"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1188121301" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

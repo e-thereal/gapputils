@@ -14,7 +14,10 @@
 #include <capputils/EnumeratorAttribute.h>
 #include <capputils/FilenameAttribute.h>
 
-#include <gpusvm/svmTrain.h>
+#include "SupportVectorClassifier.h"
+
+#define TRACE std::cout << __FILE__ << ": " << __LINE__ << std::endl;
+#define SHOW(a) std::cout << #a << " = " << a << std::endl;
 
 namespace gapputils {
 namespace ml {
@@ -55,7 +58,7 @@ Trainer::~Trainer() { }
 using namespace capputils;
 using namespace dlib;
 
-typedef double value_t;
+typedef Trainer::value_t value_t;
 typedef matrix<value_t, 0, 1> sample_t;
 typedef radial_basis_kernel<sample_t> kernel_t;
 
@@ -103,37 +106,6 @@ private:
   mutable matrix<value_t> best_params;
 };
 
-void create_fold(std::vector<float>& samples, std::vector<float>& labels, int iFold, int foldCount,
-    std::vector<float>& trainingSamples, std::vector<float>& trainingLabels,
-    std::vector<float>& testSamples, std::vector<float>& testLabels)
-{
-  const size_t sampleCount = labels.size();
-  const size_t featureCount = samples.size() / sampleCount;
-  const int samplesPerFold = sampleCount / foldCount;
-  const int usedSamples = foldCount * samplesPerFold;
-  const int trainingSampleCount = (foldCount - 1) * samplesPerFold;
-
-  trainingSamples.clear();
-  trainingLabels.clear();
-  testSamples.clear();
-  testLabels.clear();
-
-  for (int j = 0; j < featureCount; ++j) {
-    for (int i = 0; i < usedSamples; ++i) {
-      if (i / samplesPerFold == iFold)
-        testSamples.push_back(samples[i + j * sampleCount]);
-      else
-        trainingSamples.push_back(samples[i + j * sampleCount]);
-    }
-  }
-  for (int i = 0; i < usedSamples; ++i) {
-    if (i / samplesPerFold == iFold)
-      testLabels.push_back(labels[i]);
-    else
-      trainingLabels.push_back(labels[i]);
-  }
-}
-
 struct gpu_objective {
 
   gpu_objective(const std::vector<float>& samples,
@@ -145,34 +117,13 @@ struct gpu_objective {
     const value_t gamma = exp(params(0));
     const value_t c = exp(params(1));
 
-    std::vector<float> trainingSamples, trainingLabels, testSamples, testLabels;
-
-    float* alphas;
-    gpusvm::Kernel_params kp;
-    kp.kernel_type = "rbf";
-    kp.gamma = gamma;
-
-    for (int iFold = 0; iFold < trainer.getCvFolds(); ++iFold) {
-      create_fold(samples, labels, iFold, trainer.getCvFolds(), trainingSamples, trainingLabels, testSamples, testLabels);
-
-      gpusvm::performTraining(&trainingSamples[0], trainingLabels.size(),
-          trainingSamples.size() / trainingLabels.size(), &trainingLabels[0],
-          &alphas, &kp, c);
-
-      // form the model
-      // classify test set
-      // add total pos, total neg, true pos, true negs.
-
-      delete [] alphas;
-    }
-
-    // calculate SEN and SPE based on counts
-
+    matrix<value_t, 2, 1> result = SupportVectorClassifier::CrossValidate(samples, labels, gamma, c, trainer.getCvFolds());
     this->trainer.getLogbook()(Severity::Trace) << "CV SEN " << result(0) << " SPE " << result(1) << " at gamma = " << gamma << " and C = " << c;
 
     if (sum(result) > best_value || best_value == 0) {
       best_value = sum(result);
       best_params = params;
+      best_result = result;
     }
 
     return sum(result);
@@ -186,12 +137,17 @@ struct gpu_objective {
     return best_value;
   }
 
+  matrix<value_t> result() const {
+    return best_result;
+  }
+
 private:
   const std::vector<float>& samples;
   const std::vector<float>& labels;
   const Trainer& trainer;
   mutable value_t best_value;
   mutable matrix<value_t> best_params;
+  mutable matrix<value_t> best_result;
 };
 
 void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
@@ -215,7 +171,7 @@ void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
   const size_t featureCount = featureMaps[0]->getSize()[2];
   const size_t sampleCount = featureMaps.size();
 
-  for (size_t iSample = 0; iSample < featureMaps.size(); ++iSample) {
+  for (size_t iSample = 0; iSample < sampleCount; ++iSample) {
 
     image_t& features = *featureMaps[iSample];
     image_t& segmentation = *segmentations[iSample];
@@ -269,11 +225,11 @@ void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
   std::vector<float> gpulabels;
 
   for (size_t i = 0; i < featureCount; ++i) {
-    for (size_t j = 0; j < sampleCount; ++j)
+    for (size_t j = 0; j < labels.size(); ++j)
       gpusamples.push_back(samples[j](i));
   }
 
-  for (size_t j = 0; j < sampleCount; ++j)
+  for (size_t j = 0; j < labels.size(); ++j)
     gpulabels.push_back(labels[j]);
 
 //  const value_t max_nu = 0.999 * maximum_nu(labels);
@@ -283,10 +239,12 @@ void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
 
   const int maxSteps = params.nc() + getMaxIterations() + 1;
 
-  objective obj(
-      (getCvImageCount() > 0 ? cvsamples : samples),
-      (getCvImageCount() > 0 ? cvlabels : labels),
-      *this);
+//  objective obj(
+//      (getCvImageCount() > 0 ? cvsamples : samples),
+//      (getCvImageCount() > 0 ? cvlabels : labels),
+//      *this);
+
+  gpu_objective obj(gpusamples, gpulabels, *this);
 
   value_t best_result;
   best_result = 0;
@@ -301,7 +259,7 @@ void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
     if (monitor)
       monitor->reportProgress(100. * col / maxSteps);
   }
-  dlog() << "Best result of grid search: " << best_result << " at gamma = " << best_gamma << " and C = " << best_c;
+  dlog(Severity::Message) << "Best result of grid search: " << best_result << " at gamma = " << best_gamma << " and C = " << best_c;
 
   // Optimization of parameters
   params.set_size(2,1);
@@ -309,7 +267,7 @@ void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
 
   matrix<value_t> lower_bound(2,1), upper_bound(2,1);
   lower_bound = getMin() / 10., getMin() / 10.;
-  upper_bound = 10. * getMaxGamma(), getMaxC();
+  upper_bound = 10. * getMaxGamma(), 10. * getMaxC();
 
   params = log(params);
   lower_bound = log(lower_bound);
@@ -327,26 +285,38 @@ void Trainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
   }
 
   params = exp(obj.params());
-  dlog() << "Best result of BOBYQA: " << obj.value() << " at gamma = " << params(0) << " and C = " << params(1);
+  dlog(Severity::Message) << "Best result of BOBYQA: " << obj.value() << " (SEN: " << obj.result()(0) << ", SPE: " << obj.result()(1) << ") at gamma = " << params(0) << " and C = " << params(1);
 
-  svm_c_trainer<kernel_t> trainer;
-  trainer.set_kernel(kernel_t(params(0)));
-  trainer.set_c(params(1));
+  SupportVectorClassifier svc;
+  svc.train(gpusamples, gpulabels, params(0), params(1));
+  dlog(Severity::Message) << "Number of support vectors: " << svc.getSupportVectorCount();
 
-  typedef normalized_function<decision_function<kernel_t> > function_t;
-
-  function_t f;
-  f.normalizer = normalizer;
-  if (getRank() > 0)
-    f.function = reduced2(trainer, getRank()).train(samples, labels);
-  else
-    f.function = trainer.train(samples, labels);
-
-  dlog() << "Number of support vectors: " << f.function.basis_vectors.nr();
+  matrix<value_t> accuracy = svc.validate(gpusamples, gpulabels);
+  dlog(Severity::Message) << "Training SEN: " << accuracy(0) << ", SPE: " << accuracy(1);
 
   std::ofstream model(getModelName().c_str(), std::ios::binary);
-  serialize(f, model);
+  serialize(normalizer, model);
+  svc.serialize(model);
   model.close();
+
+//  svm_c_trainer<kernel_t> trainer;
+//  trainer.set_kernel(kernel_t(params(0)));
+//  trainer.set_c(params(1));
+
+//  typedef normalized_function<decision_function<kernel_t> > function_t;
+
+//  function_t f;
+//  f.normalizer = normalizer;
+//  if (getRank() > 0)
+//    f.function = reduced2(trainer, getRank()).train(samples, labels);
+//  else
+//    f.function = trainer.train(samples, labels);
+//
+//  dlog() << "Number of support vectors: " << f.function.basis_vectors.nr();
+//
+//  std::ofstream model(getModelName().c_str(), std::ios::binary);
+//  serialize(f, model);
+//  model.close();
 
   getHostInterface()->saveDataModel(getModelName() + ".xml");
 
