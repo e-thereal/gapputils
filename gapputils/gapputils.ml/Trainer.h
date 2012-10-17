@@ -17,6 +17,8 @@ namespace ml {
 namespace segmentation {
 
 class Trainer : public workflow::DefaultWorkflowElement<Trainer> {
+public:
+  typedef double value_t;
 
   InitReflectableClass(Trainer)
 
@@ -24,11 +26,11 @@ class Trainer : public workflow::DefaultWorkflowElement<Trainer> {
   Property(Segmentations, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(ModelName, std::string)
   Property(Rank, int)
-  Property(Min, double)
-  Property(MaxGamma, double)
-  Property(MaxC, double)
+  Property(Min, value_t)
+  Property(MaxGamma, value_t)
+  Property(MaxC, value_t)
   Property(Steps, int)
-  Property(Tolerance, double)
+  Property(Tolerance, value_t)
   Property(MaxIterations, int)
   Property(CvFolds, int)
   Property(CvImageCount, int)
