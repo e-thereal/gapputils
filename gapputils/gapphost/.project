@@ -43,7 +43,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.enableAutoBuild</key>
-					<value>true</value>
+					<value>false</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.enableCleanBuild</key>

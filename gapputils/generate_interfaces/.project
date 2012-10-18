@@ -3,9 +3,6 @@
 	<name>generate_interfaces</name>
 	<comment></comment>
 	<projects>
-		<project>capputils</project>
-		<project>tinyxml</project>
-		<project>gapputils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
