@@ -34,20 +34,19 @@
 								<option id="cuda.toolchain.compiler.option.misc.other.1153762761" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot;" valueType="string"/>
 								<option id="cuda.toolchain.compiler.general.incpath.173093293" name="Include paths (-I)" superClass="cuda.toolchain.compiler.general.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
-									<listOptionValue builtIn="false" value="/res1/software/cula/include"/>
+									<listOptionValue builtIn="false" value="&quot;${RESPROG_INC_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CULA_INC_PATH}&quot;"/>
 								</option>
 								<inputType id="cuda.toolchain.compiler.input.1577130827" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.2093880077" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
 								<option id="gnu.cpp.compiler.option.include.paths.865061349" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
-									<listOptionValue builtIn="false" value="/res1/software/cula/include"/>
+									<listOptionValue builtIn="false" value="&quot;${RESPROG_INC_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CULA_INC_PATH}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.223800445" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.1652206224" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
@@ -55,12 +54,7 @@
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1103655225" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.907590060" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
-								<option id="gnu.c.compiler.option.include.paths.764088970" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
-									<listOptionValue builtIn="false" value="/res1/software/cula/include"/>
-								</option>
+								<option id="gnu.c.compiler.option.include.paths.764088970" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath"/>
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.600539587" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.780218172" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1177357663" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
@@ -68,15 +62,15 @@
 							<tool id="cuda.toolchain.gnu.cpp.linker.666070791" name="NVCC Linker" superClass="cuda.toolchain.gnu.cpp.linker">
 								<option defaultValue="true" id="gnu.cpp.link.option.shared.1922687467" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.cuda.190396936" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths.cuda" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
-									<listOptionValue builtIn="false" value="/res1/software/cuda/lib"/>
-									<listOptionValue builtIn="false" value="/res1/software/cula/lib"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gpusvm/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RESPROG_LIB_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CUDA_LIB_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CULA_LIB_PATH}&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.cuda.1668097258" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs.cuda" valueType="libs">
 									<listOptionValue builtIn="false" value="cudart"/>
@@ -87,11 +81,11 @@
 									<listOptionValue builtIn="false" value="cuda"/>
 									<listOptionValue builtIn="false" value="cufft"/>
 									<listOptionValue builtIn="false" value="tbblas"/>
-									<listOptionValue builtIn="false" value="tinyxml"/>
-									<listOptionValue builtIn="false" value="capputils"/>
-									<listOptionValue builtIn="false" value="gapputils"/>
 									<listOptionValue builtIn="false" value="culib"/>
 									<listOptionValue builtIn="false" value="gpusvmd"/>
+									<listOptionValue builtIn="false" value="tinyxmld"/>
+									<listOptionValue builtIn="false" value="capputilsd"/>
+									<listOptionValue builtIn="false" value="gapputilsd"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1251689944" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -108,12 +102,7 @@
 								</inputType>
 							</tool>
 							<tool id="cuda.toolchain.gnu.assembler.1584797244" name="GCC Assembler" superClass="cuda.toolchain.gnu.assembler">
-								<option id="gnu.both.asm.option.include.paths.1261879637" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
-									<listOptionValue builtIn="false" value="/res1/software/cula/include"/>
-								</option>
+								<option id="gnu.both.asm.option.include.paths.1261879637" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1189547315" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.archiver.1895170095" name="GCC Archiver" superClass="cuda.toolchain.gnu.archiver"/>
@@ -150,7 +139,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.so.release.210418597." name="/" resourcePath="">
 						<toolChain id="cuda.toolchain.exe.debug.1754403111" name="CUDA Toolchain" superClass="cuda.toolchain.exe.debug">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cuda.toolchain.targetplatform.exe.debug.939643040" isAbstract="false" name="Linux Release Platform" osList="linux" superClass="cuda.toolchain.targetplatform.exe.debug"/>
-							<builder buildPath="${workspace_loc:/gapputils.ml/Release}" enableAutoBuild="false" id="cuda.toolchain.builder.exe.debug.1837592758" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="false" parallelizationNumber="7" superClass="cuda.toolchain.builder.exe.debug"/>
+							<builder buildPath="${workspace_loc:/gapputils.ml/Release}" enableAutoBuild="false" id="cuda.toolchain.builder.exe.debug.1837592758" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="7" superClass="cuda.toolchain.builder.exe.debug"/>
 							<tool id="cuda.toolchain.compiler.exe.debug.2075854431" name="NVIDIA CUDA Compiler" superClass="cuda.toolchain.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.most" id="cuda.toolchain.compiler.option.optimization.level.1512753267" name="Optimization Level" superClass="cuda.toolchain.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="cuda.toolchain.compiler.option.debugging.level.148611815" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level" value="cuda.toolchain.compiler.option.debugging.level.none" valueType="enumerated"/>
@@ -166,10 +155,10 @@
 							<tool id="cuda.toolchain.gnu.cpp.compiler.1265851244" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
 								<option id="gnu.cpp.compiler.option.include.paths.489724061" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
-									<listOptionValue builtIn="false" value="/res1/software/cula/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/cuda/include"/>
+									<listOptionValue builtIn="false" value="&quot;${RESPROG_INC_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CULA_INC_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.1113843997" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.516345717" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
@@ -177,12 +166,7 @@
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.873184223" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.1687862518" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
-								<option id="gnu.c.compiler.option.include.paths.624638628" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
-									<listOptionValue builtIn="false" value="/res1/software/cula/include"/>
-								</option>
+								<option id="gnu.c.compiler.option.include.paths.624638628" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath"/>
 								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.488162219" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.2141118765" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1175030236" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
@@ -190,15 +174,15 @@
 							<tool id="cuda.toolchain.gnu.cpp.linker.2140427129" name="NVCC Linker" superClass="cuda.toolchain.gnu.cpp.linker">
 								<option defaultValue="true" id="gnu.cpp.link.option.shared.1839684417" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.cuda.1833344368" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths.cuda" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Debug Shared}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/culib/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tbblas/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
-									<listOptionValue builtIn="false" value="/res1/software/cuda/lib"/>
-									<listOptionValue builtIn="false" value="/res1/software/cula/lib"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gpusvm/Release}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Release}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/gapputils/Release}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Release}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CULA_LIB_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CUDA_LIB_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RESPROG_LIB_PATH}&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.cuda.529106046" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs.cuda" valueType="libs">
 									<listOptionValue builtIn="false" value="cudart"/>
@@ -228,12 +212,7 @@
 								</inputType>
 							</tool>
 							<tool id="cuda.toolchain.gnu.assembler.1483216656" name="GCC Assembler" superClass="cuda.toolchain.gnu.assembler">
-								<option id="gnu.both.asm.option.include.paths.1985760671" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
-									<listOptionValue builtIn="false" value="/res1/software/cula/include"/>
-								</option>
+								<option id="gnu.both.asm.option.include.paths.1985760671" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.410979459" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.archiver.1900635836" name="GCC Archiver" superClass="cuda.toolchain.gnu.archiver"/>
