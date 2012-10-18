@@ -27,10 +27,12 @@ class DataModel : public capputils::reflection::ReflectableClass {
   InitReflectableClass(DataModel)
 
   Property(LibraryName, std::string)
+  Property(OnlyClass, std::string)
+  Property(Verbose, bool)
   Property(Help, bool)
 
 public:
-  DataModel() : _Help(false) { }
+  DataModel() : _Verbose(false), _Help(false) { }
 
 };
 
@@ -39,6 +41,10 @@ BeginPropertyDefinitions(DataModel)
 
   DefineProperty(LibraryName, Filename(), FileExists(),
       Description("Name of the library that will be parsed."))
+  DefineProperty(OnlyClass,
+      Description("Only the class with the given name will be parsed for interfaces. All classes are parsed when empty."))
+  DefineProperty(Verbose, Flag(),
+      Description("Show more information."))
   DefineProperty(Help, Flag(),
       Description("Shows this help."))
 
@@ -68,6 +74,15 @@ int main(int argc, char** argv) {
 
 	std::cout << "Generating interfaces ..." << std::endl;
 	for (unsigned i = 0; i < names.size(); ++i) {
+	  if (model.getVerbose())
+	    std::cout << "  Found class: '" << names[i] << "'" << std::flush;
+	  if (model.getOnlyClass().size() && model.getOnlyClass() != names[i]) {
+	    if (model.getVerbose())
+	      std::cout << " SKIPPED!" << std::endl;
+	    continue;
+	  } else if (model.getVerbose()) {
+	    std::cout << std::endl;
+	  }
 	  boost::shared_ptr<ReflectableClass> object(factory.newInstance(names[i]));
 	  std::vector<IClassProperty*>& properties = object->getProperties();
 	  for (unsigned iProp = 0; iProp < properties.size(); ++iProp) {

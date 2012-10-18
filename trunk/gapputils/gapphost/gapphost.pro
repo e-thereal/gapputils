@@ -69,8 +69,7 @@ RESOURCES = res.qrc
           
 CONFIG += no_keywords console
 
-debug {
-  CONFIG -= release
+CONFIG(debug, debug|release) {
   QMAKE_CXXFLAGS += -pg
   QMAKE_LFLAGS += -pg
   LIBS += -pg
@@ -78,13 +77,15 @@ debug {
   LIBS += -L"../../capputils/Debug"
   LIBS += -L"../../gapputils/Debug"
   LIBS += -lgapputilsd -lcapputilsd -ltinyxmld
+  message("Debug build")
 }
 
-release {
+CONFIG(release, debug|release) {
   LIBS += -L"../../tinyxml/Release"
   LIBS += -L"../../capputils/Release"
   LIBS += -L"../../gapputils/Release"
   LIBS += -lgapputils -lcapputils -ltinyxml
+  message("Release build")
 }
 
 QMAKE_CXXFLAGS += -std=c++0x
@@ -99,4 +100,4 @@ LIBS += -Wl,-E
 LIBS += -L${CUDA_LIB_PATH}
 LIBS += -L${CULA_LIB_PATH}
 LIBS += -L${RESPROG_LIB_PATH}
-LIBS += -lboost_iostreams -lcudart -lcula_core -lcula_lapack -lcublas -lz
+LIBS += -lboost_iostreams -lcudart -lcula_lapack -lcublas -lz
