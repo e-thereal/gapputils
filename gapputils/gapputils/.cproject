@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.lib.release.1107552487">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.release.1107552487" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -9,7 +7,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils/Release"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gapputils"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gapputils" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -18,10 +16,11 @@
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.lib.release.1107552487" name="Release" parent="cdt.managedbuild.config.gnu.lib.release">
+				<configuration artifactExtension="so" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.lib.release.1107552487" name="Release" parent="cdt.managedbuild.config.gnu.lib.release">
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.release.1107552487." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.release.140360794" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.release">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.release.1953010774" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.release"/>
@@ -31,27 +30,40 @@
 								<option id="gnu.cpp.compiler.lib.release.option.optimization.level.1158086907" name="Optimization Level" superClass="gnu.cpp.compiler.lib.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.lib.release.option.debugging.level.1997360856" name="Debug Level" superClass="gnu.cpp.compiler.lib.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.715369139" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RESPROG_INC_PATH}&quot;"/>
 								</option>
+								<option id="gnu.cpp.compiler.option.other.pic.694762072" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.other.other.1261586448" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.41083157" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.release.682510676" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.release">
 								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.lib.release.option.optimization.level.779025466" name="Optimization Level" superClass="gnu.c.compiler.lib.release.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.lib.release.option.debugging.level.878244595" name="Debug Level" superClass="gnu.c.compiler.lib.release.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.include.paths.72291646" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
-								</option>
+								<option id="gnu.c.compiler.option.include.paths.72291646" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1175994873" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1221856128" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1248134710" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base"/>
-							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.release.1381583935" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.release">
-								<option id="gnu.both.asm.option.include.paths.1851698832" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1221856128" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
+								<option defaultValue="true" id="gnu.c.link.option.shared.2086989691" name="Shared (-shared)" superClass="gnu.c.link.option.shared" valueType="boolean"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1248134710" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base">
+								<option defaultValue="true" id="gnu.cpp.link.option.shared.1201056605" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
+								<option id="gnu.cpp.link.option.paths.1112265943" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${RESPROG_LIB_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Release}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Release}&quot;"/>
 								</option>
+								<option id="gnu.cpp.link.option.libs.1799858557" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="capputils"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="tinyxml"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.602543123" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.release.1381583935" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.release">
+								<option id="gnu.both.asm.option.include.paths.1851698832" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.629712392" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
@@ -63,13 +75,13 @@
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.lib.debug.520549529.1615196657">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.debug.520549529.1615196657" moduleId="org.eclipse.cdt.core.settings" name="Debug Shared">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.debug.520549529.1615196657" moduleId="org.eclipse.cdt.core.settings" name="Debug">
 				<externalSettings>
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils/Debug"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils/Debug Shared"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gapputils"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gapputilsd" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -82,30 +94,28 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="so" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.lib.debug.520549529.1615196657" name="Debug Shared" parent="cdt.managedbuild.config.gnu.lib.debug">
+				<configuration artifactExtension="so" artifactName="${ProjName}d" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.lib.debug.520549529.1615196657" name="Debug" parent="cdt.managedbuild.config.gnu.lib.debug">
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.520549529.1615196657." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.1016213831" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug.1245993272" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
-							<builder buildPath="${workspace_loc:/gapputils/Debug}" enableAutoBuild="true" id="cdt.managedbuild.target.gnu.builder.lib.debug.2125567971" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="-3" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
+							<builder buildPath="${workspace_loc:/gapputils/Debug}" enableAutoBuild="true" id="cdt.managedbuild.target.gnu.builder.lib.debug.2125567971" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="unlimited" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.debug.1254223576" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.691979895" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug">
 								<option id="gnu.cpp.compiler.lib.debug.option.optimization.level.123007227" name="Optimization Level" superClass="gnu.cpp.compiler.lib.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.lib.debug.option.debugging.level.1327741402" name="Debug Level" superClass="gnu.cpp.compiler.lib.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1519642105" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RESPROG_INC_PATH}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.1939656149" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.debugging.gprof.2083011754" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.other.pic.2060448147" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.245103770" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.373597819" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.lib.debug.option.optimization.level.1075866156" name="Optimization Level" superClass="gnu.c.compiler.lib.debug.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.lib.debug.option.debugging.level.1782344931" name="Debug Level" superClass="gnu.c.compiler.lib.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.include.paths.1468980067" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
-								</option>
+								<option id="gnu.c.compiler.option.include.paths.1468980067" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath"/>
 								<option id="gnu.c.compiler.option.debugging.gprof.1986757418" name="Generate gprof information (-pg)" superClass="gnu.c.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.767903462" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -116,12 +126,12 @@
 								<option defaultValue="true" id="gnu.cpp.link.option.shared.162871523" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.2137604193" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/tinyxml/Debug}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug Shared}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/tombr/lib"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/capputils/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RESPROG_LIB_PATH}&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.1300639943" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="tinyxml"/>
-									<listOptionValue builtIn="false" value="capputils"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="tinyxmld"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="capputilsd"/>
 								</option>
 								<option id="gnu.cpp.link.option.debugging.gprof.587178581" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.256259924" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -130,151 +140,8 @@
 								</inputType>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.debug.1868022830" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug">
-								<option id="gnu.both.asm.option.include.paths.1331222064" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/tombr/Projects"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
-								</option>
+								<option id="gnu.both.asm.option.include.paths.1331222064" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1622173686" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
-							</tool>
-						</toolChain>
-					</folderInfo>
-				</configuration>
-			</storageModule>
-			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
-			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
-			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-		</cconfiguration>
-		<cconfiguration id="cdt.managedbuild.config.gnu.lib.release.1107552487.1343676910">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.release.1107552487.1343676910" moduleId="org.eclipse.cdt.core.settings" name="Release64">
-				<externalSettings>
-					<externalSetting>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils/Release64"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gapputils"/>
-					</externalSetting>
-				</externalSettings>
-				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
-					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-				</extensions>
-			</storageModule>
-			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="so" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.lib.release.1107552487.1343676910" name="Release64" parent="cdt.managedbuild.config.gnu.lib.release">
-					<folderInfo id="cdt.managedbuild.config.gnu.lib.release.1107552487.1343676910." name="/" resourcePath="">
-						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.release.2113043574" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.release">
-							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.release.1974355111" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.release"/>
-							<builder buildPath="${workspace_loc:/gapputils/Release}" id="cdt.managedbuild.target.gnu.builder.lib.release.132387943" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="7" superClass="cdt.managedbuild.target.gnu.builder.lib.release"/>
-							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.release.855809522" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.release"/>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.901395317" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release">
-								<option id="gnu.cpp.compiler.lib.release.option.optimization.level.1742095425" name="Optimization Level" superClass="gnu.cpp.compiler.lib.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.lib.release.option.debugging.level.926838779" name="Debug Level" superClass="gnu.cpp.compiler.lib.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.include.paths.1440135285" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/res1/software/usr/include"/>
-								</option>
-								<option id="gnu.cpp.compiler.option.other.pic.36342559" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
-								<option id="gnu.cpp.compiler.option.other.other.750976935" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
-								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1294219110" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
-							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.release.321747341" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.release">
-								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.lib.release.option.optimization.level.617448593" name="Optimization Level" superClass="gnu.c.compiler.lib.release.option.optimization.level" valueType="enumerated"/>
-								<option id="gnu.c.compiler.lib.release.option.debugging.level.1013135862" name="Debug Level" superClass="gnu.c.compiler.lib.release.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.include.paths.2104714192" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath"/>
-								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2010062489" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.753556507" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
-								<option defaultValue="true" id="gnu.c.link.option.shared.243413199" name="Shared (-shared)" superClass="gnu.c.link.option.shared" valueType="boolean"/>
-							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.902656934" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base">
-								<option defaultValue="true" id="gnu.cpp.link.option.shared.1961308045" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
-								<option id="gnu.cpp.link.option.paths.127246708" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/res1/software/usr/lib64"/>
-								</option>
-								<option id="gnu.cpp.link.option.libs.422751078" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="tinyxml"/>
-									<listOptionValue builtIn="false" value="capputils"/>
-								</option>
-								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.883600861" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
-									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
-									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
-								</inputType>
-							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.release.834137675" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.release">
-								<option id="gnu.both.asm.option.include.paths.110218678" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath"/>
-								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1438401989" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
-							</tool>
-						</toolChain>
-					</folderInfo>
-				</configuration>
-			</storageModule>
-			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
-			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
-			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-		</cconfiguration>
-		<cconfiguration id="cdt.managedbuild.config.gnu.lib.debug.520549529.1395581621">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.debug.520549529.1395581621" moduleId="org.eclipse.cdt.core.settings" name="Debug64">
-				<externalSettings>
-					<externalSetting>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils/Debug64"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gapputilsd"/>
-					</externalSetting>
-				</externalSettings>
-				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
-					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-				</extensions>
-			</storageModule>
-			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="so" artifactName="${ProjName}d" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.lib.debug.520549529.1395581621" name="Debug64" parent="cdt.managedbuild.config.gnu.lib.debug">
-					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.520549529.1395581621." name="/" resourcePath="">
-						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.2045739560" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.debug">
-							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug.76181998" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
-							<builder buildPath="${workspace_loc:/gapputils/Debug}" enableAutoBuild="true" id="cdt.managedbuild.target.gnu.builder.lib.debug.402608599" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="7" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
-							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.debug.1735326598" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug"/>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.2117367005" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug">
-								<option id="gnu.cpp.compiler.lib.debug.option.optimization.level.498229639" name="Optimization Level" superClass="gnu.cpp.compiler.lib.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.lib.debug.option.debugging.level.509222079" name="Debug Level" superClass="gnu.cpp.compiler.lib.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.include.paths.1049317601" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/res1/software/usr/include"/>
-								</option>
-								<option id="gnu.cpp.compiler.option.other.other.984451506" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
-								<option id="gnu.cpp.compiler.option.other.pic.1570610374" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
-								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.824085451" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
-							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.678870196" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
-								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.lib.debug.option.optimization.level.854866518" name="Optimization Level" superClass="gnu.c.compiler.lib.debug.option.optimization.level" valueType="enumerated"/>
-								<option id="gnu.c.compiler.lib.debug.option.debugging.level.1241947926" name="Debug Level" superClass="gnu.c.compiler.lib.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.include.paths.1391047628" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath"/>
-								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2119495720" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1026933064" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
-								<option defaultValue="true" id="gnu.c.link.option.shared.1339566226" name="Shared (-shared)" superClass="gnu.c.link.option.shared" valueType="boolean"/>
-							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.200586594" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base">
-								<option defaultValue="true" id="gnu.cpp.link.option.shared.422690716" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
-								<option id="gnu.cpp.link.option.paths.1507261563" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/res1/software/usr/lib64"/>
-								</option>
-								<option id="gnu.cpp.link.option.libs.1304788341" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="tinyxml"/>
-									<listOptionValue builtIn="false" value="capputils"/>
-								</option>
-								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.707694709" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
-									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
-									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
-								</inputType>
-							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.debug.1670040170" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug">
-								<option id="gnu.both.asm.option.include.paths.539763782" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath"/>
-								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.963006927" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
@@ -765,4 +632,5 @@
 			</profile>
 		</scannerConfigBuildInfo>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 </cproject>
