@@ -59,7 +59,9 @@ SOURCES = FromRgb.cpp \
           cuda_util.cpp \
           SplitSlices.cpp \
           CudaImageInterface.cpp \
-          Convolve.cpp
+          Convolve.cpp \
+          Interfaces.cpp \
+          QtImage.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \
@@ -78,29 +80,59 @@ HEADERS = FromRgb.h \
           
 TEMPLATE = lib
 TARGET = gapputils.cv
-CONFIG += no_keywords debug dll
-QMAKE_CXXFLAGS += -std=c++0x -pg
-QMAKE_LFLAGS += -pg
-INCLUDEPATH += /home/tombr/Projects
-INCLUDEPATH += /home/tombr/include
-INCLUDEPATH += /res1/software/cuda/include
-INCLUDEPATH += /res1/software/cula/include
-INCLUDEPATH += /res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc
+CONFIG += no_keywords dll
+
+CONFIG(debug, debug|release) {
+  QMAKE_CXXFLAGS += -pg
+  QMAKE_LFLAGS += -pg
+  LIBS += -pg
+  
+  LIBS += -L"../../tinyxml/Debug"
+  LIBS += -L"../../capputils/Debug"
+  LIBS += -L"../../gapputils/Debug"
+  LIBS += -lgapputilsd -lcapputilsd -ltinyxmld
+  
+  LIBS += -L"../../culib/Debug"
+  LIBS += -L"../../tbblas/Debug"
+  LIBS += -L"../../optlib/Debug"
+  LIBS += -L"../../regutil/Debug"
+  LIBS += -L"../../gapputils.cv.cuda/Debug"
+  LIBS += -lgapputils.cv.cuda -lregutil -loptlib -lculib -ltbblas
+  
+  message("Debug build.")
+}
+
+CONFIG(release, debug|release) {
+  LIBS += -L"../../tinyxml/Release"
+  LIBS += -L"../../capputils/Release"
+  LIBS += -L"../../gapputils/Release"
+  LIBS += -lgapputils -lcapputils -ltinyxml
+  
+  LIBS += -L"../../culib/Debug"
+  LIBS += -L"../../tbblas/Debug"
+  LIBS += -L"../../optlib/Debug"
+  LIBS += -L"../../regutil/Debug"
+  LIBS += -L"../../gapputils.cv.cuda/Debug"
+  LIBS += -lgapputils.cv.cuda -lregutil -loptlib -lculib -ltbblas
+  message("Release build.")
+}
+
+QMAKE_CXXFLAGS += -std=c++0x
+
+INCLUDEPATH += ".."
+INCLUDEPATH += ${RESPROG_INC_PATH}
+INCLUDEPATH += ${CUDA_INC_PATH}
+INCLUDEPATH += ${CUDASDK_INC_PATH}
+INCLUDEPATH += ${CULA_INC_PATH}
+
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/cmif
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/utilities
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/ctrace
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/carray
+
 LIBS += -Wl,-E -pg
-LIBS += -L/home/tombr/Projects/tinyxml/Debug
-LIBS += -L"/home/tombr/Projects/capputils/Debug Shared"
-LIBS += -L"/home/tombr/Projects/gapputils/Debug Shared"
-LIBS += -L"/home/tombr/Projects/culib/Debug"
-LIBS += -L"/home/tombr/Projects/tbblas/Debug"
-LIBS += -L"/home/tombr/Projects/optlib/Debug"
-LIBS += -L"/home/tombr/Projects/regutil/Default"
-LIBS += -L"/home/tombr/Projects/gapputils.cv.cuda/Debug"
-LIBS += -L"/res1/software/cuda/lib"
-LIBS += -L"/res1/software/cula/lib"
-LIBS += -L/home/tombr/lib
-LIBS += -lgapputils -lcapputils -ltinyxml -lboost_signals -lboost_filesystem -lgapputils.cv.cuda -lregutil -loptlib -lculib -lcudart -lcublas -lcufft -lcula_core -lcula_lapack -ltbblas
+LIBS += -L${CUDA_LIB_PATH}
+LIBS += -L${CULA_LIB_PATH}
+LIBS += -L${RESPROG_LIB_PATH}
+LIBS +=  -lcudart -lcublas -lcufft -lcula_core -lcula_lapack
 LIBS += -lcmif_v5_3 -lutilities_v3_2 -lz
