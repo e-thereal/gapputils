@@ -67,20 +67,37 @@ HEADERS = MainWindow.h \
           
 RESOURCES = res.qrc
           
-CONFIG += no_keywords debug console
-QMAKE_CXXFLAGS += -std=c++0x -pg
-QMAKE_LFLAGS += -pg
-INCLUDEPATH += /home/tombr/Projects
-INCLUDEPATH += /home/tombr/include
-INCLUDEPATH += /res1/software/cuda/include
-INCLUDEPATH += /res1/software/cula/include
+CONFIG += no_keywords console
+
+debug {
+  CONFIG -= release
+  QMAKE_CXXFLAGS += -pg
+  QMAKE_LFLAGS += -pg
+  LIBS += -pg
+  LIBS += -L"../../tinyxml/Debug"
+  LIBS += -L"../../capputils/Debug"
+  LIBS += -L"../../gapputils/Debug"
+  LIBS += -lgapputilsd -lcapputilsd -ltinyxmld
+}
+
+release {
+  LIBS += -L"../../tinyxml/Release"
+  LIBS += -L"../../capputils/Release"
+  LIBS += -L"../../gapputils/Release"
+  LIBS += -lgapputils -lcapputils -ltinyxml
+}
+
+QMAKE_CXXFLAGS += -std=c++0x
+
+INCLUDEPATH += ".."
+INCLUDEPATH += ${RESPROG_INC_PATH}
+INCLUDEPATH += ${CUDA_INC_PATH}
+INCLUDEPATH += ${CULA_INC_PATH}
 INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/utilities
 DEFINES += GAPPHOST_CULA_SUPPORT
-LIBS += -Wl,-E -pg
-LIBS += -L/home/tombr/Projects/tinyxml/Debug
-LIBS += -L"/home/tombr/Projects/capputils/Debug Shared"
-LIBS += -L"/home/tombr/Projects/gapputils/Debug Shared"
-LIBS += -L"/res1/software/cuda/lib"
-LIBS += -L"/res1/software/cula/lib"
-LIBS += -L/home/tombr/lib
-LIBS += -lgapputils -lcapputils -ltinyxml -lboost_iostreams -lboost_signals -lboost_filesystem -lcudart -lcula_core -lcula_lapack -lcublas -lz
+
+LIBS += -Wl,-E
+LIBS += -L${CUDA_LIB_PATH}
+LIBS += -L${CULA_LIB_PATH}
+LIBS += -L${RESPROG_LIB_PATH}
+LIBS += -lboost_iostreams -lcudart -lcula_core -lcula_lapack -lcublas -lz
