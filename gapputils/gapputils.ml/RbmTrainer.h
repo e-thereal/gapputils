@@ -8,7 +8,7 @@
 #ifndef GAPPUTILS_ML_RBMTRAINER_H_
 #define GAPPUTILS_ML_RBMTRAINER_H_
 
-#include <gapputils/WorkflowElement.h>
+#include <gapputils/DefaultWorkflowElement.h>
 #include <boost/shared_ptr.hpp>
 
 #include "RbmModel.h"
@@ -17,7 +17,7 @@ namespace gapputils {
 
 namespace ml {
 
-class RbmTrainer : public gapputils::workflow::WorkflowElement {
+class RbmTrainer : public workflow::DefaultWorkflowElement<RbmTrainer> {
 
   InitReflectableClass(RbmTrainer)
 
@@ -39,17 +39,12 @@ class RbmTrainer : public gapputils::workflow::WorkflowElement {
   //Property(PosData, boost::shared_ptr<std::vector<float> >)
   //Property(NegData, boost::shared_ptr<std::vector<float> >)
 
-private:
-  mutable RbmTrainer* data;
-
 public:
   RbmTrainer();
   virtual ~RbmTrainer();
 
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
-
-  void changedHandler(capputils::ObservableClass* sender, int eventId);
+protected:
+  virtual void update(workflow::IProgressMonitor* monitor) const;
 };
 
 }

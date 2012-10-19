@@ -8,7 +8,7 @@
 
 #include "RbmTrainer.h"
 
-#include <capputils/Verifier.h>
+#include <capputils/Logbook.h>
 
 #include <boost/progress.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -61,30 +61,24 @@ T operator()(const T& x, const T& y) const {
 
 };
 
-void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace thrust::placeholders;
+  using capputils::Severity;
+
   boost::timer timer;
+  capputils::Logbook& dlog = getLogbook();
+  dlog.setSeverity(Severity::Trace);
 
-  if (!data)
-    data = new RbmTrainer();
-
-  if (!capputils::Verifier::Valid(*this))
-    return;
-
-  if (!getTrainingSet()) {
-    std::cout << "[Warning] Missing training set!" << std::endl;
-    return;
-  }
   if (getVisibleCount() <= 0) {
-    std::cout << "[Warning] VisibleCount must be greater than 0!" << std::endl;
+    dlog(Severity::Warning) << "VisibleCount must be greater than 0!";
     return;
   }
   if (getTrainingSet()->size() % getVisibleCount()) {
-    std::cout << "[Warning] Training set size must be a multiple of VisibleCount!" << std::endl;
+    dlog(Severity::Warning) << "Training set size must be a multiple of VisibleCount!";
     return;
   }
 
-  std::cout << "Building RBM ..." << std::endl;
+  dlog() << "Building RBM ...";
 
   // Calculate the mean and the std of all features
   const unsigned visibleCount = getVisibleCount();
@@ -113,7 +107,7 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     for (unsigned iCol = 0; iCol < X.size2(); ++iCol)
       means(iCol) = mean;
 
-    std::cout << "[Info] Means (" << mean << ") calculated: " << timer.elapsed() << " s" << std::endl;
+    dlog() << "Means (" << mean << ") calculated: " << timer.elapsed() << " s";
 
     tbblas::device_vector<float>& stds = *visibleStds;
     thrust::transform(X.data().begin(), X.data().end(), X.data().begin(), _1 - mean);
@@ -122,18 +116,18 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     for (unsigned iCol = 0; iCol < X.size2(); ++iCol)
       stds(iCol) = stddev;
 
-    std::cout << "[Info] Standard deviations calculated: " << timer.elapsed() << " s" << std::endl;
+    dlog() << "Standard deviations calculated: " << timer.elapsed() << " s";
 
     // Apply feature scaling to training set
     thrust::transform(X.data().begin(), X.data().end(), X.data().begin(), _1 / stddev);
-    std::cout << "[Info] Design matrix standardized: " << timer.elapsed() << " s" << std::endl;
+    dlog() << "Design matrix standardized: " << timer.elapsed() << " s";
   }
 
   for (unsigned i = X.size1() - 1; i > 0; --i) {
     unsigned j = rand() % (i + 1);
     tbblas::row(X, i).swap(tbblas::row(X, j));
   }
-  std::cout << "[Info] Rows shuffled: " << timer.elapsed() << " s" << std::endl;
+  dlog() << "Rows shuffled: " << timer.elapsed() << " s";
 
   // Train the RBM
   // Initialize weights and bias terms
@@ -159,7 +153,7 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   // Initialize bias terms
   thrust::fill(b.data().begin(), b.data().end(), 0.f);
   thrust::fill(c.data().begin(), c.data().end(), getInitialHidden());
-  std::cout << "[Info] RBM initialized: " << timer.elapsed() << " s" << std::endl;
+  dlog() << "RBM initialized: " << timer.elapsed() << " s";
 
   rbm->setWeightMatrix(weightMatrix);
   rbm->setVisibleBiases(visibleBiases);
@@ -213,11 +207,11 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
       (getShowWeights() == -1 ? visibleCount * hiddenCount : getShowWeights() * visibleCount) :
       0);
   boost::shared_ptr<std::vector<float> > vW(new std::vector<float>(cDebugWeight));
-  data->setWeights(vW);
+  newState->setWeights(vW);
 
   //boost::progress_timer progresstimer;
-  std::cout << "[Info] Preparation finished after " << timer.elapsed() << " s" << std::endl;
-  std::cout << "[Info] Starting training" << std::endl;
+  dlog() << "Preparation finished after " << timer.elapsed() << " s";
+  dlog() << "Starting training";
   timer.restart();
   for (int iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
 
@@ -321,8 +315,8 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     int sec = eta % 60;
     int minutes = (eta / 60) % 60;
     int hours = eta / 3600;
-    std::cout << "Epoch " << iEpoch << " error " << (error / sampleCount) << " after " << timer.elapsed() << "s. ETA: "
-        << hours << " h " << minutes << " min " << sec << " s" << std::endl;
+    dlog() << "Epoch " << iEpoch << " error " << (error / sampleCount) << " after " << timer.elapsed() << "s. ETA: "
+        << hours << " h " << minutes << " min " << sec << " s";
 
     if (monitor && getShowWeights() && (iEpoch % getShowEvery() == 0)) {
       thrust::copy(W.data().begin(), W.data().begin() + vW->size(), vW->begin());
@@ -331,7 +325,7 @@ void RbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   }
 
   thrust::copy(W.data().begin(), W.data().begin() + vW->size(), vW->begin());
-  data->setRbmModel(rbm);
+  newState->setRbmModel(rbm);
   //data->setPosData(debugPosData);
   //data->setNegData(debugNegData);
 }
