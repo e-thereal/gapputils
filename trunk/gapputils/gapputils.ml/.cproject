@@ -145,10 +145,10 @@
 								<option id="cuda.toolchain.compiler.option.debugging.level.148611815" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level" value="cuda.toolchain.compiler.option.debugging.level.none" valueType="enumerated"/>
 								<option id="cuda.toolchain.compiler.option.misc.other.1378138567" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot;" valueType="string"/>
 								<option id="cuda.toolchain.compiler.general.incpath.2072967477" name="Include paths (-I)" superClass="cuda.toolchain.compiler.general.incpath" valueType="includePath">
-									<listOptionValue builtIn="false" value="/res1/software/cula/include"/>
-									<listOptionValue builtIn="false" value="/res1/software/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
-									<listOptionValue builtIn="false" value="/home/tombr/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CULA_INC_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${RESPROG_INC_PATH}&quot;"/>
 								</option>
 								<inputType id="cuda.toolchain.compiler.input.680607473" superClass="cuda.toolchain.compiler.input"/>
 							</tool>

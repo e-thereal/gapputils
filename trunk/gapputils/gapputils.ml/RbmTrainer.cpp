@@ -51,23 +51,23 @@ namespace ml {
 
 BeginPropertyDefinitions(RbmTrainer)
 
-  ReflectableBase(gapputils::workflow::WorkflowElement)
+  ReflectableBase(gapputils::workflow::DefaultWorkflowElement<RbmTrainer>)
 
-  DefineProperty(TrainingSet, Input("Data"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
-  DefineProperty(RbmModel, Output("RBM"), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
-  DefineProperty(VisibleCount, Observe(Id), TimeStamp(Id))
-  DefineProperty(HiddenCount, Observe(Id), TimeStamp(Id))
-  DefineProperty(SampleHiddens, Observe(Id), TimeStamp(Id))
-  DefineProperty(EpochCount, Observe(Id), TimeStamp(Id))
-  DefineProperty(BatchSize, Observe(Id), TimeStamp(Id))
-  DefineProperty(LearningRate, Observe(Id), TimeStamp(Id))
-  DefineProperty(InitialHidden, Observe(Id), TimeStamp(Id))
-  DefineProperty(SparsityTarget, Observe(Id), TimeStamp(Id))
-  DefineProperty(SparsityWeight, Observe(Id), TimeStamp(Id))
-  DefineProperty(IsGaussian, Observe(Id), TimeStamp(Id))
-  DefineProperty(Weights, Output("W"), Volatile(), ReadOnly(), Observe(Id))
-  DefineProperty(ShowWeights, Description("Only the first ShowWeights features are shown."), Observe(Id))
-  DefineProperty(ShowEvery, Description("Debug output is shown only every ShowEvery epochs."), Observe(Id))
+  WorkflowProperty(TrainingSet, Input("Data"), NotNull<Type>())
+  WorkflowProperty(RbmModel, Output("RBM"))
+  WorkflowProperty(VisibleCount)
+  WorkflowProperty(HiddenCount)
+  WorkflowProperty(SampleHiddens)
+  WorkflowProperty(EpochCount)
+  WorkflowProperty(BatchSize)
+  WorkflowProperty(LearningRate)
+  WorkflowProperty(InitialHidden)
+  WorkflowProperty(SparsityTarget)
+  WorkflowProperty(SparsityWeight)
+  WorkflowProperty(IsGaussian)
+  WorkflowProperty(Weights, Output("W"))
+  WorkflowProperty(ShowWeights, Description("Only the first ShowWeights features are shown."))
+  WorkflowProperty(ShowEvery, Description("Debug output is shown only every ShowEvery epochs."))
   //DefineProperty(PosData, Output("PD"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
   //DefineProperty(NegData, Output("ND"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
 
@@ -76,35 +76,16 @@ EndPropertyDefinitions
 RbmTrainer::RbmTrainer()
  : _VisibleCount(1), _HiddenCount(1), _SampleHiddens(true),
    _EpochCount(1), _BatchSize(10), _LearningRate(0.01f), _InitialHidden(0.f),
-   _SparsityTarget(0.1f), _SparsityWeight(0.1f), _IsGaussian(false), _ShowWeights(0), _ShowEvery(1), data(0)
+   _SparsityTarget(0.1f), _SparsityWeight(0.1f), _IsGaussian(false), _ShowWeights(0), _ShowEvery(1)
 {
-  WfeUpdateTimestamp
   setLabel("RbmTrainer");
-
-  Changed.connect(capputils::EventHandler<RbmTrainer>(this, &RbmTrainer::changedHandler));
 }
 
 RbmTrainer::~RbmTrainer() {
-  if (data)
-    delete data;
-}
-
-void RbmTrainer::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
 }
 
 template <class T>
 T square(const T& a) { return a * a; }
-
-void RbmTrainer::writeResults() {
-  if (!data)
-    return;
-
-  setRbmModel(data->getRbmModel());
-  setWeights(data->getWeights());
-  //setNegData(data->getNegData());
-  //setPosData(data->getPosData());
-}
 
 }
 
