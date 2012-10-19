@@ -32,6 +32,8 @@ namespace gapputils {
 
 namespace workflow {
 
+/** Results are only written when update is overloaded */
+
 template<class T>
 class DefaultWorkflowElement : public WorkflowElement {
 protected:

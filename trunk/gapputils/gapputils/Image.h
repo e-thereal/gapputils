@@ -89,7 +89,7 @@ public:
   const static unsigned dimCount = Base::dimCount;
 
   typedef typename Base::size_t size_t;
-  typedef typename Base::size_t value_t;
+  typedef typename Base::value_t value_t;
   typedef typename Base::dim_t dim_t;
 
 public:
