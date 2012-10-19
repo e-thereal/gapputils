@@ -9,6 +9,7 @@
 #include <capputils/EnumerableAttribute.h>
 #include <capputils/ReuseAttribute.h>
 #include <capputils/DescriptionAttribute.h>
+#include <capputils/FilenameAttribute.h>
 
 #include <cstdlib>
 
@@ -54,16 +55,18 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(RemainingLabel, Volatile())
   DefineProperty(TotalLabel, Volatile())
   DefineProperty(FinishedLabel, Volatile())
-  DefineProperty(Configuration, Volatile(),
+  DefineProperty(Configuration, Volatile(), Filename(),
       Description("Name of the workflow configuration file"))
-  DefineProperty(LibraryPath, Volatile(),
+  DefineProperty(LibraryPath, Volatile(), Filename(),
       Description("Path where default libraries are searched. The default value is read from 'GRAPEVINE_LIBRARY_PATH'"))
-  DefineProperty(LogfileName, Volatile(),
+  DefineProperty(LogfileName, Volatile(), Filename(),
       Description("Name of the file to which log messages will be written. Default is 'grapevine.log'."))
   DefineProperty(SaveConfiguration, Volatile(),
       Description("If set to true, the current configuration is saved when the program exists. Default is true."))
   DefineProperty(EmailLog, Volatile(),
       Description("If set, the final logfile will be send by e-mail to the given address."))
+  DefineProperty(GenerateBashCompletion, Volatile(), Filename(),
+      Description("Generates a bash_completion configuration file for grapevine."))
 EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;

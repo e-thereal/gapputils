@@ -13,6 +13,7 @@
 #include <capputils/FlagAttribute.h>
 #include <capputils/LibraryLoader.h>
 #include <capputils/ReflectableClassFactory.h>
+#include <capputils/GenerateBashCompletion.h>
 
 #include <capputils/ArgumentsParser.h>
 #include <capputils/Verifier.h>
@@ -28,6 +29,7 @@ class DataModel : public capputils::reflection::ReflectableClass {
 
   Property(LibraryName, std::string)
   Property(OnlyClass, std::string)
+  Property(GenerateBashCompletion, std::string)
   Property(Verbose, bool)
   Property(Help, bool)
 
@@ -43,6 +45,8 @@ BeginPropertyDefinitions(DataModel)
       Description("Name of the library that will be parsed."))
   DefineProperty(OnlyClass,
       Description("Only the class with the given name will be parsed for interfaces. All classes are parsed when empty."))
+  DefineProperty(GenerateBashCompletion, Filename(),
+      Description("Generates a bash_completion configuration file for this program (generate_interfaces)."))
   DefineProperty(Verbose, Flag(),
       Description("Show more information."))
   DefineProperty(Help, Flag(),
@@ -61,6 +65,12 @@ int main(int argc, char** argv) {
 	GenerateInterfaceAttribute* generateInterface;
 
 	ArgumentsParser::Parse(model, argc, argv);
+
+	if (model.getGenerateBashCompletion().size()) {
+    GenerateBashCompletion::Generate(argv[0], model, model.getGenerateBashCompletion());
+    return 0;
+  }
+
 	if (model.getHelp() || !Verifier::Valid(model)) {
 	  ArgumentsParser::PrintDefaultUsage(argv[0], model);
 	  return 0;

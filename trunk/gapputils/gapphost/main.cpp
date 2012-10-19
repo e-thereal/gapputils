@@ -16,6 +16,7 @@
 #include <iostream>
 #include <capputils/ReflectableClassFactory.h>
 #include <capputils/FactoryException.h>
+#include <capputils/GenerateBashCompletion.h>
 #include <sstream>
 
 #include "DataModel.h"
@@ -114,6 +115,17 @@ int main(int argc, char *argv[])
 #ifdef GAPPHOST_CULA_SUPPORT
     culaShutdown();
 #endif
+    return 0;
+  }
+
+  if (model.getGenerateBashCompletion().size()) {
+    GenerateBashCompletion::Generate(argv[0], model, model.getGenerateBashCompletion());
+
+    cublasShutdown();
+#ifdef GAPPHOST_CULA_SUPPORT
+    culaShutdown();
+#endif
+
     return 0;
   }
 
