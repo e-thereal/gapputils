@@ -20,7 +20,8 @@ class ExpandPixelFeatures : public workflow::DefaultWorkflowElement<ExpandPixelF
 
   Property(Features, boost::shared_ptr<std::vector<float> >)
   Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
-  Property(PixelCount, int)
+  Property(Width, int)
+  Property(Height, int)
   Property(FeatureCount, int)
 
 public:

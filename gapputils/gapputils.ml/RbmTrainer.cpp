@@ -65,6 +65,7 @@ BeginPropertyDefinitions(RbmTrainer)
   WorkflowProperty(SparsityTarget)
   WorkflowProperty(SparsityWeight)
   WorkflowProperty(IsGaussian)
+  WorkflowProperty(MakeBernoulli)
   WorkflowProperty(Weights, Output("W"))
   WorkflowProperty(ShowWeights, Description("Only the first ShowWeights features are shown."))
   WorkflowProperty(ShowEvery, Description("Debug output is shown only every ShowEvery epochs."))
@@ -76,7 +77,8 @@ EndPropertyDefinitions
 RbmTrainer::RbmTrainer()
  : _VisibleCount(1), _HiddenCount(1), _SampleHiddens(true),
    _EpochCount(1), _BatchSize(10), _LearningRate(0.01f), _InitialHidden(0.f),
-   _SparsityTarget(0.1f), _SparsityWeight(0.1f), _IsGaussian(false), _ShowWeights(0), _ShowEvery(1)
+   _SparsityTarget(0.1f), _SparsityWeight(0.1f), _IsGaussian(false),
+   _MakeBernoulli(false), _ShowWeights(0), _ShowEvery(1)
 {
   setLabel("RbmTrainer");
 }

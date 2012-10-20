@@ -121,6 +121,34 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
     // Apply feature scaling to training set
     thrust::transform(X.data().begin(), X.data().end(), X.data().begin(), _1 / stddev);
     dlog() << "Design matrix standardized: " << timer.elapsed() << " s";
+  } else if (getMakeBernoulli()) {
+    thrust::device_vector<float> mins(visibleCount);
+    thrust::copy(X.data().begin(), X.data().begin() + visibleCount, mins.begin());
+
+    for (size_t i = 1; i < sampleCount; ++i) {
+      thrust::transform(X.data().begin() + i * visibleCount,
+          X.data().begin() + i * (visibleCount + 1),
+          mins.begin(), mins.begin(), thrust::minimum<float>());
+    }
+
+    thrust::device_vector<float> maxs(visibleCount);
+    thrust::copy(X.data().begin(), X.data().begin() + visibleCount, maxs.begin());
+
+    for (size_t i = 1; i < sampleCount; ++i) {
+      thrust::transform(X.data().begin() + i * visibleCount,
+          X.data().begin() + i * (visibleCount + 1),
+          maxs.begin(), maxs.begin(), thrust::maximum<float>());
+    }
+
+    thrust::copy(mins.begin(), mins.end(), visibleMeans->data().begin());
+    thrust::transform(mins.begin(), mins.end(), maxs.begin(), visibleStds->data().begin(), _2 - _1 + 1e-6f);
+
+    for (size_t offset = 0; offset < X.data().size(); offset += visibleCount) {
+      thrust::transform(mins.begin(), mins.end(), X.data().begin() + offset,
+          X.data().begin() + offset, _2 - _1);
+      thrust::transform(visibleStds->data().begin(), visibleStds->data().end(),
+          X.data().begin() + offset, X.data().begin() + offset, _2 / _1);
+    }
   }
 
   for (unsigned i = X.size1() - 1; i > 0; --i) {

@@ -19,13 +19,15 @@ BeginPropertyDefinitions(GroupPixelFeatures)
 
   WorkflowProperty(Images, Input("Imgs"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Features, Output("Data"));
+  WorkflowProperty(Width, NoParameter())
+  WorkflowProperty(Height, NoParameter())
   WorkflowProperty(PixelCount, NoParameter())
   WorkflowProperty(FeatureCount, NoParameter())
   WorkflowProperty(SampleCount, NoParameter())
 
 EndPropertyDefinitions
 
-GroupPixelFeatures::GroupPixelFeatures() : _PixelCount(0), _FeatureCount(0), _SampleCount(0) {
+GroupPixelFeatures::GroupPixelFeatures() : _Width(0), _Height(0), _PixelCount(0), _FeatureCount(0), _SampleCount(0) {
   setLabel("GroupPFs");
 }
 
@@ -42,7 +44,9 @@ void GroupPixelFeatures::update(workflow::IProgressMonitor* monitor) const {
 
   std::vector<boost::shared_ptr<image_t> >& images = *getImages();
 
-  const size_t pixelCount = images[0]->getSize()[0] * images[0]->getSize()[1];
+  const size_t width = images[0]->getSize()[0];
+  const size_t height = images[0]->getSize()[1];
+  const size_t pixelCount = width * height;
   const size_t featureCount = images[0]->getSize()[2];
 
   for (size_t iImage = 0; iImage < images.size(); ++iImage) {
@@ -55,6 +59,8 @@ void GroupPixelFeatures::update(workflow::IProgressMonitor* monitor) const {
     }
   }
 
+  newState->setWidth(width);
+  newState->setHeight(height);
   newState->setFeatures(features);
   newState->setFeatureCount(featureCount);
   newState->setPixelCount(pixelCount);

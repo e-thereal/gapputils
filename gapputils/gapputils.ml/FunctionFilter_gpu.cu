@@ -78,6 +78,8 @@ struct gpu_sigmoid {
 };
 
 void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+  using namespace thrust::placeholders;
+
   if (!data)
     data = new FunctionFilter();
 
@@ -124,6 +126,13 @@ void FunctionFilter::execute(gapputils::workflow::IProgressMonitor* monitor) con
     if (params) {
       thrust::transform(data.begin(), data.end(), data.begin(),
         gpu_sigmoid(params->getSlope(), params->getInflection()));
+    }
+    } break;
+
+  case FilterFunction::Threshold: {
+    ThresholdParameters* params = dynamic_cast<ThresholdParameters*>(getParameters().get());
+    if (params) {
+      thrust::transform(data.begin(), data.end(), data.begin(), _1 > params->getThreshold());
     }
     } break;
   }

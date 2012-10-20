@@ -21,6 +21,8 @@ class GroupPixelFeatures : public workflow::DefaultWorkflowElement<GroupPixelFea
 
   Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(Features, boost::shared_ptr<std::vector<float> >)
+  Property(Width, int)
+  Property(Height, int)
   Property(PixelCount, int)
   Property(FeatureCount, int)
   Property(SampleCount, int)

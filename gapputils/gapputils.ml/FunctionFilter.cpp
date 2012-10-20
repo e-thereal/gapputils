@@ -67,6 +67,12 @@ EndPropertyDefinitions
 
 SigmoidParameters::SigmoidParameters() : _Slope(1.f), _Inflection(0.5) { }
 
+BeginPropertyDefinitions(ThresholdParameters)
+  DefineProperty(Threshold)
+EndPropertyDefinitions
+
+ThresholdParameters::ThresholdParameters() : _Threshold(0.0f) { }
+
 int FunctionFilter::functionId;
 
 BeginPropertyDefinitions(FunctionFilter)
@@ -109,6 +115,10 @@ void FunctionFilter::changedHandler(capputils::ObservableClass* sender, int even
 
     case FilterFunction::Sigmoid:
       setParameters(boost::shared_ptr<SigmoidParameters>(new SigmoidParameters()));
+      break;
+
+    case FilterFunction::Threshold:
+      setParameters(boost::shared_ptr<ThresholdParameters>(new ThresholdParameters()));
       break;
     }
   }
