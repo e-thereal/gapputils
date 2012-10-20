@@ -11,6 +11,7 @@
 #include <gpusvm/svmClassify.h>
 
 #include <algorithm>
+#include <iostream>
 
 #include <cassert>
 #include <cstdlib>
@@ -86,6 +87,7 @@ dlib::matrix<double, 2, 1> SupportVectorClassifier::validate(std::vector<value_t
   }
   dlib::matrix<double, 2, 1> result;
   result = TP / NP, TN / NN;
+  std::cout << "TP: " << TP << "; NP: " << NP << "; TN: " << TN << "; NN: " << NN << std::endl;
   return result;
 }
 

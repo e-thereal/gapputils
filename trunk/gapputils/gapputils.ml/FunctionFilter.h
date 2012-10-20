@@ -17,7 +17,7 @@ namespace gapputils {
 
 namespace ml {
 
-CapputilsEnumerator(FilterFunction, Log, Sqrt, Bernstein, Gamma, Sigmoid);
+CapputilsEnumerator(FilterFunction, Log, Sqrt, Bernstein, Gamma, Sigmoid, Threshold);
 
 class FunctionParameters : public capputils::reflection::ReflectableClass,
                            public capputils::ObservableClass
@@ -60,6 +60,15 @@ class SigmoidParameters : public FunctionParameters {
 
 public:
   SigmoidParameters();
+};
+
+class ThresholdParameters : public FunctionParameters {
+  InitReflectableClass(ThresholdParameters)
+
+  Property(Threshold, float)
+
+public:
+  ThresholdParameters();
 };
 
 class FunctionFilter : public gapputils::workflow::WorkflowElement {

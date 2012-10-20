@@ -70,6 +70,8 @@ RESOURCES = res.qrc
 CONFIG += no_keywords console
 
 CONFIG(debug, debug|release) {
+  DEFINES += _DEBUG
+
   QMAKE_CXXFLAGS += -pg
   QMAKE_LFLAGS += -pg
   LIBS += -pg
@@ -81,6 +83,8 @@ CONFIG(debug, debug|release) {
 }
 
 CONFIG(release, debug|release) {
+  DEFINES += _RELEASE
+
   LIBS += -L"../../tinyxml/Release"
   LIBS += -L"../../capputils/Release"
   LIBS += -L"../../gapputils/Release"

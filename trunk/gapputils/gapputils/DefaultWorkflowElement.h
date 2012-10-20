@@ -13,6 +13,7 @@
 #include <capputils/DescriptionAttribute.h>
 #include <capputils/NotNullAttribute.h>
 #include <capputils/NotEmptyAttribute.h>
+#include <capputils/NotEqualAttribute.h>
 #include <capputils/EnumeratorAttribute.h>
 #include <capputils/VolatileAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>

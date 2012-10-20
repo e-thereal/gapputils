@@ -77,7 +77,13 @@ DataModel::DataModel(void) : _Run(false), _Help(false), _AutoReload(false),
     _WorkflowMap(new std::map<std::string, boost::weak_ptr<workflow::Workflow> >),
     _Configuration(".gapphost/config.xml"), _LogfileName("grapevine.log"), _SaveConfiguration(true)
 {
+#if defined(_RELEASE)
   char* path = std::getenv("GRAPEVINE_LIBRARY_PATH");
+#elif defined(_DEBUG)
+  char* path = std::getenv("GRAPEVINE_DEBUG_LIBRARY_PATH");
+#else
+#error "Neither _DEBUG nor _RELEASE has been defined."
+#endif
   if (path)
     setLibraryPath(path);
 }
