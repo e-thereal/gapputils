@@ -70,17 +70,26 @@ void WorkflowUpdater::run() {
 
       /*** Combiner case ***/
 
+      // Update input (this is important to know how many elements need to be processed
       // reset collection
       // while advance all collections
       // add all interface nodes to the stack
       // and update nodes
       // append results at the end
+
       std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
       std::vector<boost::shared_ptr<workflow::CollectionElement> > collectionElements;
       std::set<boost::shared_ptr<workflow::CollectionElement> > inputElements;
 
       bool needsUpdate = true;
       bool lastIteration = false;
+
+      checksumUpdater.update(node.lock());
+      for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+        if (workflow->isInputNode(interfaceNodes[i].lock()))
+          buildStack(interfaceNodes[i].lock());
+      }
+      updateNodes();
 
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
         boost::shared_ptr<workflow::CollectionElement> collection = boost::dynamic_pointer_cast<workflow::CollectionElement>(interfaceNodes[i].lock()->getModule());
