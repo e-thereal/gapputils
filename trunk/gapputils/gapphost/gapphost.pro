@@ -41,7 +41,8 @@ SOURCES = main.cpp \
 		  GlobalPropertiesView.cpp \
 		  ImageInterface.cpp \
 		  ImagesInterface.cpp \
-		  WorkbenchWindow.cpp
+		  WorkbenchWindow.cpp \
+		  TestModule.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -104,4 +105,4 @@ LIBS += -Wl,-E
 LIBS += -L${CUDA_LIB_PATH}
 LIBS += -L${CULA_LIB_PATH}
 LIBS += -L${RESPROG_LIB_PATH}
-LIBS += -lboost_iostreams -lcudart -lcula_lapack -lcublas -lz
+LIBS += -lboost_iostreams -lboost_filesystem -lboost_signals -lboost_system -lcudart -lcula_lapack -lcublas -lz
