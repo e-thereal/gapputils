@@ -17,6 +17,8 @@
 #include <gapputils/HideAttribute.h>
 #include <capputils/ShortNameAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
+#include "Workflow.h"
+#include <gapputils/WorkflowElement.h>
 
 #include "Node.h"
 
@@ -36,80 +38,108 @@ using namespace workflow;
 
 namespace host {
 
-void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node, const std::string& propertyPrefix = "") {
+void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node, const std::string& propertyPrefix = "");
+
+void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, int gridPos, const std::string& name = "")
+{
+  IClassProperty* property = ref.getProperty();
+  boost::shared_ptr<Node> node = ref.getNode();
+  string keyName = name;
+  if (!keyName.size()) {
+    keyName = property->getName();
+    ShortNameAttribute* shortName = property->getAttribute<ShortNameAttribute>();
+    if (shortName)
+      keyName = keyName + " (" + shortName->getName() + ")";
+  }
+  QStandardItem* key = new QStandardItem(keyName.c_str());
+  QStandardItem* value = new QStandardItem();
+  key->setEditable(false);
+  value->setData(QVariant::fromValue(ref), Qt::UserRole);
+
+  if (node->getGlobalProperty(ref)) {
+    QFont font = value->font();
+    font.setUnderline(true);
+    value->setFont(font);
+  }
+
+  if (node->getGlobalEdge(ref)) {
+    QFont font = value->font();
+    font.setItalic(true);
+    value->setFont(font);
+  }
+
+  DescriptionAttribute* description = property->getAttribute<DescriptionAttribute>();
+  if (description) {
+    key->setToolTip(description->getDescription().c_str());
+    value->setToolTip(description->getDescription().c_str());
+  }
+
+  if (property->getAttribute<LabelAttribute>()) {
+    QFont font = key->font();
+    font.setBold(true);
+    key->setFont(font);
+  }
+
+  if (property->getAttribute<ReadOnlyAttribute>()) {
+    value->setEditable(false);
+  }
+
+  IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
+  if (reflectable) {
+    ReflectableClass* subObject = reflectable->getValuePtr(*ref.getObject(), property);
+
+    // If the type of the reflectable object has changed, the subtree needs to be rebuild.
+    // You need to know the previous type in order to detect a changed. ScalarAttributes are
+    // no longer supported in order to guarantee, that the string value is always set to the
+    // previous type name.
+
+    if (subObject) {
+      value->setText(subObject->getClassName().c_str());
+      value->setEnabled(false);
+      buildModel(key, subObject, node.get(), ref.getPropertyId() + ".");
+    } else {
+      // TODO: report problem
+    }
+  } else {
+    value->setText(property->getStringValue(*ref.getObject()).c_str());
+  }
+  parentItem->setChild(gridPos, 0, key);
+  parentItem->setChild(gridPos, 1, value);
+}
+
+void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node, const std::string& propertyPrefix) {
   vector<IClassProperty*> properties = object->getProperties();
   parentItem->removeRows(0, parentItem->rowCount());
 
-  for (unsigned i = 0, gridPos = 0; i < properties.size(); ++i) {
+  unsigned gridPos = 0;
+  for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<HideAttribute>())
       continue;
 
-    string keyName = properties[i]->getName();
-    ShortNameAttribute* shortName = properties[i]->getAttribute<ShortNameAttribute>();
-    if (shortName)
-      keyName = keyName + " (" + shortName->getName() + ")";
-    QStandardItem* key = new QStandardItem(keyName.c_str());
-    QStandardItem* value = new QStandardItem();
-    key->setEditable(false);
     PropertyReference ref(node->getWorkflow().lock(), node->getUuid(), propertyPrefix + properties[i]->getName());
-    value->setData(QVariant::fromValue(ref), Qt::UserRole);
-
-    if (node->getGlobalProperty(ref)) {
-      QFont font = value->font();
-      font.setUnderline(true);
-      value->setFont(font);
-    }
-
-    if (node->getGlobalEdge(ref)) {
-      QFont font = value->font();
-      font.setItalic(true);
-      value->setFont(font);
-    }
-
-    DescriptionAttribute* description = properties[i]->getAttribute<DescriptionAttribute>();
-    if (description) {
-      key->setToolTip(description->getDescription().c_str());
-      value->setToolTip(description->getDescription().c_str());
-    }
-
-    if (properties[i]->getAttribute<LabelAttribute>()) {
-      QFont font = key->font();
-      font.setBold(true);
-      key->setFont(font);
-    }
-
-    if (properties[i]->getAttribute<ReadOnlyAttribute>()) {
-      value->setEditable(false);
-    }
-
-    IReflectableAttribute* reflectable = properties[i]->getAttribute<IReflectableAttribute>();
-    if (reflectable) {
-      ReflectableClass* subObject = reflectable->getValuePtr(*object, properties[i]);
-
-      // If the type of the reflectable object has changed, the subtree needs to be rebuild.
-      // You need to know the previous type in order to detect a changed. ScalarAttributes are
-      // no longer supported in order to guarantee, that the string value is always set to the
-      // previous type name.
-
-      if (subObject) {
-        //if (!subObject->getAttribute<ScalarAttribute>()) {
-        value->setText(subObject->getClassName().c_str());
-        value->setEnabled(false);
-        //} else {
-        //  value->setText(properties[i]->getStringValue(*object).c_str());
-        //}
-        buildModel(key, subObject, node, propertyPrefix + properties[i]->getName() + ".");
-      } else {
-        // TODO: report problem
-      }
-    } else {
-      value->setText(properties[i]->getStringValue(*object).c_str());
-    }
-    parentItem->setChild(gridPos, 0, key);
-    parentItem->setChild(gridPos, 1, value);
+    addPropertyRow(ref, parentItem, gridPos);
     ++gridPos;
   }
+
+  // If top level and workflow, add interface properties
+  Workflow* workflow = dynamic_cast<Workflow*>(node);
+  if (workflow && node->getModule().get() == object) {
+    std::vector<boost::weak_ptr<Node> >& nodes = workflow->getInterfaceNodes();
+    for (size_t i = 0; i < nodes.size(); ++i) {
+      PropertyReference ref(node->getWorkflow().lock(), node->getUuid(), propertyPrefix + nodes[i].lock()->getUuid());
+      WorkflowElement* element = dynamic_cast<WorkflowElement*>(nodes[i].lock()->getModule().get());
+      if (element)
+        addPropertyRow(ref, parentItem, gridPos, element->getLabel());
+      else
+        addPropertyRow(ref, parentItem, gridPos);
+      ++gridPos;
+    }
+  }
 }
+
+/**
+ * TODO: Implement the update of interface properties.
+ */
 
 void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node, const std::string& propertyPrefix = "") {
   vector<IClassProperty*> properties = object.getProperties();
