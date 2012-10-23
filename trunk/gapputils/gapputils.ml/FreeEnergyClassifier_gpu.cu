@@ -12,6 +12,8 @@
 #include <tbblas/device_matrix.hpp>
 #include <tbblas/device_vector.hpp>
 
+namespace ublas = boost::numeric::ublas;
+
 namespace gapputils {
 
 namespace ml {
@@ -46,13 +48,14 @@ void FreeEnergyClassifier::update(workflow::IProgressMonitor* monitor) const {
   float energy;
 
   if (b.size() != featureCount + 1) {
-    dlog(capputils::Severity::Warning) << "Numer of visibles must be equal to the dimension of the conditionals + 1. Abording!";
+    dlog(capputils::Severity::Warning) << "Number of visibles must be equal to the dimension of the conditionals + 1. Aborting!";
     return;
   }
 
   // diff = F(1) - F(0) = -F(0) + F(1) (I calculate -F, therefore, I calculate -F(0) first)
 
   for (size_t offset  = 0; offset < conditionals.size() && (monitor ? !monitor->getAbortRequested() : 1); offset += featureCount) {
+
     thrust::copy(conditionals.begin() + offset, conditionals.begin() + offset + featureCount, x.data().begin());
 
     if (rbm.getIsGaussian()) {

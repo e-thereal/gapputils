@@ -26,6 +26,7 @@ class TensorsToFeatures : public gapputils::workflow::WorkflowElement {
   Property(Width, int)
   Property(Height, int)
   Property(Depth, int)
+  Property(Count, int)
   Property(Features, boost::shared_ptr<std::vector<value_t> >)
   Property(Auto, bool)
 
