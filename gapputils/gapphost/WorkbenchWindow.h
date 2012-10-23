@@ -73,6 +73,7 @@ public:
 
   // Update stuff
   void updateCurrentModule();
+  void updateInputs();
   void updateOutputs();
   void abortUpdate();
 

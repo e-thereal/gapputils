@@ -202,6 +202,7 @@ void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) cons
 
         // Calculate p(h_k | v, F) = sigm((~F_k * v) + c_k)
         poshidstates = tbblas::conv(tbblas::flip(F[k]), v);
+//        poshidstates = tbblas::conv(F[k], v);
         poshidstates = poshidstates + c[k];               // x = ~F_k * v + c_k
 
         // I'm using the state array here for the sum. Not nice but works fine and saves some space
@@ -352,7 +353,7 @@ void ConvRbmEncoder::update(gapputils::workflow::IProgressMonitor* monitor) cons
                 unpooled.data().begin() + (k + 1) * layerVoxelCount,
                 padded[start, layerDim].begin());
 
-          vtemp = tbblas::conv(padded,F[k]);
+          vtemp = tbblas::conv(F[k], padded);
           vneg = vneg + vtemp;
         }
       } else {

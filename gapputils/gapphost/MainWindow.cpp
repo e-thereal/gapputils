@@ -473,6 +473,7 @@ void MainWindow::selectModule(const QString& quuid) {
 }
 
 void MainWindow::resetInputs() {
+  static_cast<WorkbenchWindow*>(area->currentSubWindow())->updateInputs();
   static_cast<WorkbenchWindow*>(area->currentSubWindow())->getWorkflow()->resetInputs();
 }
 

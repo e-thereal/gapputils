@@ -481,6 +481,10 @@ void WorkbenchWindow::updateCurrentModule() {
   workflowUpdater->update(node);
 }
 
+void WorkbenchWindow::updateInputs() {
+  // TODO: implement update inputs
+}
+
 void WorkbenchWindow::updateOutputs() {
   workflowUpdater->update(workflow.lock());
 }

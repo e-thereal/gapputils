@@ -38,12 +38,13 @@ BeginPropertyDefinitions(TensorsToFeatures)
   DefineProperty(Width, NoParameter(), Observe(Id))
   DefineProperty(Height, NoParameter(), Observe(Id))
   DefineProperty(Depth, NoParameter(), Observe(Id))
+  DefineProperty(Count, NoParameter(), Observe(Id))
   DefineProperty(Features, Output(""), Volatile(), ReadOnly(), Observe(Id))
   DefineProperty(Auto, Observe(Id))
 
 EndPropertyDefinitions
 
-TensorsToFeatures::TensorsToFeatures() : _Width(0), _Height(0), _Depth(0), _Auto(false), data(0) {
+TensorsToFeatures::TensorsToFeatures() : _Width(0), _Height(0), _Depth(0), _Count(0), _Auto(false), data(0) {
   WfeUpdateTimestamp
   setLabel("T2F");
 
@@ -85,6 +86,7 @@ void TensorsToFeatures::execute(gapputils::workflow::IProgressMonitor* monitor) 
   data->setWidth(tensors[0]->size()[0]);
   data->setHeight(tensors[0]->size()[1]);
   data->setDepth(tensors[0]->size()[2]);
+  data->setCount(tensors[0]->size()[0] * tensors[0]->size()[1] * tensors[0]->size()[2]);
   data->setFeatures(features);
 }
 
@@ -95,6 +97,7 @@ void TensorsToFeatures::writeResults() {
   setWidth(data->getWidth());
   setHeight(data->getHeight());
   setDepth(data->getDepth());
+  setCount(data->getCount());
   setFeatures(data->getFeatures());
 }
 
