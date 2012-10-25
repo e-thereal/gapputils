@@ -1,4 +1,6 @@
 #include <gapputils/DefaultWorkflowElement.h>
+#include <gapputils/CollectionElement.h>
+
 #include <capputils/InputAttribute.h>
 #include <capputils/OutputAttribute.h>
 #include <gapputils/InterfaceAttribute.h>
