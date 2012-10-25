@@ -11,8 +11,8 @@ namespace gapputils {
 
 namespace attributes {
 
-GenerateInterfaceAttribute::GenerateInterfaceAttribute(const std::string& name, const std::string& header)
- : name(name), header(header) { }
+GenerateInterfaceAttribute::GenerateInterfaceAttribute(const std::string& name, const std::string& header, bool isParameter)
+ : name(name), header(header), isParameter(isParameter) { }
 
 GenerateInterfaceAttribute::~GenerateInterfaceAttribute() { }
 
@@ -24,8 +24,16 @@ std::string GenerateInterfaceAttribute::getHeader() const {
   return header;
 }
 
-capputils::attributes::AttributeWrapper* GenerateInterface(const std::string& name, const std::string& header) {
-  return new capputils::attributes::AttributeWrapper(new GenerateInterfaceAttribute(name, header));
+bool GenerateInterfaceAttribute::getIsParameter() const {
+  return isParameter;
+}
+
+capputils::attributes::AttributeWrapper* GenerateInterface(const std::string& name, const std::string& header, bool isParameter) {
+  return new capputils::attributes::AttributeWrapper(new GenerateInterfaceAttribute(name, header, isParameter));
+}
+
+capputils::attributes::AttributeWrapper* GenerateInterface(const std::string& name, bool isParameter) {
+  return new capputils::attributes::AttributeWrapper(new GenerateInterfaceAttribute(name, "", isParameter));
 }
 
 } /* namespace attributes */

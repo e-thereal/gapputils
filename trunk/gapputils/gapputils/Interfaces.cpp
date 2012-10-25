@@ -7,10 +7,14 @@
 
 #include "Interfaces.h"
 
+#include <gapputils/GenerateInterfaceAttribute.h>
+
+using namespace gapputils::attributes;
+
 namespace gapputils {
 
 BeginPropertyDefinitions(Interfaces)
-  DefineProperty(Integer)
+  DefineProperty(Integer, GenerateInterface("Integer", true))
 EndPropertyDefinitions
 
 } /* namespace gapputils */

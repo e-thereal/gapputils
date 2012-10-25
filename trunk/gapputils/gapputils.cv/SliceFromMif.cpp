@@ -30,7 +30,6 @@
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
-using namespace std;
 
 namespace gapputils {
 
@@ -38,66 +37,79 @@ namespace cv {
 
 BeginPropertyDefinitions(SliceFromMif)
 
-  ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(MifName, Input("Mif"), Filename("MIFs (*.MIF)"), FileExists(), Observe(Id), TimeStamp(Id))
-  DefineProperty(Image, Output("Img"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
-  DefineProperty(Width, Description("Is set to width of extracted slice."), NoParameter(), Observe(Id), TimeStamp(Id))
-  DefineProperty(Height, Description("Is set to height of extracted slice."), NoParameter(), Observe(Id), TimeStamp(Id))
-  DefineProperty(SlicePosition, Observe(Id), TimeStamp(Id))
-  DefineProperty(Orientation, Enumerator<SliceOrientation>(), Observe(Id), TimeStamp(Id))
+  ReflectableBase(workflow::DefaultWorkflowElement<SliceFromMif>)
+
+  WorkflowProperty(MifName, Input("Mif"), Filename("MIFs (*.MIF)"), FileExists())
+  WorkflowProperty(Image, Output("Img"))
+  WorkflowProperty(SlicePosition)
+  WorkflowProperty(UseNormalizedIndex)
+  WorkflowProperty(Orientation, Enumerator<Type>())
+  WorkflowProperty(MaximumIntensity)
+  WorkflowProperty(Width, Description("Is set to width of extracted slice."), NoParameter())
+  WorkflowProperty(Height, Description("Is set to height of extracted slice."), NoParameter())
 
 EndPropertyDefinitions
 
-SliceFromMif::SliceFromMif() : _Width(0), _Height(0), _SlicePosition(0), data(0) {
+SliceFromMif::SliceFromMif() : _SlicePosition(0), _UseNormalizedIndex(false), _MaximumIntensity(2048),
+  _Width(0), _Height(0)
+{
   setLabel("SliceFromMif");
-
-  Changed.connect(capputils::EventHandler<SliceFromMif>(this, &SliceFromMif::changedHandler));
 }
 
 SliceFromMif::~SliceFromMif() {
-  if (data)
-    delete data;
 }
 
-void SliceFromMif::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
-}
-
-void SliceFromMif::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+void SliceFromMif::update(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace MSMRI::MIF;
-
-  if (!data)
-    data = new SliceFromMif();
-
-  if (!capputils::Verifier::Valid(*this))
-    return;
+  using namespace std;
 
   CMIF mif(getMifName());
 
   int width, height, slicePos;
 
+  size_t pixelWidth = 1000, pixelHeight = 1000, pixelDepth = 1000;
+
   switch(getOrientation()) {
   case SliceOrientation::Axial:
     width = mif.getColumnCount();
     height = mif.getRowCount();
-    slicePos = max(0, min(getSlicePosition(), mif.getSliceCount() - 1));
+    pixelWidth = mif.getChannel(1).getPixelSizeX();
+    pixelHeight = mif.getChannel(1).getPixelSizeY();
+    pixelDepth = mif.getChannel(1).getSliceThickness();
+    if (getUseNormalizedIndex())
+      slicePos = getSlicePosition() * mif.getSliceCount() + 0.5;
+    else
+      slicePos = getSlicePosition();
+    slicePos = max(0, min(slicePos, mif.getSliceCount() - 1));
     break;
   case SliceOrientation::Sagital:
     width = mif.getRowCount();
     height = mif.getSliceCount();
-    slicePos = max(0, min(getSlicePosition(), mif.getColumnCount() - 1));
+    pixelWidth = mif.getChannel(1).getPixelSizeY();
+    pixelHeight = mif.getChannel(1).getSliceThickness();
+    pixelDepth = mif.getChannel(1).getPixelSizeX();
+    if (getUseNormalizedIndex())
+      slicePos = getSlicePosition() * mif.getColumnCount() + 0.5;
+    else
+      slicePos = getSlicePosition();
+    slicePos = max(0, min(slicePos, mif.getColumnCount() - 1));
     break;
   case SliceOrientation::Coronal:
     width = mif.getColumnCount();
     height = mif.getSliceCount();
-    slicePos = max(0, min(getSlicePosition(), mif.getRowCount() - 1));
+    pixelWidth = mif.getChannel(1).getPixelSizeX();
+    pixelHeight = mif.getChannel(1).getSliceThickness();
+    pixelDepth = mif.getChannel(1).getPixelSizeY();
+    if (getUseNormalizedIndex())
+      slicePos = getSlicePosition() * mif.getRowCount() + 0.5;
+    else
+      slicePos = getSlicePosition();
+    slicePos = max(0, min(slicePos, mif.getRowCount() - 1));
     break;
   }
 
   boost::shared_ptr<image_t> image(new image_t(width, height, 1,
-      mif.getChannel(1).getPixelSizeX(),
-      mif.getChannel(1).getPixelSizeY(),
-      mif.getChannel(1).getSliceThickness()));
+      pixelWidth, pixelHeight, pixelDepth));
   float* buffer = image->getData();
 
   CMIF::pixelArray pixels = mif.getRawData();
@@ -105,31 +117,22 @@ void SliceFromMif::execute(gapputils::workflow::IProgressMonitor* monitor) const
     for (int x = 0; x < width; ++x, ++i) {
       switch (getOrientation()) {
       case SliceOrientation::Axial:
-        buffer[i] = (float)pixels[slicePos + 1][y][x] / 2048.f;
+        buffer[i] = (float)pixels[slicePos + 1][y][x] / (float)getMaximumIntensity();
         break;
       case SliceOrientation::Sagital:
-        buffer[i] = (float)pixels[mif.getSliceCount() - y][x][slicePos] / 2048.f;
+        buffer[i] = (float)pixels[mif.getSliceCount() - y][x][slicePos] / (float)getMaximumIntensity();
         break;
       case SliceOrientation::Coronal:
-        buffer[i] = (float)pixels[mif.getSliceCount() - y][slicePos][x] / 2048.f;
+        buffer[i] = (float)pixels[mif.getSliceCount() - y][slicePos][x] / (float)getMaximumIntensity();
         break;
       }
 
     }
   }
 
-  data->setWidth(width);
-  data->setHeight(height);
-  data->setImage(image);
-}
-
-void SliceFromMif::writeResults() {
-  if (!data)
-    return;
-
-  setWidth(data->getWidth());
-  setHeight(data->getHeight());
-  setImage(data->getImage());
+  newState->setWidth(width);
+  newState->setHeight(height);
+  newState->setImage(image);
 }
 
 }

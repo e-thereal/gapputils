@@ -54,7 +54,7 @@ BeginPropertyDefinitions(DataModel)
 
 EndPropertyDefinitions
 
-void generate_source(const std::string& identifier, const std::string& type, const std::string& header);
+void generate_source(const std::string& identifier, const std::string& type, const std::string& header, bool isParameter);
 
 int main(int argc, char** argv) {
 	using namespace capputils;
@@ -100,7 +100,8 @@ int main(int argc, char** argv) {
 	      std::cout << "  " << "Generating interface '" << generateInterface->getName() << "' ... " << std::flush;
 	      generate_source(generateInterface->getName(),
 	          boost::units::detail::demangle(properties[iProp]->getType().name()),
-	          generateInterface->getHeader());
+	          generateInterface->getHeader(),
+	          generateInterface->getIsParameter());
 	      std::cout << "DONE." << std::endl;
 	    }
 	  }
@@ -110,7 +111,7 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-void generate_source(const std::string& identifier, const std::string& type, const std::string& header) {
+void generate_source(const std::string& identifier, const std::string& type, const std::string& header, bool isParameter) {
   std::ofstream output((identifier + ".cpp").c_str());
 
   output <<
@@ -118,12 +119,45 @@ void generate_source(const std::string& identifier, const std::string& type, con
 "#include <capputils/InputAttribute.h>\n"
 "#include <capputils/OutputAttribute.h>\n"
 "#include <gapputils/InterfaceAttribute.h>\n"
-"\n"
+"\n";
+
+  if (header.size()) {
+    output <<
 "#include <" << header << ">\n"
-"\n"
+"\n";
+  }
+  output <<
 "using namespace capputils::attributes;\n"
 "using namespace gapputils::attributes;\n"
+"\n";
+  if (isParameter) {
+    output <<
+"namespace interfaces {\n"
+"  \n"
+"namespace parameters {\n"
 "\n"
+"class " << identifier << " : public gapputils::workflow::DefaultWorkflowElement<" << identifier << ">\n"
+"{\n"
+"  InitReflectableClass(" << identifier << ")\n"
+"  \n"
+"  typedef " << type << " property_t;\n"
+"  \n"
+"  Property(Value, property_t)\n"
+"  \n"
+"public:\n"
+"  " << identifier << "() { setLabel(\"" << identifier << "\"); }\n"
+"};\n"
+"\n"
+"BeginPropertyDefinitions(" << identifier << ", Interface())\n"
+"  ReflectableBase(gapputils::workflow::DefaultWorkflowElement<" << identifier << ">)\n"
+"  WorkflowProperty(Value);\n"
+"EndPropertyDefinitions\n"
+"\n"
+"}\n"
+"\n"
+"}" << std::endl;
+  } else {
+    output <<
 "namespace interfaces {\n"
 "  \n"
 "namespace inputs {\n"
@@ -169,7 +203,7 @@ void generate_source(const std::string& identifier, const std::string& type, con
 "}\n"
 "\n"
 "}" << std::endl;
-
+  }
   output.close();
 }
 

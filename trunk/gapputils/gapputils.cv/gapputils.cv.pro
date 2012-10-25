@@ -61,7 +61,9 @@ SOURCES = FromRgb.cpp \
           CudaImageInterface.cpp \
           Convolve.cpp \
           Interfaces.cpp \
-          QtImage.cpp
+          QtImage.cpp \
+          Histogram.cpp \
+          MifToImage.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \

@@ -8,7 +8,7 @@
 #ifndef GAPPUTILSCV_SLICEFROMMIF_H_
 #define GAPPUTILSCV_SLICEFROMMIF_H_
 
-#include <gapputils/WorkflowElement.h>
+#include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/Image.h>
 
 #include <capputils/Enumerators.h>
@@ -19,28 +19,25 @@ namespace cv {
 
 CapputilsEnumerator(SliceOrientation, Axial, Sagital, Coronal);
 
-class SliceFromMif : public gapputils::workflow::WorkflowElement {
+class SliceFromMif : public workflow::DefaultWorkflowElement<SliceFromMif> {
 
   InitReflectableClass(SliceFromMif)
 
   Property(MifName, std::string)
   Property(Image, boost::shared_ptr<image_t>)
+  Property(SlicePosition, float)
+  Property(UseNormalizedIndex, bool)
+  Property(Orientation, SliceOrientation)
+  Property(MaximumIntensity, int)
   Property(Width, int)
   Property(Height, int)
-  Property(SlicePosition, int)
-  Property(Orientation, SliceOrientation)
-
-private:
-  mutable SliceFromMif* data;
 
 public:
   SliceFromMif();
   virtual ~SliceFromMif();
 
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
-
-  void changedHandler(capputils::ObservableClass* sender, int eventId);
+protected:
+  virtual void update(workflow::IProgressMonitor* monitor) const;
 };
 
 }
