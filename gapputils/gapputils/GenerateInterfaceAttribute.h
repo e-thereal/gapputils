@@ -26,16 +26,19 @@ class GenerateInterfaceAttribute : public virtual capputils::attributes::IAttrib
 
 private:
   std::string name, header;
+  bool isParameter;
 
 public:
-  GenerateInterfaceAttribute(const std::string& name, const std::string& header);
+  GenerateInterfaceAttribute(const std::string& name, const std::string& header, bool isParameter);
   virtual ~GenerateInterfaceAttribute();
 
   std::string getName() const;
   std::string getHeader() const;
+  bool getIsParameter() const;
 };
 
-capputils::attributes::AttributeWrapper* GenerateInterface(const std::string& name, const std::string& header);
+capputils::attributes::AttributeWrapper* GenerateInterface(const std::string& name, const std::string& header = "", bool isParameter = false);
+capputils::attributes::AttributeWrapper* GenerateInterface(const std::string& name, bool isParameter);
 
 } /* namespace attributes */
 

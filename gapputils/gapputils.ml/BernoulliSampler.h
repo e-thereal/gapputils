@@ -25,7 +25,7 @@ public:
   BernoulliSampler();
 
 protected:
-  void update(workflow::IProgressMonitor* monitor) const;
+  virtual void update(workflow::IProgressMonitor* monitor) const;
 };
 
 } /* namespace ml */
