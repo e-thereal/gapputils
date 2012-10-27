@@ -27,6 +27,7 @@ BeginPropertyDefinitions(TensorWriter)
 
   WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>(), Serialize<Type>())
   WorkflowProperty(Filename, Filename(), NotEmpty<Type>())
+  WorkflowProperty(OutputName, Output("File"))
 
 EndPropertyDefinitions
 
@@ -39,6 +40,7 @@ TensorWriter::~TensorWriter() {
 
 void TensorWriter::update(gapputils::workflow::IProgressMonitor* monitor) const {
   capputils::Serializer::WriteToFile(*this, findProperty("Tensors"), getFilename());
+  newState->setOutputName(getFilename());
 }
 
 } /* namespace ml */

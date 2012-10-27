@@ -8,7 +8,7 @@
 #include "ModelHarmonizer.h"
 
 #include <capputils/DescriptionAttribute.h>
-#include <capputils/Enumerator.h>
+#include <capputils/AbstractEnumerator.h>
 #include <capputils/IReflectableAttribute.h>
 #include <capputils/ScalarAttribute.h>
 #include <iostream>
@@ -241,7 +241,7 @@ void ModelHarmonizer::itemChanged(QStandardItem* item) {
       IReflectableAttribute* reflectable = prop->getAttribute<IReflectableAttribute>();
       if (reflectable) {
         ReflectableClass* subObject = reflectable->getValuePtr(*object, prop);
-        if (dynamic_cast<Enumerator*>(subObject)) {
+        if (dynamic_cast<AbstractEnumerator*>(subObject)) {
           stringstream stream(str);
           subObject->fromStream(stream);
           reflectable->setValuePtr(*object, prop, subObject);

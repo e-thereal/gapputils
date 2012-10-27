@@ -3,13 +3,17 @@
 #ifndef _GAPPUTILS_CSVREADER_H_
 #define _GAPPUTILS_CSVREADER_H_
 
-#include <gapputils/WorkflowElement.h>
+#include <capputils/Enumerators.h>
+#include <gapputils/DefaultWorkflowElement.h>
+#include <gapputils/namespaces.h>
 
 namespace gapputils {
 
 namespace common {
 
-class CsvReader : public workflow::WorkflowElement
+CapputilsEnumerator(CsvReadMode, Flat, Structured)
+
+class CsvReader : public DefaultWorkflowElement<CsvReader>
 {
 
 InitReflectableClass(CsvReader)
@@ -20,20 +24,18 @@ Property(LastColumn, int)
 Property(FirstRow, int)
 Property(LastRow, int)
 Property(Delimiter, std::string)
+Property(Mode, CsvReadMode)
 
+Property(Data, boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<double> > > >)
+Property(FlatData, boost::shared_ptr<std::vector<double> >)
 Property(ColumnCount, int)
 Property(RowCount, int)
-Property(Data, boost::shared_ptr<std::vector<float> >)
-
-private:
-  mutable CsvReader* data;
 
 public:
   CsvReader();
-  virtual ~CsvReader(void);
 
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
+protected:
+  virtual void update(IProgressMonitor* monitor) const;
 };
 
 }

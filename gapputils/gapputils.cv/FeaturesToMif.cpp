@@ -61,17 +61,11 @@ FeaturesToMif::FeaturesToMif()
   static char** argv = new char*[1];
   argv[0] = "FeaturesToMif";
   MSMRI::CProcessInfo::getInstance().getCommandLine(1, argv);
-
-  Changed.connect(capputils::EventHandler<FeaturesToMif>(this, &FeaturesToMif::changedHandler));
 }
 
 FeaturesToMif::~FeaturesToMif() {
   if (data)
     delete data;
-}
-
-void FeaturesToMif::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
 }
 
 void FeaturesToMif::execute(gapputils::workflow::IProgressMonitor* monitor) const {

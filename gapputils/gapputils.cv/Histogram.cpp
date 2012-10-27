@@ -31,8 +31,11 @@ BeginPropertyDefinitions(Histogram)
   WorkflowProperty(ModeColor)
   WorkflowProperty(ModeRadius, NotEqual<Type>(0))
   WorkflowProperty(MinMode)
+  WorkflowProperty(SharpenModes)
+  WorkflowProperty(MinimumGap)
   WorkflowProperty(ModeCount, Description("If -1, all modes are calculated."))
   WorkflowProperty(SmoothingRadius, Description("A value of 0 indicates no smoothing."))
+  WorkflowProperty(Tolerance)
   WorkflowProperty(Histogram, Output("Hist"))
   WorkflowProperty(Modes, Output("M"))
 
@@ -40,7 +43,8 @@ EndPropertyDefinitions
 
 Histogram::Histogram() : _BinCount(256), _HistogramBinWidth(1), _HistogramHeight(256),
  _AverageHeight(128), _Foreground(0.5f), _Background(0.0f),
- _ModeColor(1.0f), _ModeRadius(1), _MinMode(0), _ModeCount(-1), _SmoothingRadius(0)
+ _ModeColor(1.0f), _ModeRadius(1), _MinMode(0), _SharpenModes(true), _MinimumGap(1), _ModeCount(-1),
+ _SmoothingRadius(0), _Tolerance(1e-2)
 {
   setLabel("Histogram");
 }
@@ -88,32 +92,47 @@ void Histogram::update(workflow::IProgressMonitor* monitor) const {
   // Find modes
   const int rMode = getModeRadius();
   std::set<int> modes;
+  const double relTol = getTolerance() * count / binCount;
   for (int i = rMode + getMinMode(); i < (int)binCount - rMode; ++i) {
-    if (smoothedBins[i - rMode] <= smoothedBins[i] && smoothedBins[i + rMode] <= smoothedBins[i])
+    bool leftLowerOrEqual = true, rightLowerOrEqual = true;
+    for (int j = 1; j < rMode; ++j) {
+      if (smoothedBins[i - j] - smoothedBins[i] > relTol) {
+        leftLowerOrEqual = false;
+      }
+    }
+    for (int j = 1; j < rMode; ++j) {
+      if (smoothedBins[i + j] - smoothedBins[i] > relTol) {
+        rightLowerOrEqual = false;
+        break;
+      }
+    }
+    if (leftLowerOrEqual && rightLowerOrEqual)
       modes.insert(i);
   }
 
   // Sharpen modes
-  std::vector<int> modesVec;
-  for (std::set<int>::iterator i = modes.begin(); i != modes.end(); ++i)
-    modesVec.push_back(*i);
-  modes.clear();
+  if (getSharpenModes()) {
+    std::vector<int> modesVec;
+    for (std::set<int>::iterator i = modes.begin(); i != modes.end(); ++i)
+      modesVec.push_back(*i);
+    modes.clear();
 
-  if (modesVec.size() < 1) {
-    dlog(Severity::Warning) << "No mode found.";
-  } else {
-    int sum = modesVec[0];
-    int sampleCount = 1;
-    for (size_t i = 1; i < modesVec.size(); ++i) {
-      if (modesVec[i] - modesVec[i-1] > 1) {
-        modes.insert(sum / sampleCount);
-        sum = 0;
-        sampleCount = 0;
+    if (modesVec.size() < 1) {
+      dlog(Severity::Warning) << "No mode found.";
+    } else {
+      int sum = modesVec[0];
+      int sampleCount = 1;
+      for (size_t i = 1; i < modesVec.size(); ++i) {
+        if (modesVec[i] - modesVec[i-1] > getMinimumGap()) {
+          modes.insert(sum / sampleCount);
+          sum = 0;
+          sampleCount = 0;
+        }
+        sum += modesVec[i];
+        ++sampleCount;
       }
-      sum += modesVec[i];
-      ++sampleCount;
+      modes.insert(sum / sampleCount);
     }
-    modes.insert(sum / sampleCount);
   }
 
   if (getModeCount() >= 0) {

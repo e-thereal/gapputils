@@ -23,6 +23,7 @@ class TensorWriter : public gapputils::workflow::DefaultWorkflowElement<TensorWr
 
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(Filename, std::string)
+  Property(OutputName, std::string)
 
 public:
   TensorWriter();

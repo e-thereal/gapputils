@@ -22,6 +22,7 @@ class ImageToMif : public gapputils::workflow::WorkflowElement {
   Property(Image, boost::shared_ptr<image_t>)
   Property(MinValue, double)
   Property(MaxValue, double)
+  Property(MaximumIntensity, int)
   Property(AutoScale, bool)
   Property(MifName, std::string)
 

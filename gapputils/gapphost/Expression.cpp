@@ -147,27 +147,31 @@ void Expression::disconnect(boost::shared_ptr<GlobalProperty> gprop) {
   // and the pair
   assert(gprop);
 
-  boost::shared_ptr<Workflow> workflow = getNode().lock()->getWorkflow().lock();
-  PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
-
-  capputils::ObservableClass* observable =
-      dynamic_cast<capputils::ObservableClass*>(ref.getObject());
-
-  if (observable) {
-    if (globalProperties.find(gprop) != globalProperties.end()) {
-      for (unsigned i = 0; i < gprop->getExpressions()->size(); ++i) {
-        if (gprop->getExpressions()->at(i).lock().get() == this)
-          gprop->getExpressions()->erase(gprop->getExpressions()->begin() + i);
-      }
-      observable->Changed.disconnect(handler);
-      std::pair<capputils::ObservableClass*, int> pair(observable,
-          getPropertyPos(*ref.getObject(), ref.getProperty()));
-      std::set<std::pair<capputils::ObservableClass*, int> >::iterator iPair = observedProperties.find(pair);
-      if (iPair != observedProperties.end())
-        observedProperties.erase(iPair);
-
-      globalProperties.erase(gprop);
+  if (globalProperties.find(gprop) != globalProperties.end()) {
+    for (unsigned i = 0; i < gprop->getExpressions()->size(); ++i) {
+      if (gprop->getExpressions()->at(i).lock().get() == this)
+        gprop->getExpressions()->erase(gprop->getExpressions()->begin() + i);
     }
+
+    // If the node is about to be deleted, the weak pointer is already invalid so check for
+    // that case before doing anything else
+    if (!getNode().expired()) {
+      boost::shared_ptr<Workflow> workflow = getNode().lock()->getWorkflow().lock();
+      PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
+
+      capputils::ObservableClass* observable =
+          dynamic_cast<capputils::ObservableClass*>(ref.getObject());
+
+      if (observable) {
+        observable->Changed.disconnect(handler);
+        std::pair<capputils::ObservableClass*, int> pair(observable,
+            getPropertyPos(*ref.getObject(), ref.getProperty()));
+        std::set<std::pair<capputils::ObservableClass*, int> >::iterator iPair = observedProperties.find(pair);
+        if (iPair != observedProperties.end())
+          observedProperties.erase(iPair);
+      }
+    }
+    globalProperties.erase(gprop);
   }
 }
 
