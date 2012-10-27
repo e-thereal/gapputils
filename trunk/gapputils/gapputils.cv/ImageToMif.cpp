@@ -40,12 +40,13 @@ BeginPropertyDefinitions(ImageToMif)
   DefineProperty(Image, Input(), ReadOnly(), Volatile(), Observe(Id), TimeStamp(Id))
   DefineProperty(MinValue, Observe(Id), TimeStamp(Id))
   DefineProperty(MaxValue, Observe(Id), TimeStamp(Id))
+  DefineProperty(MaximumIntensity, Observe(Id), TimeStamp(Id))
   DefineProperty(AutoScale, Observe(Id), TimeStamp(Id))
   DefineProperty(MifName, Output("Mif"), Filename(), NotEqual<std::string>(""), Observe(Id), TimeStamp(Id))
 
 EndPropertyDefinitions
 
-ImageToMif::ImageToMif() : _MinValue(0), _MaxValue(1), _AutoScale(true), data(0) {
+ImageToMif::ImageToMif() : _MinValue(0), _MaxValue(1), _MaximumIntensity(2048), _AutoScale(true), data(0) {
   WfeUpdateTimestamp
   setLabel("ImageToMif");
 
@@ -78,6 +79,8 @@ void ImageToMif::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   const int rowCount = getImage()->getSize()[1];
   const int sliceCount = getImage()->getSize()[2];
 
+  double maxIntens = getMaximumIntensity();
+
   CMIF mif(columnCount, rowCount, sliceCount);
   mif.getChannel(1).setPixelSizeX(getImage()->getPixelSize()[0]);
   mif.getChannel(1).setPixelSizeY(getImage()->getPixelSize()[1]);
@@ -107,7 +110,7 @@ void ImageToMif::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   for (int z = 1, i = 0; z <= mif.getSliceCount(); ++z) {
     for (int y = 0; y < mif.getRowCount(); ++y) {
       for (int x = 0; x < mif.getColumnCount(); ++x, ++i) {
-        pixels[z][y][x] = std::min(2048.0, std::max(0.0, (features[i] - minV) * 2048. / (maxV - minV)));
+        pixels[z][y][x] = std::min(2048.0, std::max(0.0, (features[i] - minV) * maxIntens / (maxV - minV)));
       }
     }
     if (monitor) {

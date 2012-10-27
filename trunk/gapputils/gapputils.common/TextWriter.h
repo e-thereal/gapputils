@@ -16,6 +16,8 @@ class TextWriter : public workflow::WorkflowElement
   Property(Text, std::string)
   Property(Filename, std::string)
   Property(Auto, bool)
+  Property(Append, bool)
+  Property(AppendNewline, bool)
 
 private:
   static int inputId;

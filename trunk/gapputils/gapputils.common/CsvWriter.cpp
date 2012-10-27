@@ -18,7 +18,6 @@
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
-using namespace std;
 
 namespace gapputils {
 
@@ -26,50 +25,33 @@ namespace common {
 
 BeginPropertyDefinitions(CsvWriter)
 
-  ReflectableBase(workflow::WorkflowElement)
+  ReflectableBase(workflow::DefaultWorkflowElement<CsvWriter>)
 
-  DefineProperty(Filename, Output("Csv"), Observe(Id), Filename(), NotEqual<string>(""), TimeStamp(Id))
-  DefineProperty(ColumnCount, ShortName("CC"), Observe(Id), Input(), TimeStamp(Id))
-  DefineProperty(RowCount, ShortName("RC"), Observe(Id), Input(), TimeStamp(Id))
-  DefineProperty(Data, Observe(Id), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(Id))
+  WorkflowProperty(Data, Input("D"), NotNull<Type>())
+  WorkflowProperty(Filename, Output("Csv"), Filename(), NotEqual<Type>(""))
 
 EndPropertyDefinitions
 
-CsvWriter::CsvWriter(void) : _Filename(""),
-    _ColumnCount(0), _RowCount(0), _Data(0)
-{
-  setLabel("Writer");
+CsvWriter::CsvWriter() {
+  setLabel("CsvWriter");
 }
 
+void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
+  std::ofstream outfile(getFilename().c_str());
 
-CsvWriter::~CsvWriter(void)
-{
-}
-
-void CsvWriter::execute(gapputils::workflow::IProgressMonitor* monitor) const {
-  if (!capputils::Verifier::Valid(*this))
-    return;
-
-  ofstream outfile(getFilename().c_str());
-
-  double* data = getData();
-  int rows = getRowCount();
-  int cols = getColumnCount();
-
-  for (int i = 0, k = 0; i < rows; ++i) {
-    if (cols)
-      outfile << data[k++];
-    for (int j = 1; j < cols; ++j, ++k)
-      outfile << ", " << data[k];
-    outfile << endl;
-    monitor->reportProgress(100 * i / rows);
+  std::vector<boost::shared_ptr<std::vector<double> > >& data = *getData();
+  for (size_t iRow = 0; iRow < data.size(); ++iRow) {
+    std::vector<double>& row = *data[iRow];
+    if (row.size())
+      outfile << row[0];
+    for (size_t iCol = 1; iCol < row.size(); ++iCol) {
+      outfile << ", " << row[iCol];
+    }
+    outfile << std::endl;
   }
 
   outfile.close();
-}
-
-void CsvWriter::writeResults() {
-  setFilename(getFilename());
+  newState->setFilename(getFilename());
 }
 
 }

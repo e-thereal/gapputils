@@ -90,6 +90,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   using capputils::Severity;
 
   capputils::Logbook& dlog = getLogbook();
+  dlog.setSeverity(Severity::Message);
 
   ml::timer timer;
 
@@ -119,7 +120,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
     return;
   }
 
-  std::cout << "Building ConvRBM ..." << std::endl;
+  dlog() << "Building ConvRBM ...";
 //  std::cout << "[Info] device size: " << sizeof(*this) << std::endl;
 
   curandGenerator_t gen;
@@ -190,7 +191,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   value_t b = crbm->getVisibleBias();
   std::vector<value_t>& c = *crbm->getHiddenBiases();
 
-  std::cout << "[Info] ConvRBM initialized: " << timer.elapsed() << " s" << std::endl;
+  dlog() << "ConvRBM initialized: " << timer.elapsed() << " s";
 
   // Start the learning
   const int batchCount = sampleCount / batchSize;
@@ -211,7 +212,7 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
   std::vector<device_tensor_t> poshidprobs, poshidstates, posvishid, neghidprobs, neghidstates, negvishid, Finc, Fincbatch;
 
 
-  std::cout << "layer dim = " << layerDim[0] << ", " << layerDim[1] << ", " << layerDim[2] << std::endl;
+  dlog(Severity::Trace) << "layer dim = " << layerDim[0] << ", " << layerDim[1] << ", " << layerDim[2];
   for (unsigned i = 0; i < filterCount; ++i) {
     device_tensor_t tens = device_tensor_t(layerDim);
     poshidprobs.push_back(tens);
@@ -234,10 +235,10 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
 
   const int epochCount = getEpochCount();
 
-  std::cout << "[Info] Preparation finished after " << timer.elapsed() << " s" << std::endl;
+  dlog() << "Preparation finished after " << timer.elapsed() << " s";
   CULIB_CHECK_ERROR();
   culib::printMemoryStats("ConvRbmTrainer memory allocated");
-  std::cout << "[Info] Starting training" << std::endl;
+  dlog() << "Starting training";
   timer.restart();
 
   if (epochCount && getShowProgress()) {
@@ -425,8 +426,8 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
     int sec = eta % 60;
     int minutes = (eta / 60) % 60;
     int hours = eta / 3600;
-    std::cout << "Epoch " << iEpoch << " error " << (error / sampleCount) << " after " << timer.elapsed() << "s. ETA: "
-        << hours << " h " << minutes << " min " << sec << " s" << std::endl;
+    dlog(Severity::Trace) << "Epoch " << iEpoch << " error " << (error / sampleCount) << " after " << timer.elapsed() << "s. ETA: "
+        << hours << " h " << minutes << " min " << sec << " s";
 
     if (getShowProgress()){
       boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(

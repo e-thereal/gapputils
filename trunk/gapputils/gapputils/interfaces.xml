@@ -1,84 +1,99 @@
 <?xml version="1.0" ?>
 <gapputils-InterfaceModel>
-    <Interfaces>
-        <Collection>
+  <Interfaces>
+    <Collection>
 
-	    <!-- Parameters -->
+      <!-- Parameters -->
 
-	    <Item>
-                <gapputils-Interface>
-                    <Identifier value="Integer" />
-                    <Type value="int" />
-                    <IsParameter value="1" />
-                </gapputils-Interface>
-            </Item>
-            <Item>
-                <gapputils-Interface>
-                    <Identifier value="Integers" />
-                    <Type value="int" />
-                    <IsParameter value="1" />
-                    <IsCollection value="1" />
-                </gapputils-Interface>
-            </Item>
-	    <Item>
-                <gapputils-Interface>
-                    <Identifier value="Real" />
-                    <Type value="double" />
-                    <IsParameter value="1" />
-                </gapputils-Interface>
-            </Item>
-	    <Item>
-                <gapputils-Interface>
-                    <Identifier value="Reals" />
-                    <Type value="double" />
-                    <IsParameter value="1" />
-                    <IsCollection value="1" />
-                </gapputils-Interface>
-            </Item>
-	   <Item>
-                <gapputils-Interface>
-                    <Identifier value="String" />
-                    <Type value="std::string" />
-                    <IsParameter value="1" />
-                </gapputils-Interface>
-            </Item>
-            <Item>
-                <gapputils-Interface>
-                    <Identifier value="Strings" />
-                    <Type value="std::string" />
-                    <IsParameter value="1" />
-                    <IsCollection value="1" />
-                </gapputils-Interface>
-            </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Boolean" />
+          <Type value="bool" />
+          <IsParameter value="1" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Booleans" />
+          <Type value="bool" />
+          <IsParameter value="1" />
+          <IsCollection value="1" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Integer" />
+          <Type value="int" />
+          <IsParameter value="1" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Integers" />
+          <Type value="int" />
+          <IsParameter value="1" />
+          <IsCollection value="1" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Real" />
+          <Type value="double" />
+          <IsParameter value="1" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Reals" />
+          <Type value="double" />
+          <IsParameter value="1" />
+          <IsCollection value="1" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="String" />
+          <Type value="std::string" />
+          <IsParameter value="1" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Strings" />
+          <Type value="std::string" />
+          <IsParameter value="1" />
+          <IsCollection value="1" />
+        </gapputils-Interface>
+      </Item>
 
-	    <!-- Inputs and outputs -->
+      <!-- Inputs and outputs -->
 
-	    <Item>
-                <gapputils-Interface>
-                    <Identifier value="String" />
-                    <Type value="std::string" />
-                </gapputils-Interface>
-            </Item>
-            <Item>
-                <gapputils-Interface>
-                    <Identifier value="Strings" />
-                    <Type value="std::string" />
-                    <IsCollection value="1" />
-                </gapputils-Interface>
-            </Item>
-	    <Item>
-                <gapputils-Interface>
-                    <Identifier value="RealVector" />
-                    <Type value="boost::shared_ptr<std::vector<double> >" />
-                </gapputils-Interface>
-            </Item>
-	    <Item>
-                <gapputils-Interface>
-                    <Identifier value="RealVectors" />
-                    <Type value="boost::shared_ptr<std::vector<double> >" />
-                    <IsCollection value="1" />
-                </gapputils-Interface>
-            </Item>
-        </Collection>
-    </Interfaces>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="String" />
+          <Type value="std::string" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Strings" />
+          <Type value="std::string" />
+          <IsCollection value="1" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="RealVector" />
+          <Type value="boost::shared_ptr<std::vector<double> >" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="RealVectors" />
+          <Type value="boost::shared_ptr<std::vector<double> >" />
+          <IsCollection value="1" />
+        </gapputils-Interface>
+      </Item>
+    </Collection>
+  </Interfaces>
 </gapputils-InterfaceModel>

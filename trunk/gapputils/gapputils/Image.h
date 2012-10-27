@@ -31,7 +31,7 @@ public:
     size_t count = 1;
     for (unsigned i = 0; i < dimCount; ++i) {
       this->size[i] = size[i];
-      this->pixelSize[i] = size[i];
+      this->pixelSize[i] = pixelSize[i];
       count *= size[i];
     }
     data = new value_t[count];
@@ -41,8 +41,9 @@ protected:
   ImageBase(const size_t& count) : data(new value_t[count]) { }
 
   ImageBase(const size_t& count, const dim_t& pixelSize) : data(new value_t[count]) {
-    for (unsigned i = 0; i < dimCount; ++i)
-      this->pixelSize[i] = size[i];
+    for (unsigned i = 0; i < dimCount; ++i) {
+      this->pixelSize[i] = pixelSize[i];
+    }
   }
 
 public:

@@ -6,24 +6,8 @@
 #include <iostream>
 #include <algorithm>
 
-#include <capputils/ObserveAttribute.h>
-#include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
-#include <capputils/DescriptionAttribute.h>
-#include <capputils/EventHandler.h>
-#include <capputils/Verifier.h>
-#include <capputils/VolatileAttribute.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <capputils/ShortNameAttribute.h>
-#include <capputils/TimeStampAttribute.h>
-
-#include <gapputils/LabelAttribute.h>
-#include <gapputils/HideAttribute.h>
-
-using namespace capputils::attributes;
-using namespace gapputils::attributes;
-using namespace std;
+#include <capputils/FileExistsAttribute.h>
 
 namespace gapputils {
 
@@ -31,43 +15,37 @@ namespace common {
 
 BeginPropertyDefinitions(CsvReader)
 
-  ReflectableBase(workflow::WorkflowElement)
+  ReflectableBase(workflow::DefaultWorkflowElement<CsvReader>)
 
-  // TODO: workaround here. Inputs are not encoded in outputs. Therefore filename here would give wrong results
-  DefineProperty(Filename, Input("File"), Filename(), FileExists(), Observe(Id), TimeStamp(Id))
-  DefineProperty(FirstColumn, Description("Zero-based index of the first column"), Observe(Id), TimeStamp(Id))
-  DefineProperty(LastColumn, Description("Zero-based index of the last column. A value of -1 indicates to read until the end."), Observe(Id), TimeStamp(Id))
-  DefineProperty(FirstRow, Observe(Id), Description("Zero-based index of the first row"), TimeStamp(Id))
-  DefineProperty(LastRow, Observe(Id), Description("Zero-based index of the last row. A value of -1 indicates to read until the end."), TimeStamp(Id))
-  DefineProperty(Delimiter, Observe(Id), TimeStamp(Id))
+  WorkflowProperty(Filename, Input("File"), Filename(), FileExists())
+  WorkflowProperty(FirstColumn, Description("Zero-based index of the first column"))
+  WorkflowProperty(LastColumn, Description("Zero-based index of the last column. A value of -1 indicates to read until the end."))
+  WorkflowProperty(FirstRow, Description("Zero-based index of the first row"))
+  WorkflowProperty(LastRow, Description("Zero-based index of the last row. A value of -1 indicates to read until the end."))
+  WorkflowProperty(Delimiter)
+  WorkflowProperty(Mode, Enumerator<Type>())
   
-  DefineProperty(ColumnCount, Volatile(), Observe(Id), TimeStamp(Id))
-  DefineProperty(RowCount, Volatile(), Observe(Id), TimeStamp(Id))
-  DefineProperty(Data, Output(), Hide(), Volatile(), Observe(Id), TimeStamp(Id))
+  WorkflowProperty(Data, Output("D"))
+  WorkflowProperty(FlatData, Output("FD"))
+  WorkflowProperty(ColumnCount, NoParameter())
+  WorkflowProperty(RowCount, NoParameter())
 
 EndPropertyDefinitions
 
-CsvReader::CsvReader() : _Filename(""), _FirstColumn(0), _LastColumn(-1),
-_FirstRow(1), _LastRow(-1), _Delimiter(","), _ColumnCount(0), _RowCount(0), data(0)
+CsvReader::CsvReader() : _FirstColumn(0), _LastColumn(-1),
+_FirstRow(0), _LastRow(-1), _Delimiter(","), _Mode(CsvReadMode::Structured), _ColumnCount(0), _RowCount(0)
 {
-  setLabel("Reader");
+  setLabel("CsvReader");
 }
 
-
-CsvReader::~CsvReader(void)
-{
-  if (data)
-    delete data;
-}
-
-void tokenize(const string& str, vector<string>& tokens, const string& delimiters = " ")
+void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters = " ")
 {
   // Skip delimiters at beginning.
-  string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+  std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
   // Find first "non-delimiter".
-  string::size_type pos     = str.find_first_of(delimiters, lastPos);
+  std::string::size_type pos     = str.find_first_of(delimiters, lastPos);
 
-  while (string::npos != pos || string::npos != lastPos)
+  while (std::string::npos != pos || std::string::npos != lastPos)
   {
       // Found a token, add it to the vector.
       tokens.push_back(str.substr(lastPos, pos - lastPos));
@@ -78,12 +56,8 @@ void tokenize(const string& str, vector<string>& tokens, const string& delimiter
   }
 }
 
-void CsvReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
-  if (!data)
-    data = new CsvReader();
-
-  if (!capputils::Verifier::Valid(*this))
-    return;
+void CsvReader::update(IProgressMonitor* monitor) const {
+  using namespace std;
 
   // Read the CVS file
   const int firstRow = getFirstRow();
@@ -96,13 +70,16 @@ void CsvReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   int fileSize = csvfile.tellg();
   csvfile.seekg (0, ios::beg);
   string line;
-  vector<vector<double>*> dataVector;
+
+  boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<double> > > > data(
+      new std::vector<boost::shared_ptr<std::vector<double> > >());
+
   int columnCount = 0;
   for (int rowIndex = 0; getline(csvfile, line); ++rowIndex) {
     if (firstRow <= rowIndex && (lastRow == -1 || rowIndex <= lastRow)) {
 
       double value;
-      vector<double>* dataRow = new vector<double>();
+      boost::shared_ptr<vector<double> > dataRow(new vector<double>());
       vector<string> tokens;
 
       tokenize(line, tokens, getDelimiter());
@@ -114,34 +91,29 @@ void CsvReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
         }
       }
       columnCount = max(columnCount, (int)dataRow->size());
-      dataVector.push_back(dataRow);
+      data->push_back(dataRow);
       monitor->reportProgress(100 * csvfile.tellg() / fileSize);
     }
   }
   csvfile.close();
 
-  boost::shared_ptr<std::vector<float> > _data(new std::vector<float>(dataVector.size() * columnCount));
-  for (unsigned i = 0, k = 0; i < dataVector.size(); ++i) {
-    vector<double>* dataRow = dataVector[i];
-    for (unsigned j = 0; j < dataRow->size(); ++j, ++k) {
-      _data->at(k) = dataRow->at(j);
+  newState->setColumnCount(columnCount);
+  newState->setRowCount(data->size());
+  if (getMode() == CsvReadMode::Structured) {
+    newState->setData(data);
+  } else {
+    boost::shared_ptr<std::vector<double> > flatData(new std::vector<double>());
+    for (size_t iRow = 0; iRow < data->size(); ++iRow) {
+      std::vector<double>& row = *data->at(iRow);
+      for (int iCol = 0; iCol < columnCount; ++iCol) {
+        if (iCol < row.size())
+          flatData->push_back(row[iCol]);
+        else
+          flatData->push_back(0.0);
+      }
     }
-    k += columnCount - dataRow->size();
-    delete dataRow;
+    newState->setFlatData(flatData);
   }
-
-  data->setColumnCount(columnCount);
-  data->setRowCount(dataVector.size());
-  data->setData(_data);
-}
-
-void CsvReader::writeResults() {
-  if (!data)
-    return;
-
-  setColumnCount(data->getColumnCount());
-  setRowCount(data->getRowCount());
-  setData(data->getData());
 }
 
 }

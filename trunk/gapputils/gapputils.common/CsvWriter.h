@@ -3,27 +3,24 @@
 #ifndef _GAPPUTILS_CSVWRITER_H_
 #define _GAPPUTILS_CSVWRITER_H_
 
-#include <gapputils/WorkflowElement.h>
+#include <gapputils/DefaultWorkflowElement.h>
 
 namespace gapputils {
 
 namespace common {
 
-class CsvWriter : public workflow::WorkflowElement
+class CsvWriter : public workflow::DefaultWorkflowElement<CsvWriter>
 {
   InitReflectableClass(CsvWriter)
 
+  Property(Data, boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<double> > > >)
   Property(Filename, std::string)
-  Property(ColumnCount, int)
-  Property(RowCount, int)
-  Property(Data, double*)
 
 public:
   CsvWriter(void);
-  virtual ~CsvWriter(void);
 
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
+protected:
+  virtual void update(workflow::IProgressMonitor* monitor) const;
 };
 
 }

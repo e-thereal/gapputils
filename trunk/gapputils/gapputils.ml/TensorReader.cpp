@@ -23,7 +23,7 @@ BeginPropertyDefinitions(TensorReader)
   using namespace capputils::attributes;
 
   ReflectableBase(gapputils::workflow::DefaultWorkflowElement<TensorReader>)
-  WorkflowProperty(Filename, Filename(), FileExists())
+  WorkflowProperty(Filename, Input("File"), Filename(), FileExists())
   WorkflowProperty(Tensors, Output("Ts"), Serialize<Type>())
 
 EndPropertyDefinitions

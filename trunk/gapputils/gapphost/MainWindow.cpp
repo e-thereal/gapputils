@@ -218,8 +218,8 @@ void MainWindow::resume() {
 
   for (unsigned i = 0; i < model.getOpenWorkflows()->size(); ++i) {
     string uuid = model.getOpenWorkflows()->at(i);
-    assert(model.getWorkflowMap()->find(uuid) != model.getWorkflowMap()->end());
-    showWorkflow(model.getWorkflowMap()->at(uuid).lock());
+    if (model.getWorkflowMap()->find(uuid) != model.getWorkflowMap()->end())
+      showWorkflow(model.getWorkflowMap()->at(uuid).lock());
   }
 
   if(model.getWorkflowMap()->find(currentUuid) != model.getWorkflowMap()->end())
