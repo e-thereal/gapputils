@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.so.debug.2111420753">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.so.debug.2111420753" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -9,7 +7,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils.cv"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils.cv/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gapputils.cv"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gapputils.cv" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -77,7 +75,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils.cv.cuda"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils.cv.cuda/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gapputils.cv.cuda"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gapputils.cv.cuda" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 			</storageModule>
@@ -90,7 +88,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils.cv"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils.cv/Release"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gapputils.cv"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gapputils.cv" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -541,4 +539,5 @@
 			</profile>
 		</scannerConfigBuildInfo>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 </cproject>
