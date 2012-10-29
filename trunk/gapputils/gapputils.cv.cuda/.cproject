@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cuda.toolchain.configuration.lib.debug.57341343">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cuda.toolchain.configuration.lib.debug.57341343" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -9,7 +7,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils.cv.cuda"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils.cv.cuda/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gapputils.cv.cuda"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gapputils.cv.cuda" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -38,7 +36,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
 								<option id="cuda.toolchain.compiler.option.debugging.gprof.889312858" name="Generate gprof information (-pg)" superClass="cuda.toolchain.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
-								<option id="cuda.toolchain.compiler.option.misc.other.25096987" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot;" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.25096987" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot; -Xcompiler -fpic" valueType="string"/>
 								<inputType id="cuda.toolchain.compiler.input.1051704669" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.755194832" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
@@ -51,6 +49,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.debugging.gprof.1523464757" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.other.pic.754292686" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1858955895" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.196315618" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
@@ -58,6 +57,7 @@
 								<option id="gnu.c.compiler.option.debugging.level.375302751" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.602524337" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths"/>
 								<option id="gnu.c.compiler.option.debugging.gprof.1608165658" name="Generate gprof information (-pg)" superClass="gnu.c.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="gnu.c.compiler.option.misc.pic.354682535" name="Position Independent Code (-fPIC)" superClass="gnu.c.compiler.option.misc.pic" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.958246626" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.linker.2003852624" name="NVCC Linker" superClass="cuda.toolchain.gnu.cpp.linker"/>
@@ -80,7 +80,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gapputils.cv.cuda"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gapputils.cv.cuda/Release"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gapputils.cv.cuda"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gapputils.cv.cuda" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -98,7 +98,7 @@
 					<folderInfo id="cuda.toolchain.configuration.lib.release.618046090." name="/" resourcePath="">
 						<toolChain id="cuda.toolchain.lib.release.1633720290" name="CUDA Toolchain" superClass="cuda.toolchain.lib.release">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cuda.toolchain.targetplatform.exe.debug.1671066537" isAbstract="false" name="Linux Release Platform" osList="linux" superClass="cuda.toolchain.targetplatform.exe.debug"/>
-							<builder buildPath="${workspace_loc:/gapputils.cv.cuda/Release}" id="cuda.toolchain.builder.exe.debug.1219834807" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cuda.toolchain.builder.exe.debug"/>
+							<builder buildPath="${workspace_loc:/gapputils.cv.cuda/Release}" id="cuda.toolchain.builder.exe.debug.1219834807" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="7" superClass="cuda.toolchain.builder.exe.debug"/>
 							<tool id="cuda.toolchain.compiler.exe.debug.165857401" name="NVIDIA CUDA Compiler" superClass="cuda.toolchain.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.most" id="cuda.toolchain.compiler.option.optimization.level.957598317" name="Optimization Level" superClass="cuda.toolchain.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="cuda.toolchain.compiler.option.debugging.level.1894462553" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level" value="cuda.toolchain.compiler.option.debugging.level.none" valueType="enumerated"/>
@@ -124,13 +124,13 @@
 							<tool id="cuda.toolchain.gnu.c.compiler.259128377" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
 								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1507845339" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.1220362081" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.include.paths.224106841" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath"/>
+								<option id="gnu.c.compiler.option.include.paths.224106841" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1003500410" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.linker.1145385976" name="NVCC Linker" superClass="cuda.toolchain.gnu.cpp.linker"/>
 							<tool id="cuda.toolchain.gnu.c.linker.924459404" name="NVCC LinkerC" superClass="cuda.toolchain.gnu.c.linker"/>
 							<tool id="cuda.toolchain.gnu.assembler.848006618" name="GCC Assembler" superClass="cuda.toolchain.gnu.assembler">
-								<option id="gnu.both.asm.option.include.paths.628038606" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath"/>
+								<option id="gnu.both.asm.option.include.paths.628038606" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1774506426" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.archiver.191514941" name="GCC Archiver" superClass="cuda.toolchain.gnu.archiver"/>
@@ -145,8 +145,13 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="gapputils.cv.cuda.cuda.toolchain.lib.1525119693" name="Static Library" projectType="cuda.toolchain.lib"/>
 	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="1">
-		<resource resourceType="PROJECT" workspacePath="/gapputils.cv.cuda"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/gapputils.cv.cuda"/>
+		</configuration>
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/gapputils.cv.cuda"/>
+		</configuration>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>

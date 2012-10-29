@@ -127,10 +127,21 @@ INCLUDEPATH += ${CUDA_INC_PATH}
 INCLUDEPATH += ${CUDASDK_INC_PATH}
 INCLUDEPATH += ${CULA_INC_PATH}
 
-INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/cmif
-INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/utilities
-INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/ctrace
-INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/carray
+CONFIG(fornix, gpufarm|fornix) {
+	INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/cmif
+	INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/utilities
+	INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/ctrace
+	INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/carray
+	message("Fornix build.")
+}
+
+CONFIG(gpufarm, gpufarm|fornix) {
+	INCLUDEPATH += /res1/software/x64/cmif_v5_3/cmif
+	INCLUDEPATH += /res1/software/x64/cmif_v5_3/utilities
+	INCLUDEPATH += /res1/software/x64/cmif_v5_3/ctrace
+	INCLUDEPATH += /res1/software/x64/cmif_v5_3/carray
+	message("Gpufarm build.")
+}
 
 LIBS += -Wl,-E -pg
 LIBS += -L${CUDA_LIB_PATH}
