@@ -99,7 +99,7 @@ CONFIG(debug, debug|release) {
   LIBS += -L"../../optlib/Debug"
   LIBS += -L"../../regutil/Debug"
   LIBS += -L"../../gapputils.cv.cuda/Debug"
-  LIBS += -lgapputils.cv.cuda -lregutil -loptlib -lculib -ltbblas
+  LIBS += -lgapputils.cv.cuda -lregutil -loptlib -lculib -ltbblasd
   
   message("Debug build.")
 }
@@ -111,7 +111,7 @@ CONFIG(release, debug|release) {
   LIBS += -lgapputils -lcapputils -ltinyxml
   
   LIBS += -L"../../culib/Debug"
-  LIBS += -L"../../tbblas/Debug"
+  LIBS += -L"../../tbblas/Release"
   LIBS += -L"../../optlib/Debug"
   LIBS += -L"../../regutil/Debug"
   LIBS += -L"../../gapputils.cv.cuda/Debug"
