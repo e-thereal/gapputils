@@ -7,6 +7,7 @@
 
 #include "ConvRbmTrainer.h"
 
+#include <capputils/DescriptionAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -37,6 +38,9 @@ BeginPropertyDefinitions(ConvRbmTrainer)
   DefineProperty(Tensors, Input("Imgs"), Volatile(), ReadOnly(), Observe(Id))
   DefineProperty(SampleVisibles, Observe(Id))
   DefineProperty(EpochCount, Observe(Id))
+  DefineProperty(MaxTime, Observe(Id),
+      Description("Maximum number of seconds the training will be performed."
+          "Use this parameter to set a deadline for the training. A value of -1 indicates no deadline."))
   DefineProperty(BatchSize, Observe(Id))
   DefineProperty(LearningRate, Observe(Id))
   DefineProperty(SparsityTarget, Observe(Id))
@@ -50,7 +54,7 @@ BeginPropertyDefinitions(ConvRbmTrainer)
 EndPropertyDefinitions
 
 ConvRbmTrainer::ConvRbmTrainer()
- : _SampleVisibles(false), _EpochCount(50), _BatchSize(10), _LearningRate(0.01),
+ : _SampleVisibles(false), _EpochCount(50), _MaxTime(-1), _BatchSize(10), _LearningRate(0.01),
    _SparsityTarget(0.001), _SparsityPenalty(0.01), _UseRandomSamples(false),
    _CalculateBaseline(false), _ShowProgress(false), data(0)
 {

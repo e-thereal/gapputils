@@ -437,6 +437,11 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
       data->setFilters(debugFilters);
     }
 
+    if (getMaxTime() > 0 && timer.elapsed() > getMaxTime()) {
+      dlog(Severity::Warning) << "Deadline for the training reached. Training stopped.";
+      break;
+    }
+
     if (monitor)
       monitor->reportProgress(100. * (iEpoch + 1) / epochCount, (iEpoch < epochCount - 1) && getShowProgress());
   }

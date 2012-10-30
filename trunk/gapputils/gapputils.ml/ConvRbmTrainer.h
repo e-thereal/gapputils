@@ -28,11 +28,12 @@ public:
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(SampleVisibles, bool)
   Property(EpochCount, int)
+  Property(MaxTime, int)
   Property(BatchSize, int)
-  int i1;
-  Property(LearningRate, value_t)
-  Property(SparsityTarget, value_t)
-  Property(SparsityPenalty, value_t)
+
+  Property(LearningRate, double)
+  Property(SparsityTarget, double)
+  Property(SparsityPenalty, double)
   Property(UseRandomSamples, bool)
   Property(CalculateBaseline, bool)
   Property(ShowProgress, bool)
