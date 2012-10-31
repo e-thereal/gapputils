@@ -25,10 +25,14 @@ BeginPropertyDefinitions(TensorReader)
   ReflectableBase(gapputils::workflow::DefaultWorkflowElement<TensorReader>)
   WorkflowProperty(Filename, Input("File"), Filename(), FileExists())
   WorkflowProperty(Tensors, Output("Ts"), Serialize<Type>())
+  WorkflowProperty(Width, NoParameter())
+  WorkflowProperty(Height, NoParameter())
+  WorkflowProperty(Depth, NoParameter())
+  WorkflowProperty(Count, NoParameter())
 
 EndPropertyDefinitions
 
-TensorReader::TensorReader() {
+TensorReader::TensorReader() : _Width(0), _Height(0), _Depth(0), _Count(0) {
 }
 
 TensorReader::~TensorReader() {
@@ -36,6 +40,13 @@ TensorReader::~TensorReader() {
 
 void TensorReader::update(gapputils::workflow::IProgressMonitor* monitor) const {
   capputils::Serializer::ReadFromFile(*newState, newState->findProperty("Tensors"), getFilename());
+  std::vector<boost::shared_ptr<tensor_t> >& tensors = *newState->getTensors();
+  if (tensors.size()) {
+    newState->setWidth(tensors[0]->size()[0]);
+    newState->setHeight(tensors[0]->size()[1]);
+    newState->setDepth(tensors[0]->size()[2]);
+    newState->setCount(tensors.size());
+  }
 }
 
 } /* namespace ml */
