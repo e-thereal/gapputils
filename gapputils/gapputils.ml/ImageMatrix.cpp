@@ -7,6 +7,7 @@
 
 #include "ImageMatrix.h"
 
+#include <capputils/DescriptionAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -39,13 +40,15 @@ BeginPropertyDefinitions(ImageMatrix)
   DefineProperty(InputImage, Input("In"), Volatile(), ReadOnly(), Observe(inputId = Id), TimeStamp(Id))
   DefineProperty(MinValue, Observe(Id), TimeStamp(Id))
   DefineProperty(MaxValue, Observe(Id), TimeStamp(Id))
+  DefineProperty(ColumnCount, Observe(Id), TimeStamp(Id),
+      Description("The number of columns. A value of -1 indicates to always use a squared matrix."))
   DefineProperty(ImageMatrix, Output("Out"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
   DefineProperty(AutoScale, Observe(Id))
   DefineProperty(CenterImages, Observe(Id))
 
 EndPropertyDefinitions
 
-ImageMatrix::ImageMatrix() : _MinValue(-2.f), _MaxValue(2.f), _AutoScale(false),
+ImageMatrix::ImageMatrix() : _MinValue(-2), _MaxValue(2), _ColumnCount(-1), _AutoScale(false),
  _CenterImages(false), data(0)
 {
   WfeUpdateTimestamp

@@ -17,17 +17,14 @@ class Compare : public workflow::DefaultWorkflowElement<Compare>
 
   InitReflectableClass(Compare)
 
+  Property(X, boost::shared_ptr<std::vector<double> >)
+  Property(Y, boost::shared_ptr<std::vector<double> >)
   Property(Type, ErrorType)
-  Property(X, double*)
-  Property(Y, double*)
-  Property(Count, int)
   Property(Error, double)
 
 public:
   Compare(void);
   ~Compare(void);
-
-  void changeEventHandler(capputils::ObservableClass* sender, int eventId);
 
 protected:
   virtual void update(workflow::IProgressMonitor* monitor) const;

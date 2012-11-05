@@ -21,6 +21,7 @@ class GenerateVectors : public workflow::DefaultWorkflowElement<GenerateVectors>
   Property(From, std::vector<float>)
   Property(StepCount, std::vector<int>)
   Property(To, std::vector<float>)
+  Property(Order, std::vector<int>)
 
 public:
   GenerateVectors();

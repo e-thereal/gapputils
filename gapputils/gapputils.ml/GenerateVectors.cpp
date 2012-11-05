@@ -23,6 +23,7 @@ BeginPropertyDefinitions(GenerateVectors)
   WorkflowProperty(From, NotEmpty<Type>())
   WorkflowProperty(StepCount, NotEmpty<Type>())
   WorkflowProperty(To, NotEmpty<Type>())
+  WorkflowProperty(Order, NotEmpty<Type>())
 
 EndPropertyDefinitions
 
@@ -39,12 +40,23 @@ void GenerateVectors::update(workflow::IProgressMonitor* monitor) const {
   std::vector<float> from = getFrom();
   std::vector<int> stepCount = getStepCount();
   std::vector<float> to = getTo();
+  std::vector<int> order = getOrder();
 
   size_t dim = from.size();
 
-  if (dim != to.size() || dim != stepCount.size()) {
-    dlog(capputils::Severity::Warning) << "From, stepCount and to vector must have the same size! Aborting.";
+  if (dim != to.size() || dim != stepCount.size() || dim != order.size()) {
+    dlog(capputils::Severity::Warning) << "From, stepCount, to, and order vector must have the same size! Aborting.";
     return;
+  }
+
+  std::vector<int> sortedOrder(order);
+  std::sort(sortedOrder.begin(), sortedOrder.end());
+
+  for (size_t i = 0; i < sortedOrder.size(); ++i) {
+    if (sortedOrder[i] != (int)i) {
+      dlog(capputils::Severity::Warning) << "Order must be a permutation. Aborting!";
+      return;
+    }
   }
 
   boost::shared_ptr<std::vector<float> > output(new std::vector<float>);
@@ -52,21 +64,23 @@ void GenerateVectors::update(workflow::IProgressMonitor* monitor) const {
   std::vector<int> i(dim);
   std::fill(i.begin(), i.end(), 0);
 
-  while(i[dim-1] < stepCount[dim-1]) {
+  while(i[order[dim-1]] < stepCount[order[dim-1]]) {
     // create vector
     for (size_t j = 0; j < dim; ++j) {
       if (stepCount[j] <= 1)
         output->push_back(from[j]);
       else
         output->push_back((float)i[j] * (to[j] - from[j]) / (float)(stepCount[j] - 1));
+      std::cout << output->at(output->size() - 1) << " ";
     }
+    std::cout << std::endl;
 
     // increment i
-    ++i[0];
+    ++i[order[0]];
     for (size_t j = 0; j < dim - 1; ++j) {
-      if (i[j] >= stepCount[j]) {
-        i[j] = 0;
-        ++i[j + 1];
+      if (i[order[j]] >= stepCount[order[j]]) {
+        i[order[j]] = 0;
+        ++i[order[j+1]];
       }
     }
   }

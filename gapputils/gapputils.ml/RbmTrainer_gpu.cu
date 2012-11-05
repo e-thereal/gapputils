@@ -45,10 +45,10 @@ namespace ml {
 #define TRACE std::cout << __LINE__ << std::endl;
 
 template<class T>
-struct min_1 {
-
+struct min_0 {
+__host__ __device__
 T  operator()(const T& x) const {
-  return max((T)1, x);
+  return max((T)0, x);
 }
 
 };
@@ -80,7 +80,9 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
     return;
   }
 
-  dlog() << "Building RBM ...";
+  HiddenUnitType hiddenUnitType = getHiddenUnitType();
+
+  dlog(Severity::Message) << "Building RBM with " << hiddenUnitType << " hidden units.";
 
   // Calculate the mean and the std of all features
   const unsigned visibleCount = getVisibleCount();
@@ -91,6 +93,7 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
 
   boost::shared_ptr<RbmModel> rbm(new RbmModel());
   rbm->setIsGaussian(getIsGaussian());
+  rbm->setHiddenUnitType(getHiddenUnitType());
 
   ublas::matrix<float> trainingSet(sampleCount, visibleCount);
   std::copy(getTrainingSet()->begin(), getTrainingSet()->end(), trainingSet.data().begin());
@@ -172,16 +175,10 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
   tbblas::device_vector<float>& c = *hiddenBiases;
 
   // W_ij ~ N(mu = 0, sigma^2 = 0.1^2)
-  //std::ranlux64_base_01 eng;
-  //std::normal_distribution<float> normal;
 
   // Initialize weights
   thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(W.data().size()),
     W.data().begin(), get_randn<float>(0.f, 0.1f));
-  //std::for_each(W.data().begin(), W.data().end(), _1 = 1.f * normal(eng));
-  //std::cout << "   E[W_ij] (c++) = " << ublas::norm_1(W) / W.data().size() << std::endl;
-  //read_matrix("vishid_initial.bin", W);
-  //std::cout << "E[W_ij] (matlab) = " << ublas::norm_1(W) / W.data().size() << std::endl;
 
   // Initialize bias terms
   thrust::fill(b.data().begin(), b.data().end(), 0.f);
@@ -259,8 +256,17 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
       poshidprobs = tbblas::prod(batch, W);
       for (unsigned iRow = 0; iRow < poshidprobs.size1(); ++iRow)
         tbblas::row(poshidprobs, iRow) += c;
-      thrust::transform(poshidprobs.data().begin(), poshidprobs.data().end(),
-          poshidprobs.data().begin(), sigmoid<float>());
+
+      switch(hiddenUnitType) {
+      case HiddenUnitType::Bernoulli:
+        thrust::transform(poshidprobs.data().begin(), poshidprobs.data().end(),
+            poshidprobs.data().begin(), sigmoid<float>());
+        break;
+      case HiddenUnitType::ReLU:
+        thrust::transform(poshidprobs.data().begin(), poshidprobs.data().end(),
+            poshidprobs.data().begin(), min_0<float>());
+        break;
+      }
 
       // (x_n)(mu_n)'
       posprods = tbblas::prod(tbblas::trans(batch), poshidprobs);
@@ -278,10 +284,16 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
       /*** END OF POSITIVE PHASE ***/
 
       // Sample the hidden states
-      thrust::transform(
-          poshidprobs.data().begin(), poshidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
-          poshidstates.data().begin(), sample_units<float>()
-      );
+      if (hiddenUnitType == HiddenUnitType::Bernoulli && getSampleHiddens()) {
+        thrust::transform(
+            poshidprobs.data().begin(), poshidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
+            poshidstates.data().begin(), sample_units<float>()
+        );
+      } else {
+        thrust::copy(
+            poshidprobs.data().begin(), poshidprobs.data().end(), poshidstates.data().begin()
+        );
+      }
 
       /*** START NEGATIVE PHASE ***/
 
@@ -300,8 +312,17 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
       neghidprobs = tbblas::prod(negdata, W);
       for (unsigned iRow = 0; iRow < negdata.size1(); ++iRow)
         tbblas::row(neghidprobs, iRow) += c;
-      thrust::transform(neghidprobs.data().begin(), neghidprobs.data().end(), neghidprobs.data().begin(),
-          sigmoid<float>());
+
+      switch(hiddenUnitType) {
+      case HiddenUnitType::Bernoulli:
+        thrust::transform(neghidprobs.data().begin(), neghidprobs.data().end(),
+            neghidprobs.data().begin(), sigmoid<float>());
+        break;
+      case HiddenUnitType::ReLU:
+        thrust::transform(neghidprobs.data().begin(), neghidprobs.data().end(),
+            neghidprobs.data().begin(), min_0<float>());
+        break;
+      }
 
       // (xneg)(mu_neg)'
       negprods = tbblas::prod(tbblas::trans(negdata), neghidprobs);

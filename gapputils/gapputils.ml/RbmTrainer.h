@@ -34,6 +34,7 @@ class RbmTrainer : public workflow::DefaultWorkflowElement<RbmTrainer> {
   Property(SparsityWeight, float)
   Property(IsGaussian, bool)
   Property(MakeBernoulli, bool)
+  Property(HiddenUnitType, HiddenUnitType)
   Property(Weights, boost::shared_ptr<std::vector<float> >)
   Property(BernoulliData, boost::shared_ptr<std::vector<float> >)
   Property(ShowWeights, int)

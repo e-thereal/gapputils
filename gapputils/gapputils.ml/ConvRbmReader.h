@@ -27,6 +27,7 @@ class ConvRbmReader : public gapputils::workflow::WorkflowElement {
   Property(FilterHeight, int)
   Property(FilterDepth, int)
   Property(PoolingSize, int)
+  Property(HiddenUnitType, HiddenUnitType)
 
 private:
   mutable ConvRbmReader* data;
@@ -37,8 +38,6 @@ public:
 
   virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
   virtual void writeResults();
-
-  void changedHandler(capputils::ObservableClass* sender, int eventId);
 };
 
 }

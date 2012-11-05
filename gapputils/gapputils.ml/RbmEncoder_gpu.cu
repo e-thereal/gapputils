@@ -20,6 +20,15 @@ namespace ml {
 
 namespace ublas = boost::numeric::ublas;
 
+template<class T>
+struct min_0 {
+__host__ __device__
+T  operator()(const T& x) const {
+  return max((T)0, x);
+}
+
+};
+
 void RbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace thrust::placeholders;
 
@@ -33,6 +42,7 @@ void RbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
     return;
 
   RbmModel& rbm = *getRbmModel();
+  HiddenUnitType hiddenUnitType = rbm.getHiddenUnitType();
 
   // Calculate the mean and the std of all features
   const unsigned visibleCount = rbm.getVisibleBiases()->size();
@@ -63,10 +73,18 @@ void RbmEncoder::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   for (unsigned iRow = 0; iRow < hidprobs.size1(); ++iRow)
     tbblas::row(hidprobs, iRow) += c;
 
-  thrust::transform(hidprobs.data().begin(), hidprobs.data().end(),
-      hidprobs.data().begin(), sigmoid<float>());
+  switch(hiddenUnitType) {
+  case HiddenUnitType::Bernoulli:
+    thrust::transform(hidprobs.data().begin(), hidprobs.data().end(),
+        hidprobs.data().begin(), sigmoid<float>());
+    break;
+  case HiddenUnitType::ReLU:
+    thrust::transform(hidprobs.data().begin(), hidprobs.data().end(),
+        hidprobs.data().begin(), min_0<float>());
+    break;
+  }
 
-  if (getSampleHiddens()) {
+  if (getSampleHiddens() && hiddenUnitType == HiddenUnitType::Bernoulli) {
     thrust::transform(
         hidprobs.data().begin(), hidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
         hidprobs.data().begin(), sample_units<float>()

@@ -18,6 +18,8 @@
 
 #include <cuda_runtime.h>
 
+#include "HiddenUnitType.h"
+
 namespace gapputils {
 
 namespace ml {
@@ -47,6 +49,7 @@ class RbmModel : public capputils::reflection::ReflectableClass {
   Property(VisibleMeans, boost::shared_ptr<tbblas::device_vector<float> >)  ///< used for feature scaling
   Property(VisibleStds, boost::shared_ptr<tbblas::device_vector<float> >)   ///< used for feature scaling
   Property(IsGaussian, bool)
+  Property(HiddenUnitType, HiddenUnitType)
 
 public:
   RbmModel();

@@ -17,6 +17,7 @@
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
+#include <capputils/EnumeratorAttribute.h>
 
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
@@ -48,6 +49,7 @@ BeginPropertyDefinitions(InitializeConvRbmModel)
   DefineProperty(WeightMean, Observe(Id))
   DefineProperty(WeightStddev, Observe(Id))
   DefineProperty(IsGaussian, Observe(Id))
+  DefineProperty(HiddenUnitType, Enumerator<Type>(), Observe(Id))
 
   DefineProperty(Model, Output("CRBM"), Volatile(), ReadOnly(), Observe(Id))
 
@@ -116,6 +118,7 @@ void InitializeConvRbmModel::execute(gapputils::workflow::IProgressMonitor* moni
   boost::shared_ptr<ConvRbmModel> crbm(new ConvRbmModel());
   crbm->setPoolingBlockSize(getPoolingBlockSize());
   crbm->setIsGaussian(getIsGaussian());
+  crbm->setHiddenUnitType(getHiddenUnitType());
 
   std::vector<boost::shared_ptr<tensor_t> >& tensors = *getInputTensors();
   std::vector<boost::shared_ptr<tensor_t> > X;

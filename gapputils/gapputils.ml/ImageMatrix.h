@@ -23,6 +23,7 @@ class ImageMatrix : public gapputils::workflow::WorkflowElement {
   Property(InputImage, boost::shared_ptr<image_t>)
   Property(MinValue, float)
   Property(MaxValue, float)
+  Property(ColumnCount, int)
   Property(ImageMatrix, boost::shared_ptr<image_t>)
   Property(AutoScale, bool)
   Property(CenterImages, bool)
