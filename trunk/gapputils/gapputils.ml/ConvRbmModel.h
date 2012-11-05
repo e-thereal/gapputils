@@ -9,8 +9,11 @@
 #define GAPPUTLIS_ML_CONVRBMMODEL_H_
 
 #include <capputils/ReflectableClass.h>
+#include <capputils/Enumerators.h>
 
 #include <tbblas/tensor.hpp>
+
+#include "HiddenUnitType.h"
 
 namespace gapputils {
 
@@ -40,6 +43,7 @@ private:
   Property(Stddev, value_t)
   Property(PoolingBlockSize, unsigned)
   Property(IsGaussian, bool)
+  Property(HiddenUnitType, HiddenUnitType)
 
 public:
   ConvRbmModel();

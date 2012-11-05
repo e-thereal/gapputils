@@ -32,6 +32,7 @@ private:
   Property(WeightMean, value_t)
   Property(WeightStddev, value_t)
   Property(IsGaussian, bool)
+  Property(HiddenUnitType, HiddenUnitType)
 
   Property(Model, boost::shared_ptr<ConvRbmModel>)
 

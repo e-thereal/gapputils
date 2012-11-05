@@ -36,6 +36,7 @@ BeginPropertyDefinitions(RbmReader)
   DefineProperty(RbmModel, Output("RBM"), Volatile(), ReadOnly(), Observe(Id), TimeStamp(Id))
   DefineProperty(VisibleCount, Observe(Id), TimeStamp(Id))
   DefineProperty(HiddenCount, Observe(Id), TimeStamp(Id))
+  DefineProperty(HiddenUnitType, Observe(Id))
 
 EndPropertyDefinitions
 
@@ -68,6 +69,7 @@ void RbmReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   data->setRbmModel(rbm);
   data->setVisibleCount(rbm->getVisibleBiases()->size());
   data->setHiddenCount(rbm->getHiddenBiases()->size());
+  data->setHiddenUnitType(rbm->getHiddenUnitType());
 }
 
 void RbmReader::writeResults() {
@@ -77,6 +79,7 @@ void RbmReader::writeResults() {
   setRbmModel(data->getRbmModel());
   setVisibleCount(data->getVisibleCount());
   setHiddenCount(data->getHiddenCount());
+  setHiddenUnitType(data->getHiddenUnitType());
 }
 
 }

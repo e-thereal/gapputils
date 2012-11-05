@@ -25,6 +25,7 @@ BeginPropertyDefinitions(ConvRbmModel)
   DefineProperty(Stddev, Serialize<Type>())
   DefineProperty(PoolingBlockSize, Serialize<Type>())
   DefineProperty(IsGaussian, Serialize<Type>())
+  DefineProperty(HiddenUnitType, Serialize<Type>())
 
 EndPropertyDefinitions
 
@@ -60,6 +61,7 @@ boost::shared_ptr<ConvRbmModel> ConvRbmModel::clone() {
   model->setStddev(getStddev());
   model->setPoolingBlockSize(getPoolingBlockSize());
   model->setIsGaussian(getIsGaussian());
+  model->setHiddenUnitType(getHiddenUnitType());
 
   return model;
 }

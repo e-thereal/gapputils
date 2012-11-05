@@ -54,10 +54,15 @@ void ImageMatrix::execute(gapputils::workflow::IProgressMonitor* monitor) const 
 
   boost::shared_ptr<culib::ICudaImage> input = make_cuda_image(*getInputImage());
   dim3 size = input->getSize();
-  int rowCount = ceil(std::sqrt((float)size.z));
+  int columnCount = getColumnCount() > 0 ? getColumnCount() : ceil(std::sqrt((float)size.z));
+  int rowCount = ceil((float)size.z / (float)columnCount);
 
-  boost::shared_ptr<image_t> outMatrix(new image_t(size.x * rowCount, size.y * rowCount, 1));
-  boost::shared_ptr<culib::ICudaImage> imageMatrix(new culib::CudaImage(dim3(size.x * rowCount, size.y * rowCount)));
+//  std::cout << "ColumnCount: " << columnCount << " (" << getColumnCount() << ")" << std::endl;
+//  std::cout << "RowCount: " << rowCount << std::endl;
+//  std::cout << "Count: " << size.z << std::endl;
+
+  boost::shared_ptr<image_t> outMatrix(new image_t(size.x * columnCount, size.y * rowCount, 1));
+  boost::shared_ptr<culib::ICudaImage> imageMatrix(new culib::CudaImage(dim3(size.x * columnCount, size.y * rowCount)));
   
   // anneliebttom copy this
 
@@ -74,7 +79,7 @@ void ImageMatrix::execute(gapputils::workflow::IProgressMonitor* monitor) const 
   culib::transform3D(centered.getDevicePointer(), input->getCudaArray(), inSize, centering, dim3(), true);
   thrust::device_ptr<float> inputPtr(getCenterImages() ? centered.getDevicePointer() : input->getDevicePointer());
 
-  assert(inSize.x * rowCount == outSize.x);
+  assert(inSize.x * columnCount == outSize.x);
   assert(inSize.y * rowCount == outSize.y);
   assert(outSize.z == 1);
 
@@ -101,7 +106,7 @@ void ImageMatrix::execute(gapputils::workflow::IProgressMonitor* monitor) const 
 
   tbblas::device_matrix<float> m(outSize.x, outSize.y);
   for (int y = 0, i = 0; y < rowCount; ++y) {
-    for (int x = 0; x < rowCount && i < inSize.z; ++x, ++i) {
+    for (int x = 0; x < columnCount && i < inSize.z; ++x, ++i) {
       tbblas::device_matrix<float> submatrix = tbblas::subrange(m, x * inSize.x, (x + 1) * inSize.x,
           y * inSize.y, (y + 1) * inSize.y);
   

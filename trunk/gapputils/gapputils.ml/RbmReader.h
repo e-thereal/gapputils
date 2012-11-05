@@ -24,6 +24,7 @@ class RbmReader : public gapputils::workflow::WorkflowElement {
   Property(RbmModel, boost::shared_ptr<RbmModel>)
   Property(VisibleCount, int)
   Property(HiddenCount, int)
+  Property(HiddenUnitType, HiddenUnitType)
 
 private:
   mutable RbmReader* data;

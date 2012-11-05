@@ -40,23 +40,18 @@ BeginPropertyDefinitions(ConvRbmReader)
   DefineProperty(FilterHeight, NoParameter(), Observe(Id))
   DefineProperty(FilterDepth, NoParameter(), Observe(Id))
   DefineProperty(PoolingSize, NoParameter(), Observe(Id))
+  DefineProperty(HiddenUnitType, NoParameter(), Observe(Id))
 
 EndPropertyDefinitions
 
 ConvRbmReader::ConvRbmReader() : _FilterWidth(0), _FilterHeight(0), _FilterDepth(0), data(0) {
   WfeUpdateTimestamp
   setLabel("Reader");
-
-  Changed.connect(capputils::EventHandler<ConvRbmReader>(this, &ConvRbmReader::changedHandler));
 }
 
 ConvRbmReader::~ConvRbmReader() {
   if (data)
     delete data;
-}
-
-void ConvRbmReader::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
 }
 
 void ConvRbmReader::execute(gapputils::workflow::IProgressMonitor* monitor) const {
@@ -77,6 +72,7 @@ void ConvRbmReader::execute(gapputils::workflow::IProgressMonitor* monitor) cons
     data->setFilterDepth(crbm->getFilters()->at(0)->size()[2]);
   }
   data->setPoolingSize(crbm->getPoolingBlockSize());
+  data->setHiddenUnitType(crbm->getHiddenUnitType());
 }
 
 void ConvRbmReader::writeResults() {
@@ -89,6 +85,7 @@ void ConvRbmReader::writeResults() {
   setFilterHeight(data->getFilterHeight());
   setFilterDepth(data->getFilterDepth());
   setPoolingSize(data->getPoolingSize());
+  setHiddenUnitType(data->getHiddenUnitType());
 }
 
 }

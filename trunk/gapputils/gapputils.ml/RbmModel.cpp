@@ -37,6 +37,7 @@ BeginPropertyDefinitions(RbmModel)
   DefineProperty(VisibleMeans, Serialize<TYPE_OF(VisibleMeans)>())
   DefineProperty(VisibleStds, Serialize<TYPE_OF(VisibleStds)>())
   DefineProperty(IsGaussian, Serialize<TYPE_OF(IsGaussian)>())
+  DefineProperty(HiddenUnitType, Serialize<Type>())
 
 EndPropertyDefinitions
 

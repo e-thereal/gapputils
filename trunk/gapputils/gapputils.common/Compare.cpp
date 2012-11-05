@@ -1,24 +1,9 @@
 #include "Compare.h"
 
-#include <capputils/EnumeratorAttribute.h>
-#include <capputils/EventHandler.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/NotEqualAssertion.h>
-#include <capputils/ObserveAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <capputils/Verifier.h>
-#include <capputils/VolatileAttribute.h>
-#include <capputils/TimeStampAttribute.h>
-
-#include <gapputils/LabelAttribute.h>
-#include <gapputils/HideAttribute.h>
-
 #include <iostream>
 #include <cmath>
 
-using namespace capputils::attributes;
-using namespace gapputils::attributes;
-using namespace std;
+#include <gapputils/namespaces.h>
 
 namespace gapputils {
 
@@ -26,57 +11,56 @@ namespace common {
 
 BeginPropertyDefinitions(Compare)
 
-  DefineProperty(Type, Enumerator<ErrorType>(), Observe(Id), Label())
-  DefineProperty(X, Observe(Id), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(Id))
-  DefineProperty(Y, Observe(Id), Input(), NotEqual<double*>(0), Hide(), Volatile(), TimeStamp(Id))
-  DefineProperty(Count, Observe(Id), Input("N"), TimeStamp(Id))
-  DefineProperty(Error, Observe(Id), Output(), TimeStamp(Id))
+  ReflectableBase(DefaultWorkflowElement<Compare>)
+
+  WorkflowProperty(X, Input(), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(Y, Input(), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(Type, Enumerator<Type>(),
+      Description("One of mean squared error (MSE), standard error (SE), or relative standard error (RSE)."))
+  WorkflowProperty(Error, Output())
 
 EndPropertyDefinitions
 
-Compare::Compare(void) : _Type(ErrorType::MSE), _X(0), _Y(0), _Count(0), _Error(0)
-{
-  Changed.connect(capputils::EventHandler<Compare>(this, &Compare::changeEventHandler));
+Compare::Compare(void) : _Type(ErrorType::MSE), _Error(0) {
+  setLabel("Compare");
 }
 
 Compare::~Compare(void) { }
 
-void Compare::changeEventHandler(capputils::ObservableClass* sender, int eventId) {
-}
-
 void Compare::update(gapputils::workflow::IProgressMonitor* monitor) const {
+  Logbook& dlog = getLogbook();
+
+  std::vector<double>& x = *getX();
+  std::vector<double>& y = *getY();
+
+  if (x.size() != y.size()) {
+    dlog(Severity::Warning) << "X and y must have the same size. Aborting!";
+    return;
+  }
+
   double error = 0;
   switch (getType()) {
   case ErrorType::MSE: {
-      double *x = getX();
-      double *y = getY();
-      int count = getCount();
-      for (int i = 0; i < count; ++i) {
+      for (size_t i = 0; i < x.size(); ++i) {
         error += (x[i] - y[i]) * (x[i] - y[i]);
       }
-      error /= count;
+      error /= x.size();
     } break;
   case ErrorType::SE: {
-      double *x = getX();
-      double *y = getY();
-      int count = getCount();
-      for (int i = 0; i < count; ++i) {
+      for (size_t i = 0; i < x.size(); ++i) {
         error += (x[i] - y[i]) * (x[i] - y[i]);
       }
-      error /= count;
+      error /= x.size();
       error = sqrt(error);
     } break;
   case ErrorType::RSE: {
-      double *x = getX();
-      double *y = getY();
-      int count = getCount();
       double xMean = 0.0;
-      for (int i = 0; i < count; ++i) {
+      for (size_t i = 0; i < x.size(); ++i) {
         error += (x[i] - y[i]) * (x[i] - y[i]);
         xMean += x[i];
       }
-      error /= count;
-      xMean /= count;
+      error /= x.size();
+      xMean /= x.size();
       error = sqrt(error);
       error /= xMean;
     } break;
