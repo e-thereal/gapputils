@@ -29,6 +29,7 @@ class RbmTrainer : public workflow::DefaultWorkflowElement<RbmTrainer> {
   Property(EpochCount, int)
   Property(BatchSize, int)
   Property(LearningRate, float)
+  Property(InitialWeights, float)
   Property(InitialHidden, float)
   Property(SparsityTarget, float)
   Property(SparsityWeight, float)

@@ -24,6 +24,7 @@ BeginPropertyDefinitions(CsvReader)
   WorkflowProperty(LastRow, Description("Zero-based index of the last row. A value of -1 indicates to read until the end."))
   WorkflowProperty(Delimiter)
   WorkflowProperty(Mode, Enumerator<Type>())
+  WorkflowProperty(FastRead)
   
   WorkflowProperty(Data, Output("D"))
   WorkflowProperty(FlatData, Output("FD"))
@@ -33,7 +34,7 @@ BeginPropertyDefinitions(CsvReader)
 EndPropertyDefinitions
 
 CsvReader::CsvReader() : _FirstColumn(0), _LastColumn(-1),
-_FirstRow(0), _LastRow(-1), _Delimiter(","), _Mode(CsvReadMode::Structured), _ColumnCount(0), _RowCount(0)
+_FirstRow(0), _LastRow(-1), _Delimiter(","), _Mode(CsvReadMode::Structured), _FastRead(false), _ColumnCount(0), _RowCount(0)
 {
   setLabel("CsvReader");
 }
@@ -75,6 +76,7 @@ void CsvReader::update(IProgressMonitor* monitor) const {
       new std::vector<boost::shared_ptr<std::vector<double> > >());
 
   int columnCount = 0;
+  const bool fast = getFastRead();
   for (int rowIndex = 0; getline(csvfile, line); ++rowIndex) {
     if (firstRow <= rowIndex && (lastRow == -1 || rowIndex <= lastRow)) {
 
@@ -92,7 +94,8 @@ void CsvReader::update(IProgressMonitor* monitor) const {
       }
       columnCount = max(columnCount, (int)dataRow->size());
       data->push_back(dataRow);
-      monitor->reportProgress(100 * csvfile.tellg() / fileSize);
+      if (!fast)
+        monitor->reportProgress(100 * csvfile.tellg() / fileSize);
     }
   }
   csvfile.close();

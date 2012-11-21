@@ -25,6 +25,7 @@ Property(FirstRow, int)
 Property(LastRow, int)
 Property(Delimiter, std::string)
 Property(Mode, CsvReadMode)
+Property(FastRead, bool)
 
 Property(Data, boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<double> > > >)
 Property(FlatData, boost::shared_ptr<std::vector<double> >)

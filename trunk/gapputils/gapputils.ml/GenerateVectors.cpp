@@ -70,7 +70,7 @@ void GenerateVectors::update(workflow::IProgressMonitor* monitor) const {
       if (stepCount[j] <= 1)
         output->push_back(from[j]);
       else
-        output->push_back((float)i[j] * (to[j] - from[j]) / (float)(stepCount[j] - 1));
+        output->push_back((float)i[j] * (to[j] - from[j]) / (float)(stepCount[j] - 1) + (float)from[j]);
       std::cout << output->at(output->size() - 1) << " ";
     }
     std::cout << std::endl;
