@@ -71,7 +71,7 @@ void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
   }
 
   outfile.close();
-  newState->setFilename(getFilename());
+  newState->setOutputName(getFilename());
 }
 
 }

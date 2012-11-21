@@ -24,6 +24,10 @@
 #include <tbblas/device_matrix.hpp>
 #include <tbblas/device_vector.hpp>
 
+#include <tbblas/tensor.hpp>
+#include <tbblas/random.hpp>
+#include <tbblas/math.hpp>
+
 #include "tbblas_io.hpp"
 #include "sampling.hpp"
 
@@ -66,6 +70,8 @@ T operator()(const T& x, const T& y) const {
 void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace thrust::placeholders;
   using capputils::Severity;
+
+  typedef tbblas::random_tensor<float, 2, true, tbblas::normal<float> > randn_t;
 
   boost::timer timer;
   capputils::Logbook& dlog = getLogbook();
@@ -178,7 +184,7 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
 
   // Initialize weights
   thrust::transform(thrust::counting_iterator<unsigned>(0), thrust::counting_iterator<unsigned>(W.data().size()),
-    W.data().begin(), get_randn<float>(0.f, 0.1f));
+    W.data().begin(), get_randn<float>(0.f, getInitialWeights()));
 
   // Initialize bias terms
   thrust::fill(b.data().begin(), b.data().end(), 0.f);
@@ -203,6 +209,7 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
   tbblas::device_matrix<float> batch(batchSize, visibleCount);
   tbblas::device_matrix<float> negdata(batchSize, visibleCount);
   tbblas::device_matrix<float> poshidprobs(batchSize, hiddenCount);
+  randn_t poshidnoise(batchSize, hiddenCount);
   tbblas::device_matrix<float> posprods(visibleCount, hiddenCount);
   tbblas::device_matrix<float> poshidstates(batchSize, hiddenCount);
   tbblas::device_matrix<float> neghidprobs(batchSize, hiddenCount);
@@ -284,11 +291,26 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
       /*** END OF POSITIVE PHASE ***/
 
       // Sample the hidden states
-      if (hiddenUnitType == HiddenUnitType::Bernoulli && getSampleHiddens()) {
-        thrust::transform(
-            poshidprobs.data().begin(), poshidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
-            poshidstates.data().begin(), sample_units<float>()
-        );
+      if (getSampleHiddens()) {
+        switch(hiddenUnitType) {
+        case HiddenUnitType::Bernoulli:
+          thrust::transform(
+              poshidprobs.data().begin(), poshidprobs.data().end(), thrust::counting_iterator<unsigned>(0),
+              poshidstates.data().begin(), sample_units<float>()
+          );
+          break;
+
+        case HiddenUnitType::ReLU:
+
+          // Add Gaussian noise with variance sigm(x)
+          //poshidprobes + sqrt(sigm(poshidprobes)) * N(0,1)
+          thrust::transform(
+              poshidprobs.data().begin(), poshidprobs.data().end(),
+              (tbblas::sqrt(tbblas::sigm(poshidprobs)) * poshidnoise).begin(),
+              poshidstates.data().begin(), _1 + _2
+          );
+          break;
+        }
       } else {
         thrust::copy(
             poshidprobs.data().begin(), poshidprobs.data().end(), poshidstates.data().begin()

@@ -67,6 +67,13 @@
       </Item>
 
       <!-- Inputs and outputs -->
+      
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Real" />
+          <Type value="double" />
+        </gapputils-Interface>
+      </Item>
 
       <Item>
         <gapputils-Interface>

@@ -61,6 +61,7 @@ BeginPropertyDefinitions(RbmTrainer)
   WorkflowProperty(EpochCount)
   WorkflowProperty(BatchSize)
   WorkflowProperty(LearningRate)
+  WorkflowProperty(InitialWeights)
   WorkflowProperty(InitialHidden)
   WorkflowProperty(SparsityTarget)
   WorkflowProperty(SparsityWeight)
@@ -78,7 +79,7 @@ EndPropertyDefinitions
 
 RbmTrainer::RbmTrainer()
  : _VisibleCount(1), _HiddenCount(1), _SampleHiddens(true),
-   _EpochCount(1), _BatchSize(10), _LearningRate(0.01f), _InitialHidden(0.f),
+   _EpochCount(1), _BatchSize(10), _LearningRate(0.01f), _InitialWeights(0.01f), _InitialHidden(0.f),
    _SparsityTarget(0.1f), _SparsityWeight(0.1f), _IsGaussian(false),
    _MakeBernoulli(false), _ShowWeights(0), _ShowEvery(1)
 {
