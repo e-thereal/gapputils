@@ -7,6 +7,7 @@
 
 #include "StringInterface.h"
 
+#include <capputils/DeprecatedAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -31,7 +32,7 @@ namespace host {
 
 namespace inputs {
 
-BeginPropertyDefinitions(String, Interface())
+BeginPropertyDefinitions(String, Interface(), Deprecated("Use 'interfaces::inputs::String' instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Value, Output(""), Observe(Id))
@@ -74,7 +75,7 @@ void String::writeResults() {
 
 namespace outputs {
 
-BeginPropertyDefinitions(String, Interface())
+BeginPropertyDefinitions(String, Interface(), Deprecated("Use 'interfaces::outputs::String' instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Value, Input(""), Observe(Id))

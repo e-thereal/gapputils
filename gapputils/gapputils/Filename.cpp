@@ -7,7 +7,6 @@
 
 #include "Filename.h"
 
-#include <capputils/DeprecatedAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -26,13 +25,11 @@
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
-namespace gapputils {
+namespace interfaces {
 
-namespace host {
+namespace parameters {
 
-namespace inputs {
-
-BeginPropertyDefinitions(Filename, Interface(), Deprecated("Use 'interfaces::parameters::Filename' instead."))
+BeginPropertyDefinitions(Filename, Interface())
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Value, Output(""), capputils::attributes::Filename(), FileExists(), Observe(Id))
@@ -68,8 +65,6 @@ void Filename::execute(gapputils::workflow::IProgressMonitor* monitor) const {
 void Filename::writeResults() {
   if (!data)
     return;
-
-}
 
 }
 

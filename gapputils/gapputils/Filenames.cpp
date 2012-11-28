@@ -7,7 +7,6 @@
 
 #include "Filenames.h"
 
-#include <capputils/DeprecatedAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -29,15 +28,13 @@
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 
-namespace gapputils {
-
-namespace host {
+namespace interfaces {
 
 namespace inputs {
 
 int Filenames::filenamesId;
 
-BeginPropertyDefinitions(Filenames, Interface(), Deprecated("Use 'interfaces::inputs::Filenames' instead."))
+BeginPropertyDefinitions(Filenames, Interface())
 
   ReflectableBase(gapputils::workflow::CollectionElement)
   DefineProperty(Values, Output("Files"), Filename("All (*)", true), FileExists(), Enumerable<TYPE_OF(Values), false>(), Observe(filenamesId = Id))
@@ -55,7 +52,7 @@ namespace outputs {
 
 int Filenames::filenamesId;
 
-BeginPropertyDefinitions(Filenames, Interface(), Deprecated("Use 'interfaces::outputs::Filenames' instead."))
+BeginPropertyDefinitions(Filenames, Interface())
 
   ReflectableBase(gapputils::workflow::CollectionElement)
   DefineProperty(Values, Input("Files"), Filename("All (*)", true), Enumerable<TYPE_OF(Values), false>(), Observe(filenamesId = Id))
@@ -65,8 +62,6 @@ EndPropertyDefinitions
 
 Filenames::Filenames() {
   setLabel("Filenames");
-}
-
 }
 
 }

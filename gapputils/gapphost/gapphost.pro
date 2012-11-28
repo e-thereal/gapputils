@@ -12,11 +12,11 @@ SOURCES = main.cpp \
 		  ImageViewer.cpp \
 		  ShowImageDialog.cpp \
 		  DataModel.cpp \
+		  DefaultInterface.cpp \
 		  Node.cpp \
 		  Edge.cpp \
 		  Workflow.cpp \
 		  Controller.cpp \
-		  DefaultInterface.cpp \
 		  GenericViewer.cpp \
 		  WorkflowItem.cpp \
 		  MakeGlobalDialog.cpp \

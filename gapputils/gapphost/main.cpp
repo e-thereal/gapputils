@@ -21,9 +21,9 @@
 
 #include "DataModel.h"
 #include "Workflow.h"
-#include "DefaultInterface.h"
 #include "LogbookModel.h"
 #include <capputils/Logbook.h>
+#include <gapputils/SubWorkflow.h>
 
 #include <memory>
 
@@ -34,6 +34,7 @@ using namespace gapputils::workflow;
 using namespace gapputils;
 using namespace capputils;
 using namespace std;
+using namespace interfaces;
 
 #include <boost/filesystem.hpp>
 
@@ -101,7 +102,7 @@ int main(int argc, char *argv[])
     //model.setCurrentWorkflow(workflow->getUuid());
   }
   if (!model.getMainWorkflow()->getModule())
-    model.getMainWorkflow()->setModule(boost::shared_ptr<DefaultInterface>(new DefaultInterface()));
+    model.getMainWorkflow()->setModule(boost::shared_ptr<SubWorkflow>(new SubWorkflow()));
 
   reflection::ReflectableClass& wfModule = *model.getMainWorkflow()->getModule();
 

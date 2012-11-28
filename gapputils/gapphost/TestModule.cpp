@@ -7,12 +7,14 @@
 
 #include "TestModule.h"
 
+#include <capputils/DeprecatedAttribute.h>
+
 using namespace capputils::attributes;
 
 namespace gapputils {
 namespace testing {
 
-BeginPropertyDefinitions(TestModule)
+BeginPropertyDefinitions(TestModule, Deprecated("Use only for testing purpose."))
 
   ReflectableBase(workflow::DefaultWorkflowElement<TestModule>)
 
