@@ -64,14 +64,6 @@ InitializeConvRbmModel::InitializeConvRbmModel()
   WfeUpdateTimestamp
   setLabel("InitializeConvRbmModel");
 
-//  ConvRbmModel test;
-//  LOCATE(test, Filters);
-//  LOCATE(test, VisibleBias);
-//  LOCATE(test, HiddenBiases);
-//  LOCATE(test, Mean);
-//  LOCATE(test, Stddev);
-//  LOCATE(test, IsGaussian);
-
   Changed.connect(capputils::EventHandler<InitializeConvRbmModel>(this, &InitializeConvRbmModel::changedHandler));
 }
 
@@ -89,14 +81,6 @@ void InitializeConvRbmModel::execute(gapputils::workflow::IProgressMonitor* moni
 
   if (!data)
     data = new InitializeConvRbmModel();
-
-//  ConvRbmModel test;
-//  LOCATE(test, Filters);
-//  LOCATE(test, VisibleBias);
-//  LOCATE(test, HiddenBiases);
-//  LOCATE(test, Mean);
-//  LOCATE(test, Stddev);
-//  LOCATE(test, IsGaussian);
 
   if (!capputils::Verifier::Valid(*this))
     return;
