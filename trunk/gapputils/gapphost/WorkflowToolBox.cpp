@@ -10,6 +10,7 @@
 #include <qboxlayout.h>
 
 #include <capputils/ReflectableClassFactory.h>
+#include <capputils/DeprecatedAttribute.h>
 
 #include <boost/typeof/std/utility.hpp>
 
@@ -21,6 +22,7 @@
 using namespace std;
 
 using namespace capputils;
+using namespace capputils::attributes;
 
 namespace gapputils {
 
@@ -75,14 +77,19 @@ void updateToolBox(QTreeWidget* toolBox, std::map<QTreeWidgetItem*, boost::share
     string name = classNames[i];
     string currentGroupString;
 
-#ifdef ONLY_WORKFLOWELEMENTS
+//#ifdef ONLY_WORKFLOWELEMENTS
     reflection::ReflectableClass* object = factory.newInstance(name);
     if (dynamic_cast<workflow::WorkflowElement*>(object) == 0 && dynamic_cast<workflow::WorkflowInterface*>(object) == 0) {
       delete object;
       continue;
     }
+
+    if (object->getAttribute<DeprecatedAttribute>()) {
+      delete object;
+      continue;
+    }
     delete object;
-#endif
+//#endif
 
     int pos = name.find_last_of(":");
     if (pos != (int)string::npos) {

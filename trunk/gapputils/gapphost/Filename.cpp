@@ -7,6 +7,7 @@
 
 #include "Filename.h"
 
+#include <capputils/DeprecatedAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/FileExists.h>
 #include <capputils/FilenameAttribute.h>
@@ -31,7 +32,7 @@ namespace host {
 
 namespace inputs {
 
-BeginPropertyDefinitions(Filename, Interface())
+BeginPropertyDefinitions(Filename, Interface(), Deprecated("Use 'interfaces::parameters::Filename' instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
   DefineProperty(Value, Output(""), capputils::attributes::Filename(), FileExists(), Observe(Id))

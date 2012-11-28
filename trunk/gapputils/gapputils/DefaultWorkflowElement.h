@@ -24,6 +24,8 @@
 #include <gapputils/LabelAttribute.h>
 #include <capputils/InputAttribute.h>
 #include <capputils/OutputAttribute.h>
+#include <capputils/FilenameAttribute.h>
+#include <capputils/FileExistsAttribute.h>
 
 #include <capputils/EnumerableAttribute.h>
 #include <capputils/FromEnumerableAttribute.h>
@@ -120,6 +122,7 @@ public:
       properties[properties.size()-1]->addAttribute(new capputils::attributes::VolatileAttribute()); \
       properties[properties.size()-1]->addAttribute(new gapputils::attributes::ReadOnlyAttribute()); \
     } \
+    addressbook[#name] = (char*)&_##name - (char*)this; \
     CAPPUTILS_UNUSED(Id); \
   }
 
@@ -136,6 +139,7 @@ public:
     /*if (!prop->getAttribute<capputils::attributes::FromEnumerableAttribute>())*/ \
       properties[properties.size()-1]->addAttribute(new gapputils::attributes::ReadOnlyAttribute()); \
   } \
+  addressbook[#name] = (char*)&_##name - (char*)this; \
   CAPPUTILS_UNUSED(Id); \
 }
 
