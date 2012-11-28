@@ -42,7 +42,7 @@ EndPropertyDefinitions
 
 ConvRbmWriter::ConvRbmWriter() : _AutoSave(false), data(0) {
   WfeUpdateTimestamp
-  setLabel("ConvRbmWriter");
+  setLabel("Writer");
 
   Changed.connect(capputils::EventHandler<ConvRbmWriter>(this, &ConvRbmWriter::changedHandler));
 }

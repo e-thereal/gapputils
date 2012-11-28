@@ -33,6 +33,7 @@ BeginPropertyDefinitions(TensorReader)
 EndPropertyDefinitions
 
 TensorReader::TensorReader() : _Width(0), _Height(0), _Depth(0), _Count(0) {
+  setLabel("Reader");
 }
 
 TensorReader::~TensorReader() {

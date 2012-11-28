@@ -32,7 +32,7 @@ BeginPropertyDefinitions(TensorWriter)
 EndPropertyDefinitions
 
 TensorWriter::TensorWriter() {
-
+  setLabel("Writer");
 }
 
 TensorWriter::~TensorWriter() {

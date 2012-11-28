@@ -27,7 +27,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.so.debug.399011463." name="/" resourcePath="">
 						<toolChain id="cuda.toolchain.exe.debug.247518079" name="CUDA Toolchain" superClass="cuda.toolchain.exe.debug">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cuda.toolchain.targetplatform.exe.debug.1282099160" isAbstract="false" name="Linux Release Platform" osList="linux" superClass="cuda.toolchain.targetplatform.exe.debug"/>
-							<builder buildPath="${workspace_loc:/gapputils.ml/Debug}" enableAutoBuild="false" id="cuda.toolchain.builder.exe.debug.1259717559" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="false" parallelizationNumber="7" superClass="cuda.toolchain.builder.exe.debug"/>
+							<builder buildPath="${workspace_loc:/gapputils.ml/Debug}" enableAutoBuild="false" id="cuda.toolchain.builder.exe.debug.1259717559" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="7" superClass="cuda.toolchain.builder.exe.debug"/>
 							<tool id="cuda.toolchain.compiler.exe.debug.1167095360" name="NVIDIA CUDA Compiler" superClass="cuda.toolchain.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="cuda.toolchain.compiler.option.optimization.level.1211069053" name="Optimization Level" superClass="cuda.toolchain.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="cuda.toolchain.compiler.option.debugging.level.1966762153" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level"/>
@@ -81,12 +81,12 @@
 									<listOptionValue builtIn="false" value="cula_lapack"/>
 									<listOptionValue builtIn="false" value="cuda"/>
 									<listOptionValue builtIn="false" value="cufft"/>
-									<listOptionValue builtIn="false" value="tbblas"/>
 									<listOptionValue builtIn="false" value="culib"/>
 									<listOptionValue builtIn="false" value="gpusvmd"/>
 									<listOptionValue builtIn="false" value="tinyxmld"/>
 									<listOptionValue builtIn="false" value="capputilsd"/>
 									<listOptionValue builtIn="false" value="gapputilsd"/>
+									<listOptionValue builtIn="false" value="tbblasd"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1251689944" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
