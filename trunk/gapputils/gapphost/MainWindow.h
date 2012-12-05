@@ -41,6 +41,8 @@ private:
   //boost::weak_ptr<workflow::Workflow> workingWorkflow;
   WorkbenchWindow* workingWindow;
 
+  boost::shared_ptr<workflow::Workflow> grandpa;
+
 public:
   MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
   virtual ~MainWindow();
@@ -51,6 +53,7 @@ public:
   void setAutoQuit(bool autoQuit);
   WorkbenchWindow* showWorkflow(boost::shared_ptr<workflow::Workflow> workflow);
   void saveWorkflowList();
+  WorkbenchWindow* getCurrentWorkbenchWindow();
 
 public Q_SLOTS:
   void quit();

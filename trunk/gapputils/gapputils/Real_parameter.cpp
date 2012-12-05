@@ -18,6 +18,7 @@ class Real : public gapputils::workflow::DefaultWorkflowElement<Real>
   
   typedef double property_t;
   
+  Property(Description, std::string)
   Property(Value, property_t)
   
 public:
@@ -26,6 +27,7 @@ public:
 
 BeginPropertyDefinitions(Real, Interface())
   ReflectableBase(gapputils::workflow::DefaultWorkflowElement<Real>)
+  WorkflowProperty(Description)
   WorkflowProperty(Value);
 EndPropertyDefinitions
 

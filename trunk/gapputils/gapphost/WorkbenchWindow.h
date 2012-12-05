@@ -84,7 +84,7 @@ protected:
   void closeEvent(QCloseEvent *event);
 
 public Q_SLOTS:
-  void createModule(int x, int y, QString classname);
+  boost::shared_ptr<workflow::Node> createModule(int x, int y, QString classname);
   void createEdge(CableItem* cable);
   void deleteEdge(CableItem* cable);
   void deleteModule(ToolItem* item);

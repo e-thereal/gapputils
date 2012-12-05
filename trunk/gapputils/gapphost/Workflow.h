@@ -74,6 +74,9 @@ public:
   boost::shared_ptr<const Workflow> shared_from_this() const { return boost::static_pointer_cast<const Workflow>(Node::shared_from_this()); }
 
   virtual void resume();
+
+  // Goes through the list of nodes and adds all interface nodes
+  void identifyInterfaceNodes();
   void resumeNode(boost::shared_ptr<Node> node);
   bool resumeEdge(boost::shared_ptr<Edge> edge);
 

@@ -10,10 +10,13 @@
 #include <qlabel.h>
 
 #include <capputils/DescriptionAttribute.h>
+#include <capputils/ReflectableClassFactory.h>
 
 #include <boost/units/detail/utility.hpp>
 #include <qmenu.h>
 #include <qmessagebox.h>
+
+#include <cstring>
 
 #include "GlobalProperty.h"
 #include "GlobalEdge.h"
@@ -23,6 +26,11 @@
 #include "PopUpList.h"
 #include "Workflow.h"
 #include "ModelHarmonizer.h"
+#include "DataModel.h"
+#include "WorkbenchWindow.h"
+#include "MainWindow.h"
+
+#include <gapputils/WorkflowElement.h>
 
 using namespace capputils::attributes;
 using namespace capputils::reflection;
@@ -45,14 +53,16 @@ PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent) {
   removeGlobal = new QAction("Remove Global", propertyGrid);
   connectToGlobal = new QAction("Connect", propertyGrid);
   disconnectFromGlobal = new QAction("Disconnect", propertyGrid);
+  makeParameter = new QAction("Make Parameter", propertyGrid);
   connect(makeGlobal, SIGNAL(triggered()), this, SLOT(makePropertyGlobal()));
   connect(removeGlobal, SIGNAL(triggered()), this, SLOT(removePropertyFromGlobal()));
   connect(connectToGlobal, SIGNAL(triggered()), this, SLOT(connectProperty()));
   connect(disconnectFromGlobal, SIGNAL(triggered()), this, SLOT(disconnectProperty()));
+  connect(makeParameter, SIGNAL(triggered()), this, SLOT(makePropertyParameter()));
 
   propertyGrid->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(propertyGrid, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
-  connect(propertyGrid, SIGNAL(clicked(const QModelIndex&)), this, SLOT(gridClicked(const QModelIndex&)));
+//  connect(propertyGrid, SIGNAL(clicked(const QModelIndex&)), this, SLOT(gridClicked(const QModelIndex&)));
   addWidget(propertyGrid);
 
   QWidget* infoWidget = new QWidget();
@@ -74,7 +84,9 @@ void PropertyGrid::setNode(boost::shared_ptr<workflow::Node> node) {
   if (node) {
     harmonizer = boost::shared_ptr<ModelHarmonizer>(new ModelHarmonizer(node));
     propertyGrid->setModel(harmonizer->getModel());
+    connect(propertyGrid->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(currentChanged(const QModelIndex&, const QModelIndex&)));
     propertyGrid->expandAll();
+    propertyGrid->setCurrentIndex(propertyGrid->model()->index(0, 0));
   } else {
     propertyGrid->setModel(0);
   }
@@ -86,11 +98,11 @@ QLabel* createTopAlignedLabel(const std::string& text) {
   return label;
 }
 
-void PropertyGrid::gridClicked(const QModelIndex& index) {
+void PropertyGrid::currentChanged(const QModelIndex& current, const QModelIndex&) {
   boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
   assert(node);
 
-  const QModelIndex& valueIndex = index.sibling(index.row(), 1);
+  const QModelIndex& valueIndex = current.sibling(current.row(), 1);
   if (!valueIndex.isValid())
     return;
 
@@ -169,10 +181,12 @@ void PropertyGrid::showContextMenu(const QPoint& point) {
     actions.append(makeGlobal);
 
   boost::shared_ptr<GlobalEdge> edge = node->getGlobalEdge(reference);
-  if (edge)
+  if (edge) {
     actions.append(disconnectFromGlobal);
-  else
+  } else {
     actions.append(connectToGlobal);
+    actions.append(makeParameter);
+  }
 
   QMenu::exec(actions, propertyGrid->mapToGlobal(point));
 }
@@ -237,10 +251,6 @@ void PropertyGrid::connectProperty() {
     PropertyReference ref(reference.getWorkflow(), globals->at(i)->getModuleUuid(), globals->at(i)->getPropertyId());
     if (Edge::areCompatible(ref.getProperty(), reference.getProperty())) {
       list.getList()->addItem(globals->at(i)->getName().c_str());
-    } else {
-//      GlobalProperty* gprop = globals->at(i);
-      //cout << gprop->getName() << " is not compatible." << endl;
-      //cout << gprop->getProperty()->getType().name() << " != " << reference.getProperty()->getType().name() << endl;
     }
   }
   if (list.getList()->count() == 0) {
@@ -279,6 +289,80 @@ void PropertyGrid::disconnectProperty() {
   boost::shared_ptr<GlobalEdge> edge = node->getGlobalEdge(reference);
   if (edge)
     workflow->removeGlobalEdge(edge);
+}
+
+void PropertyGrid::makePropertyParameter() {
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
+
+  // Get compatible parameter module
+  // Create parameter module
+  // Make its value property global
+  // Connect to newly created global property
+  QModelIndex index = propertyGrid->currentIndex();
+  PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
+
+  ReflectableClassFactory& factory = ReflectableClassFactory::getInstance();
+  std::vector<std::string>& classnames = factory.getClassNames();
+
+  std::string classname;
+  for (size_t i = 0; i < classnames.size(); ++i) {
+    if (strncmp(classnames[i].c_str(), "interfaces::parameters", strlen("interfaces::parameters")) == 0) {
+      boost::shared_ptr<ReflectableClass> object(factory.newInstance(classnames[i]));
+      IClassProperty* valueProp = object->findProperty("Value");
+      if (!object->findProperty("Values") && valueProp && valueProp->getType() == reference.getProperty()->getType()) {
+        classname = classnames[i];
+        break;
+      }
+    }
+  }
+
+  if (classname.size() == 0) {
+    QMessageBox::information(0, "No Compatible Parameter Modules", "There are no compatible parameters modules for the selected property.");
+    return;
+  }
+
+  std::string parameterName;
+  MakeGlobalDialog dialog(propertyGrid);
+  if (dialog.exec() == QDialog::Accepted) {
+    parameterName = dialog.getText().toAscii().data();
+    if (parameterName.size() == 0)
+      return;
+  }
+
+  boost::shared_ptr<Node> parameterNode = DataModel::getInstance().getMainWindow()->getCurrentWorkbenchWindow()->createModule(0, 0, classname.c_str());
+  WorkflowElement* element = dynamic_cast<WorkflowElement*>(parameterNode->getModule().get());
+  assert(element);
+
+  element->setLabel(parameterName);
+  workflow->makePropertyGlobal(parameterName, PropertyReference(workflow, parameterNode->getUuid(), "Value"));
+  workflow->connectProperty(parameterName, reference);
+
+//
+//  PopUpList list;
+//  boost::shared_ptr<std::vector<boost::shared_ptr<GlobalProperty> > > globals = workflow->getGlobalProperties();
+//  for (unsigned i = 0; i < globals->size(); ++i) {
+//    PropertyReference ref(reference.getWorkflow(), globals->at(i)->getModuleUuid(), globals->at(i)->getPropertyId());
+//    if (Edge::areCompatible(ref.getProperty(), reference.getProperty())) {
+//      list.getList()->addItem(globals->at(i)->getName().c_str());
+//    }
+//  }
+//  if (list.getList()->count() == 0) {
+//    QMessageBox::information(0, "No Compatible Global Connection", "There are no compatible global connections to connect to.");
+//    return;
+//  }
+//
+//  QStandardItemModel* model = dynamic_cast<QStandardItemModel*>(propertyGrid->model());
+//  if (model) {
+//    QStandardItem* item = model->itemFromIndex(index);
+//    QFont font = item->font();
+//    font.setItalic(true);
+//    item->setFont(font);
+//  }
+//
+//  if (list.exec() == QDialog::Accepted) {
+//    workflow->connectProperty(list.getList()->selectedItems()[0]->text().toAscii().data(), reference);
+//  }
 }
 
 } /* namespace host */

@@ -213,7 +213,10 @@ void MainWindow::resume() {
     model.setCurrentWorkflow(currentUuid);
   }
 
-  workflow->resume();
+  grandpa = boost::make_shared<workflow::Workflow>();
+  grandpa->getNodes()->push_back(workflow);
+  grandpa->resume();
+//  workflow->resume();
   showWorkflow(workflow)->setClosable(false);
 
   for (unsigned i = 0; i < model.getOpenWorkflows()->size(); ++i) {
@@ -261,6 +264,10 @@ void MainWindow::saveWorkflowList() {
   model.setOpenWorkflows(workflows);
 }
 
+WorkbenchWindow* MainWindow::getCurrentWorkbenchWindow() {
+  return static_cast<WorkbenchWindow*>(area->currentSubWindow());
+}
+
 void MainWindow::setAutoQuit(bool autoQuit) {
   this->autoQuit = autoQuit;
 }
@@ -270,13 +277,11 @@ void MainWindow::quit() {
 }
 
 void MainWindow::copy() {
-  WorkbenchWindow* window = static_cast<WorkbenchWindow*>(area->currentSubWindow());
-  window->copySelectedNodesToClipboard();
+  getCurrentWorkbenchWindow()->copySelectedNodesToClipboard();
 }
 
 void MainWindow::paste() {
-  WorkbenchWindow* window = static_cast<WorkbenchWindow*>(area->currentSubWindow());
-  window->addNodesFromClipboard();
+  getCurrentWorkbenchWindow()->addNodesFromClipboard();
 }
 
 void MainWindow::loadWorkflow() {

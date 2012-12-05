@@ -18,6 +18,7 @@ class RealVector : public gapputils::workflow::DefaultWorkflowElement<RealVector
   
   typedef boost::shared_ptr<std::vector<double> > property_t;
   
+  Property(Description, std::string)
   Property(Value, property_t)
   
 public:
@@ -26,6 +27,7 @@ public:
 
 BeginPropertyDefinitions(RealVector, Interface())
   ReflectableBase(gapputils::workflow::DefaultWorkflowElement<RealVector>)
+  WorkflowProperty(Description)
   WorkflowProperty(Value, Output(""));
 EndPropertyDefinitions
 
@@ -39,6 +41,7 @@ class RealVector : public gapputils::workflow::DefaultWorkflowElement<RealVector
   
   typedef boost::shared_ptr<std::vector<double> > property_t;
   
+  Property(Description, std::string)
   Property(Value, property_t)
   
 public:
@@ -47,6 +50,7 @@ public:
 
 BeginPropertyDefinitions(RealVector, Interface())
   ReflectableBase(gapputils::workflow::DefaultWorkflowElement<RealVector>)
+  WorkflowProperty(Description)
   WorkflowProperty(Value, Input(""));
 EndPropertyDefinitions
 

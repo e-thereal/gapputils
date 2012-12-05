@@ -140,6 +140,13 @@ Workflow::~Workflow() {
 
 void Workflow::addInterfaceNode(boost::shared_ptr<Node> node) {
   Logbook& dlog = *getLogbook();
+
+  // Only add if not already added
+  for (size_t i = 0; i < interfaceNodes.size(); ++i) {
+    if (interfaceNodes[i].lock()->getUuid() == node->getUuid())
+      return;
+  }
+
   interfaceNodes.push_back(node);
 
   boost::shared_ptr<ReflectableClass> object = node->getModule();
@@ -403,6 +410,14 @@ void Workflow::resume() {
       setOutputChecksum(0);
       break;
     }
+  }
+}
+
+void Workflow::identifyInterfaceNodes() {
+  vector<boost::shared_ptr<Node> >& nodes = *getNodes();
+  for (size_t i = 0; i < nodes.size(); ++i) {
+    if (nodes[i]->getModule() && nodes[i]->getModule()->getAttribute<InterfaceAttribute>())
+      addInterfaceNode(nodes[i]);
   }
 }
 
