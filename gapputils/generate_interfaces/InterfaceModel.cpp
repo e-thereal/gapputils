@@ -18,11 +18,12 @@ BeginPropertyDefinitions(Interface)
   DefineProperty(Identifier, NotEmpty<Type>())
   DefineProperty(Type, NotEmpty<Type>())
   DefineProperty(Header, NotEmpty<Type>())
+  DefineProperty(PropertyAttributes, Enumerable<Type, false>())
   DefineProperty(IsParameter)
   DefineProperty(IsCollection)
 EndPropertyDefinitions
 
-Interface::Interface() : _IsParameter(false), _IsCollection(false) { }
+Interface::Interface() : _PropertyAttributes(new std::vector<std::string>()), _IsParameter(false), _IsCollection(false) { }
 
 BeginPropertyDefinitions(InterfaceModel)
 
@@ -30,7 +31,7 @@ BeginPropertyDefinitions(InterfaceModel)
 
 EndPropertyDefinitions
 
-InterfaceModel::InterfaceModel() : _Interfaces(new std::vector<boost::shared_ptr<Interface> >){ }
+InterfaceModel::InterfaceModel() : _Interfaces(new std::vector<boost::shared_ptr<Interface> >()){ }
 
 InterfaceModel::~InterfaceModel() { }
 

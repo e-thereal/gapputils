@@ -18,6 +18,7 @@ class Boolean : public gapputils::workflow::DefaultWorkflowElement<Boolean>
   
   typedef bool property_t;
   
+  Property(Description, std::string)
   Property(Value, property_t)
   
 public:
@@ -26,6 +27,7 @@ public:
 
 BeginPropertyDefinitions(Boolean, Interface())
   ReflectableBase(gapputils::workflow::DefaultWorkflowElement<Boolean>)
+  WorkflowProperty(Description)
   WorkflowProperty(Value);
 EndPropertyDefinitions
 

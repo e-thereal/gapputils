@@ -36,7 +36,7 @@ class PropertyGrid : public QSplitter {
 private:
   QTreeView* propertyGrid;
   QFormLayout* infoLayout;
-  QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal;
+  QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal, *makeParameter;
   boost::weak_ptr<workflow::Node> node;
   boost::shared_ptr<ModelHarmonizer> harmonizer;
 
@@ -51,11 +51,12 @@ public Q_SLOTS:
 
 private Q_SLOTS:
   void showContextMenu(const QPoint &);
-  void gridClicked(const QModelIndex& index);
+  void currentChanged(const QModelIndex& current, const QModelIndex& previous);
   void makePropertyGlobal();
   void removePropertyFromGlobal();
   void connectProperty();
   void disconnectProperty();
+  void makePropertyParameter();
 };
 
 } /* namespace host */

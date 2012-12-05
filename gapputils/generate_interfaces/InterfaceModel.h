@@ -18,6 +18,7 @@ class Interface : public capputils::reflection::ReflectableClass {
   Property(Identifier, std::string)
   Property(Type, std::string)
   Property(Header, std::string)
+  Property(PropertyAttributes, boost::shared_ptr<std::vector<std::string> >)
   Property(IsParameter, bool)
   Property(IsCollection, bool)
 

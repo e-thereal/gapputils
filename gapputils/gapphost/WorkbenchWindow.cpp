@@ -260,6 +260,9 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
 }
 
 bool WorkbenchWindow::createCable(boost::shared_ptr<workflow::Edge> edge) {
+
+  // Remark: The edge is assumed to be already active
+
   boost::shared_ptr<workflow::Workflow> workflow = this->workflow.lock();
   Logbook& dlog = *workflow->getLogbook();
 
@@ -268,7 +271,6 @@ bool WorkbenchWindow::createCable(boost::shared_ptr<workflow::Edge> edge) {
 //
   const std::string outputNodeUuid = edge->getOutputNode();
   const std::string inputNodeUuid = edge->getInputNode();
-
 
   boost::shared_ptr<workflow::Node> outputNode = workflow->getNode(edge->getOutputNode());
   boost::shared_ptr<workflow::Node> inputNode = workflow->getNode(edge->getInputNode());
@@ -281,8 +283,6 @@ bool WorkbenchWindow::createCable(boost::shared_ptr<workflow::Edge> edge) {
       CableItem* cable = new CableItem(workbench, outputConnection, inputConnection);
       workbench->addCableItem(cable);
       edge->setCableItem(cable);
-
-      edge->activate(outputNode, inputNode);
       return true;
     }
   }
@@ -510,12 +510,14 @@ void WorkbenchWindow::handleModelEvents(capputils::ObservableClass* sender, int 
 
 /*** SLOTS ***/
 
-void WorkbenchWindow::createModule(int x, int y, QString classname) {
+boost::shared_ptr<workflow::Node> WorkbenchWindow::createModule(int x, int y, QString classname) {
+  boost::shared_ptr<Node> node;
+
   Logbook& dlog = *workflow.lock()->getLogbook();
 
   dlog() << "Creating module.";
   if (classname.count() == 0)
-    return;
+    return node;
 
   boost::shared_ptr<workflow::Workflow> workflow = this->workflow.lock();
   std::string name = classname.toAscii().data();
@@ -523,7 +525,6 @@ void WorkbenchWindow::createModule(int x, int y, QString classname) {
   boost::shared_ptr<ReflectableClass> object = boost::shared_ptr<ReflectableClass>(ReflectableClassFactory::getInstance().newInstance(name));
   addDependencies(workflow, name);
 
-  boost::shared_ptr<Node> node;
   if (boost::dynamic_pointer_cast<WorkflowInterface>(object)) {
     boost::shared_ptr<Workflow> workflow = boost::shared_ptr<Workflow>(new Workflow());
     workflow->setModule(object);
@@ -545,6 +546,7 @@ void WorkbenchWindow::createModule(int x, int y, QString classname) {
   }
 
   createItem(node);
+  return node;
 }
 
 void WorkbenchWindow::createEdge(CableItem* cable) {
@@ -591,7 +593,10 @@ void WorkbenchWindow::itemChangedHandler(ToolItem* item) {
 
 void WorkbenchWindow::itemSelected(ToolItem* item) {
   DataModel& model = DataModel::getInstance();
-  model.getMainWindow()->handleCurrentNodeChanged(workflow.lock()->getNode(item));
+  if (item)
+    model.getMainWindow()->handleCurrentNodeChanged(workflow.lock()->getNode(item));
+  else
+    model.getMainWindow()->handleCurrentNodeChanged(workflow.lock());
 }
 
 void WorkbenchWindow::showModuleDialog(ToolItem* item) {

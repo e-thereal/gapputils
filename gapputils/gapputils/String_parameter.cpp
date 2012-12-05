@@ -18,6 +18,7 @@ class String : public gapputils::workflow::DefaultWorkflowElement<String>
   
   typedef std::string property_t;
   
+  Property(Description, std::string)
   Property(Value, property_t)
   
 public:
@@ -26,6 +27,7 @@ public:
 
 BeginPropertyDefinitions(String, Interface())
   ReflectableBase(gapputils::workflow::DefaultWorkflowElement<String>)
+  WorkflowProperty(Description)
   WorkflowProperty(Value);
 EndPropertyDefinitions
 

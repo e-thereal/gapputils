@@ -48,6 +48,7 @@ class DataModel : public capputils::reflection::ReflectableClass,
   Property(SaveConfiguration, bool)
   Property(EmailLog, std::string)
   Property(GenerateBashCompletion, std::string)
+  Property(WorkflowParameters, bool)
 
 public:
   static int WorkflowMapId;

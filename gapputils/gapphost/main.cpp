@@ -17,6 +17,7 @@
 #include <capputils/ReflectableClassFactory.h>
 #include <capputils/FactoryException.h>
 #include <capputils/GenerateBashCompletion.h>
+#include <capputils/EnumeratorAttribute.h>
 #include <sstream>
 
 #include "DataModel.h"
@@ -48,12 +49,118 @@ using namespace interfaces;
 
 #include <stdio.h>
 #include <string>
+#include <cstring>
+#include <cmath>
+#include <iomanip>
+#include <map>
 
 #include <cstdio> // [s]print[f]
 
 #if defined( WIN32 ) || defined( _WIN32 )
 # include <windows.h>
 #endif
+
+void showWorkflowUsage(Workflow& workflow) {
+  std::cout << "Workflow parameters:\n" << std::endl;
+
+  reflection::IClassProperty *label, *description, *valueProp;
+
+  std::vector<std::string> parameters, descriptions;
+  size_t columnWidth = 0;
+
+  workflow.identifyInterfaceNodes();
+  std::vector<boost::weak_ptr<Node> >& interfaceNodes = workflow.getInterfaceNodes();
+  for (size_t i = 0; i < interfaceNodes.size(); ++i) {
+    boost::shared_ptr<Node> node = interfaceNodes[i].lock();
+    if (!workflow.isOutputNode(node) && node->getModule()) {
+      boost::shared_ptr<reflection::ReflectableClass> module = node->getModule();
+      if ((label = module->findProperty("Label"))) {
+        columnWidth = max(columnWidth, label->getStringValue(*module).size());
+        parameters.push_back(label->getStringValue(*module));
+
+        std::string fullDescription;
+        if ((description = module->findProperty("Description")))
+          fullDescription = description->getStringValue(*module);
+
+        if ((valueProp = module->findProperty("Value"))) {
+          attributes::IEnumeratorAttribute* enumAttr = valueProp->getAttribute<attributes::IEnumeratorAttribute>();
+          if (enumAttr) {
+            boost::shared_ptr<capputils::AbstractEnumerator> enumerator = enumAttr->getEnumerator(*module, valueProp);
+            if (enumerator) {
+              std::stringstream valuesDescription;
+              if (fullDescription.size())
+                valuesDescription << fullDescription << " (";
+              else
+                valuesDescription << "Possible values are: ";
+              vector<string>& values = enumerator->getValues();
+              for (unsigned i = 0; i < values.size(); ++i) {
+                if (i)
+                  valuesDescription << ", ";
+                valuesDescription << values[i];
+              }
+              if (fullDescription.size())
+                valuesDescription << ")";
+              fullDescription = valuesDescription.str();
+            }
+          }
+        }
+        descriptions.push_back(fullDescription);
+      }
+    }
+  }
+
+  assert(parameters.size() == descriptions.size());
+  for (size_t i = 0; i < parameters.size(); ++i) {
+    std::cout << "  --" << std::setw(columnWidth) << std::left << parameters[i] << "   " << descriptions[i] << std::endl;
+  }
+  std::cout << std::endl;
+}
+
+void parseWorkflowParameters(int argc, char** argv, Workflow& workflow) {
+  std::map<std::string, reflection::ReflectableClass*> modules;
+  std::map<std::string, reflection::IClassProperty*> properties;
+
+  reflection::IClassProperty *label, *value;
+
+  workflow.identifyInterfaceNodes();
+  std::vector<boost::weak_ptr<Node> >& interfaceNodes = workflow.getInterfaceNodes();
+  for (size_t i = 0; i < interfaceNodes.size(); ++i) {
+    boost::shared_ptr<Node> node = interfaceNodes[i].lock();
+    if (!workflow.isOutputNode(node) && node->getModule()) {
+      boost::shared_ptr<reflection::ReflectableClass> module = node->getModule();
+      if ((label = module->findProperty("Label")) && (value = module->findProperty("Value"))) {
+        modules[label->getStringValue(*module)] = module.get();
+        properties[label->getStringValue(*module)] = value;
+      }
+    }
+  }
+
+  for (int i = 0; i < argc; ++i) {
+    if (!strncmp(argv[i], "--", 2)) {
+      std::string propName = argv[i] + 2;
+      if (modules.find(propName) != modules.end() && properties.find(propName) != properties.end()) {
+        if (i < argc - 1)
+          properties[propName]->setStringValue(*modules[propName], argv[++i]);
+      }
+    }
+  }
+}
+
+void listWorkflowParameters(Workflow& workflow) {
+  reflection::IClassProperty *label;
+  workflow.identifyInterfaceNodes();
+  std::vector<boost::weak_ptr<Node> >& interfaceNodes = workflow.getInterfaceNodes();
+  for (size_t i = 0; i < interfaceNodes.size(); ++i) {
+    boost::shared_ptr<Node> node = interfaceNodes[i].lock();
+    if (!workflow.isOutputNode(node) && node->getModule()) {
+      boost::shared_ptr<reflection::ReflectableClass> module = node->getModule();
+      if ((label = module->findProperty("Label"))) {
+        std::cout << "--" << label->getStringValue(*module) << " ";
+      }
+    }
+  }
+  std::cout << std::endl;
+}
 
 int main(int argc, char *argv[])
 {
@@ -107,15 +214,21 @@ int main(int argc, char *argv[])
   reflection::ReflectableClass& wfModule = *model.getMainWorkflow()->getModule();
 
   ArgumentsParser::Parse(model, argc, argv);    // Needs to be here again to override configuration file parameters
-  ArgumentsParser::Parse(wfModule, argc, argv);
+//  ArgumentsParser::Parse(wfModule, argc, argv);
+  parseWorkflowParameters(argc, argv, *model.getMainWorkflow());
   if (model.getHelp()) {
     ArgumentsParser::PrintDefaultUsage("gapphost", model);
-    ArgumentsParser::PrintUsage("Workflow switches:", wfModule);
+    showWorkflowUsage(*model.getMainWorkflow());
 
     cublasShutdown();
 #ifdef GAPPHOST_CULA_SUPPORT
     culaShutdown();
 #endif
+    return 0;
+  }
+
+  if (model.getWorkflowParameters()) {
+    listWorkflowParameters(*model.getMainWorkflow());
     return 0;
   }
 

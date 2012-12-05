@@ -67,6 +67,8 @@ BeginPropertyDefinitions(DataModel)
       Description("If set, the final logfile will be send by e-mail to the given address."))
   DefineProperty(GenerateBashCompletion, Volatile(), Filename(),
       Description("Generates a bash_completion configuration file for grapevine."))
+  DefineProperty(WorkflowParameters, Volatile(), Flag(),
+      Description("Returns the list of workflow parameters."))
 EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;
@@ -75,7 +77,8 @@ DataModel::DataModel(void) : _Run(false), _Help(false), _AutoReload(false),
     _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600),
     _OpenWorkflows(new std::vector<std::string>()),
     _WorkflowMap(new std::map<std::string, boost::weak_ptr<workflow::Workflow> >),
-    _Configuration(".gapphost/config.xml"), _LogfileName("grapevine.log"), _SaveConfiguration(true)
+    _Configuration(".gapphost/config.xml"), _LogfileName("grapevine.log"), _SaveConfiguration(true),
+    _WorkflowParameters(false)
 {
 #if defined(_RELEASE)
   char* path = std::getenv("GRAPEVINE_LIBRARY_PATH");

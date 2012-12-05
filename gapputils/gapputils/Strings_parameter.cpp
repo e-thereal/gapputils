@@ -19,6 +19,7 @@ class Strings : public gapputils::workflow::CollectionElement
   typedef std::string property_t;
   
   Property(Values, std::vector<property_t>)
+  Property(Description, std::string)
   Property(Value, property_t)
   
 public:
@@ -27,6 +28,7 @@ public:
 
 BeginPropertyDefinitions(Strings, Interface())
   ReflectableBase(gapputils::workflow::CollectionElement)
+  WorkflowProperty(Description)
   WorkflowProperty(Values, Enumerable<Type, false>())
   WorkflowProperty(Value, FromEnumerable(Id - 1));
 EndPropertyDefinitions

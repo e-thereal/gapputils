@@ -171,6 +171,8 @@ void Workbench::notifyItemChange(ToolItem* item) {
 void Workbench::mousePressEvent(QMouseEvent* event) {
   vector<boost::shared_ptr<ToolConnection> > connections;
 
+  setCurrentItem(0);
+
   if (!modifiable) {
     if (event->button() == Qt::LeftButton)
       setDragMode(ScrollHandDrag);

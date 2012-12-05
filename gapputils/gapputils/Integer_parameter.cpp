@@ -18,6 +18,7 @@ class Integer : public gapputils::workflow::DefaultWorkflowElement<Integer>
   
   typedef int property_t;
   
+  Property(Description, std::string)
   Property(Value, property_t)
   
 public:
@@ -26,6 +27,7 @@ public:
 
 BeginPropertyDefinitions(Integer, Interface())
   ReflectableBase(gapputils::workflow::DefaultWorkflowElement<Integer>)
+  WorkflowProperty(Description)
   WorkflowProperty(Value);
 EndPropertyDefinitions
 
