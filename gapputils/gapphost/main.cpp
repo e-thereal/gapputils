@@ -4,12 +4,6 @@
 #include <QtGui/QApplication>
 #include <qdir.h>
 
-// TODO: do the cuda, cublas and cula initialization stuff only if requested
-#include <cublas.h>
-#ifdef GAPPHOST_CULA_SUPPORT
-#include <cula.h>
-#endif
-
 #include <capputils/Xmlizer.h>
 #include <capputils/ArgumentsParser.h>
 #include <capputils/Verifier.h>
@@ -47,14 +41,13 @@ using namespace interfaces;
 
 #include "gapphost.h"
 
-#include <stdio.h>
 #include <string>
 #include <cstring>
 #include <cmath>
 #include <iomanip>
 #include <map>
 
-#include <cstdio> // [s]print[f]
+#include <cstdio>
 
 #if defined( WIN32 ) || defined( _WIN32 )
 # include <windows.h>
@@ -173,21 +166,8 @@ int main(int argc, char *argv[])
   QCoreApplication::setOrganizationDomain("gapputils.blogspot.com");
   QCoreApplication::setApplicationName("grapevine");
 
-  cublasInit();
-
-  //MSMRI::CProcessInfo::getInstance().getCommandLine(argc, argv);
-
   boost::filesystem::create_directories(".gapphost");
   boost::filesystem::create_directories(DataModel::getConfigurationDirectory());
-
-#ifdef GAPPHOST_CULA_SUPPORT
-  culaStatus status;
-
-  if ((status = culaInitialize()) != culaNoError) {
-    std::cout << "Could not initialize CULA: " << culaGetStatusString(status) << std::endl;
-    return 1;
-  }
-#endif
 
   int ret = 0;
   QApplication a(argc, argv);
@@ -211,19 +191,11 @@ int main(int argc, char *argv[])
   if (!model.getMainWorkflow()->getModule())
     model.getMainWorkflow()->setModule(boost::shared_ptr<SubWorkflow>(new SubWorkflow()));
 
-  reflection::ReflectableClass& wfModule = *model.getMainWorkflow()->getModule();
-
   ArgumentsParser::Parse(model, argc, argv);    // Needs to be here again to override configuration file parameters
-//  ArgumentsParser::Parse(wfModule, argc, argv);
   parseWorkflowParameters(argc, argv, *model.getMainWorkflow());
   if (model.getHelp()) {
     ArgumentsParser::PrintDefaultUsage("gapphost", model);
     showWorkflowUsage(*model.getMainWorkflow());
-
-    cublasShutdown();
-#ifdef GAPPHOST_CULA_SUPPORT
-    culaShutdown();
-#endif
     return 0;
   }
 
@@ -234,12 +206,6 @@ int main(int argc, char *argv[])
 
   if (model.getGenerateBashCompletion().size()) {
     GenerateBashCompletion::Generate(argv[0], model, model.getGenerateBashCompletion());
-
-    cublasShutdown();
-#ifdef GAPPHOST_CULA_SUPPORT
-    culaShutdown();
-#endif
-
     return 0;
   }
 
@@ -271,10 +237,6 @@ int main(int argc, char *argv[])
   }
 #endif
 
-  cublasShutdown();
-#ifdef GAPPHOST_CULA_SUPPORT
-  culaShutdown();
-#endif
   std::cout << "Good bye." << std::endl;
 
   return ret;

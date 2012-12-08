@@ -335,7 +335,9 @@ void PropertyGrid::makePropertyParameter() {
   assert(element);
 
   element->setLabel(parameterName);
-  workflow->makePropertyGlobal(parameterName, PropertyReference(workflow, parameterNode->getUuid(), "Value"));
+  PropertyReference paraRef(workflow, parameterNode->getUuid(), "Value");
+  paraRef.getProperty()->setValue(*paraRef.getObject(), *reference.getObject(), reference.getProperty());
+  workflow->makePropertyGlobal(parameterName, paraRef);
   workflow->connectProperty(parameterName, reference);
 
 //
