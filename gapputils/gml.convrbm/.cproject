@@ -35,7 +35,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
-								<option id="cuda.toolchain.compiler.option.misc.other.2081057079" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot; -Xcompiler -fpic" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.2081057079" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot; -Xcompiler -fpic" valueType="string"/>
 								<option id="cuda.toolchain.compiler.option.preprocessor.def.1180460934" name="Defined symbols (-D)" superClass="cuda.toolchain.compiler.option.preprocessor.def"/>
 								<inputType id="cuda.toolchain.compiler.input.1323529743" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
@@ -48,7 +48,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.985613965" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.985613965" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x -fopenmp" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.other.pic.1193571815" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.784078493" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP"/>
