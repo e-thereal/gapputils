@@ -17,9 +17,11 @@
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
+#include <capputils/Logbook.h>
 
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
+
 
 #include <algorithm>
 

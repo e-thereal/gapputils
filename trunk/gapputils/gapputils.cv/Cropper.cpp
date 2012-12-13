@@ -69,15 +69,18 @@ void Cropper::execute(gapputils::workflow::IProgressMonitor* monitor) const {
   const int rheight = getRectangle()->getHeight();
   const int width = input->getSize()[0];
   const int height = input->getSize()[1];
+  const int depth = input->getSize()[2];
 
-  boost::shared_ptr<image_t> output(new image_t(rwidth, rheight, 1, input->getPixelSize()));
+  boost::shared_ptr<image_t> output(new image_t(rwidth, rheight, depth, input->getPixelSize()));
 
   float* inputBuffer = input->getData();
   float* outputBuffer = output->getData();
 
-  for (int y = 0; y < rheight && y + top < height; ++y) {
-    for (int x = 0; x < rwidth && x + left < width; ++x) {
-      outputBuffer[y * rwidth + x] = inputBuffer[(y + top) * width + x + left];
+  for (int z = 0; z < depth; ++z) {
+    for (int y = 0; y < rheight && y + top < height; ++y) {
+      for (int x = 0; x < rwidth && x + left < width; ++x) {
+        outputBuffer[(z * depth + y) * rwidth + x] = inputBuffer[(z * depth + (y + top)) * width + x + left];
+      }
     }
   }
   data->setOutputImage(output);

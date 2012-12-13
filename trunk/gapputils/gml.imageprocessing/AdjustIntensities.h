@@ -34,4 +34,5 @@ protected:
 }
 
 } /* namespace gml */
+
 #endif /* GML_IMAGEPROCESSING_ADJUSTINTENSITIES_H_ */

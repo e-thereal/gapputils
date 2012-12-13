@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<gapputils-InterfaceModel>
+    <Interfaces>
+        <Collection>
+            <Item>
+                <gapputils-Interface>
+                    <Identifier value="UnitType" />
+                    <Type value="gml::convrbm::UnitType" />
+                    <Header value="UnitType.h" />
+                    <PropertyAttributes>
+                      <Collection>
+                        <Item value="Enumerator<Type>()" />
+                      </Collection>
+                    </PropertyAttributes>
+                    <IsParameter value="1" />
+                    <IsCollection value="0" />
+                </gapputils-Interface>
+            </Item>
+        </Collection>
+    </Interfaces>
+</gapputils-InterfaceModel>

@@ -17,6 +17,7 @@ ModelChecker::ModelChecker() {
   CHECK_MEMORY_LAYOUT2(Filters, test);
   CHECK_MEMORY_LAYOUT2(VisibleBias, test);
   CHECK_MEMORY_LAYOUT2(HiddenBiases, test);
+  CHECK_MEMORY_LAYOUT2(FilterKernelSize, test);
   CHECK_MEMORY_LAYOUT2(Mean, test);
   CHECK_MEMORY_LAYOUT2(Stddev, test);
   CHECK_MEMORY_LAYOUT2(VisibleUnitType, test);

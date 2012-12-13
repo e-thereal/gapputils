@@ -15,7 +15,6 @@
 #include <capputils/Logbook.h>
 
 #include <boost/timer.hpp>
-#include <tbblas/plus.hpp>
 #include <tbblas/conv.hpp>
 #include <tbblas/sum.hpp>
 #include <tbblas/flip.hpp>
@@ -285,12 +284,12 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
           poshidstates[k] = poshidstates[k]+ c[k];               // x = ~F_k * v + c_k
 
           // I'm using the state array here for the sum. Not nice but works fine and saves some space
-//          thrust::transform(poshidstates[k].data().begin(), poshidstates[k].data().end(),
-//              thrust::make_counting_iterator(0), poshidprobs[k].data().begin(),
-//              softmax<value_t>(layerDim[0], blockSize));
+          thrust::transform(poshidstates[k].data().begin(), poshidstates[k].data().end(),
+              thrust::make_counting_iterator(0), poshidprobs[k].data().begin(),
+              softmax<value_t>(layerDim[0], blockSize));
 
-          thrust::transform(poshidstates[k].data().begin(), poshidstates[k].data().end(), // x = sigm(x)
-              poshidprobs[k].data().begin(), sigmoid<value_t>());
+//          thrust::transform(poshidstates[k].data().begin(), poshidstates[k].data().end(), // x = sigm(x)
+//              poshidprobs[k].data().begin(), sigmoid<value_t>());
 
           // Calculate energy and the total activation of the hidden units
           posvishid[k] = tbblas::conv(tbblas::flip(poshidprobs[k]), v);     // ~h_k * v
@@ -376,12 +375,12 @@ void ConvRbmTrainer::execute(gapputils::workflow::IProgressMonitor* monitor) con
           neghidstates[k] = tbblas::conv(tbblas::flip(F[k]), vneg);               // x = ~F_k * v + c_k
           neghidstates[k] = neghidstates[k] + c[k];
 
-//          thrust::transform(neghidstates[k].data().begin(), neghidstates[k].data().end(),
-//              thrust::make_counting_iterator(0), neghidprobs[k].data().begin(),
-//              softmax<value_t>(layerDim[0], blockSize));
+          thrust::transform(neghidstates[k].data().begin(), neghidstates[k].data().end(),
+              thrust::make_counting_iterator(0), neghidprobs[k].data().begin(),
+              softmax<value_t>(layerDim[0], blockSize));
 
-          thrust::transform(neghidstates[k].data().begin(), neghidstates[k].data().end(), // x = sigm(x)
-              neghidprobs[k].data().begin(), sigmoid<value_t>());
+//          thrust::transform(neghidstates[k].data().begin(), neghidstates[k].data().end(), // x = sigm(x)
+//              neghidprobs[k].data().begin(), sigmoid<value_t>());
 
           // Calculate energy and the total activation of the hidden units
           negvishid[k] = tbblas::conv(tbblas::flip(neghidprobs[k]), vneg);     // ~h_k * v

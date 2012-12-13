@@ -31,12 +31,24 @@ public:
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(EpochCount, int)
   Property(BatchSize, int)
-  Property(LearningRate, double)
+  Property(LearningRateW, double)
+  Property(LearningRateVB, double)
+  Property(LearningRateHB, double)
   Property(SparsityTarget, double)
   Property(SparsityWeight, double)
+  Property(RandomizeTraining, bool)
+  Property(CalculateError, bool)
+  Property(ShareBiasTerms, bool)
+  Property(Logfile, std::string)
+  Property(MonitorEvery, int)
+  Property(ReconstructionCount, int)
 
   Property(Model, boost::shared_ptr<Model>)
   Property(Filters, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+  Property(VisibleBiases, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+  Property(HiddenBiases, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+  Property(HiddenUnits, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+  Property(Reconstructions, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
 
 public:
   Trainer();

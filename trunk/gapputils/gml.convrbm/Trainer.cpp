@@ -18,18 +18,31 @@ BeginPropertyDefinitions(Trainer)
   WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(EpochCount)
   WorkflowProperty(BatchSize)
-  WorkflowProperty(LearningRate)
+  WorkflowProperty(LearningRateW)
+  WorkflowProperty(LearningRateVB)
+  WorkflowProperty(LearningRateHB)
   WorkflowProperty(SparsityTarget)
   WorkflowProperty(SparsityWeight)
+  WorkflowProperty(RandomizeTraining)
+  WorkflowProperty(CalculateError)
+  WorkflowProperty(ShareBiasTerms)
+  WorkflowProperty(Logfile)
+  WorkflowProperty(MonitorEvery, Description("Debugging images are created only every 'MonitorEvery' epochs. A value of 0 indicates no monitoring."))
+  WorkflowProperty(ReconstructionCount, Description("The number of reconstructions calculated during debugging. Can't be larger than the number of batches."))
 
   WorkflowProperty(Model, Output("CRBM"))
   WorkflowProperty(Filters, Output("F"))
+  WorkflowProperty(VisibleBiases, Output("B"))
+  WorkflowProperty(HiddenBiases, Output("C"))
+  WorkflowProperty(HiddenUnits, Output("H"))
+  WorkflowProperty(Reconstructions, Output("Vneg"))
 
 EndPropertyDefinitions
 
 Trainer::Trainer()
- : _EpochCount(100), _BatchSize(20), _LearningRate(1e-3),
-   _SparsityTarget(1e-2), _SparsityWeight(0)
+ : _EpochCount(100), _BatchSize(20), _LearningRateW(1e-3), _LearningRateVB(1e-3), _LearningRateHB(1e-3),
+   _SparsityTarget(1e-2), _SparsityWeight(0), _RandomizeTraining(false), _CalculateError(false), _ShareBiasTerms(false),
+   _MonitorEvery(0), _ReconstructionCount(1)
 {
   setLabel("Trainer");
 }

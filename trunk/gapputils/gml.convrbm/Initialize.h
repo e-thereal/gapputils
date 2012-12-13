@@ -32,8 +32,9 @@ public:
   Property(FilterHeight, int)
   Property(FilterCount, int)
   int dummy;
-  Property(WeightMean, value_t)
-  Property(WeightStddev, value_t)
+  Property(Sigma, double)
+  Property(WeightMean, double)
+  Property(WeightStddev, double)
   Property(VisibleUnitType, UnitType)
   Property(HiddenUnitType, UnitType)
 
