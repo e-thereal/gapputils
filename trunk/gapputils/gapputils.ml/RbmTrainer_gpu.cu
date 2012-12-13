@@ -209,7 +209,7 @@ void RbmTrainer::update(gapputils::workflow::IProgressMonitor* monitor) const {
   tbblas::device_matrix<float> batch(batchSize, visibleCount);
   tbblas::device_matrix<float> negdata(batchSize, visibleCount);
   tbblas::device_matrix<float> poshidprobs(batchSize, hiddenCount);
-  randn_t poshidnoise(batchSize, hiddenCount);
+  randn_t poshidnoise((size_t)batchSize, (size_t)hiddenCount);
   tbblas::device_matrix<float> posprods(visibleCount, hiddenCount);
   tbblas::device_matrix<float> poshidstates(batchSize, hiddenCount);
   tbblas::device_matrix<float> neghidprobs(batchSize, hiddenCount);
