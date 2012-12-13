@@ -33,17 +33,31 @@ namespace interfaces {
 namespace inputs {
 
 int Filenames::filenamesId;
+int Filenames::patternId;
 
 BeginPropertyDefinitions(Filenames, Interface())
 
   ReflectableBase(gapputils::workflow::CollectionElement)
   DefineProperty(Values, Output("Files"), Filename("All (*)", true), FileExists(), Enumerable<TYPE_OF(Values), false>(), Observe(filenamesId = Id))
   DefineProperty(Value, Output("File"), Filename(), FileExists(), FromEnumerable(filenamesId), Observe(Id))
+  DefineProperty(Pattern, Observe(patternId = Id))
 
 EndPropertyDefinitions
 
 Filenames::Filenames() {
   setLabel("Filenames");
+
+  Changed.connect(capputils::EventHandler<Filenames>(this, &Filenames::changedHandler));
+}
+
+void Filenames::changedHandler(capputils::ObservableClass* sender, int eventId) {
+  if (eventId == patternId) {
+    capputils::reflection::IClassProperty* prop = findProperty("Values");
+    assert(prop);
+    FilenameAttribute* attr = prop->getAttribute<FilenameAttribute>();
+    assert(attr);
+    attr->setPattern(getPattern());
+  }
 }
 
 }

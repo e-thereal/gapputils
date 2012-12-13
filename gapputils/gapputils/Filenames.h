@@ -20,12 +20,16 @@ class Filenames : public gapputils::workflow::CollectionElement {
 
   Property(Values,std::vector<std::string>)
   Property(Value, std::string)
+  Property(Pattern, std::string)
 
 private:
   static int filenamesId;
+  static int patternId;
 
 public:
   Filenames();
+
+  void changedHandler(capputils::ObservableClass* sender, int eventId);
 };
 
 }

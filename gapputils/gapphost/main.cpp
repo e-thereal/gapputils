@@ -121,7 +121,10 @@ void parseWorkflowParameters(int argc, char** argv, Workflow& workflow) {
     boost::shared_ptr<Node> node = interfaceNodes[i].lock();
     if (!workflow.isOutputNode(node) && node->getModule()) {
       boost::shared_ptr<reflection::ReflectableClass> module = node->getModule();
-      if ((label = module->findProperty("Label")) && (value = module->findProperty("Value"))) {
+      value = module->findProperty("Values");
+      if (!value)
+        value = module->findProperty("Value");
+      if ((label = module->findProperty("Label")) && value) {
         modules[label->getStringValue(*module)] = module.get();
         properties[label->getStringValue(*module)] = value;
       }
@@ -211,8 +214,11 @@ int main(int argc, char *argv[])
 
   try {
     MainWindow w;
-    w.show();
-    dlog() << "Start resuming ...";
+    if (model.getHeadless()) {
+      model.setRun(true);
+    } else {
+      w.show();
+    }
     w.resume();
     if (model.getRun()) {
       w.setAutoQuit(true);
