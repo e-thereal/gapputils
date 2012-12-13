@@ -22,6 +22,7 @@ class TensorReader : public gapputils::workflow::DefaultWorkflowElement<TensorRe
   InitReflectableClass(TensorReader)
 
   Property(Filename, std::string)
+  Property(MaxCount, int)
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(Width, int)
   Property(Height, int)

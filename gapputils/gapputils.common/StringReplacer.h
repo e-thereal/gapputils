@@ -24,13 +24,16 @@ class StringReplacer : public workflow::DefaultWorkflowElement<StringReplacer> {
 
 private:
   static int inputId, findId, replaceId;
+  bool resumed;
 
 public:
   StringReplacer();
   virtual ~StringReplacer();
 
+
   void changedHandler(capputils::ObservableClass* sender, int eventId);
   virtual void writeResults();
+  virtual void resume();
 };
 
 }

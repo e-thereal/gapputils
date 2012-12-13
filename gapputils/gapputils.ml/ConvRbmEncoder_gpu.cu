@@ -10,7 +10,6 @@
 
 #include <capputils/Verifier.h>
 
-#include <tbblas/plus.hpp>
 #include <tbblas/conv.hpp>
 #include <tbblas/flip.hpp>
 #include <tbblas/random.hpp>

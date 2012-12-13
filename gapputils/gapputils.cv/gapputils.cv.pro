@@ -63,7 +63,8 @@ SOURCES = FromRgb.cpp \
           Interfaces.cpp \
           QtImage.cpp \
           Histogram.cpp \
-          MifToImage.cpp
+          MifToImage.cpp \
+          AverageMifs.cpp
 		  
 HEADERS = FromRgb.h \
           Grid.h \

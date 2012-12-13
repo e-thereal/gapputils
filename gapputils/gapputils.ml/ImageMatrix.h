@@ -9,7 +9,8 @@
 #ifndef GAPPUTILS_CV_IMAGEMATRIX_H_
 #define GAPPUTILS_CV_IMAGEMATRIX_H_
 
-#include <gapputils/WorkflowElement.h>
+#include <gapputils/DefaultWorkflowElement.h>
+#include <gapputils/namespaces.h>
 
 #include <gapputils/Image.h>
 
@@ -17,9 +18,14 @@ namespace gapputils {
 
 namespace ml {
 
-class ImageMatrix : public gapputils::workflow::WorkflowElement {
+struct ImageMatrixChecker { ImageMatrixChecker(); };
+
+class ImageMatrix : public DefaultWorkflowElement<ImageMatrix> {
+
+  friend class ImageMatrixChecker;
 
   InitReflectableClass(ImageMatrix)
+
   Property(InputImage, boost::shared_ptr<image_t>)
   Property(MinValue, float)
   Property(MaxValue, float)
@@ -27,19 +33,20 @@ class ImageMatrix : public gapputils::workflow::WorkflowElement {
   Property(ImageMatrix, boost::shared_ptr<image_t>)
   Property(AutoScale, bool)
   Property(CenterImages, bool)
+  Property(CroppedWidth, int)
+  Property(CroppedHeight, int)
 
 private:
-  mutable ImageMatrix* data;
   static int inputId;
 
 public:
   ImageMatrix();
   virtual ~ImageMatrix();
 
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
+  void changedHandler(ObservableClass* sender, int eventId);
 
-  void changedHandler(capputils::ObservableClass* sender, int eventId);
+protected:
+  virtual void update(IProgressMonitor* monitor) const;
 };
 
 }

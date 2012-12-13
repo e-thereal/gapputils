@@ -21,6 +21,8 @@
 
 #include <capputils/Logbook.h>
 
+#include <sstream>
+
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
 using namespace std;
@@ -35,11 +37,12 @@ int StringReplacer::replaceId;
 
 BeginPropertyDefinitions(StringReplacer)
 
-  ReflectableBase(workflow::WorkflowElement)
-  DefineProperty(Input, Input("In"), Observe(inputId = Id), NotEmpty<Type>(), TimeStamp(Id))
-  DefineProperty(Output, Output("Out"), Observe(Id), TimeStamp(Id))
-  DefineProperty(Find, Observe(findId = Id), NotEmpty<Type>(), TimeStamp(Id))
-  DefineProperty(Replace, Observe(replaceId = Id), TimeStamp(Id))
+  ReflectableBase(workflow::DefaultWorkflowElement<StringReplacer>)
+
+  DefineProperty(Input, Input("In"), Observe(inputId = Id), NotEmpty<Type>())
+  DefineProperty(Output, Output("Out"), Observe(Id))
+  DefineProperty(Find, Observe(findId = Id), NotEmpty<Type>())
+  DefineProperty(Replace, Observe(replaceId = Id))
 
 EndPropertyDefinitions
 
@@ -56,7 +59,7 @@ string replaceAll(const string& context, const string& from, const string& to)
   return str;
 }
 
-StringReplacer::StringReplacer() {
+StringReplacer::StringReplacer() : resumed(false) {
   setLabel("Replace");
   Changed.connect(capputils::EventHandler<StringReplacer>(this, &StringReplacer::changedHandler));
 }
@@ -64,11 +67,22 @@ StringReplacer::StringReplacer() {
 StringReplacer::~StringReplacer() {
 }
 
+void StringReplacer::resume() {
+  resumed = true;
+}
+
 void StringReplacer::changedHandler(capputils::ObservableClass* sender, int eventId) {
   capputils::Logbook& dlog = getLogbook();
 
-  if (!capputils::Verifier::Valid(*this, dlog))
-    return;
+  std::stringstream discard;
+
+  if (resumed) {
+    if (!capputils::Verifier::Valid(*this, dlog))
+      return;
+  } else {
+    if (!capputils::Verifier::Valid(*this, discard))
+      return;
+  }
 
   if (eventId == inputId || eventId == findId || eventId == replaceId) {
     setOutput(replaceAll(getInput(), getFind(), getReplace()));

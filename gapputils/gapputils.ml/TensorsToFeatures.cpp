@@ -18,6 +18,7 @@
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
 #include <capputils/NoParameterAttribute.h>
+#include <capputils/Logbook.h>
 
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>

@@ -39,6 +39,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CULA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 								</option>
+								<option id="cuda.toolchain.compiler.option.preprocessor.def.200156823" name="Defined symbols (-D)" superClass="cuda.toolchain.compiler.option.preprocessor.def"/>
 								<inputType id="cuda.toolchain.compiler.input.1577130827" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.2093880077" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
@@ -52,6 +53,7 @@
 								<option id="gnu.cpp.compiler.option.optimization.level.223800445" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.1652206224" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.other.other.1972753856" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1415933006" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1103655225" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.907590060" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">

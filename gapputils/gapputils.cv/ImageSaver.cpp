@@ -21,6 +21,7 @@
 #include <gapputils/HideAttribute.h>
 
 #include <sstream>
+#include <iomanip>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -57,7 +58,7 @@ ImageSaver::~ImageSaver() {
 void ImageSaver::changedHandler(capputils::ObservableClass* sender, int eventId) {
   if (eventId == imageId && getAutoSave() && getImagePtr()) {
     std::stringstream filename;
-    filename << getAutoName() << imageNumber++ << getAutoSuffix();
+    filename << getAutoName() << std::setw(8) << std::setfill('0') << imageNumber++ << getAutoSuffix();
     getImagePtr()->save(filename.str().c_str());
   }
 }

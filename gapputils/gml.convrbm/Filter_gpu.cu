@@ -29,6 +29,9 @@ void Filter::update(IProgressMonitor* monitor) const {
 
   Logbook& dlog = getLogbook();
 
+  dlog(Severity::Error) << "Not implemented. Aborting!";
+  return;
+
   const unsigned dimCount = Model::dimCount;
   typedef tensor<value_t, dimCount, true> tensor_t;
   typedef tensor_t::dim_t dim_t;
@@ -49,6 +52,8 @@ void Filter::update(IProgressMonitor* monitor) const {
     thrust::copy(filters[i]->begin(), filters[i]->end(), filter.begin());
     F.push_back(filter);
   }
+
+#if 0
   value_t b = crbm.getVisibleBias();
   std::vector<value_t>& c = *crbm.getHiddenBiases();
 
@@ -110,6 +115,7 @@ void Filter::update(IProgressMonitor* monitor) const {
 
     outputs->push_back(output);
   }
+#endif
 
   newState->setOutputs(outputs);
 }

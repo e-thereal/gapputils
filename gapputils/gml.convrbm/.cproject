@@ -38,6 +38,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
 								<option id="cuda.toolchain.compiler.option.misc.other.2081057079" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot;" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.preprocessor.def.1180460934" name="Defined symbols (-D)" superClass="cuda.toolchain.compiler.option.preprocessor.def"/>
 								<inputType id="cuda.toolchain.compiler.input.1323529743" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.1859306010" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
@@ -51,6 +52,9 @@
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.985613965" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.other.pic.1193571815" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.784078493" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.833448257" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.194328347" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
@@ -72,6 +76,7 @@
 									<listOptionValue builtIn="false" value="gapputilsd"/>
 									<listOptionValue builtIn="false" value="tbblasd"/>
 									<listOptionValue builtIn="false" value="cufft"/>
+									<listOptionValue builtIn="false" value="gomp"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.881294201" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -87,6 +92,7 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.199790983" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="cufft"/>
+									<listOptionValue builtIn="false" value="gomp"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.506690253" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -137,7 +143,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
-								<option id="cuda.toolchain.compiler.option.misc.other.1775025769" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot;" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.1775025769" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot;" valueType="string"/>
 								<inputType id="cuda.toolchain.compiler.input.463705284" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.1237924051" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
@@ -149,8 +155,11 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.654552216" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.654552216" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x -fopenmp" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.other.pic.1496920239" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1223807718" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1652791387" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.588304255" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
@@ -172,6 +181,7 @@
 									<listOptionValue builtIn="false" value="tinyxml"/>
 									<listOptionValue builtIn="false" value="tbblas"/>
 									<listOptionValue builtIn="false" value="cufft"/>
+									<listOptionValue builtIn="false" value="gomp"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.412604528" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -187,6 +197,7 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.523725277" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="cufft"/>
+									<listOptionValue builtIn="false" value="gomp"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1125167368" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

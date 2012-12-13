@@ -14,7 +14,7 @@ namespace gml {
 
 namespace convrbm {
 
-CapputilsEnumerator(UnitType, Bernoulli, Gaussian, ReLU);
+CapputilsEnumerator(UnitType, Bernoulli, Gaussian, MyReLU, ReLU, ReLU1, ReLU2, ReLU4, ReLU8);
 
 }
 

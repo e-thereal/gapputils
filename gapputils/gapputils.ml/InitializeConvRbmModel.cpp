@@ -29,7 +29,6 @@
 
 #include <tbblas/sum.hpp>
 #include <tbblas/dot.hpp>
-#include <tbblas/plus.hpp>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;

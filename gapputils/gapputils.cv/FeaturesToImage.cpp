@@ -20,6 +20,7 @@
 
 #include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
+#include <capputils/Logbook.h>
 
 #include <culib/CudaImage.h>
 
@@ -81,8 +82,6 @@ void FeaturesToImage::execute(gapputils::workflow::IProgressMonitor* monitor) co
   const int sliceCount = (getMaxCount() == -1 ? totalSliceCount : std::min(getMaxCount(), totalSliceCount));
 
   std::vector<float>& features = *getData();
-
-  std::cout << "SliceCount: " << sliceCount << std::endl;
 
   boost::shared_ptr<image_t> image(new image_t(columnCount, rowCount, sliceCount));
   std::copy(features.begin(), features.begin() + (rowCount * columnCount * sliceCount), image->getData());
