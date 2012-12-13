@@ -25,6 +25,7 @@ class DataModel : public capputils::reflection::ReflectableClass,
   InitReflectableClass(DataModel)
 
   Property(Run, bool)
+  Property(Headless, bool)
   Property(Help, bool)
   Property(AutoReload, bool)
   Property(WindowX, int)
