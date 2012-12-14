@@ -20,13 +20,13 @@ require(reshape)
 #print(qplot(id, (log(abs(value)+0.001) - log(0.001)) * sign(value), data = stats2, colour = variable, geom="line"))
 #print(qplot(id, value, data = stats2, colour = variable, geom="line"))
 
-training.mean = subset(read.csv("testing2.csv"), select = c("F.mean", "c.mean", "b.mean", "h.mean", "vneg.mean", "error"))
+training.mean = subset(read.csv("training_gpu.csv"), select = c("F.mean", "c.mean", "b.mean", "h.mean", "vneg.mean", "error"))
 training.mean = data.frame(id=0:(nrow(training.mean)-1), training.mean)
 training.mean = melt(training.mean, id = "id")
 names(training.mean)[names(training.mean)=="value"] <- "mean"
 print(head(training.mean))
 
-training.sd = subset(read.csv("testing2.csv"), select = c("F.sd", "c.sd"))
+training.sd = subset(read.csv("training_gpu.csv"), select = c("F.sd", "c.sd"))
 training.sd = data.frame(id=0:(nrow(training.sd)-1), training.sd, b.sd = 0, h.sd = 0, vneg.sd = 0, error.sd = 0)
 training.sd = melt(training.sd, id = "id")
 names(training.sd)[names(training.sd)=="value"] <- "sd"

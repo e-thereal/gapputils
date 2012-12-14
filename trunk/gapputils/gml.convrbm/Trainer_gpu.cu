@@ -128,7 +128,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     for (size_t i = 0; i < tensors.size(); ++i) {
       x = *tensors[i];
 
-      for (unsigned j = 0; j < dimCount; ++j) {
+      for (unsigned j = 0; j < dimCount - 1; ++j) {
         if (x.size()[j] != upper_power_of_two(x.size()[j])) {
           dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Aborting!";
           return;
@@ -142,7 +142,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     }
   }
 
-  // Copy filters to the device and precalculate the FFT
+  // Copy filters to the device and pre-calculate the FFT
   std::vector<boost::shared_ptr<host_tensor_t> >& filters = *crbm->getFilters();
   std::vector<ctensor_t > cF, cFinc;
   {
