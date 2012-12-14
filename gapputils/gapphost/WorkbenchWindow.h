@@ -75,6 +75,7 @@ public:
   void updateCurrentModule();
   void updateInputs();
   void updateOutputs();
+  void updateNodeByLabel(const std::string& label);
   void abortUpdate();
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);

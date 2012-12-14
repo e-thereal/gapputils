@@ -27,8 +27,10 @@ namespace host {
 int DataModel::WorkflowMapId = -1;
 
 BeginPropertyDefinitions(DataModel)
-  DefineProperty(Run, Flag(), Volatile(),
-      Description("Automatically update the workflow and quit aftwards"))
+  DefineProperty(UpdateAll, Flag(), Volatile(),
+      Description("Automatically update the workflow and quit afterwards"))
+  DefineProperty(Update, Volatile(),
+      Description("Automatically update only the specified output node  and quit afterwards"))
   DefineProperty(Headless, Flag(), Volatile(),
       Description("Starts grapevine without showing the main window (but you still need X). This really only makes sense along with the Run flag, hence Run is automatically activated."))
   DefineProperty(Help, Flag(), Volatile(),
@@ -75,7 +77,7 @@ EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;
 
-DataModel::DataModel(void) : _Run(false), _Headless(false), _Help(false), _AutoReload(false),
+DataModel::DataModel(void) : _UpdateAll(false), _Headless(false), _Help(false), _AutoReload(false),
     _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600),
     _OpenWorkflows(new std::vector<std::string>()),
     _WorkflowMap(new std::map<std::string, boost::weak_ptr<workflow::Workflow> >),

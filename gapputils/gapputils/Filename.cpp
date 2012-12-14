@@ -29,43 +29,62 @@ namespace interfaces {
 
 namespace parameters {
 
+int Filename::patternId;
+
 BeginPropertyDefinitions(Filename, Interface())
 
-  ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(Value, Output(""), capputils::attributes::Filename(), FileExists(), Observe(Id))
+  ReflectableBase(gapputils::workflow::DefaultWorkflowElement<Filename>)
+  DefineProperty(Value, capputils::attributes::Filename(), FileExists(), Observe(Id))
+  DefineProperty(Pattern, Observe(patternId = Id))
 
 EndPropertyDefinitions
 
-Filename::Filename() : data(0) {
-  WfeUpdateTimestamp
+Filename::Filename() {
   setLabel("Filename");
-
   Changed.connect(capputils::EventHandler<Filename>(this, &Filename::changedHandler));
 }
 
-Filename::~Filename() {
-  if (data)
-    delete data;
-}
+Filename::~Filename() { }
 
 void Filename::changedHandler(capputils::ObservableClass* sender, int eventId) {
+  if (eventId == patternId) {
+    capputils::reflection::IClassProperty* prop = findProperty("Value");
+    assert(prop);
+    FilenameAttribute* attr = prop->getAttribute<FilenameAttribute>();
+    assert(attr);
+    attr->setPattern(getPattern());
+  }
+}
 
 }
 
-void Filename::execute(gapputils::workflow::IProgressMonitor* monitor) const {
-  if (!data)
-    data = new Filename();
+namespace inputs {
 
-  if (!capputils::Verifier::Valid(*this))
-    return;
+int Filename::patternId;
 
+BeginPropertyDefinitions(Filename, Interface())
 
+  ReflectableBase(gapputils::workflow::DefaultWorkflowElement<Filename>)
+  DefineProperty(Value, Output(""), capputils::attributes::Filename(), FileExists(), Observe(Id))
+  DefineProperty(Pattern, Observe(patternId = Id))
+
+EndPropertyDefinitions
+
+Filename::Filename() {
+  setLabel("Filename");
+  Changed.connect(capputils::EventHandler<Filename>(this, &Filename::changedHandler));
 }
 
-void Filename::writeResults() {
-  if (!data)
-    return;
+Filename::~Filename() { }
 
+void Filename::changedHandler(capputils::ObservableClass* sender, int eventId) {
+  if (eventId == patternId) {
+    capputils::reflection::IClassProperty* prop = findProperty("Value");
+    assert(prop);
+    FilenameAttribute* attr = prop->getAttribute<FilenameAttribute>();
+    assert(attr);
+    attr->setPattern(getPattern());
+  }
 }
 
 }

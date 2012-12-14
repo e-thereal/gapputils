@@ -410,6 +410,15 @@ void MainWindow::updateMainWorkflow() {
   abortAction->setEnabled(true);
 }
 
+void MainWindow::updateMainWorkflowNode(const std::string& nodeLabel) {
+  setGuiEnabled(false);
+
+  workingWindow = showWorkflow(DataModel::getInstance().getMainWorkflow());
+  connect(workingWindow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+  workingWindow->updateNodeByLabel(nodeLabel);
+  abortAction->setEnabled(true);
+}
+
 void MainWindow::terminateUpdate() {
   workingWindow->abortUpdate();
 }

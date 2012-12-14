@@ -214,15 +214,19 @@ int main(int argc, char *argv[])
 
   try {
     MainWindow w;
-    if (model.getHeadless()) {
-      model.setRun(true);
-    } else {
+    if (!model.getHeadless()) {
       w.show();
+    } else {
+      if (model.getUpdate().size() == 0)
+        model.setUpdateAll(true);
     }
     w.resume();
-    if (model.getRun()) {
+    if (model.getUpdateAll()) {
       w.setAutoQuit(true);
       w.updateMainWorkflow();
+    } else if (model.getUpdate().size()) {
+      w.setAutoQuit(true);
+      w.updateMainWorkflowNode(model.getUpdate());
     }
     ret = a.exec();
   } catch (char const* error) {
