@@ -64,7 +64,7 @@ void Pooling::update(IProgressMonitor* monitor) const {
 
   dim_t outSize = inSize / inBlock * outBlock;
 
-  for (size_t i = 0; i < inputs.size(); ++i) {
+  for (size_t i = 0; i < inputs.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
     boost::shared_ptr<tensor_t> output(new tensor_t(outSize));
     tensor_t& input = *inputs[i];
 
@@ -78,6 +78,8 @@ void Pooling::update(IProgressMonitor* monitor) const {
     }
 
     outputs->push_back(output);
+    if (monitor)
+      monitor->reportProgress(100. * i / inputs.size());
   }
 
   newState->setOutputs(outputs);
