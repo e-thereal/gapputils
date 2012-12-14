@@ -8,27 +8,46 @@
 #ifndef GAPPUTLIS_HOST_INPUTS_FILENAME_H_
 #define GAPPUTLIS_HOST_INPUTS_FILENAME_H_
 
-#include <gapputils/WorkflowElement.h>
+#include <gapputils/DefaultWorkflowElement.h>
 
 namespace interfaces {
 
 namespace parameters {
 
-class Filename : public gapputils::workflow::WorkflowElement {
+class Filename : public gapputils::workflow::DefaultWorkflowElement<Filename> {
 
   InitReflectableClass(Filename)
 
   Property(Value, std::string)
+  Property(Pattern, std::string)
 
 private:
-  mutable Filename* data;
+  static int patternId;
 
 public:
   Filename();
   virtual ~Filename();
 
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
+  void changedHandler(capputils::ObservableClass* sender, int eventId);
+};
+
+}
+
+namespace inputs {
+
+class Filename : public gapputils::workflow::DefaultWorkflowElement<Filename> {
+
+  InitReflectableClass(Filename)
+
+  Property(Value, std::string)
+  Property(Pattern, std::string)
+
+private:
+  static int patternId;
+
+public:
+  Filename();
+  virtual ~Filename();
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 };

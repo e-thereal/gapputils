@@ -73,6 +73,7 @@ public Q_SLOTS:
   void updateCurrentModule();
   void updateWorkflow();
   void updateMainWorkflow();
+  void updateMainWorkflowNode(const std::string& nodeLabel);
   void terminateUpdate();
   void updateFinished();
   

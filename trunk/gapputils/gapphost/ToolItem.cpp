@@ -323,12 +323,12 @@ QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) 
   QPointF position = pos();
   switch (change) {
   case ItemPositionHasChanged:
-    if (((int)position.x()) % 15 != 7 || ((int)position.y()) % 15 != 7) {
-      position.setX((int)position.x() / 15 * 15 + 7);
-      position.setY((int)position.y() / 15 * 15 + 7);
-      setPos(position);
-      return QGraphicsItem::itemChange(change, value);
-    }
+//    if (((int)position.x()) % 15 != 7 || ((int)position.y()) % 15 != 7) {
+//      position.setX((int)position.x() / 15 * 15 + 7);
+//      position.setY((int)position.y() / 15 * 15 + 7);
+//      setPos(position);
+//      return QGraphicsItem::itemChange(change, value);
+//    }
     updateCables();
     if (bench)
       bench->notifyItemChange(this);

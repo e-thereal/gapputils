@@ -489,6 +489,19 @@ void WorkbenchWindow::updateOutputs() {
   workflowUpdater->update(workflow.lock());
 }
 
+void WorkbenchWindow::updateNodeByLabel(const std::string& label) {
+  boost::shared_ptr<Workflow> workflow = this->workflow.lock();
+  Logbook& dlog = *workflow->getLogbook();
+
+  boost::shared_ptr<Node> node = workflow->getNodeByLabel(label);
+  if(!node) {
+    dlog(Severity::Error) << "Could not find node with the label '" << label << "'. Won't update workflow.";
+    return;
+  }
+
+  workflowUpdater->update(node);
+}
+
 void WorkbenchWindow::abortUpdate() {
   workflowUpdater->abort();
 }

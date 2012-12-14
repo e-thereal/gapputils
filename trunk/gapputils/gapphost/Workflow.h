@@ -101,6 +101,7 @@ public:
   boost::shared_ptr<Node> getNode(boost::shared_ptr<capputils::reflection::ReflectableClass> object);
   boost::shared_ptr<Node> getNode(boost::shared_ptr<capputils::reflection::ReflectableClass> object, unsigned& pos);
   boost::shared_ptr<Node> getNode(const std::string& uuid) const;
+  boost::shared_ptr<Node> getNodeByLabel(const std::string& label) const;
 
   boost::shared_ptr<Edge> getEdge(CableItem* cable);
   boost::shared_ptr<Edge> getEdge(CableItem* cable, unsigned& pos);

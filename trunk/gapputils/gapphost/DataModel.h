@@ -24,7 +24,8 @@ class DataModel : public capputils::reflection::ReflectableClass,
 {
   InitReflectableClass(DataModel)
 
-  Property(Run, bool)
+  Property(UpdateAll, bool)
+  Property(Update, std::string)
   Property(Headless, bool)
   Property(Help, bool)
   Property(AutoReload, bool)

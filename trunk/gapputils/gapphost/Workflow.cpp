@@ -747,6 +747,18 @@ boost::shared_ptr<Node> Workflow::getNode(const std::string& uuid) const {
   return boost::shared_ptr<Node>();
 }
 
+boost::shared_ptr<Node> Workflow::getNodeByLabel(const std::string& label) const {
+  boost::shared_ptr<Node> node;
+
+  for(unsigned pos = 0; pos < _Nodes->size(); ++pos) {
+    node = _Nodes->at(pos);
+    WorkflowElement* element = dynamic_cast<WorkflowElement*>(node->getModule().get());
+    if (element && element->getLabel() == label)
+      return node;
+  }
+  return boost::shared_ptr<Node>();
+}
+
 boost::shared_ptr<Edge> Workflow::getEdge(CableItem* cable) {
   unsigned pos;
   return getEdge(cable, pos);
