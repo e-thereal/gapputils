@@ -42,7 +42,8 @@ SOURCES = main.cpp \
 		  ImageInterface.cpp \
 		  ImagesInterface.cpp \
 		  WorkbenchWindow.cpp \
-		  TestModule.cpp
+		  TestModule.cpp \
+		  HeadlessApp.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -64,7 +65,8 @@ HEADERS = MainWindow.h \
           LogbookModel.h \
           LogbookWidget.h \
           GlobalPropertiesView.h \
-          WorkbenchWindow.h
+          WorkbenchWindow.h \
+          HeadlessApp.h
           
 RESOURCES = res.qrc
           
