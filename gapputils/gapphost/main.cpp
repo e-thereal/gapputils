@@ -20,6 +20,8 @@
 #include <capputils/Logbook.h>
 #include <gapputils/SubWorkflow.h>
 
+#include "HeadlessApp.h"
+
 #include <memory>
 
 //#include <CProcessInfo.hpp>
@@ -54,8 +56,6 @@ using namespace interfaces;
 #endif
 
 void showWorkflowUsage(Workflow& workflow) {
-  std::cout << "Workflow parameters:\n" << std::endl;
-
   reflection::IClassProperty *label, *description, *valueProp;
 
   std::vector<std::string> parameters, descriptions;
@@ -103,10 +103,43 @@ void showWorkflowUsage(Workflow& workflow) {
   }
 
   assert(parameters.size() == descriptions.size());
-  for (size_t i = 0; i < parameters.size(); ++i) {
-    std::cout << "  --" << std::setw(columnWidth) << std::left << parameters[i] << "   " << descriptions[i] << std::endl;
+  if (parameters.size()) {
+    std::cout << "Workflow parameters:\n" << std::endl;
+    for (size_t i = 0; i < parameters.size(); ++i) {
+      std::cout << "  --" << std::setw(columnWidth) << std::left << parameters[i] << "   " << descriptions[i] << std::endl;
+    }
+    std::cout << std::endl;
   }
-  std::cout << std::endl;
+
+  // Show output targets
+  parameters.clear();
+  descriptions.clear();
+  columnWidth = 0;
+  for (size_t i = 0; i < interfaceNodes.size(); ++i) {
+    boost::shared_ptr<Node> node = interfaceNodes[i].lock();
+    if (workflow.isOutputNode(node) && node->getModule()) {
+      boost::shared_ptr<reflection::ReflectableClass> module = node->getModule();
+      if ((label = module->findProperty("Label"))) {
+        columnWidth = max(columnWidth, label->getStringValue(*module).size());
+        parameters.push_back(label->getStringValue(*module));
+
+        std::string fullDescription;
+        if ((description = module->findProperty("Description")))
+          fullDescription = description->getStringValue(*module);
+        descriptions.push_back(fullDescription);
+      }
+    }
+  }
+
+  assert(parameters.size() == descriptions.size());
+
+  if (parameters.size()) {
+    std::cout << "Workflow targets:\n" << std::endl;
+    for (size_t i = 0; i < parameters.size(); ++i) {
+      std::cout << "  * " << std::setw(columnWidth) << std::left << parameters[i] << "   " << descriptions[i] << std::endl;
+    }
+    std::cout << std::endl;
+  }
 }
 
 void parseWorkflowParameters(int argc, char** argv, Workflow& workflow) {
@@ -173,7 +206,6 @@ int main(int argc, char *argv[])
   boost::filesystem::create_directories(DataModel::getConfigurationDirectory());
 
   int ret = 0;
-  QApplication a(argc, argv);
   DataModel& model = DataModel::getInstance();
   ArgumentsParser::Parse(model, argc, argv);      // need to be here to read the configuration filename
   try {
@@ -213,22 +245,32 @@ int main(int argc, char *argv[])
   }
 
   try {
-    MainWindow w;
     if (!model.getHeadless()) {
+      QApplication a(argc, argv);
+      MainWindow w;
       w.show();
+      w.resume();
+      if (model.getUpdateAll()) {
+        w.setAutoQuit(true);
+        w.updateMainWorkflow();
+      } else if (model.getUpdate().size()) {
+        w.setAutoQuit(true);
+        w.updateMainWorkflowNode(model.getUpdate());
+      }
+      ret = a.exec();
     } else {
+      QCoreApplication a(argc, argv);
       if (model.getUpdate().size() == 0)
         model.setUpdateAll(true);
+      HeadlessApp app;
+      app.resume();
+      if (model.getUpdateAll()) {
+        app.updateMainWorkflow();
+      } else if (model.getUpdate().size()) {
+        app.updateMainWorkflowNode(model.getUpdate());
+      }
+      ret = a.exec();
     }
-    w.resume();
-    if (model.getUpdateAll()) {
-      w.setAutoQuit(true);
-      w.updateMainWorkflow();
-    } else if (model.getUpdate().size()) {
-      w.setAutoQuit(true);
-      w.updateMainWorkflowNode(model.getUpdate());
-    }
-    ret = a.exec();
   } catch (char const* error) {
     cout << error << endl;
     return 1;

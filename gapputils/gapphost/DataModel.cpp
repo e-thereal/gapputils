@@ -30,7 +30,7 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(UpdateAll, Flag(), Volatile(),
       Description("Automatically update the workflow and quit afterwards"))
   DefineProperty(Update, Volatile(),
-      Description("Automatically update only the specified output node  and quit afterwards"))
+      Description("Automatically update only the specified output node and quit afterwards"))
   DefineProperty(Headless, Flag(), Volatile(),
       Description("Starts grapevine without showing the main window (but you still need X). This really only makes sense along with the Run flag, hence Run is automatically activated."))
   DefineProperty(Help, Flag(), Volatile(),
