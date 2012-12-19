@@ -7,7 +7,7 @@
 
 #include "Trainer.h"
 
-#define BOOST_CHRONO_HEADER_ONLY
+//#define BOOST_CHRONO_HEADER_ONLY
 
 #include <tbblas/math.hpp>
 #include <tbblas/random.hpp>
@@ -21,7 +21,7 @@
 #include <tbblas/fft.hpp>
 
 #include <boost/timer.hpp>
-#include <boost/chrono.hpp>
+//#include <boost/chrono.hpp>
 
 #include <fstream>
 #include <omp.h>
@@ -63,27 +63,27 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(Reconstructions, trainer);
 }
 
-class timer {
-private:
-  boost::chrono::process_real_cpu_clock clock;
-  boost::chrono::process_real_cpu_clock::time_point timePoint;
-
-public:
-  timer() {
-    timePoint = clock.now();
-  }
-
-  boost::chrono::duration<double> elapsed() {
-    return (clock.now() - timePoint);
-  }
-
-  void restart() {
-    timePoint = clock.now();
-  }
-};
+//class timer {
+//private:
+//  boost::chrono::process_real_cpu_clock clock;
+//  boost::chrono::process_real_cpu_clock::time_point timePoint;
+//
+//public:
+//  timer() {
+//    timePoint = clock.now();
+//  }
+//
+//  boost::chrono::duration<double> elapsed() {
+//    return (clock.now() - timePoint);
+//  }
+//
+//  void restart() {
+//    timePoint = clock.now();
+//  }
+//};
 
 #define START size_t timerCycles = getEpochCount(); \
-    timer _timer;
+    boost::timer _timer;
 
 #define STOP { \
     cudaThreadSynchronize(); \

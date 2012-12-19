@@ -32,6 +32,7 @@ public:
   Property(EpochCount, int)
   Property(BatchSize, int)
   Property(GpuCount, int)
+  int dummy;
   Property(LearningRateW, double)
   Property(LearningRateVB, double)
   Property(LearningRateHB, double)
