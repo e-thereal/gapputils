@@ -264,12 +264,14 @@ int main(int argc, char *argv[])
         model.setUpdateAll(true);
       HeadlessApp app;
       app.resume();
+      bool success = false;
       if (model.getUpdateAll()) {
-        app.updateMainWorkflow();
+        success = app.updateMainWorkflow();
       } else if (model.getUpdate().size()) {
-        app.updateMainWorkflowNode(model.getUpdate());
+        success = app.updateMainWorkflowNode(model.getUpdate());
       }
-      ret = a.exec();
+      if (success)
+        ret = a.exec();
     }
   } catch (char const* error) {
     cout << error << endl;

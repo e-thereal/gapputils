@@ -39,8 +39,8 @@ public:
   void resume();
 
 public Q_SLOTS:
-  void updateMainWorkflow();
-  void updateMainWorkflowNode(const std::string& label);
+  bool updateMainWorkflow();
+  bool updateMainWorkflowNode(const std::string& label);
   void updateFinished();
   void showProgress(boost::shared_ptr<workflow::Node>, double);
 };
