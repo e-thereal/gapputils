@@ -7,6 +7,8 @@
 
 #include "Trainer.h"
 
+#define BOOST_CHRONO_HEADER_ONLY
+
 #include <tbblas/math.hpp>
 #include <tbblas/random.hpp>
 #include <tbblas/zeros.hpp>
@@ -19,13 +21,15 @@
 #include <tbblas/fft.hpp>
 
 #include <boost/timer.hpp>
+#include <boost/chrono.hpp>
 
 #include <fstream>
+#include <omp.h>
 
 #include "math.hpp"
 
 // All monitoring code is enclosed by #ifdef MONITOR_TRAINING blocks
-#define MONITOR_TRAINING
+//#define MONITOR_TRAINING
 
 namespace gml {
 
@@ -38,6 +42,7 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(Tensors, trainer);
   CHECK_MEMORY_LAYOUT2(EpochCount, trainer);
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
+  CHECK_MEMORY_LAYOUT2(GpuCount, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRateW, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRateVB, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRateHB, trainer);
@@ -58,12 +63,33 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(Reconstructions, trainer);
 }
 
-#define START size_t timerCycles = getEpochCount(); \
-    boost::timer timer;
+class timer {
+private:
+  boost::chrono::process_real_cpu_clock clock;
+  boost::chrono::process_real_cpu_clock::time_point timePoint;
 
-#define STOP cudaThreadSynchronize(); \
-    std::cout << __LINE__ << ": " << timer.elapsed() << std::endl; \
-    timer.restart();
+public:
+  timer() {
+    timePoint = clock.now();
+  }
+
+  boost::chrono::duration<double> elapsed() {
+    return (clock.now() - timePoint);
+  }
+
+  void restart() {
+    timePoint = clock.now();
+  }
+};
+
+#define START size_t timerCycles = getEpochCount(); \
+    timer _timer;
+
+#define STOP { \
+    cudaThreadSynchronize(); \
+    std::cout << __LINE__ << ": " << _timer.elapsed() << std::endl; \
+    _timer.restart(); \
+}
 
 #define TIMER_LOOP for(size_t iCycle = 0; iCycle < timerCycles; ++iCycle)
 
@@ -84,6 +110,22 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
   Logbook& dlog = getLogbook();
   dlog.setSeverity(Severity::Message);
+
+  int deviceCount = 0;
+  cudaGetDeviceCount(&deviceCount);
+
+  const int gpuCount = getGpuCount();
+
+  if (deviceCount < gpuCount) {
+    dlog(Severity::Warning) << "Only " << deviceCount << " CUDA-enabled devices found, where " << gpuCount << " are required according to GpuCount. Aborting!";
+    return;
+  }
+
+  assert(omp_get_num_threads() == 1);
+
+  cudaSetDevice(0);
+  omp_set_dynamic(0);
+  omp_set_num_threads(gpuCount);
 
   const unsigned dimCount = Model::dimCount;
   typedef complex<value_t> complex_t;
@@ -109,8 +151,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
   ctensor_t dcv;
 #endif
 
+  /*** PREPARE MASTER THREAD ***/
+
   // FFT plans
-  plan_t plan_h, iplan_h, plan_v, iplan_v;
+//  plan_t plan_v, iplan_v;
 
   boost::shared_ptr<Model> crbm = getInitialModel()->clone();
 
@@ -124,7 +168,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
   // Normalize input and pre-calculate the FFT
   {
     tensor_t x;
-    ctensor_t cx, cv;
+    ctensor_t cx;
+    plan_t plan_v;
     for (size_t i = 0; i < tensors.size(); ++i) {
       x = *tensors[i];
 
@@ -142,25 +187,16 @@ void Trainer::update(IProgressMonitor* monitor) const {
     }
   }
 
-  // Copy filters to the device and pre-calculate the FFT
+  // Create arrays for filters
   std::vector<boost::shared_ptr<host_tensor_t> >& filters = *crbm->getFilters();
-  std::vector<ctensor_t > cF, cFinc;
-  {
-    tensor_t f;
-    ctensor_t cf;
-    for (size_t i = 0; i < filters.size(); ++i) {
-      f = *filters[i];
-      cf = fft(f, dimCount - 1, plan_v);
-      cF.push_back(cf);
-      cf = zeros<complex_t>(cf.size(), cf.fullsize());
-      cFinc.push_back(cf);
-    }
-  }
+  std::vector<boost::shared_ptr<ctensor_t> > cF(filters.size()), cFinc(filters.size());
 
+  // Copy visible bias to the device
   host_tensor_t& b = *crbm->getVisibleBias();
   ctensor_t cb, cbinc;
   {
     tensor_t f = b;
+    plan_t plan_v;
     if (getShareBiasTerms())
       f = ones<value_t>(f.size()) * sum(f) / f.count();
     cb = fft(f, dimCount - 1, plan_v);
@@ -168,23 +204,9 @@ void Trainer::update(IProgressMonitor* monitor) const {
   }
 
   std::vector<boost::shared_ptr<host_tensor_t> >& c = *crbm->getHiddenBiases();
-  std::vector<ctensor_t> cc, ccinc;
-  {
-    tensor_t h;
-    ctensor_t ch;
-    for (size_t i = 0; i < c.size(); ++i) {
-      h = *c[i];
-      if (getShareBiasTerms())
-        h = ones<value_t>(h.size()) * sum(h) / h.count();
-      ch = fft(h, dimCount - 1, plan_h);
-      cc.push_back(ch);
-      ch = zeros<complex_t>(ch.size(), ch.fullsize());
-      ccinc.push_back(ch);
-    }
-  }
+  std::vector<boost::shared_ptr<ctensor_t> > cc(c.size()), ccinc(c.size());
 
-  dlog() << "Trainer initialized.";
-
+  // Prepare sizes
   dim_t size = tensors[0]->size();
   dim_t layerSize = size;
   layerSize[dimCount - 1] = 1;
@@ -206,347 +228,514 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
   // Declare variables used for training
   tensor_t v, vneg; // to monitor training (calculate the error)
-  tensor_t h, h2;       // for sigm and sampling
-  ctensor_t cv, ch, ch_full, cvneg;
-  random_tensor<value_t, dimCount, true, uniform<value_t> > h_rand(layerSize);
-  random_tensor<value_t, dimCount, true, normal<value_t> > h_noise(layerSize);
+  ctensor_t* cv_master = 0;      // Read from the master thread and then each other thread reads from the master device
+  ctensor_t* cvneg_master = 0;   // All threads add their version to the master threads version (needs to be synchronized)
 
-  dim_t vbMaskSize = cb.size(), hbMaskSize = cc[0].size(), spMaskSize = cc[0].size();
+  dim_t vbMaskSize = cb.size(), hbMaskSize, spMaskSize;
   if (getShareBiasTerms()) {
-    vbMaskSize[0] = hbMaskSize[0] = 1;
-    vbMaskSize[1] = hbMaskSize[1] = 1;
+    vbMaskSize[0] = 1;
+    vbMaskSize[1] = 1;
   }
-  spMaskSize[0] = 1;
-  spMaskSize[1] = 1;
-
-  dlog() << "Starting training";
 
   bool monitorTraining = false;
-#ifdef MONITOR_TRAINING
-  monitorTraining = getLogfile().size();
-  std::ofstream logfile;
-  value_t bmean, bsd, cmean, csd, Fmean, Fsd, hmean, vnegmean;
+  value_t error = 0, batchError = 0;
 
-  if (monitorTraining) {
-    logfile.open(getLogfile().c_str());
-
-    logfile << "b.mean, b.sd, c.mean, c.sd, F.mean, F.sd, h.mean, vneg.mean, error" << std::endl;
-
-    bmean = bsd = cmean = csd = Fmean = Fsd = hmean = vnegmean = 0;
-
-    f = ifft(cb, dimCount - 1, iplan_v);
-    bmean = sum(f) / f.count();
-    for (size_t k = 0; k < filters.size(); ++k) {
-      l = ifft(cc[k], dimCount - 1, iplan_h);
-      cmean += sum(l) / l.count();
-      f = ifft(cF[k], dimCount - 1, iplan_v);
-      Fmean += sum(f) / f.count();
-    }
-    cmean /= filters.size();
-    Fmean /= filters.size();
-
-    f = ifft(cb, dimCount - 1, iplan_v);
-    bsd = sqrt(dot(f - bmean, f - bmean) / f.count());
-    for (size_t k = 0; k < filters.size(); ++k) {
-      l = ifft(cc[k], dimCount - 1, iplan_h);
-      csd += dot(l - cmean, l - cmean) / l.count();
-      f = ifft(cF[k], dimCount - 1, iplan_v);
-      Fsd += dot(f - Fmean, f - Fmean) / f.count();
-    }
-    csd = sqrt(csd / filters.size());
-    Fsd = sqrt(Fsd / filters.size());
-
-    logfile << bmean << ", " << bsd << ", " << cmean << ", " << csd << ", " << Fmean << ", " << Fsd << ", " << hmean << ", " << vnegmean << ", " << 0 << std::endl;
-  }
-#endif
-
-  for (size_t iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
-    value_t error = 0;
-    momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
-
-#ifdef MONITOR_TRAINING
-    debugHiddenUnits->clear();
-    debugReconstructions->clear();
-#endif
-
-    for (size_t iBatch = 0; iBatch < batchCount; ++iBatch) {
-      value_t batchError = 0;
-
-#ifdef MONITOR_TRAINING
-      bmean = bsd = cmean = csd = Fmean = Fsd = hmean = vnegmean = 0;
-#endif
-
-      for (size_t k = 0; k < cF.size(); ++k) {
-        cFinc[k] = momentum * cFinc[k] - weightcost * cF[k];
-        ccinc[k] = momentum * ccinc[k];
-
-      }
-      cbinc = momentum * cbinc;
-
-      for (size_t iSample = 0; iSample < batchSize; ++iSample) {
-
-        // get v
-        if (getRandomizeTraining())
-          cv = *cX[rand() % cX.size()];
-        else
-          cv = *cX[iSample + iBatch * batchSize];
-        cvneg = zeros<complex_t>(cv.size(), cv.fullsize());
-
-#ifdef MONITOR_TRAINING
-        if (iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0)
-          dcv = zeros<complex_t>(cv.size(), cv.fullsize());
-#endif
-
-        for (size_t k = 0; k < cF.size(); ++k) {
-
-          /*** BEGIN OF POSITIVE PHASE ***/
-
-          // h_k = sigm(~F_k * v + c)
-          ch_full = conj(cF[k]) * cv;
-          ch = sum(ch_full, dimCount - 1);
-          ch = ch + cc[k];
-          h2 = ifft(ch, iplan_h);
-
-          switch (crbm->getHiddenUnitType()) {
-            case UnitType::Bernoulli: h = sigm(h2); break;
-            case UnitType::ReLU:      h = max(0.0, h2);  break;
-            case UnitType::MyReLU:    h = nrelu_mean(h2); break;
-            case UnitType::ReLU1:     h = min(1.0, max(0.0, h2));  break;
-            case UnitType::ReLU2:     h = min(2.0, max(0.0, h2));  break;
-            case UnitType::ReLU4:     h = min(4.0, max(0.0, h2));  break;
-            case UnitType::ReLU8:     h = min(8.0, max(0.0, h2));  break;
-            default:
-              dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
-          }
-
-          // dF_k = ~h * v
-          ch = fft(h, plan_h);
-          cFinc[k] = cFinc[k] + epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
-
-          ccinc[k] = ccinc[k] + epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch
-              + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) * (getSparsityTarget() * h.count() - sum(h));
-
-#ifdef MONITOR_TRAINING
-          if (iSample == 0 && iBatch == 0 && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-            debugHiddenUnits->push_back(boost::make_shared<host_tensor_t>(h));
-          }
-
-          if (iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-            dcv = dcv + cF[k] * repeat(ch, cF[k].size() / ch.size());
-          }
-
-          if (monitorTraining && iSample == 0)
-            hmean += sum(h) / h.count() / cF.size();
-#endif
-
-          // Sample hidden states
-          switch (crbm->getHiddenUnitType()) {
-            case UnitType::Bernoulli: h = h > h_rand; break;
-            case UnitType::MyReLU:
-            case UnitType::ReLU:      h = max(0.0, h2 + sqrt(sigm(h2)) * h_noise); break;
-            case UnitType::ReLU1:     h = min(1.0, max(0.0, h2 + (h2 > 0) * (h2 < 1.0) * h_noise)); break;
-            case UnitType::ReLU2:     h = min(2.0, max(0.0, h2 + (h2 > 0) * (h2 < 2.0) * h_noise)); break;
-            case UnitType::ReLU4:     h = min(4.0, max(0.0, h2 + (h2 > 0) * (h2 < 4.0) * h_noise)); break;
-            case UnitType::ReLU8:     h = min(8.0, max(0.0, h2 + (h2 > 0) * (h2 < 8.0) * h_noise)); break;
-            default:
-              dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
-          }
-
-#ifdef MONITOR_TRAINING
-          if (iSample == 0 && iBatch == 0 && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-            debugHiddenUnits->push_back(boost::make_shared<host_tensor_t>(h));
-          }
-#endif
-
-          ch = fft(h, plan_h);
-
-          /*** BEGIN OF NEGATIVE PHASE ***/
-
-          // dvneg = F * h
-          cvneg = cvneg + cF[k] * repeat(ch, cF[k].size() / ch.size());
-        }
-
-        /*** END OF POSITIVE PHASE ***/
-
-        if (getCalculateError() || monitorTraining)
-          v = ifft(cv, dimCount - 1, iplan_v);
-
-        //binc = binc + epsilonvb * sum(v);
-        cbinc = cbinc + epsilonvb * mask<complex_t>(cv.size(), cv.fullsize(), vbMaskSize) * cv;
-
-        /*** END OF NEGATIVE PHASE ***/
-
-        cvneg = cvneg + cb;
-
-        if (getCalculateError() || monitorTraining)
-          vneg = ifft(cvneg, dimCount - 1, iplan_v);
-
-        switch(crbm->getVisibleUnitType()) {
-          case UnitType::Bernoulli:
-            if (!getCalculateError())
-              vneg = ifft(cvneg, dimCount - 1, iplan_v);
-            vneg = sigm(vneg);
-            cvneg = fft(vneg, dimCount - 1, plan_v);
-            break;
-
-          case UnitType::Gaussian:
-          break;
-
-          default:
-            dlog(Severity::Warning) << "Unsupported visible unit type: " << crbm->getVisibleUnitType();
-        }
-
-#ifdef MONITOR_TRAINING
-        if (monitorTraining && iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-          dcv = dcv + cb;
-          f = ifft(dcv, dimCount - 1, iplan_v);
-          if (crbm->getVisibleUnitType() == UnitType::Bernoulli)
-            f = sigm(f);
-
-          debugReconstructions->push_back(boost::make_shared<host_tensor_t>(v));
-          debugReconstructions->push_back(boost::make_shared<host_tensor_t>(f));
-          debugReconstructions->push_back(boost::make_shared<host_tensor_t>(vneg));
-        }
-
-        if (iSample == 0 && monitorTraining) {
-          vnegmean = sum(vneg) / vneg.count();
-        }
-#endif
-
-        if (getCalculateError()) {
-          batchError += sqrt(dot(vneg - v, vneg - v) / v.count());
-          if (batchError != batchError) {
-            dlog(Severity::Error) << "An error occured during leraning";
-            dlog(Severity::Error) << "sum(cb) = " << sum(cb);
-            for (size_t k = 0; k < cF.size(); ++k) {
-              dlog(Severity::Error) << "sum(cF[" << k << "]) = " << sum(cF[k]);
-              dlog(Severity::Error) << "sum(cc[" << k << "]) = " << sum(cc[k]);
-            }
-            return;
-          }
-        }
-
-        for (size_t k = 0; k < cF.size(); ++k) {
-
-          // h_k = sigm(~F_k * v + c)
-          ch_full = conj(cF[k]) * cvneg;
-          ch = sum(ch_full, dimCount - 1);
-          ch = ch + cc[k];
-          h2 = ifft(ch, iplan_h);
-
-          switch (crbm->getHiddenUnitType()) {
-            case UnitType::Bernoulli: h = sigm(h2); break;
-            case UnitType::ReLU:      h = max(0.0, h2);  break;
-            case UnitType::MyReLU:    h = nrelu_mean(h2); break;
-            case UnitType::ReLU1:     h = min(1.0, max(0.0, h2));  break;
-            case UnitType::ReLU2:     h = min(2.0, max(0.0, h2));  break;
-            case UnitType::ReLU4:     h = min(4.0, max(0.0, h2));  break;
-            case UnitType::ReLU8:     h = min(8.0, max(0.0, h2));  break;
-            default:
-              dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
-          }
-
-          // dF_k = ~h * v
-          ch = fft(h, plan_h);
-          cFinc[k] = cFinc[k] - epsilonw * repeat(conj(ch), cvneg.size() / ch.size()) * cvneg;
-
-          ccinc[k] = ccinc[k] - epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
-        }
-
-        //binc = binc - epsilonvb * sum(vneg);
-        cbinc = cbinc - epsilonvb * mask<complex_t>(cvneg.size(), cvneg.fullsize(), vbMaskSize) * cvneg;
-      } /* end of sample */
-
-      for (size_t k = 0; k < cF.size(); ++k) {
-        f = ifft(cFinc[k], dimCount - 1, iplan_v);
-        f = f * mask<value_t>(f.size(), crbm->getFilterKernelSize());
-        cFinc[k] = fft(f, dimCount - 1, plan_v);
-        cF[k] = cF[k] + cFinc[k];
-        cc[k] = cc[k] + ccinc[k];
-      }
-      cb = cb + cbinc;
-
-#ifdef MONITOR_TRAINING
-      if (monitorTraining) {
-
-        f = ifft(cb, dimCount - 1, iplan_v);
-        bmean = sum(f) / f.count();
-        for (size_t k = 0; k < filters.size(); ++k) {
-          l = ifft(cc[k], dimCount - 1, iplan_h);
-          cmean += sum(l) / l.count();
-          f = ifft(cF[k], dimCount - 1, iplan_v);
-          Fmean += sum(f) / f.count();
-        }
-        cmean /= filters.size();
-        Fmean /= filters.size();
-
-        f = ifft(cb, dimCount - 1, iplan_v);
-        bsd = sqrt(dot(f - bmean, f - bmean) / f.count());
-        for (size_t k = 0; k < filters.size(); ++k) {
-          l = ifft(cc[k], dimCount - 1, iplan_h);
-          csd += dot(l - cmean, l - cmean) / l.count();
-          f = ifft(cF[k], dimCount - 1, iplan_v);
-          Fsd += dot(f - Fmean, f - Fmean) / f.count();
-        }
-        csd = sqrt(csd / filters.size());
-        Fsd = sqrt(Fsd / filters.size());
-
-        logfile << bmean << ", " << bsd << ", " << cmean << ", " << csd << ", " << Fmean << ", " << Fsd << ", " << hmean << ", " << vnegmean << ", " << batchError / batchSize << std::endl;
-      }
-#endif
-
-      if (monitor)
-        monitor->reportProgress(100. * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
-
-      error += batchError;
-    } /* end of batch */
-
-    if (getCalculateError())
-      dlog(Severity::Trace) << "Error: " << error / tensors.size();
-
-#ifdef MONITOR_TRAINING
-    if (getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-      debugFilters->clear();
-      debugVisibleBiases->clear();
-      debugHiddenBiases->clear();
-      for (size_t k = 0; k < filters.size(); ++k) {
-        f = ifft(cF[k], dimCount - 1, iplan_v);
-        debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(f)));
-        l = ifft(cc[k], dimCount - 1, iplan_h);
-        debugHiddenBiases->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(l)));
-      }
-      f = ifft(cb, dimCount - 1, iplan_v);
-      debugVisibleBiases->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(f)));
-
-      newState->setFilters(debugFilters);
-      newState->setVisibleBiases(debugVisibleBiases);
-      newState->setHiddenBiases(debugHiddenBiases);
-      newState->setHiddenUnits(debugHiddenUnits);
-      newState->setReconstructions(debugReconstructions);
-    }
-#endif
-
-    if (monitor)
-      monitor->reportProgress(100. * (iEpoch + 1) / epochCount,  getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0);
-  }
-
-#ifdef MONITOR_TRAINING
-  if (monitorTraining)
-    logfile.close();
-#endif
-
+  #pragma omp parallel
   {
-    tensor_t f, hb;
-    for (size_t i = 0; i < cF.size(); ++i) {
-      f = ifft(cF[i], dimCount - 1, iplan_v);
-      *filters[i] = f;
+    /*** PREPARE GPU THREADS ***/
 
-      hb = ifft(cc[i], dimCount - 1, iplan_h);
-      *c[i] = hb;
+    int tid = omp_get_thread_num();
+    cudaSetDevice(tid);
+
+    // Enable peer to peer access of each card with the master card and vice versa
+    if (tid == 0) {
+      for (int i = 1; i < gpuCount; ++i)
+        cudaDeviceEnablePeerAccess(i, 0);
+    } else {
+      cudaDeviceEnablePeerAccess(0, 0);
     }
-    f = ifft(cb, dimCount - 1, iplan_v);
-    b = f;
-  }
+    #pragma omp barrier
+
+    #pragma omp master
+    assert(tid == 0);   // Check the assumption that the first thread is the master thread
+
+    // FFT plans
+    plan_t plan_h, iplan_h, plan_v, iplan_v;
+
+    // Copy filters to the device and pre-calculate the FFT
+    {
+      tensor_t f;
+      ctensor_t cf;
+      for (size_t i = tid; i < filters.size(); i += gpuCount) {
+        f = *filters[i];
+        cf = fft(f, dimCount - 1, plan_v);
+        cF[i] = boost::make_shared<ctensor_t>(cf);
+        cFinc[i] = boost::make_shared<ctensor_t>(zeros<complex_t>(cf.size(), cf.fullsize()));
+      }
+    }
+    {
+      tensor_t h;
+      ctensor_t ch;
+      for (size_t i = tid; i < c.size(); i += gpuCount) {
+        h = *c[i];
+        if (getShareBiasTerms())
+          h = ones<value_t>(h.size()) * sum(h) / h.count();
+        ch = fft(h, dimCount - 1, plan_h);
+        cc[i] = boost::make_shared<ctensor_t>(ch);
+        ch = zeros<complex_t>(ch.size(), ch.fullsize());
+        ccinc[i] = boost::make_shared<ctensor_t>(ch);
+      }
+    }
+
+    // Declare variables used for training
+    tensor_t h, h2, f;       // for sigm, sampling and masking
+    ctensor_t ch, ch_full;
+    ctensor_t cv;         // Read from the master thread and then each other thread reads from the master device
+    ctensor_t cvneg;      // All threads add their version to the master threads version (needs to be synchronized)
+    random_tensor<value_t, dimCount, true, uniform<value_t> > h_rand(layerSize, tid);
+    random_tensor<value_t, dimCount, true, normal<value_t> > h_noise(layerSize, tid);
+
+    #pragma omp master
+    {
+      cv_master = &cv;
+      cvneg_master = &cvneg;
+      hbMaskSize = cc[0]->size();
+      spMaskSize = cc[0]->size();
+      if (getShareBiasTerms()) {
+        hbMaskSize[0] = 1;
+        hbMaskSize[1] = 1;
+      }
+      spMaskSize[0] = 1;
+      spMaskSize[1] = 1;
+    }
+
+    #pragma omp barrier
+
+    #pragma omp master
+    dlog() << "Trainer initialized. Starting training.";
+
+//    START
+
+  #ifdef MONITOR_TRAINING
+    monitorTraining = getLogfile().size();
+    std::ofstream logfile;
+    value_t bmean, bsd, cmean, csd, Fmean, Fsd, hmean, vnegmean;
+
+    if (monitorTraining) {
+      logfile.open(getLogfile().c_str());
+
+      logfile << "b.mean, b.sd, c.mean, c.sd, F.mean, F.sd, h.mean, vneg.mean, error" << std::endl;
+
+      bmean = bsd = cmean = csd = Fmean = Fsd = hmean = vnegmean = 0;
+
+      f = ifft(cb, dimCount - 1, iplan_v);
+      bmean = sum(f) / f.count();
+      for (size_t k = 0; k < filters.size(); ++k) {
+        l = ifft(cc[k], dimCount - 1, iplan_h);
+        cmean += sum(l) / l.count();
+        f = ifft(cF[k], dimCount - 1, iplan_v);
+        Fmean += sum(f) / f.count();
+      }
+      cmean /= filters.size();
+      Fmean /= filters.size();
+
+      f = ifft(cb, dimCount - 1, iplan_v);
+      bsd = sqrt(dot(f - bmean, f - bmean) / f.count());
+      for (size_t k = 0; k < filters.size(); ++k) {
+        l = ifft(cc[k], dimCount - 1, iplan_h);
+        csd += dot(l - cmean, l - cmean) / l.count();
+        f = ifft(cF[k], dimCount - 1, iplan_v);
+        Fsd += dot(f - Fmean, f - Fmean) / f.count();
+      }
+      csd = sqrt(csd / filters.size());
+      Fsd = sqrt(Fsd / filters.size());
+
+      logfile << bmean << ", " << bsd << ", " << cmean << ", " << csd << ", " << Fmean << ", " << Fsd << ", " << hmean << ", " << vnegmean << ", " << 0 << std::endl;
+    }
+  #endif
+
+    for (size_t iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
+
+      #pragma omp master
+      {
+        error = 0;
+        momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
+      }
+
+      // Momentum is read by all threads therefore wait here until the master is done its work
+      #pragma omp barrier
+
+  #ifdef MONITOR_TRAINING
+      debugHiddenUnits->clear();
+      debugReconstructions->clear();
+  #endif
+
+      for (size_t iBatch = 0; iBatch < batchCount; ++iBatch) {
+
+        #pragma omp master
+        batchError = 0;
+
+  #ifdef MONITOR_TRAINING
+        bmean = bsd = cmean = csd = Fmean = Fsd = hmean = vnegmean = 0;
+  #endif
+
+        for (size_t k = tid; k < cF.size(); k += gpuCount) {
+          *cFinc[k] = momentum * *cFinc[k] - weightcost * *cF[k];
+          *ccinc[k] = momentum * *ccinc[k];
+        }
+
+        #pragma omp master
+        cbinc = momentum * cbinc;
+
+        for (size_t iSample = 0; iSample < batchSize; ++iSample) {
+
+//          #pragma omp critical
+//          STOP
+
+//          TIMER_LOOP {
+          // get v
+          #pragma omp master
+          {
+            if (getRandomizeTraining())
+              cv = *cX[rand() % cX.size()];
+            else
+              cv = *cX[iSample + iBatch * batchSize];
+          }
+          #pragma omp barrier
+
+          if (tid != 0) {
+            cv = *cv_master;
+          }
+          cvneg = zeros<complex_t>(cv.size(), cv.fullsize());
+//          }
+//          #pragma omp critical
+//          STOP
+
+  #ifdef MONITOR_TRAINING
+          if (iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0)
+            dcv = zeros<complex_t>(cv.size(), cv.fullsize());
+  #endif
+
+//          TIMER_LOOP
+          for (size_t k = tid; k < cF.size(); k += gpuCount) {
+
+            /*** BEGIN OF POSITIVE PHASE ***/
+
+            // h_k = sigm(~F_k * v + c)
+            ch_full = conj(*cF[k]) * cv;
+            ch = sum(ch_full, dimCount - 1);
+            ch = ch + *cc[k];
+            h2 = ifft(ch, iplan_h);
+
+            switch (crbm->getHiddenUnitType()) {
+              case UnitType::Bernoulli: h = sigm(h2); break;
+              case UnitType::ReLU:      h = max(0.0, h2);  break;
+              case UnitType::MyReLU:    h = nrelu_mean(h2); break;
+              case UnitType::ReLU1:     h = min(1.0, max(0.0, h2));  break;
+              case UnitType::ReLU2:     h = min(2.0, max(0.0, h2));  break;
+              case UnitType::ReLU4:     h = min(4.0, max(0.0, h2));  break;
+              case UnitType::ReLU8:     h = min(8.0, max(0.0, h2));  break;
+              default:
+                dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
+            }
+
+            // dF_k = ~h * v
+            ch = fft(h, plan_h);
+            *cFinc[k] = *cFinc[k] + epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
+            continue;
+            *ccinc[k] = *ccinc[k] + epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
+            *ccinc[k] = *ccinc[k] + epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch
+                + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) * (getSparsityTarget() * h.count() - sum(h));
+
+  #ifdef MONITOR_TRAINING
+            if (iSample == 0 && iBatch == 0 && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
+              debugHiddenUnits->push_back(boost::make_shared<host_tensor_t>(h));
+            }
+
+            if (iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
+              dcv = dcv + cF[k] * repeat(ch, cF[k].size() / ch.size());
+            }
+
+            if (monitorTraining && iSample == 0)
+              hmean += sum(h) / h.count() / cF.size();
+  #endif
+
+            // Sample hidden states
+            switch (crbm->getHiddenUnitType()) {
+              case UnitType::Bernoulli: h = h > h_rand; break;
+              case UnitType::MyReLU:
+              case UnitType::ReLU:      h = max(0.0, h2 + sqrt(sigm(h2)) * h_noise); break;
+              case UnitType::ReLU1:     h = min(1.0, max(0.0, h2 + (h2 > 0) * (h2 < 1.0) * h_noise)); break;
+              case UnitType::ReLU2:     h = min(2.0, max(0.0, h2 + (h2 > 0) * (h2 < 2.0) * h_noise)); break;
+              case UnitType::ReLU4:     h = min(4.0, max(0.0, h2 + (h2 > 0) * (h2 < 4.0) * h_noise)); break;
+              case UnitType::ReLU8:     h = min(8.0, max(0.0, h2 + (h2 > 0) * (h2 < 8.0) * h_noise)); break;
+              default:
+                dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
+            }
+
+  #ifdef MONITOR_TRAINING
+            if (iSample == 0 && iBatch == 0 && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
+              debugHiddenUnits->push_back(boost::make_shared<host_tensor_t>(h));
+            }
+  #endif
+
+            ch = fft(h, plan_h);
+
+            /*** BEGIN OF NEGATIVE PHASE ***/
+
+            // dvneg = F * h
+            cvneg = cvneg + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
+          }
+          continue;
+//          #pragma omp critical
+//          STOP
+
+          // If not the master thread, add local copy of cvneg to master copy
+          #pragma omp critical
+          {
+            if (tid != 0) {
+              *cvneg_master = *cvneg_master + cvneg;
+            }
+          }
+          #pragma omp barrier
+
+          /*** END OF POSITIVE PHASE ***/
+
+//          TIMER_LOOP {
+          #pragma omp master
+          {
+            if (getCalculateError() || monitorTraining)
+              v = ifft(cv, dimCount - 1, iplan_v);
+
+            //binc = binc + epsilonvb * sum(v);
+            cbinc = cbinc + epsilonvb * mask<complex_t>(cv.size(), cv.fullsize(), vbMaskSize) * cv;
+
+            /*** END OF NEGATIVE PHASE ***/
+
+            cvneg = cvneg + cb;
+
+            if (getCalculateError() || monitorTraining)
+              vneg = ifft(cvneg, dimCount - 1, iplan_v);
+
+            switch(crbm->getVisibleUnitType()) {
+              case UnitType::Bernoulli:
+                if (!getCalculateError())
+                  vneg = ifft(cvneg, dimCount - 1, iplan_v);
+                vneg = sigm(vneg);
+                cvneg = fft(vneg, dimCount - 1, plan_v);
+                break;
+
+              case UnitType::Gaussian:
+              break;
+
+              default:
+                dlog(Severity::Warning) << "Unsupported visible unit type: " << crbm->getVisibleUnitType();
+            }
+
+    #ifdef MONITOR_TRAINING
+            if (monitorTraining && iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
+              dcv = dcv + cb;
+              f = ifft(dcv, dimCount - 1, iplan_v);
+              if (crbm->getVisibleUnitType() == UnitType::Bernoulli)
+                f = sigm(f);
+
+              debugReconstructions->push_back(boost::make_shared<host_tensor_t>(v));
+              debugReconstructions->push_back(boost::make_shared<host_tensor_t>(f));
+              debugReconstructions->push_back(boost::make_shared<host_tensor_t>(vneg));
+            }
+
+            if (iSample == 0 && monitorTraining) {
+              vnegmean = sum(vneg) / vneg.count();
+            }
+    #endif
+
+            if (getCalculateError()) {
+              batchError += sqrt(dot(vneg - v, vneg - v) / v.count());
+  //            if (batchError != batchError) {
+  //              dlog(Severity::Error) << "An error occured during leraning";
+  //              dlog(Severity::Error) << "sum(cb) = " << sum(cb);
+  //              for (size_t k = 0; k < cF.size(); ++k) {
+  //                dlog(Severity::Error) << "sum(cF[" << k << "]) = " << sum(cF[k]);
+  //                dlog(Severity::Error) << "sum(cc[" << k << "]) = " << sum(cc[k]);
+  //              }
+  //              return;
+  //            }
+            }
+          }
+
+          // Wait until master is done and copy result of cvneg to local thread copies
+          #pragma omp barrier
+          if (tid != 0) {
+            cvneg = *cvneg_master;
+          }
+//          }
+//          #pragma omp critical
+//          STOP
+
+//          TIMER_LOOP
+          for (size_t k = tid; k < cF.size(); k += gpuCount) {
+
+            // h_k = sigm(~F_k * v + c)
+            ch_full = conj(*cF[k]) * cvneg;
+            ch = sum(ch_full, dimCount - 1);
+            ch = ch + *cc[k];
+            h2 = ifft(ch, iplan_h);
+
+            switch (crbm->getHiddenUnitType()) {
+              case UnitType::Bernoulli: h = sigm(h2); break;
+              case UnitType::ReLU:      h = max(0.0, h2);  break;
+              case UnitType::MyReLU:    h = nrelu_mean(h2); break;
+              case UnitType::ReLU1:     h = min(1.0, max(0.0, h2));  break;
+              case UnitType::ReLU2:     h = min(2.0, max(0.0, h2));  break;
+              case UnitType::ReLU4:     h = min(4.0, max(0.0, h2));  break;
+              case UnitType::ReLU8:     h = min(8.0, max(0.0, h2));  break;
+              default:
+                dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
+            }
+
+            // dF_k = ~h * v
+            ch = fft(h, plan_h);
+            *cFinc[k] = *cFinc[k] - epsilonw * repeat(conj(ch), cvneg.size() / ch.size()) * cvneg;
+            *ccinc[k] = *ccinc[k] - epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
+          }
+//          #pragma omp critical
+//          STOP
+
+          //binc = binc - epsilonvb * sum(vneg);
+//          TIMER_LOOP {
+          #pragma omp master
+          cbinc = cbinc - epsilonvb * mask<complex_t>(cvneg.size(), cvneg.fullsize(), vbMaskSize) * cvneg;
+//          }
+//          #pragma omp critical
+//          STOP
+//          break;
+        } /* end of sample */
+
+//        TIMER_LOOP {
+        for (size_t k = tid; k < cF.size(); k += gpuCount) {
+          f = ifft(*cFinc[k], dimCount - 1, iplan_v);
+          f = f * mask<value_t>(f.size(), crbm->getFilterKernelSize());
+          *cFinc[k] = fft(f, dimCount - 1, plan_v);
+          *cF[k] = *cF[k] + *cFinc[k];
+          *cc[k] = *cc[k] + *ccinc[k];
+        }
+        #pragma omp master
+        {
+          cb = cb + cbinc;
+
+          if (monitor)
+            monitor->reportProgress(100. * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
+
+          error += batchError;
+        }
+
+  #ifdef MONITOR_TRAINING
+        if (monitorTraining) {
+
+          #pragma omp master
+          {
+            f = ifft(cb, dimCount - 1, iplan_v);
+            bmean = sum(f) / f.count();
+          }
+          for (size_t k = tid; k < filters.size(); k += gpuCount) {
+            l = ifft(cc[k], dimCount - 1, iplan_h);
+            cmean += sum(l) / l.count();  // check what to do here with synchronization
+            f = ifft(cF[k], dimCount - 1, iplan_v);
+            Fmean += sum(f) / f.count();
+          }
+          cmean /= filters.size();
+          Fmean /= filters.size();
+
+          f = ifft(cb, dimCount - 1, iplan_v);
+          bsd = sqrt(dot(f - bmean, f - bmean) / f.count());
+          for (size_t k = 0; k < filters.size(); ++k) {
+            l = ifft(cc[k], dimCount - 1, iplan_h);
+            csd += dot(l - cmean, l - cmean) / l.count();
+            f = ifft(cF[k], dimCount - 1, iplan_v);
+            Fsd += dot(f - Fmean, f - Fmean) / f.count();
+          }
+          csd = sqrt(csd / filters.size());
+          Fsd = sqrt(Fsd / filters.size());
+
+          logfile << bmean << ", " << bsd << ", " << cmean << ", " << csd << ", " << Fmean << ", " << Fsd << ", " << hmean << ", " << vnegmean << ", " << batchError / batchSize << std::endl;
+        }
+  #endif
+//        }
+//        #pragma omp critical
+//        STOP
+//        break;
+      } /* end of batch */
+//      break;
+  #ifdef MONITOR_TRAINING
+      if (getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
+        debugFilters->clear();
+        debugVisibleBiases->clear();
+        debugHiddenBiases->clear();
+        for (size_t k = 0; k < filters.size(); ++k) {
+          f = ifft(cF[k], dimCount - 1, iplan_v);
+          debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(f)));
+          l = ifft(cc[k], dimCount - 1, iplan_h);
+          debugHiddenBiases->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(l)));
+        }
+        f = ifft(cb, dimCount - 1, iplan_v);
+        debugVisibleBiases->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(f)));
+
+        newState->setFilters(debugFilters);
+        newState->setVisibleBiases(debugVisibleBiases);
+        newState->setHiddenBiases(debugHiddenBiases);
+        newState->setHiddenUnits(debugHiddenUnits);
+        newState->setReconstructions(debugReconstructions);
+      }
+  #endif
+
+      #pragma omp master
+      {
+        if (getCalculateError())
+          dlog(Severity::Trace) << "Error: " << error / tensors.size();
+
+        if (monitor)
+          monitor->reportProgress(100. * (iEpoch + 1) / epochCount,  getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0);
+      }
+    } /* end of epochs */
+
+  #ifdef MONITOR_TRAINING
+    if (monitorTraining)
+      logfile.close();
+  #endif
+
+//    {
+//      tensor_t hb;
+//      for (size_t k = tid; k < cF.size(); k += gpuCount) {
+//        f = ifft(*cF[k], dimCount - 1, iplan_v);
+//        hb = ifft(*cc[k], dimCount - 1, iplan_h);
+//
+//        *filters[k] = f;
+//        *c[k] = hb;
+//      }
+//      #pragma omp master
+//      {
+//        f = ifft(cb, dimCount - 1, iplan_v);
+//        b = f;
+//      }
+//    }
+    #pragma omp barrier
+
+    // Free up memory
+    for (size_t k = tid; k < cF.size(); k += gpuCount) {
+      cF[k] = cFinc[k] = cc[k] = ccinc[k] = boost::shared_ptr<ctensor_t>();
+    }
+    #pragma omp barrier
+    
+    if (tid == 0) {
+      for (int i = 1; i < gpuCount; ++i)
+        cudaDeviceDisablePeerAccess(i);
+    } else {
+      cudaDeviceDisablePeerAccess(0);
+    }
+    #pragma omp barrier
+
+  } /* end of parallel code */
+  return;
 
   {
     boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
@@ -554,9 +743,9 @@ void Trainer::update(IProgressMonitor* monitor) const {
     for (size_t i = 0; i < filters.size(); ++i) {
       debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(*filters[i])));
     }
+    newState->setFilters(debugFilters);
   }
 
-  newState->setFilters(debugFilters);
   newState->setModel(crbm);
 }
 
