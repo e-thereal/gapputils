@@ -31,6 +31,7 @@ public:
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(EpochCount, int)
   Property(BatchSize, int)
+  Property(GpuCount, int)
   Property(LearningRateW, double)
   Property(LearningRateVB, double)
   Property(LearningRateHB, double)
