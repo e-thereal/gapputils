@@ -41,12 +41,14 @@ void HeadlessApp::resume() {
   workflow->resume();
 }
 
-void HeadlessApp::updateMainWorkflow() {
+bool HeadlessApp::updateMainWorkflow() {
   DataModel& model = DataModel::getInstance();
   workflowUpdater->update(model.getMainWorkflow());
+
+  return true;
 }
 
-void HeadlessApp::updateMainWorkflowNode(const std::string& label) {
+bool HeadlessApp::updateMainWorkflowNode(const std::string& label) {
   DataModel& model = DataModel::getInstance();
   boost::shared_ptr<Workflow> workflow = model.getMainWorkflow();
   Logbook& dlog = *workflow->getLogbook();
@@ -54,10 +56,11 @@ void HeadlessApp::updateMainWorkflowNode(const std::string& label) {
   boost::shared_ptr<Node> node = workflow->getNodeByLabel(label);
   if(!node) {
     dlog(Severity::Error) << "Could not find node with the label '" << label << "'. Won't update workflow.";
-    QCoreApplication::exit(0);
+    return false;
   }
 
   workflowUpdater->update(node);
+  return true;
 }
 
 void HeadlessApp::updateFinished() {

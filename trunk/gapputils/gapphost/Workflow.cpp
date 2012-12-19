@@ -755,6 +755,10 @@ boost::shared_ptr<Node> Workflow::getNodeByLabel(const std::string& label) const
     WorkflowElement* element = dynamic_cast<WorkflowElement*>(node->getModule().get());
     if (element && element->getLabel() == label)
       return node;
+
+    WorkflowInterface* interface = dynamic_cast<WorkflowInterface*>(node->getModule().get());
+    if (interface && interface->getLabel() == label)
+      return node;
   }
   return boost::shared_ptr<Node>();
 }
