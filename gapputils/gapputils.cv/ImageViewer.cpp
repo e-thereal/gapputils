@@ -47,10 +47,6 @@ ImageViewer::ImageViewer() : dialog(0)
   WfeUpdateTimestamp
   setLabel("Viewer");
 
-  ImageViewerWidget* widget = new ImageViewerWidget(100, 100);
-  widget->setBackgroundImage(getBackgroundImage());
-  dialog = new ImageViewerDialog(widget);
-
   Changed.connect(capputils::EventHandler<ImageViewer>(this, &ImageViewer::changedHandler));
 }
 
@@ -63,7 +59,7 @@ ImageViewer::~ImageViewer() {
 
 void ImageViewer::changedHandler(capputils::ObservableClass* sender, int eventId) {
   if (eventId == backgroundId) {
-    if (getBackgroundImage()) {
+    if (getBackgroundImage() && dialog) {
       QImage& bg = *getBackgroundImage();
       ImageViewerWidget* widget = (ImageViewerWidget*)dialog->getWidget();
       widget->updateSize(bg.width(), bg.height());
@@ -79,6 +75,11 @@ void ImageViewer::writeResults() {
 }
 
 void ImageViewer::show() {
+  if (!dialog) {
+    ImageViewerWidget* widget = new ImageViewerWidget(100, 100);
+    widget->setBackgroundImage(getBackgroundImage());
+    dialog = new ImageViewerDialog(widget);
+  }
   dialog->show();
 }
 
