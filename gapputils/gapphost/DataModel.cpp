@@ -63,6 +63,8 @@ BeginPropertyDefinitions(DataModel)
       Description("Name of the workflow configuration file"))
   DefineProperty(LibraryPath, Volatile(), Filename(),
       Description("Path where default libraries are searched. The default value is read from 'GRAPEVINE_LIBRARY_PATH'"))
+  DefineProperty(SnippetsPath, Volatile(), Filename(),
+        Description("Path where workflow snippets are searched. The default value is read from 'GRAPEVINE_SNIPPETS_PATH'"))
   DefineProperty(LogfileName, Volatile(), Filename(),
       Description("Name of the file to which log messages will be written. Default is 'grapevine.log'."))
   DefineProperty(SaveConfiguration, Volatile(),
@@ -81,7 +83,7 @@ DataModel::DataModel(void) : _UpdateAll(false), _Headless(false), _Help(false), 
     _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600),
     _OpenWorkflows(new std::vector<std::string>()),
     _WorkflowMap(new std::map<std::string, boost::weak_ptr<workflow::Workflow> >),
-    _Configuration(".gapphost/config.xml"), _LogfileName("grapevine.log"), _SaveConfiguration(true),
+    _Configuration(".gapphost/config.xml"), _SnippetsPath(".snippets"), _LogfileName("grapevine.log"), _SaveConfiguration(true),
     _WorkflowParameters(false)
 {
 #if defined(_RELEASE)
@@ -93,6 +95,9 @@ DataModel::DataModel(void) : _UpdateAll(false), _Headless(false), _Help(false), 
 #endif
   if (path)
     setLibraryPath(path);
+  char* snippets = std::getenv("GRAPEVINE_SNIPPETS_PATH");
+  if (snippets)
+    setSnippetsPath(snippets);
 }
 
 DataModel::~DataModel(void)

@@ -46,6 +46,7 @@ class DataModel : public capputils::reflection::ReflectableClass,
   Property(FinishedLabel, QLabel*)
   Property(Configuration, std::string)
   Property(LibraryPath, std::string)
+  Property(SnippetsPath, std::string)
   Property(LogfileName, std::string)
   Property(SaveConfiguration, bool)
   Property(EmailLog, std::string)

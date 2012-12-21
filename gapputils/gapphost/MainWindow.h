@@ -19,6 +19,7 @@ namespace host {
 class WorkflowToolBox;
 class PropertyGrid;
 class WorkbenchWindow;
+class WorkflowSnippets;
 
 class MainWindow : public QMainWindow
 {
@@ -32,6 +33,7 @@ private:
   QAction* abortAction;
   //QTabWidget* tabWidget;
   WorkflowToolBox* toolBox;
+  WorkflowSnippets* snippets;
   PropertyGrid* propertyGrid;
   QMdiArea* area;
 
@@ -66,6 +68,7 @@ public Q_SLOTS:
   void checkLibraryUpdates();
   void copy();
   void paste();
+  void createSnippet();
   void resetInputs();
   void incrementInputs();
   void decrementInputs();
