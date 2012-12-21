@@ -63,8 +63,12 @@ public:
   void createItem(boost::shared_ptr<workflow::Node> node);
   bool createCable(boost::shared_ptr<workflow::Edge> edge);
 
+  boost::shared_ptr<workflow::Workflow> copySelectedNodes();
+  void addNodes(workflow::Workflow& pasteWorkflow);
   void copySelectedNodesToClipboard();
   void addNodesFromClipboard();
+  void createSnippet();
+  void addNodesFromSnippet(int x, int y, const std::string& filename);
 
   void setUiEnabled(bool enabled);
   void resumeViewport();

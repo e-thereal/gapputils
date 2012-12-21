@@ -38,12 +38,16 @@
 #include <qlabel.h>
 #include <qclipboard.h>
 #include <qapplication.h>
+#include <qmessagebox.h>
 
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 
 #include "WorkflowUpdater.h"
 #include "DataModel.h"
+#include "MakeGlobalDialog.h"
+#include "WorkflowSnippets.h"
 
 using namespace capputils;
 using namespace capputils::attributes;
@@ -290,14 +294,14 @@ bool WorkbenchWindow::createCable(boost::shared_ptr<workflow::Edge> edge) {
   return false;
 }
 
-void WorkbenchWindow::copySelectedNodesToClipboard() {
+boost::shared_ptr<workflow::Workflow> WorkbenchWindow::copySelectedNodes() {
   boost::shared_ptr<Workflow> workflow = this->workflow.lock();
 
   boost::shared_ptr<Workflow> copyWorkflow(new Workflow());
   std::set<std::string> copied;
 
   // Temporarily add nodes to the node list for the xmlization.
-  // Nodes have to be removed afterwards in order to avoid a double free memory
+  // Nodes have to be removed afterwards in order to avoid a double free memory (is this really true? I don't think so!)
   boost::shared_ptr<std::vector<boost::shared_ptr<Node> > > nodes = copyWorkflow->getNodes();
   Q_FOREACH(QGraphicsItem* item, workbench->scene()->selectedItems()) {
     ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
@@ -319,13 +323,7 @@ void WorkbenchWindow::copySelectedNodesToClipboard() {
     }
   }
 
-  std::stringstream xmlStream;
-  Xmlizer::ToXml(xmlStream, *copyWorkflow);
-
-  nodes->clear();
-  edges->clear();
-
-  QApplication::clipboard()->setText(xmlStream.str().c_str());
+  return copyWorkflow;
 }
 
 void renewUuids(workflow::Workflow& workflow, std::map<std::string, std::string>& uuidMap) {
@@ -394,13 +392,9 @@ void renewUuids(workflow::Workflow& workflow) {
   renewUuids(workflow, uuidMap);
 }
 
-void WorkbenchWindow::addNodesFromClipboard() {
+void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
   boost::shared_ptr<workflow::Workflow> workflow = this->workflow.lock();
   Logbook& dlog = *workflow->getLogbook();
-
-  workflow::Workflow pasteWorkflow;
-  const std::string clipboardText = QApplication::clipboard()->text().toUtf8().data();
-  Xmlizer::FromXmlString(pasteWorkflow, clipboardText);
 
   // Unselect selected items
   Q_FOREACH(QGraphicsItem* item, workbench->scene()->selectedItems())
@@ -416,7 +410,6 @@ void WorkbenchWindow::addNodesFromClipboard() {
     createItem(nodes[i]);
     nodes[i]->getToolItem()->setSelected(true);
   }
-  nodes.clear();
 
   std::vector<boost::shared_ptr<workflow::Edge> >& edges = *pasteWorkflow.getEdges();
   for (unsigned i = 0; i < edges.size(); ++i) {
@@ -426,8 +419,56 @@ void WorkbenchWindow::addNodesFromClipboard() {
       dlog() << "Edge has been removed from the model.";
     }
   }
+}
 
-  edges.clear();
+void WorkbenchWindow::copySelectedNodesToClipboard() {
+  boost::shared_ptr<Workflow> copyWorkflow = copySelectedNodes();
+
+  std::stringstream xmlStream;
+  Xmlizer::ToXml(xmlStream, *copyWorkflow);
+
+  QApplication::clipboard()->setText(xmlStream.str().c_str());
+}
+
+void WorkbenchWindow::addNodesFromClipboard() {
+  workflow::Workflow pasteWorkflow;
+  const std::string clipboardText = QApplication::clipboard()->text().toUtf8().data();
+  Xmlizer::FromXmlString(pasteWorkflow, clipboardText);
+  addNodes(pasteWorkflow);
+}
+
+void WorkbenchWindow::createSnippet() {
+  boost::shared_ptr<Workflow> copyWorkflow = copySelectedNodes();
+
+  MakeGlobalDialog dialog(this);
+  if (dialog.exec() == QDialog::Accepted) {
+    std::string snippetName = dialog.getText().toAscii().data();
+    if (snippetName.size()) {
+      Xmlizer::ToXml(DataModel::getInstance().getSnippetsPath() + "/" + snippetName + ".xml", *copyWorkflow);
+      WorkflowSnippets::GetInstance().update();
+    } else {
+      QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for a workflow snippet!");
+    }
+  }
+}
+
+void WorkbenchWindow::addNodesFromSnippet(int x, int y, const std::string& filename) {
+  workflow::Workflow pasteWorkflow;
+  Xmlizer::FromXml(pasteWorkflow, filename);
+
+  // Calculate top left
+  std::vector<boost::shared_ptr<workflow::Node> >& nodes = *pasteWorkflow.getNodes();
+  int left = 0, top = 0;
+  if (nodes.size())
+    left = nodes[0]->getX(), top = nodes[0]->getY();
+  for (size_t i = 1; i < nodes.size(); ++i)
+    left = std::min(left, nodes[i]->getX()), top = std::min(top, nodes[i]->getY());
+
+  // Move top left to drop position
+  for (size_t i = 0; i < nodes.size(); ++i)
+    nodes[i]->setX(nodes[i]->getX() + x - left), nodes[i]->setY(nodes[i]->getY() + y - top);
+
+  addNodes(pasteWorkflow);
 }
 
 void WorkbenchWindow::closeEvent(QCloseEvent *event) {
@@ -527,6 +568,11 @@ boost::shared_ptr<workflow::Node> WorkbenchWindow::createModule(int x, int y, QS
   boost::shared_ptr<Node> node;
 
   Logbook& dlog = *workflow.lock()->getLogbook();
+
+  if (classname.endsWith(".xml")) {
+    addNodesFromSnippet(x, y, classname.toAscii().data());
+    return boost::shared_ptr<workflow::Node>();
+  }
 
   dlog() << "Creating module.";
   if (classname.count() == 0)

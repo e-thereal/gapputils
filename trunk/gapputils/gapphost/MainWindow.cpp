@@ -27,6 +27,7 @@
 #include <boost/typeof/std/utility.hpp>
 
 #include "WorkflowToolBox.h"
+#include "WorkflowSnippets.h"
 #include "PropertyGrid.h"
 #include "LogbookWidget.h"
 #include "GlobalPropertiesView.h"
@@ -78,6 +79,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   editMenu = menuBar()->addMenu("&Edit");
   editMenu->addAction("Copy", this, SLOT(copy()), QKeySequence(Qt::CTRL + Qt::Key_C));
   editMenu->addAction("Paste", this, SLOT(paste()), QKeySequence(Qt::CTRL + Qt::Key_V));
+  editMenu->addAction("Create Workflow Snipped", this, SLOT(createSnippet()), QKeySequence(Qt::CTRL + Qt::Key_N));
 
   runMenu = menuBar()->addMenu("&Run");
   runMenu->addAction("Update", this, SLOT(updateCurrentModule()), QKeySequence(Qt::Key_F5));
@@ -133,9 +135,18 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 //  dock->setStyleSheet("::title { position: relative; padding-left: 50px;"
 //                            "          text-align: left center }");
   addDockWidget(Qt::LeftDockWidgetArea, dock);
-
   windowMenu->addAction(dock->toggleViewAction());
   editMenu->addAction("Filter", toolBox, SLOT(focusFilter()), QKeySequence(Qt::CTRL + Qt::Key_F));
+
+  dock = new QDockWidget(tr("Snippets"), this);
+  dock->setObjectName("WorkflowSnippets");
+  dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+  snippets = &WorkflowSnippets::GetInstance();
+  dock->setWidget(snippets);
+//  dock->setStyleSheet("::title { position: relative; padding-left: 50px;"
+//                            "          text-align: left center }");
+  addDockWidget(Qt::LeftDockWidgetArea, dock);
+  windowMenu->addAction(dock->toggleViewAction());
 
   dock = new QDockWidget(tr("Property Grid"), this);
   dock->setObjectName("PropertyGrid");
@@ -284,6 +295,10 @@ void MainWindow::paste() {
   getCurrentWorkbenchWindow()->addNodesFromClipboard();
 }
 
+void MainWindow::createSnippet() {
+  getCurrentWorkbenchWindow()->createSnippet();
+}
+
 void MainWindow::loadWorkflow() {
   QString filename = QFileDialog::getOpenFileName(this, "Load configuration", "", "Host Configuration (*.xml *.config)");
   if (!filename.isNull()) {
@@ -375,6 +390,7 @@ void MainWindow::setGuiEnabled(bool enabled) {
   fileMenu->setEnabled(enabled);
   editMenu->setEnabled(enabled);
   toolBox->setEnabled(enabled);
+  snippets->setEnabled(enabled);
   propertyGrid->setEnabled(enabled);
 
   Q_FOREACH (QMdiSubWindow *w, area->subWindowList()) {
