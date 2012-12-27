@@ -244,9 +244,11 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  QCoreApplication* qapp = 0;
+
   try {
     if (!model.getHeadless()) {
-      QApplication a(argc, argv);
+      qapp = new QApplication(argc, argv);
       MainWindow w;
       w.show();
       w.resume();
@@ -257,9 +259,9 @@ int main(int argc, char *argv[])
         w.setAutoQuit(true);
         w.updateMainWorkflowNode(model.getUpdate());
       }
-      ret = a.exec();
+      ret = qapp->exec();
     } else {
-      QCoreApplication a(argc, argv);
+      qapp = new QCoreApplication(argc, argv);
       if (model.getUpdate().size() == 0)
         model.setUpdateAll(true);
       HeadlessApp app;
@@ -271,7 +273,7 @@ int main(int argc, char *argv[])
         success = app.updateMainWorkflowNode(model.getUpdate());
       }
       if (success)
-        ret = a.exec();
+        ret = qapp->exec();
     }
   } catch (char const* error) {
     cout << error << endl;
@@ -291,6 +293,8 @@ int main(int argc, char *argv[])
   }
 #endif
 
+  if (qapp)
+    delete qapp;
   std::cout << "Good bye." << std::endl;
 
   return ret;
