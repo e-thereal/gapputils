@@ -32,6 +32,7 @@ public:
   Property(Model, boost::shared_ptr<Model>)
   Property(Inputs, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(Direction, CodingDirection)
+  Property(GpuCount, int)
   Property(Outputs, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
 
 public:

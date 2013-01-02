@@ -12,6 +12,8 @@
 #include <tbblas/zeros.hpp>
 #include <tbblas/repeat.hpp>
 
+#include <omp.h>
+
 #include "math.hpp"
 
 namespace gml {
@@ -24,6 +26,7 @@ FilterChecker::FilterChecker() {
   CHECK_MEMORY_LAYOUT2(Model, filter);
   CHECK_MEMORY_LAYOUT2(Inputs, filter);
   CHECK_MEMORY_LAYOUT2(Direction, filter);
+  CHECK_MEMORY_LAYOUT2(GpuCount, filter);
 
   CHECK_MEMORY_LAYOUT2(Outputs, filter);
 }
@@ -53,100 +56,183 @@ void Filter::update(IProgressMonitor* monitor) const {
 
   // Load model into device memory
   Model& crbm = *getModel();
-  plan_t plan_v, iplan_v, plan_h, iplan_h;
 
-  // Copy filters to the device and pre-calculate the FFT
-  std::vector<boost::shared_ptr<host_tensor_t> >& filters = *crbm.getFilters();
-  std::vector<ctensor_t > cF;
-  {
-    tensor_t f;
-    ctensor_t cf;
-    for (size_t i = 0; i < filters.size(); ++i) {
-      f = *filters[i];
-      cf = fft(f, dimCount - 1, plan_v);
-      cF.push_back(cf);
-    }
+  int deviceCount = 0;
+  cudaGetDeviceCount(&deviceCount);
+
+  const int gpuCount = getGpuCount();
+
+  if (deviceCount < gpuCount) {
+    dlog(Severity::Warning) << "Only " << deviceCount << " CUDA-enabled devices found, where " << gpuCount << " are required according to GpuCount. Aborting!";
+    return;
   }
 
+  assert(omp_get_num_threads() == 1);
+
+  cudaSetDevice(0);
+  omp_set_dynamic(0);
+  omp_set_num_threads(gpuCount);
+
+  std::vector<boost::shared_ptr<host_tensor_t> >& filters = *crbm.getFilters();
+  std::vector<boost::shared_ptr<host_tensor_t> >& c = *crbm.getHiddenBiases();
   tensor_t b = *crbm.getVisibleBias();
 
-  std::vector<boost::shared_ptr<host_tensor_t> >& c = *crbm.getHiddenBiases();
-  std::vector<ctensor_t> cc;
+  std::vector<boost::shared_ptr<ctensor_t> > cF(filters.size()), cc(filters.size());
+  tensor_t output, v_master;
+  ctensor_t cv_master;
+
+  #pragma omp parallel
   {
-    tensor_t h;
-    ctensor_t ch;
-    for (size_t i = 0; i < c.size(); ++i) {
-      h = *c[i];
-      ch = fft(h, dimCount - 1, plan_h);
-      cc.push_back(ch);
+    plan_t plan_v, iplan_v, plan_h, iplan_h;
+
+    /*** PREPARE GPU THREADS ***/
+
+    int tid = omp_get_thread_num();
+    cudaSetDevice(tid);
+
+    // Enable peer to peer access of each card with the master card and vice versa
+    if (tid == 0) {
+      for (int i = 1; i < gpuCount; ++i)
+        cudaDeviceEnablePeerAccess(i, 0);
+    } else {
+      cudaDeviceEnablePeerAccess(0, 0);
     }
-  }
+    #pragma omp barrier
 
-  tensor_t v, h;
-  ctensor_t cv, ch_full, ch;
+    // Copy filters to the device and pre-calculate the FFT
+    {
+      tensor_t f, h;
+      ctensor_t cf, ch;
+      for (size_t k = tid; k < filters.size(); k += gpuCount) {
+        f = *filters[k];
+        cf = fft(f, dimCount - 1, plan_v);
+        cF[k] = boost::make_shared<ctensor_t>(cf);
 
-  for (size_t i = 0; i < inputs.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
-    boost::shared_ptr<host_tensor_t> output(new host_tensor_t());
-
-    if (getDirection() == CodingDirection::Encode) {
-      v = *inputs[i];
-
-      for (unsigned j = 0; j < dimCount - 1; ++j) {
-        if (v.size()[j] != upper_power_of_two(v.size()[j])) {
-          dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Aborting!";
-          return;
-        }
+        h = *c[k];
+        ch = fft(h, dimCount - 1, plan_h);
+        cc[k] = boost::make_shared<ctensor_t>(ch);
       }
-
-      if (crbm.getVisibleUnitType() == UnitType::Gaussian)
-        v = (v - crbm.getMean()) / crbm.getStddev();
-      cv = fft(v, dimCount - 1, plan_v);
-      output->resize(seq(v.size()[0], v.size()[1], (int)cF.size()), seq(v.size()[0], v.size()[1], (int)cF.size()));
-
-      for (size_t k = 0; k < cF.size(); ++k) {
-        ch_full = conj(cF[k]) * cv;
-        ch = sum(ch_full, dimCount - 1);
-        ch = ch + cc[k];
-        h = ifft(ch, iplan_h);
-
-        switch (crbm.getHiddenUnitType()) {
-          case UnitType::Bernoulli: h = sigm(h); break;
-          case UnitType::ReLU:      h = max(0.0, h);  break;
-          case UnitType::MyReLU:    h = nrelu_mean(h); break;
-          case UnitType::ReLU1:     h = min(1.0, max(0.0, h));  break;
-          case UnitType::ReLU2:     h = min(2.0, max(0.0, h));  break;
-          case UnitType::ReLU4:     h = min(4.0, max(0.0, h));  break;
-          case UnitType::ReLU8:     h = min(8.0, max(0.0, h));  break;
-          default:
-            dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm.getVisibleUnitType();
-        }
-        (*output)[seq(0,0,(int)k), h.size()] = h;
-      }
-    } else {  /* getDirection() == Decoding */
-
-      cv = zeros<complex_t>(cF[0].size(), cF[0].fullsize());
-
-      for (size_t k = 0; k < cF.size(); ++k) {
-        h = (*inputs[i])[seq(0,0,(int)k), seq(inputs[i]->size()[0],inputs[i]->size()[1],1)];
-        ch = fft(h, plan_h);
-
-        cv = cv + cF[k] * repeat(ch, cF[k].size() / ch.size());
-      }
-      v = ifft(cv, dimCount - 1, iplan_v);
-
-      switch(crbm.getVisibleUnitType()) {
-        case UnitType::Bernoulli: v = sigm(v + b); break;
-        case UnitType::Gaussian:  v = v + b;       break;
-        default:
-          dlog(Severity::Warning) << "Unsupported unit type: " << crbm.getVisibleUnitType();
-      }
-      *output = (v * crbm.getStddev()) + crbm.getMean();
     }
 
-    outputs->push_back(output);
-    if (monitor)
-      monitor->reportProgress(100. * i / inputs.size());
-  }
+    tensor_t v, h;
+    ctensor_t cv, ch_full, ch;
+
+    for (size_t i = 0; i < inputs.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
+
+      if (getDirection() == CodingDirection::Encode) {
+
+        cudaStreamSynchronize(0);
+        #pragma omp barrier
+
+        #pragma omp master
+        {
+          v_master = *inputs[i];
+          if (crbm.getVisibleUnitType() == UnitType::Gaussian)
+            v_master = (v_master - crbm.getMean()) / crbm.getStddev();
+          cv_master = fft(v_master, dimCount - 1, plan_v);
+          output.resize(seq(v_master.size()[0], v_master.size()[1], (int)cF.size()), seq(v_master.size()[0], v_master.size()[1], (int)cF.size()));
+          cudaStreamSynchronize(0);
+        }
+        #pragma omp barrier
+
+        cv = cv_master;
+
+        bool validSize = true;
+        for (unsigned j = 0; j < dimCount - 1; ++j) {
+          if (v_master.size()[j] != upper_power_of_two(v_master.size()[j])) {
+            dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Aborting!";
+            validSize = false;
+            break;
+          }
+        }
+        if (!validSize)
+          continue;
+
+        for (size_t k = tid; k < cF.size(); k += gpuCount) {
+          ch_full = conj(*cF[k]) * cv;
+          ch = sum(ch_full, dimCount - 1);
+          ch = ch + *cc[k];
+          h = ifft(ch, iplan_h);
+
+          switch (crbm.getHiddenUnitType()) {
+            case UnitType::Bernoulli: h = sigm(h); break;
+            case UnitType::ReLU:      h = max(0.0, h);  break;
+            case UnitType::MyReLU:    h = nrelu_mean(h); break;
+            case UnitType::ReLU1:     h = min(1.0, max(0.0, h));  break;
+            case UnitType::ReLU2:     h = min(2.0, max(0.0, h));  break;
+            case UnitType::ReLU4:     h = min(4.0, max(0.0, h));  break;
+            case UnitType::ReLU8:     h = min(8.0, max(0.0, h));  break;
+            default:
+              dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm.getVisibleUnitType();
+          }
+          output[seq(0,0,(int)k), h.size()] = h;
+        }
+        cudaStreamSynchronize(0);
+        #pragma omp barrier
+      } else {  /* getDirection() == Decoding */
+
+        cv = zeros<complex_t>(cF[0]->size(), cF[0]->fullsize());
+
+        #pragma omp master
+        {
+          cv_master = zeros<complex_t>(cF[0]->size(), cF[0]->fullsize());
+          cudaStreamSynchronize(0);
+        }
+        #pragma omp barrier
+
+        for (size_t k = tid; k < cF.size(); k += gpuCount) {
+          h = (*inputs[i])[seq(0,0,(int)k), seq(inputs[i]->size()[0],inputs[i]->size()[1],1)];
+          ch = fft(h, plan_h);
+
+          cv = cv + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
+        }
+
+        #pragma omp critical
+        {
+          cv_master = cv_master + cv;
+          cudaStreamSynchronize(0);
+        }
+        #pragma omp barrier
+
+        #pragma omp master
+        {
+          v = ifft(cv_master, dimCount - 1, iplan_v);
+
+          switch(crbm.getVisibleUnitType()) {
+            case UnitType::Bernoulli: v = sigm(v + b); break;
+            case UnitType::Gaussian:  v = v + b;       break;
+            default:
+              dlog(Severity::Warning) << "Unsupported unit type: " << crbm.getVisibleUnitType();
+          }
+          output = (v * crbm.getStddev()) + crbm.getMean();
+          cudaStreamSynchronize(0);
+        }
+        #pragma omp barrier
+      }
+
+      #pragma omp master
+      {
+        outputs->push_back(boost::make_shared<host_tensor_t>(output));
+        if (monitor)
+          monitor->reportProgress(100. * i / inputs.size());
+      }
+    }
+
+    cudaStreamSynchronize(0);
+    #pragma omp barrier
+
+    // Free up memory
+    for (size_t k = tid; k < cF.size(); k += gpuCount) {
+      cF[k] = cc[k] = boost::shared_ptr<ctensor_t>();
+    }
+
+    if (tid == 0) {
+      for (int i = 1; i < gpuCount; ++i)
+        cudaDeviceDisablePeerAccess(i);
+    } else {
+      cudaDeviceDisablePeerAccess(0);
+    }
+  } /* end of parallel */
 
   newState->setOutputs(outputs);
 }
