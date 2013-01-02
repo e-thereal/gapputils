@@ -16,10 +16,11 @@ BeginPropertyDefinitions(Filter)
   WorkflowProperty(Model, Input("CRBM"), NotNull<Type>())
   WorkflowProperty(Inputs, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Direction, Enumerator<Type>())
+  WorkflowProperty(GpuCount)
   WorkflowProperty(Outputs, Output("Ts"))
 EndPropertyDefinitions
 
-Filter::Filter() {
+Filter::Filter() : _GpuCount(1) {
   setLabel("Filter");
 }
 
