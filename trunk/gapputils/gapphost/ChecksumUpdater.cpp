@@ -3,6 +3,7 @@
 #include "ChecksumUpdater.h"
 
 #include <capputils/FilenameAttribute.h>
+#include <capputils/FileExistsAttribute.h>
 #include <capputils/IEnumerableAttribute.h>
 #include <capputils/IReflectableAttribute.h>
 #include <capputils/ScalarAttribute.h>
@@ -59,7 +60,7 @@ checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
     const std::string& str = property->getStringValue(object);
     valueSum.process_bytes(&str[0], str.size());
 
-    if (property->getAttribute<FilenameAttribute>() && boost::filesystem::exists(str)) {
+    if (property->getAttribute<FilenameAttribute>() && property->getAttribute<FileExistsAttribute>() && boost::filesystem::exists(str)) {
       time_t modifiedTime = boost::filesystem::last_write_time(str);
       valueSum.process_bytes(&modifiedTime, sizeof(modifiedTime));
     }
