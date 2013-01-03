@@ -77,8 +77,10 @@ void ImageViewer::writeResults() {
 void ImageViewer::show() {
   if (!dialog) {
     ImageViewerWidget* widget = new ImageViewerWidget(100, 100);
-    if (getBackgroundImage())
+    if (getBackgroundImage()) {
+      widget->updateSize(getBackgroundImage()->width(), getBackgroundImage()->height());
       widget->setBackgroundImage(getBackgroundImage());
+    }
     dialog = new ImageViewerDialog(widget);
   }
   dialog->show();
