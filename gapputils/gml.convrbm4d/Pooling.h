@@ -38,6 +38,7 @@ protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace convrbm */
+} /* namespace convrbm4d */
 } /* namespace gml */
+
 #endif /* POOLING_H_ */

@@ -24,6 +24,7 @@ InitializeChecker::InitializeChecker() {
   CHECK_MEMORY_LAYOUT2(Tensors, test);
   CHECK_MEMORY_LAYOUT2(FilterWidth, test);
   CHECK_MEMORY_LAYOUT2(FilterHeight, test);
+  CHECK_MEMORY_LAYOUT2(FilterDepth, test);
   CHECK_MEMORY_LAYOUT2(FilterCount, test);
   CHECK_MEMORY_LAYOUT2(Sigma, test);
   CHECK_MEMORY_LAYOUT2(WeightMean, test);
@@ -46,18 +47,26 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
 
   std::vector<boost::shared_ptr<tensor_t> >& tensors = *getTensors();
 
+  const int totalCount = tensors.size() * 2 + filterCount;
+
   if (getVisibleUnitType() == UnitType::Gaussian) {
 
     // Calculate the mean and normalize the data
     value_t mean = 0;
-    for (size_t i = 0; i < tensors.size(); ++i)
+    for (size_t i = 0; i < tensors.size(); ++i) {
       mean = mean + sum(*tensors[i]) / tensors[i]->count();
+      if (monitor)
+        monitor->reportProgress(100.0 * i / totalCount);
+    }
     mean /= tensors.size();
 
     // Calculate the stddev and normalize the data
     value_t var = 0;
-    for (size_t i = 0; i < tensors.size(); ++i)
+    for (size_t i = 0; i < tensors.size(); ++i) {
       var += dot(*tensors[i] - mean, *tensors[i] - mean) / tensors[i]->count();
+      if (monitor)
+        monitor->reportProgress(100.0 * (i + tensors.size()) / totalCount);
+    }
 
     value_t stddev = sqrt(var / tensors.size());
     crbm->setMean(mean);
@@ -73,11 +82,12 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > filters(new std::vector<boost::shared_ptr<tensor_t> >());
 
   random_tensor<value_t, Model::dimCount, false, normal<value_t> > randn(tensors[0]->size());
-  tensor<value_t, Model::dimCount, false> sample;
+  tensor_t sample;
 
   tensor_t::dim_t maskSize = randn.size();
   maskSize[0] = getFilterWidth();
   maskSize[1] = getFilterHeight();
+  maskSize[2] = getFilterDepth();
 
   tensor_t::dim_t hiddenSize = tensors[0]->size();
   hiddenSize[Model::dimCount - 1] = 1;
@@ -88,8 +98,10 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
     } else {
       sample = (getWeightStddev() * randn + getWeightMean()) * mask<value_t>(randn.size(), maskSize);
     }
-    filters->push_back(boost::shared_ptr<tensor_t>(new tensor_t(sample)));
+    filters->push_back(boost::make_shared<tensor_t>(sample));
     hb->push_back(boost::make_shared<tensor_t>(zeros<value_t>(hiddenSize)));
+    if (monitor)
+      monitor->reportProgress(100.0 * (i + 2 * tensors.size()) / totalCount);
   }
 
   crbm->setFilters(filters);

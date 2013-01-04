@@ -22,9 +22,9 @@ struct ModelChecker { ModelChecker(); };
 
 class Model : public capputils::reflection::ReflectableClass {
 public:
-  const static unsigned dimCount = 3;
+  const static unsigned dimCount = 4;
   typedef double value_t;
-  typedef tbblas::tensor<value_t, dimCount, false> tensor_t;
+  typedef tbblas::tensor<value_t, dimCount> tensor_t;
   typedef tensor_t::dim_t dim_t;
 
   friend class ModelChecker;
@@ -38,7 +38,7 @@ private:
   Property(VisibleBias, boost::shared_ptr<tensor_t>)
   Property(HiddenBiases, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(FilterKernelSize, dim_t)
-  int dummy2;
+//  int dummy2;
   Property(Mean, value_t)
   Property(Stddev, value_t)
   Property(VisibleUnitType, UnitType)
