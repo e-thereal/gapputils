@@ -241,6 +241,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
   if (getShareBiasTerms()) {
     vbMaskSize[0] = 1;
     vbMaskSize[1] = 1;
+    vbMaskSize[2] = 1;
   }
 
   bool monitorTraining = false;
@@ -313,9 +314,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
       if (getShareBiasTerms()) {
         hbMaskSize[0] = 1;
         hbMaskSize[1] = 1;
+        hbMaskSize[2] = 1;
       }
       spMaskSize[0] = 1;
       spMaskSize[1] = 1;
+      spMaskSize[2] = 1;
     }
 
     #pragma omp barrier
@@ -456,7 +459,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
             ch_full = conj(*cF[k]) * cv;
             ch = sum(ch_full, dimCount - 1);
             ch = ch + *cc[k];
-            h2 = ifft(ch, iplan_h);
+            h2 = ifft(ch, dimCount - 1, iplan_h);
 
             switch (crbm->getHiddenUnitType()) {
               case UnitType::Bernoulli: h = sigm(h2); break;
@@ -471,7 +474,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
             }
 
             // dF_k = ~h * v
-            ch = fft(h, plan_h);
+            ch = fft(h, dimCount - 1, plan_h);
             *cFinc[k] = *cFinc[k] + epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
             *ccinc[k] = *ccinc[k] + epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
             *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) * (getSparsityTarget() * h.count() + -ch);
@@ -512,7 +515,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
             }
   #endif
 
-            ch = fft(h, plan_h);
+            ch = fft(h, dimCount - 1, plan_h);
 
             /*** BEGIN OF NEGATIVE PHASE ***/
 
@@ -601,7 +604,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
             ch_full = conj(*cF[k]) * cvneg;
             ch = sum(ch_full, dimCount - 1);
             ch = ch + *cc[k];
-            h2 = ifft(ch, iplan_h);
+            h2 = ifft(ch, dimCount - 1, iplan_h);
 
             switch (crbm->getHiddenUnitType()) {
               case UnitType::Bernoulli: h = sigm(h2); break;
@@ -616,7 +619,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
             }
 
             // dF_k = ~h * v
-            ch = fft(h, plan_h);
+            ch = fft(h, dimCount - 1, plan_h);
             *cFinc[k] = *cFinc[k] - epsilonw * repeat(conj(ch), cvneg.size() / ch.size()) * cvneg;
             *ccinc[k] = *ccinc[k] - epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
           }

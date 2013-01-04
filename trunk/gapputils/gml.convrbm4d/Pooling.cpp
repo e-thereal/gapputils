@@ -10,6 +10,7 @@
 #include <algorithm>
 
 namespace gml {
+
 namespace convrbm4d {
 
 BeginPropertyDefinitions(Pooling)
@@ -68,11 +69,13 @@ void Pooling::update(IProgressMonitor* monitor) const {
     boost::shared_ptr<tensor_t> output(new tensor_t(outSize));
     tensor_t& input = *inputs[i];
 
-    for (int iz = 0, oz = 0; iz < inSize[2]; iz += inBlock[2], oz += outBlock[2]) {
-      for (int iy = 0, oy = 0; iy < inSize[1]; iy += inBlock[1], oy += outBlock[1]) {
-        for (int ix = 0, ox = 0; ix < inSize[0]; ix += inBlock[0], ox += outBlock[0]) {
-          std::copy(input[seq(ix, iy, iz), inBlock].begin(), input[seq(ix, iy, iz), inBlock].end(),
-              (*output)[seq(ox, oy, oz), outBlock].begin());
+    for (int ik = 0, ok = 0; ik < inSize[3]; ik += inBlock[3], ok += outBlock[3]) {
+      for (int iz = 0, oz = 0; iz < inSize[2]; iz += inBlock[2], oz += outBlock[2]) {
+        for (int iy = 0, oy = 0; iy < inSize[1]; iy += inBlock[1], oy += outBlock[1]) {
+          for (int ix = 0, ox = 0; ix < inSize[0]; ix += inBlock[0], ox += outBlock[0]) {
+            std::copy(input[seq(ix, iy, iz, ik), inBlock].begin(), input[seq(ix, iy, iz, ik), inBlock].end(),
+                (*output)[seq(ox, oy, oz, ok), outBlock].begin());
+          }
         }
       }
     }
@@ -85,5 +88,5 @@ void Pooling::update(IProgressMonitor* monitor) const {
   newState->setOutputs(outputs);
 }
 
-} /* namespace convrbm */
+} /* namespace convrbm4d */
 } /* namespace gml */

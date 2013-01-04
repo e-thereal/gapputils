@@ -30,8 +30,8 @@ public:
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(FilterWidth, int)
   Property(FilterHeight, int)
+  Property(FilterDepth, int)
   Property(FilterCount, int)
-  int dummy;
   Property(Sigma, double)
   Property(WeightMean, double)
   Property(WeightStddev, double)
@@ -48,6 +48,6 @@ protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace convrbm */
+} /* namespace convrbm4d */
 } /* namespace gml */
 #endif /* INITIALIZE_H_ */

@@ -48,8 +48,6 @@ Trainer::Trainer()
   setLabel("Trainer");
 }
 
-Trainer::~Trainer() { }
-
 TrainerChecker trainerChecker;
 
 } /* namespace convrbm */

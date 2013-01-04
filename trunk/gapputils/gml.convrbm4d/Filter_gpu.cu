@@ -130,7 +130,8 @@ void Filter::update(IProgressMonitor* monitor) const {
           if (crbm.getVisibleUnitType() == UnitType::Gaussian)
             v_master = (v_master - crbm.getMean()) / crbm.getStddev();
           cv_master = fft(v_master, dimCount - 1, plan_v);
-          output.resize(seq(v_master.size()[0], v_master.size()[1], (int)cF.size()), seq(v_master.size()[0], v_master.size()[1], (int)cF.size()));
+          output.resize(seq(v_master.size()[0], v_master.size()[1], v_master.size()[2], (int)cF.size()),
+              seq(v_master.size()[0], v_master.size()[1], v_master.size()[2], (int)cF.size()));
           cudaStreamSynchronize(0);
         }
         #pragma omp barrier
@@ -152,7 +153,7 @@ void Filter::update(IProgressMonitor* monitor) const {
           ch_full = conj(*cF[k]) * cv;
           ch = sum(ch_full, dimCount - 1);
           ch = ch + *cc[k];
-          h = ifft(ch, iplan_h);
+          h = ifft(ch, dimCount - 1, iplan_h);
 
           switch (crbm.getHiddenUnitType()) {
             case UnitType::Bernoulli: h = sigm(h); break;
@@ -165,7 +166,7 @@ void Filter::update(IProgressMonitor* monitor) const {
             default:
               dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm.getVisibleUnitType();
           }
-          output[seq(0,0,(int)k), h.size()] = h;
+          output[seq(0,0,0,(int)k), h.size()] = h;
         }
         cudaStreamSynchronize(0);
         #pragma omp barrier
@@ -181,8 +182,8 @@ void Filter::update(IProgressMonitor* monitor) const {
         #pragma omp barrier
 
         for (size_t k = tid; k < cF.size(); k += gpuCount) {
-          h = (*inputs[i])[seq(0,0,(int)k), seq(inputs[i]->size()[0],inputs[i]->size()[1],1)];
-          ch = fft(h, plan_h);
+          h = (*inputs[i])[seq(0,0,0,(int)k), seq(inputs[i]->size()[0],inputs[i]->size()[1], inputs[i]->size()[2],1)];
+          ch = fft(h, dimCount - 1, plan_h);
 
           cv = cv + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
         }

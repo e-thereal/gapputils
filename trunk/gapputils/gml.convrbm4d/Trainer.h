@@ -54,12 +54,11 @@ public:
 
 public:
   Trainer();
-  virtual ~Trainer();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace convrbm */
+} /* namespace convrbm4d */
 } /* namespace gml */
 #endif /* TRAINER_H_ */

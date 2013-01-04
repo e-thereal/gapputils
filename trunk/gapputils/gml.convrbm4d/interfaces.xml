@@ -16,6 +16,15 @@
                     <IsCollection value="0" />
                 </gapputils-Interface>
             </Item>
+            <Item>
+                <gapputils-Interface>
+                    <Identifier value="Tensors4d" />
+                    <Type value="boost::shared_ptr<tbblas::tensor<double,4> >" />
+                    <Header value="tbblas/tensor.hpp" />
+                    <IsParameter value="0" />
+                    <IsCollection value="1" />
+                </gapputils-Interface>
+            </Item>
         </Collection>
     </Interfaces>
 </gapputils-InterfaceModel>
