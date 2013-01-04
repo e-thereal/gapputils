@@ -86,7 +86,7 @@ void WorkflowUpdater::run() {
 
       checksumUpdater.update(node.lock());
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-        if (workflow->isInputNode(interfaceNodes[i].lock()))
+        if (!workflow->isOutputNode(interfaceNodes[i].lock()))
           buildStack(interfaceNodes[i].lock());
       }
       updateNodes();
@@ -98,7 +98,7 @@ void WorkflowUpdater::run() {
             needsUpdate = false;
           collectionElements.push_back(collection);
           collection->setCalculateCombinations(false);
-          if (workflow->isInputNode(interfaceNodes[i].lock())) {
+          if (!workflow->isOutputNode(interfaceNodes[i].lock())) {
             inputElements.insert(collection);
             if (collection->getCurrentIteration() + 1 == collection->getIterationCount()) {
               lastIteration = true;
