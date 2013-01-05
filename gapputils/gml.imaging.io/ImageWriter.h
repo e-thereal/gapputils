@@ -1,42 +1,43 @@
 /*
- * ImageSaver.h
+ * ImageWriter.h
  *
  *  Created on: Aug 15, 2011
  *      Author: tombr
  */
 
-#ifndef GAPPUTILSCV_IMAGESAVER_H_
-#define GAPPUTILSCV_IMAGESAVER_H_
+#ifndef GML_IMAGEWRITER_H
+#define GML_IMAGEWRITER_H
 
-#include <gapputils/WorkflowElement.h>
-#include <qimage.h>
+#include <gapputils/DefaultWorkflowElement.h>
+#include <gapputils/Image.h>
+#include <gapputils/namespaces.h>
 
-namespace gapputils {
+namespace gml {
 
-namespace cv {
+namespace imaging {
 
-class ImageSaver : public gapputils::workflow::WorkflowElement {
+namespace io {
 
-  InitReflectableClass(ImageSaver)
+class ImageWriter : public DefaultWorkflowElement<ImageWriter> {
 
-  Property(ImagePtr, boost::shared_ptr<QImage>)
-  Property(ImageName, std::string)
+  InitReflectableClass(ImageWriter)
+
+  Property(Image, boost::shared_ptr<image_t>)
+  Property(Filename, std::string)
   Property(AutoSave, bool)
   Property(AutoName, std::string)
   Property(AutoSuffix, std::string)
+  Property(OutputName, std::string)
 
 private:
-  mutable ImageSaver* data;
   static int imageId;
   int imageNumber;
 
 public:
-  ImageSaver();
-  virtual ~ImageSaver();
+  ImageWriter();
 
-  virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
-  virtual void writeResults();
-
+protected:
+  virtual void update(IProgressMonitor* monitor) const;
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 };
 
@@ -44,4 +45,6 @@ public:
 
 }
 
-#endif /* GAPPUTILSCV_IMAGESAVER_H_ */
+}
+
+#endif /* GML_IMAGEWRITER_H */

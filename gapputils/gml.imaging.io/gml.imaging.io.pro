@@ -1,4 +1,5 @@
-SOURCES = ImageReader.cpp
+SOURCES = ImageReader.cpp \
+          ImageWriter.cpp
 		  
 HEADERS = 
           

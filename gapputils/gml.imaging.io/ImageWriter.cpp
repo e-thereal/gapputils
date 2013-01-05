@@ -1,84 +1,82 @@
 /*
- * ImageSaver.cpp
+ * ImageWriter.cpp
  *
  *  Created on: Aug 15, 2011
  *      Author: tombr
  */
 
-#include "ImageSaver.h"
+#include "ImageWriter.h"
 
 #include <capputils/EventHandler.h>
-#include <capputils/FileExists.h>
-#include <capputils/FilenameAttribute.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/NotEqualAssertion.h>
-#include <capputils/ObserveAttribute.h>
-#include <capputils/OutputAttribute.h>
 #include <capputils/TimeStampAttribute.h>
-#include <capputils/Verifier.h>
-#include <capputils/VolatileAttribute.h>
 
-#include <gapputils/HideAttribute.h>
+#include <qimage.h>
+#include <qcolor.h>
 
 #include <sstream>
 #include <iomanip>
 
-using namespace capputils::attributes;
-using namespace gapputils::attributes;
+namespace gml {
 
-namespace gapputils {
+namespace imaging {
 
-namespace cv {
+namespace io {
 
-int ImageSaver::imageId;
+int ImageWriter::imageId;
 
-BeginPropertyDefinitions(ImageSaver)
+BeginPropertyDefinitions(ImageWriter)
+  ReflectableBase(DefaultWorkflowElement<ImageWriter>)
 
-  ReflectableBase(gapputils::workflow::WorkflowElement)
-  DefineProperty(ImagePtr, Input("Img"), Hide(), Volatile(), Observe(imageId = Id), TimeStamp(Id))
-  DefineProperty(ImageName, Output("Name"), Filename("Images (*.jpg *.png)"), NotEqual<std::string>(""), Observe(Id), TimeStamp(Id))
-  DefineProperty(AutoSave, Observe(Id))
-  DefineProperty(AutoName, Observe(Id))
-  DefineProperty(AutoSuffix, Observe(Id))
-
+  WorkflowProperty(Image, Input("Img"), NotNull<Type>(), TimeStamp(imageId = Id))
+  WorkflowProperty(Filename, Filename("Images (*.jpg *.png)"), NotEmpty<Type>())
+  WorkflowProperty(AutoSave)
+  WorkflowProperty(AutoName)
+  WorkflowProperty(AutoSuffix)
+  WorkflowProperty(OutputName, Output("Name"))
 EndPropertyDefinitions
 
-ImageSaver::ImageSaver() : _AutoSave(false), data(0), imageNumber(0) {
-  WfeUpdateTimestamp
-  setLabel("ImageSaver");
+ImageWriter::ImageWriter() : _AutoSave(false), imageNumber(0) {
+  setLabel("Writer");
 
-  Changed.connect(capputils::EventHandler<ImageSaver>(this, &ImageSaver::changedHandler));
+  Changed.connect(capputils::EventHandler<ImageWriter>(this, &ImageWriter::changedHandler));
 }
 
-ImageSaver::~ImageSaver() {
-  if (data)
-    delete data;
+#define F_TO_INT(value) std::min(255, std::max(0, (int)(value * 256)))
+
+void saveImage(image_t& image, const std::string& filename) {
+  const int width = image.getSize()[0];
+  const int height = image.getSize()[1];
+  const int depth = image.getSize()[2];
+
+  const int count = width * height;
+  QImage qimage(width, height, QImage::Format_ARGB32);
+
+  float* buffer = image.getData();
+
+  for (int i = 0, y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x, ++i) {
+      int r = F_TO_INT(buffer[i]);
+      int g = depth == 3 ? F_TO_INT(buffer[i + count]) : r;
+      int b = depth == 3 ? F_TO_INT(buffer[i + 2 * count]) : r;
+      qimage.setPixel(x, y, QColor(r, g, b).rgb());
+    }
+  }
+
+  qimage.save(filename.c_str());
 }
 
-void ImageSaver::changedHandler(capputils::ObservableClass* sender, int eventId) {
-  if (eventId == imageId && getAutoSave() && getImagePtr()) {
+void ImageWriter::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
+  if (eventId == imageId && getAutoSave() && getImage()) {
     std::stringstream filename;
     filename << getAutoName() << std::setw(8) << std::setfill('0') << imageNumber++ << getAutoSuffix();
-    getImagePtr()->save(filename.str().c_str());
+    saveImage(*getImage(), filename.str());
   }
 }
 
-void ImageSaver::execute(gapputils::workflow::IProgressMonitor* monitor) const {
-  if (!data)
-    data = new ImageSaver();
-
-  if (!capputils::Verifier::Valid(*this))
-    return;
-
-  if (!getImagePtr())
-    return;
-
-  getImagePtr()->save(getImageName().c_str());
+void ImageWriter::update(gapputils::workflow::IProgressMonitor* /*monitor*/) const {
+  saveImage(*getImage(), getFilename());
+  newState->setOutputName(getFilename());
 }
-
-void ImageSaver::writeResults() {
-  if (!data)
-    return;
 
 }
 
