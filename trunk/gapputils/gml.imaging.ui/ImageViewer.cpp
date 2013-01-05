@@ -37,7 +37,7 @@ ImageViewer::~ImageViewer() {
   }
 }
 
-void ImageViewer::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void ImageViewer::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
   if (eventId == backgroundId) {
     if (getBackgroundImage() && dialog) {
       dialog->setBackgroundImage(getBackgroundImage());
