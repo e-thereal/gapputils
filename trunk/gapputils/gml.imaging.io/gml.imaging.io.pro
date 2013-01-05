@@ -40,7 +40,8 @@ CONFIG(MIF) {
 
 SOURCES += trace.cpp \
            SliceFromMif.cpp \
-           MifReader.cpp
+           MifReader.cpp \
+           MifWriter.cpp
 
 CONFIG(fornix, gpufarm|fornix) {
 	INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/cmif
