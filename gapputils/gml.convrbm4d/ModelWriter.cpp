@@ -9,6 +9,12 @@
 
 #include <capputils/Serializer.h>
 
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
+
+namespace bio = boost::iostreams;
+
 namespace gml {
 namespace convrbm4d {
 
@@ -24,13 +30,22 @@ ModelWriter::ModelWriter() {
   setLabel("Writer");
 }
 
-ModelWriter::~ModelWriter() { }
-
 void ModelWriter::update(IProgressMonitor* monitor) const {
-  Serializer::WriteToFile(*getModel(), getFilename());
+  Logbook& dlog = getLogbook();
+
+  bio::filtering_ostream file;
+  file.push(boost::iostreams::gzip_compressor());
+  file.push(bio::file_descriptor_sink(getFilename()));
+
+  if (!file) {
+    dlog(Severity::Warning) << "Can't open file '" << getFilename() << "' for writing. Aborting!";
+    return;
+  }
+
+  Serializer::WriteToFile(*getModel(), file);
   getHostInterface()->saveDataModel(getFilename() + ".config");
   newState->setOutputName(getFilename());
 }
 
-} /* namespace convrbm */
+} /* namespace convrbm4d */
 } /* namespace gml */

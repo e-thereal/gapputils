@@ -45,7 +45,6 @@ void Filter::update(IProgressMonitor* monitor) const {
   typedef tensor<complex_t, dimCount, true> ctensor_t;
   typedef tensor<complex_t, dimCount, false> host_ctensor_t;
   typedef tensor_t::dim_t dim_t;
-  typedef tensor_t::dim_t dim_t;
 
   // Get inputs
   std::vector<boost::shared_ptr<host_tensor_t> >& inputs = *getInputs();
@@ -141,7 +140,7 @@ void Filter::update(IProgressMonitor* monitor) const {
         bool validSize = true;
         for (unsigned j = 0; j < dimCount - 1; ++j) {
           if (v_master.size()[j] != upper_power_of_two(v_master.size()[j])) {
-            dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Aborting!";
+            dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Skipping image!";
             validSize = false;
             break;
           }
@@ -170,6 +169,7 @@ void Filter::update(IProgressMonitor* monitor) const {
         }
         cudaStreamSynchronize(0);
         #pragma omp barrier
+
       } else {  /* getDirection() == Decoding */
 
         cv = zeros<complex_t>(cF[0]->size(), cF[0]->fullsize());

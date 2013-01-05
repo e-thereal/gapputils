@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef MODELREADER_H_
-#define MODELREADER_H_
+#ifndef GML_MODELREADER_H_
+#define GML_MODELREADER_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
@@ -24,18 +24,18 @@ class ModelReader : public DefaultWorkflowElement<ModelReader> {
   Property(FilterWidth, int)
   Property(FilterHeight, int)
   Property(FilterDepth, int)
+  Property(ChannelCount, int)
   Property(FilterCount, int)
   Property(VisibleUnitType, UnitType)
   Property(HiddenUnitType, UnitType)
 
 public:
   ModelReader();
-  virtual ~ModelReader();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace convrbm */
+} /* namespace convrbm4d */
 } /* namespace gml */
-#endif /* MODELREADER_H_ */
+#endif /* GML_MODELREADER_H_ */
