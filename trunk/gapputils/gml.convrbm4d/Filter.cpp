@@ -8,6 +8,7 @@
 #include "Filter.h"
 
 namespace gml {
+
 namespace convrbm4d {
 
 BeginPropertyDefinitions(Filter)
@@ -24,9 +25,8 @@ Filter::Filter() : _GpuCount(1) {
   setLabel("Filter");
 }
 
-Filter::~Filter() { }
-
 FilterChecker filterChecker;
 
-} /* namespace convrbm */
+} /* namespace convrbm4d */
+
 } /* namespace gml */

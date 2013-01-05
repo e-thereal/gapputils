@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef MODELWRITER_H_
-#define MODELWRITER_H_
+#ifndef GML_MODELWRITER_H_
+#define GML_MODELWRITER_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
@@ -26,12 +26,11 @@ class ModelWriter : public DefaultWorkflowElement<ModelWriter> {
 
 public:
   ModelWriter();
-  virtual ~ModelWriter();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace convrbm */
+} /* namespace convrbm4d */
 } /* namespace gml */
 #endif /* MODELWRITER_H_ */

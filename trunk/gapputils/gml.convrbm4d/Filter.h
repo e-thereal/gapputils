@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef FILTER_H_
-#define FILTER_H_
+#ifndef GML_FILTER_H_
+#define GML_FILTER_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
@@ -15,6 +15,7 @@
 #include "CodingDirection.h"
 
 namespace gml {
+
 namespace convrbm4d {
 
 struct FilterChecker { FilterChecker(); };
@@ -37,12 +38,13 @@ public:
 
 public:
   Filter();
-  virtual ~Filter();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace convrbm */
+} /* namespace convrbm4d */
+
 } /* namespace gml */
-#endif /* FILTER_H_ */
+
+#endif /* GML_FILTER_H_ */
