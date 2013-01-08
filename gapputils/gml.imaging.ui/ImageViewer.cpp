@@ -7,6 +7,8 @@
 
 #include "ImageViewer.h"
 
+#include <capputils/TimeStampAttribute.h>
+
 #include <capputils/EventHandler.h>
 
 namespace gml {
@@ -16,19 +18,20 @@ namespace imaging {
 namespace ui {
 
 int ImageViewer::backgroundId;
+int ImageViewer::modeId;
 
 BeginPropertyDefinitions(ImageViewer)
 
   ReflectableBase(DefaultWorkflowElement<ImageViewer>)
 
-  DefineProperty(BackgroundImage, Input(""), Volatile(), ReadOnly(), Observe(backgroundId = Id))
+  WorkflowProperty(BackgroundImage, Input(""), TimeStamp(backgroundId = Id))
+  WorkflowProperty(Mode, Enumerator<Type>(), TimeStamp(modeId = Id))
+  WorkflowProperty(WobbleDelay);
 
 EndPropertyDefinitions
 
-ImageViewer::ImageViewer() {
+ImageViewer::ImageViewer() : _WobbleDelay(100) {
   setLabel("Viewer");
-
-  Changed.connect(capputils::EventHandler<ImageViewer>(this, &ImageViewer::changedHandler));
 }
 
 ImageViewer::~ImageViewer() {
@@ -37,19 +40,9 @@ ImageViewer::~ImageViewer() {
   }
 }
 
-void ImageViewer::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
-  if (eventId == backgroundId) {
-    if (getBackgroundImage() && dialog) {
-      dialog->setBackgroundImage(getBackgroundImage());
-    }
-  }
-}
-
 void ImageViewer::show() {
   if (!dialog) {
-    dialog = boost::make_shared<ImageViewerDialog>();
-    if (getBackgroundImage())
-      dialog->setBackgroundImage(getBackgroundImage());
+    dialog = boost::make_shared<ImageViewerDialog>(this);
   }
   dialog->show();
 }

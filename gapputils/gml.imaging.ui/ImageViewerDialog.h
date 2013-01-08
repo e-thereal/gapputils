@@ -10,12 +10,14 @@
 
 #include <QDialog>
 #include <QGraphicsView>
+#include <qtimer.h>
 
 #include <boost/shared_ptr.hpp>
 
 #include <gapputils/Image.h>
 
 #include <capputils/Enumerators.h>
+#include <capputils/ObservableClass.h>
 
 namespace gml {
 
@@ -23,18 +25,19 @@ namespace imaging {
 
 namespace ui {
 
+class ImageViewer;
+
 class ImageViewerWidget : public QGraphicsView {
   Q_OBJECT
 
 private:
-  boost::shared_ptr<gapputils::image_t> backgroundImage;
+  ImageViewer* viewer;
   qreal viewScale;
+  boost::shared_ptr<QTimer> timer;
 
 public:
-  ImageViewerWidget();
-  virtual ~ImageViewerWidget();
+  ImageViewerWidget(ImageViewer* viewer);
 
-  void setBackgroundImage(boost::shared_ptr<gapputils::image_t> image);
   void scaleView(qreal scaleFactor);
   qreal getViewScale();
 
@@ -43,6 +46,11 @@ protected:
   void mouseReleaseEvent(QMouseEvent* event);
   void drawBackground(QPainter *painter, const QRectF &rect);
   void wheelEvent(QWheelEvent *event);
+
+  void changedHandler(capputils::ObservableClass* sender, int eventId);
+
+private Q_SLOTS:
+  void updateView();
 };
 
 class ImageViewerDialog : public QDialog {
@@ -52,10 +60,7 @@ private:
   boost::shared_ptr<ImageViewerWidget> widget;
 
 public:
-  ImageViewerDialog();
-  virtual ~ImageViewerDialog();
-
-  void setBackgroundImage(boost::shared_ptr<gapputils::image_t> image);
+  ImageViewerDialog(ImageViewer* viewer);
 
   virtual void resizeEvent(QResizeEvent* resizeEvent);
 };
