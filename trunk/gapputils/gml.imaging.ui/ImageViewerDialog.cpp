@@ -10,6 +10,10 @@
 #include <QMouseEvent>
 #include <qimage.h>
 
+#include "ImageViewer.h"
+
+#include <capputils/EventHandler.h>
+
 #include <cmath>
 
 using namespace gapputils;
@@ -20,23 +24,36 @@ namespace imaging {
 
 namespace ui {
 
-ImageViewerWidget::ImageViewerWidget() : QGraphicsView(), viewScale(1.0) {
+ImageViewerWidget::ImageViewerWidget(ImageViewer* viewer) : QGraphicsView(), viewer(viewer), viewScale(1.0) {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-  scene->setSceneRect(0, 0, 128, 128);
+  if (viewer->getBackgroundImage()) {
+    image_t& image = *viewer->getBackgroundImage();
+    scene->setSceneRect(0, 0, image.getSize()[0], image.getSize()[1]);
+  } else {
+    scene->setSceneRect(0, 0, 128, 128);
+  }
+
+  if (viewer->getMode() == ViewMode::Wobble) {
+    timer = boost::make_shared<QTimer>(this);
+    connect(timer.get(), SIGNAL(timeout()), this, SLOT(updateView()));
+    timer->start(viewer->getWobbleDelay());
+  }
+
   setScene(scene);
   setCacheMode(CacheBackground);
   setRenderHint(QPainter::Antialiasing);
   setTransformationAnchor(AnchorUnderMouse);
   scale(qreal(1), qreal(1));
+
+  viewer->Changed.connect(capputils::EventHandler<ImageViewerWidget>(this, &ImageViewerWidget::changedHandler));
 }
 
-ImageViewerWidget::~ImageViewerWidget() {
-}
-
-void ImageViewerWidget::setBackgroundImage(boost::shared_ptr<image_t> image) {
-  scene()->setSceneRect(0, 0, image->getSize()[0], image->getSize()[1]);
-  backgroundImage = image;
+void ImageViewerWidget::updateView() {
+  if (viewer->getBackgroundImage()) {
+    image_t& image = *viewer->getBackgroundImage();
+    scene()->setSceneRect(0, 0, image.getSize()[0], image.getSize()[1]);
+  }
   setCacheMode(CacheNone);
   update();
   setCacheMode(CacheBackground);
@@ -45,26 +62,50 @@ void ImageViewerWidget::setBackgroundImage(boost::shared_ptr<image_t> image) {
 #define F_TO_INT(value) std::min(255, std::max(0, (int)(value * 256)))
 
 void ImageViewerWidget::drawBackground(QPainter *painter, const QRectF &rect) {
+  static int updateCounter = 0;
+
   // Shadow
   const QRectF& sceneRect = this->sceneRect();
 
-  if (backgroundImage) {
-    const int width = backgroundImage->getSize()[0];
-    const int height = backgroundImage->getSize()[1];
-    const int depth = backgroundImage->getSize()[2];
+  if (viewer->getBackgroundImage()) {
+    ++updateCounter;
+    std::cout << "Drawing: " << updateCounter << std::endl;
+
+    image_t& backgroundImage = *viewer->getBackgroundImage();
+    const int width = backgroundImage.getSize()[0];
+    const int height = backgroundImage.getSize()[1];
+    const int depth = backgroundImage.getSize()[2];
 
     const int count = width * height;
     QImage image(width, height, QImage::Format_ARGB32);
 
-    float* buffer = backgroundImage->getData();
+    float* buffer = backgroundImage.getData();
 
-    for (int i = 0, y = 0; y < height; ++y) {
-      for (int x = 0; x < width; ++x, ++i) {
-        int r = F_TO_INT(buffer[i]);
-        int g = depth == 3 ? F_TO_INT(buffer[i + count]) : r;
-        int b = depth == 3 ? F_TO_INT(buffer[i + 2 * count]) : r;
-        image.setPixel(x, y, QColor(r, g, b).rgb());
+    switch (viewer->getMode()) {
+    case ViewMode::Default:
+      for (int i = 0, y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x, ++i) {
+          int r = F_TO_INT(buffer[i]);
+          int g = depth == 3 ? F_TO_INT(buffer[i + count]) : r;
+          int b = depth == 3 ? F_TO_INT(buffer[i + 2 * count]) : r;
+          image.setPixel(x, y, QColor(r, g, b).rgb());
+        }
       }
+      break;
+
+    case ViewMode::Wobble:
+      {
+        int iSlice = (updateCounter % 2) % depth;
+        for (int i = 0, y = 0; y < height; ++y) {
+          for (int x = 0; x < width; ++x, ++i) {
+            int r = F_TO_INT(buffer[i + iSlice * count]);
+            int g = F_TO_INT(buffer[i + iSlice * count]);
+            int b = F_TO_INT(buffer[i + iSlice * count]);
+            image.setPixel(x, y, QColor(r, g, b).rgb());
+          }
+        }
+      }
+      break;
     }
 
     painter->drawImage(0, 0, image);
@@ -73,7 +114,6 @@ void ImageViewerWidget::drawBackground(QPainter *painter, const QRectF &rect) {
     QLinearGradient gradient(sceneRect.topLeft(), sceneRect.bottomRight());
     gradient.setColorAt(0, Qt::white);
     gradient.setColorAt(1, QColor(160, 160, 196));
-    //painter->fillRect(sceneRect, Qt::white);
     painter->fillRect(sceneRect, gradient);
     painter->setBrush(Qt::NoBrush);
     painter->drawRect(sceneRect);
@@ -115,16 +155,28 @@ qreal ImageViewerWidget::getViewScale() {
   return viewScale;
 }
 
-ImageViewerDialog::ImageViewerDialog() : QDialog(), widget(new ImageViewerWidget()) {
+
+void ImageViewerWidget::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
+
+  if (eventId == ImageViewer::modeId) {
+    if (viewer->getMode() == ViewMode::Wobble) {
+      timer = boost::make_shared<QTimer>(this);
+      connect(timer.get(), SIGNAL(timeout()), this, SLOT(updateView()));
+      timer->start(viewer->getWobbleDelay());
+    } else {
+      timer = boost::shared_ptr<QTimer>();
+    }
+    updateView();
+  }
+
+  if (eventId == ImageViewer::backgroundId) {
+    updateView();
+  }
+}
+
+ImageViewerDialog::ImageViewerDialog(ImageViewer* viewer) : QDialog(), widget(new ImageViewerWidget(viewer)) {
   setGeometry(50, 50, widget->width(), widget->height());
   widget->setParent(this);
-}
-
-ImageViewerDialog::~ImageViewerDialog() {
-}
-
-void ImageViewerDialog::setBackgroundImage(boost::shared_ptr<image_t> image) {
-  widget->setBackgroundImage(image);
 }
 
 void ImageViewerDialog::resizeEvent(QResizeEvent* resizeEvent) {

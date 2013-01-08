@@ -11,6 +11,8 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
+#include <capputils/Enumerators.h>
+
 #include "ImageViewerDialog.h"
 
 namespace gml {
@@ -19,23 +21,27 @@ namespace imaging {
 
 namespace ui {
 
+CapputilsEnumerator(ViewMode, Default, Wobble);
+
 class ImageViewer : public DefaultWorkflowElement<ImageViewer> {
 
   InitReflectableClass(ImageViewer)
 
   Property(BackgroundImage, boost::shared_ptr<image_t>)
+  Property(Mode, ViewMode)
+  Property(WobbleDelay, int)
+
+public:
+  static int backgroundId, modeId;
 
 private:
   boost::shared_ptr<ImageViewerDialog> dialog;
-  static int backgroundId;
 
 public:
   ImageViewer();
   virtual ~ImageViewer();
 
   virtual void show();
-
-  void changedHandler(capputils::ObservableClass* sender, int eventId);
 };
 
 }
