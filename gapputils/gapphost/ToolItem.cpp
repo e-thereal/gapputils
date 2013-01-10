@@ -69,7 +69,7 @@ void ToolConnection::draw(QPainter* painter, bool showLabel) const {
       painter->setBrush(Qt::white);
     } else if (currentCable && currentCable->getOutput().get() == this) {
       painter->setBrush(Qt::white);
-    } else if (!currentCable && cable && cable->getInput()->parent->isCurrentItem()) {
+    } else if (!currentCable && cable && cable->getInput() && cable->getInput()->parent && cable->getInput()->parent->isCurrentItem()) {
       painter->setBrush(Qt::white);
     } else {
       painter->setBrush(Qt::darkGray);
