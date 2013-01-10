@@ -11,6 +11,7 @@
 #include <QDialog>
 #include <QGraphicsView>
 #include <qtimer.h>
+#include <qimage.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -26,17 +27,22 @@ namespace imaging {
 namespace ui {
 
 class ImageViewer;
+class ImageViewerDialog;
 
 class ImageViewerWidget : public QGraphicsView {
   Q_OBJECT
 
 private:
   ImageViewer* viewer;
+  ImageViewerDialog* dialog;
   qreal viewScale;
   boost::shared_ptr<QTimer> timer;
+  std::vector<boost::shared_ptr<gapputils::image_t> > images;
+  QPointF dragStart;
+  boost::shared_ptr<QImage> qimage;
 
 public:
-  ImageViewerWidget(ImageViewer* viewer);
+  ImageViewerWidget(ImageViewer* viewer, ImageViewerDialog* dialog);
 
   void scaleView(qreal scaleFactor);
   qreal getViewScale();
@@ -46,10 +52,11 @@ protected:
   void mouseReleaseEvent(QMouseEvent* event);
   void drawBackground(QPainter *painter, const QRectF &rect);
   void wheelEvent(QWheelEvent *event);
+  void keyPressEvent(QKeyEvent *event);
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
-private Q_SLOTS:
+public Q_SLOTS:
   void updateView();
 };
 
