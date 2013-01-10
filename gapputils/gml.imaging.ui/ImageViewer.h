@@ -21,18 +21,24 @@ namespace imaging {
 
 namespace ui {
 
-CapputilsEnumerator(ViewMode, Default, Wobble);
+CapputilsEnumerator(ViewMode, Default, Wobble, Volume);
 
 class ImageViewer : public DefaultWorkflowElement<ImageViewer> {
 
   InitReflectableClass(ImageViewer)
 
-  Property(BackgroundImage, boost::shared_ptr<image_t>)
+  Property(Image, boost::shared_ptr<image_t>)
+  Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
+  Property(CurrentImage, int)
+  Property(CurrentSlice, int)
+  Property(MinimumIntensity, double)
+  Property(MaximumIntensity, double)
+  Property(Contrast, double)
   Property(Mode, ViewMode)
   Property(WobbleDelay, int)
 
 public:
-  static int backgroundId, modeId;
+  static int imageId, imagesId, modeId, currentImageId, currentSliceId, minimumIntensityId, maximumIntensityId;
 
 private:
   boost::shared_ptr<ImageViewerDialog> dialog;
