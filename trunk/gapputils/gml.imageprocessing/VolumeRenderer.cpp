@@ -19,7 +19,6 @@ BeginPropertyDefinitions(VolumeRenderer)
   WorkflowProperty(Angle, Description("[In degree] Rotates with viewpoint around the center of the volume."))
   WorkflowProperty(SampleCount, Description("Number of samples used to sample one ray."))
   WorkflowProperty(Mode, Enumerator<Type>())
-  WorkflowProperty(Orientation, Enumerator<Type>())
   WorkflowProperty(Image, Output("Img"))
 
 EndPropertyDefinitions

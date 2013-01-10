@@ -20,11 +20,12 @@ require(reshape)
 #print(qplot(id, (log(abs(value)+0.001) - log(0.001)) * sign(value), data = stats2, colour = variable, geom="line"))
 #print(qplot(id, value, data = stats2, colour = variable, geom="line"))
 
-logname = "layer1_f16_e200.csv"
-#logname = "test2.csv"
+#logname = "logs/layer1_f16_e200.csv"
+logname = "logs/test.csv"
 training.mean = subset(read.csv(logname), select = c("F.mean", "c.mean", "b.mean", "h.mean", "vneg.mean", "error"))
 training.mean = data.frame(id=0:(nrow(training.mean)-1), training.mean)
 training.mean = melt(training.mean, id = "id")
+
 names(training.mean)[names(training.mean)=="value"] <- "mean"
 print(head(training.mean))
 

@@ -25,7 +25,6 @@ VolumeRendererChecker::VolumeRendererChecker() {
   CHECK_MEMORY_LAYOUT2(Angle, test);
   CHECK_MEMORY_LAYOUT2(SampleCount, test);
   CHECK_MEMORY_LAYOUT2(Mode, test);
-  CHECK_MEMORY_LAYOUT2(Orientation, test);
   CHECK_MEMORY_LAYOUT2(Image, test);
 }
 

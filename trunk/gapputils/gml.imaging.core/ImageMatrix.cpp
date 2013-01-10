@@ -44,7 +44,7 @@ BeginPropertyDefinitions(ImageMatrix)
 
 EndPropertyDefinitions
 
-ImageMatrix::ImageMatrix() : _MaxSliceCount(-1), _MinValue(-2), _MaxValue(2), _AutoScale(false),
+ImageMatrix::ImageMatrix() : _MaxSliceCount(-1), _MinValue(0), _MaxValue(1), _AutoScale(false),
  _ColumnCount(-1), _CenterImages(false), _CroppedWidth(-1), _CroppedHeight(-1)
 {
   setLabel("Matrix");

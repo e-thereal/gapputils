@@ -19,7 +19,6 @@ namespace gml {
 namespace imageprocessing {
 
 CapputilsEnumerator(VolumeRenderMode, MaximumIntensityProjection, AverageProjection);
-CapputilsEnumerator(Orientation, Axial, Sagittal, Coronal);
 
 struct VolumeRendererChecker { VolumeRendererChecker(); };
 
@@ -33,7 +32,6 @@ class VolumeRenderer : public DefaultWorkflowElement<VolumeRenderer> {
   Property(Angle, double)
   Property(SampleCount, int)
   Property(Mode, VolumeRenderMode)
-  Property(Orientation, Orientation)
   Property(Image, boost::shared_ptr<image_t>)
 
 public:
