@@ -295,6 +295,7 @@ int main(int argc, char *argv[])
 
   if (qapp)
     delete qapp;
+
   std::cout << "Good bye." << std::endl;
 
   return ret;

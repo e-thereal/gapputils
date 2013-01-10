@@ -24,7 +24,7 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-  scene->setSceneRect(0, 0, 2000, 1300);
+  scene->setSceneRect(0, 0, 2000, 2000);
   setScene(scene);
   setCacheMode(CacheBackground);
   setRenderHint(QPainter::Antialiasing);
@@ -295,8 +295,26 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
                 break;
               }
             }
+          } else {
+            vector<boost::shared_ptr<ToolConnection> > connections;
+            tool->hitConnections(connections, ex - tx, ey - ty, ToolConnection::Output);
+            if (connections.size()) {
+              boost::shared_ptr<ToolConnection> connection = connections[connections.size()-1];
+
+              for (size_t iCable = 0; iCable < currentCables.size(); ++iCable) {
+                boost::shared_ptr<ToolConnection> newConnection = connection->parent->getConnection(connection->id, ToolConnection::Output);
+
+                if (areCompatible(newConnection.get(), currentCables[iCable]->getOutput().get())) {
+                  foundConnection = true;
+                  currentCables[iCable]->setInput(newConnection);
+                  currentCables[iCable]->endDrag();
+                  Q_EMIT connectionCompleted(currentCables[iCable]);
+                }
+              }
+              if (foundConnection)
+                break;
+            }
           }
-//          //TODO: Handle moving a bundle of connections.
         }
       }
     }
@@ -382,7 +400,8 @@ void Workbench::mouseMoveEvent(QMouseEvent* event) {
 void Workbench::drawBackground(QPainter *painter, const QRectF &rect) {
   // Shadow
   QRectF osceneRect = this->sceneRect();
-  QRectF sceneRect(osceneRect.x() + osceneRect.width() / 4, osceneRect.y() + osceneRect.height() / 4, osceneRect.width() / 2, osceneRect.height() / 2);
+//  QRectF sceneRect(osceneRect.x() + osceneRect.width() / 4, osceneRect.y() + osceneRect.height() / 4, osceneRect.width() / 2, osceneRect.height() / 2);
+  QRectF sceneRect = this->sceneRect();
 
 //     QRectF rightShadow(sceneRect.right(), sceneRect.top() + 5, 5, sceneRect.height());
 //     QRectF bottomShadow(sceneRect.left() + 5, sceneRect.bottom(), sceneRect.width(), 5);
@@ -394,16 +413,26 @@ void Workbench::drawBackground(QPainter *painter, const QRectF &rect) {
   // Fill
   QLinearGradient gradient(sceneRect.topLeft(), sceneRect.bottomRight());
   gradient.setColorAt(0, Qt::white);
-  gradient.setColorAt(1, QColor(160, 160, 196));
+  gradient.setColorAt(1, Qt::lightGray);
   painter->fillRect(osceneRect, Qt::white);
   painter->fillRect(rect.intersect(sceneRect), gradient);
-  //painter->fillRect(sceneRect, gradient);
+
+  // Draw lines
+  painter->save();
+  painter->setPen(Qt::white);
+  qreal lineCount = 30;
+  for (qreal x = sceneRect.x(); x <= sceneRect.x() + sceneRect.width(); x += sceneRect.width() / lineCount)
+    painter->drawLine(x, sceneRect.y(), x, sceneRect.y() + sceneRect.height());
+  for (qreal y = sceneRect.y(); y <= sceneRect.y() + sceneRect.height(); y += sceneRect.height() / lineCount)
+    painter->drawLine(sceneRect.x(), y, sceneRect.x() + sceneRect.width(), y);
+  painter->restore();
+
   painter->setBrush(Qt::NoBrush);
   painter->drawRect(sceneRect);
 
   // Text
   QRectF textRect(sceneRect.left() + 8, sceneRect.top() + 4,
-      sceneRect.width() - 16, sceneRect.height() - 8);
+      sceneRect.width() - 24, sceneRect.height() -16);
   QString message(tr("grapevine workbench"));
 
   QFont font = painter->font();
