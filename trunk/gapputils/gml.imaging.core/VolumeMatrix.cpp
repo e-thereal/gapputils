@@ -55,7 +55,7 @@ void VolumeMatrix::update(IProgressMonitor* monitor) const {
   std::vector<boost::shared_ptr<image_t> >& inputs = *getInputVolumes();
 
   dim_t inSize = seq(inputs[0]->getSize()[0], inputs[0]->getSize()[1], inputs[0]->getSize()[2],
-      getMaxCount() > 0 ? std::min(getMaxCount(), (int)inputs.size()) : inputs.size());
+      getMaxCount() > 0 ? std::min(getMaxCount(), (int)inputs.size()) : (unsigned)inputs.size());
   tensor<float, 4> input(inSize);
 
   for (int i = 0; i < inSize[3]; ++i)
