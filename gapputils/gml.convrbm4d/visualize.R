@@ -21,7 +21,7 @@ require(reshape)
 #print(qplot(id, value, data = stats2, colour = variable, geom="line"))
 
 #logname = "logs/layer1_f16_e200.csv"
-logname = "logs/test.csv"
+logname = "logs/layer1_p4_f32_e500.csv"
 training.mean = subset(read.csv(logname), select = c("F.mean", "c.mean", "b.mean", "h.mean", "vneg.mean", "error"))
 training.mean = data.frame(id=0:(nrow(training.mean)-1), training.mean)
 training.mean = melt(training.mean, id = "id")

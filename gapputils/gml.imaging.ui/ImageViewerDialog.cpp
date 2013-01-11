@@ -65,8 +65,17 @@ ImageViewerWidget::ImageViewerWidget(ImageViewer* viewer, ImageViewerDialog* dia
 
 void ImageViewerWidget::updateView() {
   std::stringstream title;
-  title << viewer->getLabel() << " (Image: " << viewer->getCurrentImage() << "/" << images.size() << ";"
-        << "Slice: " << viewer->getCurrentSlice() << "/" << (images.size() ? images[viewer->getCurrentImage()]->getSize()[2] : 0) << ")";
+  title << viewer->getLabel() << " (Image: ";
+  if (images.size())
+    title << viewer->getCurrentImage() + 1 << "/" << images.size();
+  else
+    title << "0/0";
+  title << ";" << "Slice: ";
+  if (images.size() && images[viewer->getCurrentImage()]->getSize()[2])
+    title << viewer->getCurrentSlice() + 1 << "/" << images[viewer->getCurrentImage()]->getSize()[2];
+  else
+    title << "0/0";
+  title << ")";
   dialog->setWindowTitle(title.str().c_str());
 
   if (images.size()) {
