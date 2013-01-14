@@ -34,7 +34,9 @@ TestModule::~TestModule() {
 
 void TestModule::update(workflow::IProgressMonitor* monitor) const {
   for (int i = 0; i < getCycles() && (monitor ? !monitor->getAbortRequested() : 1); ++i) {
+#ifndef WIN32
     usleep(1000 * getDelay());
+#endif
     if (monitor)
       monitor->reportProgress(100. * i / getCycles());
   }

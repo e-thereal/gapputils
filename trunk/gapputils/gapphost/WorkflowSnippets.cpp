@@ -4,6 +4,7 @@
  *  Created on: Jul 10, 2012
  *      Author: tombr
  */
+#define BOOST_FILESYSTEM_VERSION 2
 
 #include "WorkflowSnippets.h"
 
@@ -60,7 +61,9 @@ WorkflowSnippets::~WorkflowSnippets() {
 }
 
 void WorkflowSnippets::update() {
-  using namespace boost::filesystem3;
+  using namespace boost::filesystem;
+
+  DataModel& model = DataModel::getInstance();
 
   toolBoxItems.clear();
 
@@ -69,12 +72,14 @@ void WorkflowSnippets::update() {
   toolBox->setRootIsDecorated(false);
   toolBox->clear();
 
-  directory_iterator end_itr;
-  directory_entry entry;
-  for (directory_iterator itr(DataModel::getInstance().getSnippetsPath()); itr != end_itr; ++itr) {
-    std::string filename = itr->path().filename().string();
-    if (filename.substr(filename.size() - 4) == ".xml") {
-      toolBox->addTopLevelItem(newSnippet(filename.substr(0, filename.size() - 4), itr->path().string()));
+  if (model.getSnippetsPath().size()) {
+    directory_iterator end_itr;
+    directory_entry entry;
+    for (directory_iterator itr(model.getSnippetsPath()); itr != end_itr; ++itr) {
+      std::string filename = itr->path().filename();
+      if (filename.substr(filename.size() - 4) == ".xml") {
+        toolBox->addTopLevelItem(newSnippet(filename.substr(0, filename.size() - 4), itr->path().string()));
+      }
     }
   }
 

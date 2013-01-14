@@ -16,7 +16,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -76,27 +76,13 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CacheableAttribute.cpp" />
-    <ClCompile Include="CollectionElement.cpp" />
-    <ClCompile Include="CombinerInterface.cpp" />
-    <ClCompile Include="GenerateInterfaceAttribute.cpp" />
-    <ClCompile Include="HideAttribute.cpp" />
-    <ClCompile Include="Image.cpp" />
-    <ClCompile Include="InterfaceAttribute.cpp" />
-    <ClCompile Include="InterfaceDescription.cpp" />
-    <ClCompile Include="IProgressMonitor.cpp" />
-    <ClCompile Include="LabelAttribute.cpp" />
-    <ClCompile Include="PropertyDescription.cpp" />
-    <ClCompile Include="ReadOnlyAttribute.cpp" />
-    <ClCompile Include="WorkflowElement.cpp" />
-    <ClCompile Include="WorkflowInterface.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="CacheableAttribute.h" />
     <ClInclude Include="ChecksumAttribute.h" />
     <ClInclude Include="CollectionElement.h" />
     <ClInclude Include="CombinerInterface.h" />
     <ClInclude Include="DefaultWorkflowElement.h" />
+    <ClInclude Include="Filename.h" />
+    <ClInclude Include="Filenames.h" />
     <ClInclude Include="gapputils.h" />
     <ClInclude Include="GenerateInterfaceAttribute.h" />
     <ClInclude Include="HideAttribute.h" />
@@ -104,12 +90,48 @@
     <ClInclude Include="Image.h" />
     <ClInclude Include="InterfaceAttribute.h" />
     <ClInclude Include="InterfaceDescription.h" />
+    <ClInclude Include="Interfaces.h" />
     <ClInclude Include="IProgressMonitor.h" />
     <ClInclude Include="LabelAttribute.h" />
+    <ClInclude Include="namespaces.h" />
     <ClInclude Include="PropertyDescription.h" />
     <ClInclude Include="ReadOnlyAttribute.h" />
+    <ClInclude Include="SubWorkflow.h" />
     <ClInclude Include="WorkflowElement.h" />
     <ClInclude Include="WorkflowInterface.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Booleans_parameter.cpp" />
+    <ClCompile Include="Boolean_parameter.cpp" />
+    <ClCompile Include="CacheableAttribute.cpp" />
+    <ClCompile Include="CollectionElement.cpp" />
+    <ClCompile Include="CombinerInterface.cpp" />
+    <ClCompile Include="Filename.cpp" />
+    <ClCompile Include="Filenames.cpp" />
+    <ClCompile Include="GenerateInterfaceAttribute.cpp" />
+    <ClCompile Include="HideAttribute.cpp" />
+    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="Integers_parameter.cpp" />
+    <ClCompile Include="Integer_parameter.cpp" />
+    <ClCompile Include="InterfaceAttribute.cpp" />
+    <ClCompile Include="InterfaceDescription.cpp" />
+    <ClCompile Include="Interfaces.cpp" />
+    <ClCompile Include="IProgressMonitor.cpp" />
+    <ClCompile Include="LabelAttribute.cpp" />
+    <ClCompile Include="PropertyDescription.cpp" />
+    <ClCompile Include="ReadOnlyAttribute.cpp" />
+    <ClCompile Include="Real.cpp" />
+    <ClCompile Include="Reals_parameter.cpp" />
+    <ClCompile Include="RealVector.cpp" />
+    <ClCompile Include="RealVectors.cpp" />
+    <ClCompile Include="Real_parameter.cpp" />
+    <ClCompile Include="String.cpp" />
+    <ClCompile Include="Strings.cpp" />
+    <ClCompile Include="Strings_parameter.cpp" />
+    <ClCompile Include="String_parameter.cpp" />
+    <ClCompile Include="SubWorkflow.cpp" />
+    <ClCompile Include="WorkflowElement.cpp" />
+    <ClCompile Include="WorkflowInterface.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
