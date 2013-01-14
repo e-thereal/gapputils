@@ -95,10 +95,15 @@ void ImageViewerWidget::updateView() {
     case ViewMode::Default:
       for (int i = 0, y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x, ++i) {
-          int r = F_TO_INT(buffer[i]);
-          int g = depth == 3 ? F_TO_INT(buffer[i + count]) : r;
-          int b = depth == 3 ? F_TO_INT(buffer[i + 2 * count]) : r;
-          qimage->setPixel(x, y, QColor(r, g, b).rgb());
+          if (depth == 3) {
+            int r = F_TO_INT((buffer[i] - viewer->getMinimumIntensity()) / (viewer->getMaximumIntensity() - viewer->getMinimumIntensity()));
+            int g = F_TO_INT((buffer[i + count] - viewer->getMinimumIntensity()) / (viewer->getMaximumIntensity() - viewer->getMinimumIntensity()));
+            int b = F_TO_INT((buffer[i + 2 * count] - viewer->getMinimumIntensity()) / (viewer->getMaximumIntensity() - viewer->getMinimumIntensity()));
+            qimage->setPixel(x, y, QColor(r, g, b).rgb());
+          } else {
+            int c = F_TO_INT((buffer[i] - viewer->getMinimumIntensity()) / (viewer->getMaximumIntensity() - viewer->getMinimumIntensity()));
+            qimage->setPixel(x, y, QColor(c, c, c).rgb());
+          }
         }
       }
       break;
@@ -166,7 +171,7 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
     if (images.size()) {
       image_t& image = *images[viewer->getCurrentImage()];
 
-      const int width = image.getSize()[0], height = image.getSize()[1], count = width * height;
+      const int width = image.getSize()[0], height = image.getSize()[1], count = width * height, depth = image.getSize()[2];
 
       const int rx = std::max(0, std::min(width - 1, (int)std::min(dragStart.x(), dragEnd.x())));
       const int ry = std::max(0, std::min(height - 1, (int)std::min(dragStart.y(), dragEnd.y())));
@@ -176,14 +181,39 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
       float* buffer = image.getData();
 
       float minimum, maximum;
-      minimum = maximum = buffer[viewer->getCurrentSlice() * count + ry * width + rx];
 
-      for (int y = ry; y < ry + rheight; ++y) {
-        for (int x = rx; x < rx + rwidth; ++x) {
-          minimum = std::min(minimum, buffer[viewer->getCurrentSlice() * count + y * width + x]);
-          maximum = std::max(maximum, buffer[viewer->getCurrentSlice() * count + y * width + x]);
+      switch (viewer->getMode()) {
+      case ViewMode::Default:
+        minimum = maximum = buffer[ry * width + rx];
+
+        for (int y = ry; y < ry + rheight; ++y) {
+          for (int x = rx; x < rx + rwidth; ++x) {
+            minimum = std::min(minimum, buffer[y * width + x]);
+            maximum = std::max(maximum, buffer[y * width + x]);
+
+            if (depth == 3) {
+              minimum = std::min(minimum, buffer[count + y * width + x]);
+              minimum = std::min(minimum, buffer[2 * count + y * width + x]);
+            
+              maximum = std::max(maximum, buffer[count + y * width + x]);
+              maximum = std::max(maximum, buffer[2 * count + y * width + x]);
+            }
+          }
         }
+        break;
+
+      case ViewMode::Volume:
+        minimum = maximum = buffer[viewer->getCurrentSlice() * count + ry * width + rx];
+
+        for (int y = ry; y < ry + rheight; ++y) {
+          for (int x = rx; x < rx + rwidth; ++x) {
+            minimum = std::min(minimum, buffer[viewer->getCurrentSlice() * count + y * width + x]);
+            maximum = std::max(maximum, buffer[viewer->getCurrentSlice() * count + y * width + x]);
+          }
+        }
+        break;
       }
+      
 
       float contrastMargin = (maximum - minimum) * (1.0 - viewer->getContrast()) / 2;
 

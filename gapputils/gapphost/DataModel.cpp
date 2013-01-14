@@ -1,3 +1,5 @@
+#define BOOST_FILESYSTEM_VERSION 2
+
 #include "DataModel.h"
 
 #include <capputils/ObserveAttribute.h>
@@ -14,6 +16,8 @@
 #include <cstdlib>
 
 #include <qdir.h>
+
+#include <boost/filesystem.hpp>
 
 using namespace capputils;
 using namespace capputils::attributes;
@@ -95,9 +99,11 @@ DataModel::DataModel(void) : _UpdateAll(false), _Headless(false), _Help(false), 
 #endif
   if (path)
     setLibraryPath(path);
+  boost::filesystem::create_directories(getLibraryPath());
   char* snippets = std::getenv("GRAPEVINE_SNIPPETS_PATH");
   if (snippets)
     setSnippetsPath(snippets);
+  boost::filesystem::create_directories(getSnippetsPath());
 }
 
 DataModel::~DataModel(void)
