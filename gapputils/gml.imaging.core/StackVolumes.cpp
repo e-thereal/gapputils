@@ -17,7 +17,8 @@ BeginPropertyDefinitions(StackVolumes)
 
   ReflectableBase(DefaultWorkflowElement<StackVolumes>)
 
-  WorkflowProperty(Volumes, Input("Vols"))
+  WorkflowProperty(Volumes1, Input("Vols1"))
+  WorkflowProperty(Volumes2, Input("Vols2"))
   WorkflowProperty(Volume1, Input("Vol1"))
   WorkflowProperty(Volume2, Input("Vol2"))
   WorkflowProperty(Output, Output("Vols"))
@@ -33,8 +34,14 @@ void StackVolumes::update(IProgressMonitor* monitor) const {
 
   boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > > output(new std::vector<boost::shared_ptr<image_t> >());
 
-  if (getVolumes()) {
-    std::vector<boost::shared_ptr<image_t> >& inputs = *getVolumes();
+  if (getVolumes1()) {
+    std::vector<boost::shared_ptr<image_t> >& inputs = *getVolumes1();
+    for (size_t i = 0; i < inputs.size(); ++i)
+      output->push_back(inputs[i]);
+  }
+
+  if (getVolumes2()) {
+    std::vector<boost::shared_ptr<image_t> >& inputs = *getVolumes2();
     for (size_t i = 0; i < inputs.size(); ++i)
       output->push_back(inputs[i]);
   }

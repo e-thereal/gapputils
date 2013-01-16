@@ -30,8 +30,6 @@ EndPropertyDefinitions
 
 Model::Model() : _Mean(0.0), _Stddev(1.0) { }
 
-Model::~Model() { }
-
 boost::shared_ptr<Model> Model::clone() {
   boost::shared_ptr<Model> model(new Model());
 

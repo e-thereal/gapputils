@@ -4,8 +4,8 @@
     <Collection>
       <Item>
         <gapputils-Interface>
-          <Identifier value="UnitType" />
-          <Type value="gml::convrbm4d::UnitType" />
+          <Identifier value="RbmUnitType" />
+          <Type value="gml::rbm::UnitType" />
           <Header value="UnitType.h" />
           <PropertyAttributes>
             <Collection>
@@ -18,17 +18,8 @@
       </Item>
       <Item>
         <gapputils-Interface>
-          <Identifier value="Tensors4d" />
-          <Type value="boost::shared_ptr<tbblas::tensor<double,4> >" />
-          <Header value="tbblas/tensor.hpp" />
-          <IsParameter value="0" />
-          <IsCollection value="1" />
-        </gapputils-Interface>
-      </Item>
-      <Item>
-        <gapputils-Interface>
-          <Identifier value="Crbm4d" />
-          <Type value="boost::shared_ptr<gml::convrbm4d::Model>" />
+          <Identifier value="Rbm" />
+          <Type value="boost::shared_ptr<gml::rbm::Model>" />
           <Header value="Model.h" />
           <IsParameter value="0" />
           <IsCollection value="0" />
