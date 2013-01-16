@@ -1,30 +1,39 @@
 <?xml version="1.0" ?>
 <gapputils-InterfaceModel>
-    <Interfaces>
-        <Collection>
-            <Item>
-                <gapputils-Interface>
-                    <Identifier value="UnitType" />
-                    <Type value="gml::convrbm4d::UnitType" />
-                    <Header value="UnitType.h" />
-                    <PropertyAttributes>
-                      <Collection>
-                        <Item value="Enumerator<Type>()" />
-                      </Collection>
-                    </PropertyAttributes>
-                    <IsParameter value="1" />
-                    <IsCollection value="0" />
-                </gapputils-Interface>
-            </Item>
-            <Item>
-                <gapputils-Interface>
-                    <Identifier value="Tensors4d" />
-                    <Type value="boost::shared_ptr<tbblas::tensor<double,4> >" />
-                    <Header value="tbblas/tensor.hpp" />
-                    <IsParameter value="0" />
-                    <IsCollection value="1" />
-                </gapputils-Interface>
-            </Item>
-        </Collection>
-    </Interfaces>
+  <Interfaces>
+    <Collection>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="UnitType" />
+          <Type value="gml::convrbm4d::UnitType" />
+          <Header value="UnitType.h" />
+          <PropertyAttributes>
+            <Collection>
+              <Item value="Enumerator<Type>()" />
+            </Collection>
+          </PropertyAttributes>
+          <IsParameter value="1" />
+          <IsCollection value="0" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Tensors4d" />
+          <Type value="boost::shared_ptr<tbblas::tensor<double,4> >" />
+          <Header value="tbblas/tensor.hpp" />
+          <IsParameter value="0" />
+          <IsCollection value="1" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Crbm4d" />
+          <Type value="boost::shared_ptr<gml::convrbm4d::Model>" />
+          <Header value="Model.h" />
+          <IsParameter value="0" />
+          <IsCollection value="0" />
+        </gapputils-Interface>
+      </Item>
+    </Collection>
+  </Interfaces>
 </gapputils-InterfaceModel>

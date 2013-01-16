@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef MODEL_H_
-#define MODEL_H_
+#ifndef GML_MODEL_H_
+#define GML_MODEL_H_
 
 #include <capputils/ReflectableClass.h>
 
@@ -46,7 +46,6 @@ private:
 
 public:
   Model();
-  virtual ~Model();
 
   boost::shared_ptr<Model> clone();
 };
@@ -55,4 +54,4 @@ public:
 
 } /* namespace gml */
 
-#endif /* MODEL_H_ */
+#endif /* GML_MODEL_H_ */

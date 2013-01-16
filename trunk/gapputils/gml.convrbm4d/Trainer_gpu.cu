@@ -753,13 +753,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
         f = ifft(*cF[k], dimCount - 1, iplan_v);
         hb = ifft(*cc[k], dimCount - 1, iplan_h);
 
-        *filters[k] = f;
-        *c[k] = hb;
+        *filters[k] = f * (abs(f) > 1e-16);
+        *c[k] = hb * (abs(hb) > 1e-16);
       }
       #pragma omp master
       {
         f = ifft(cb, dimCount - 1, iplan_v);
-        b = f;
+        b = f * (abs(f) > 1e-16);
       }
     }
 
