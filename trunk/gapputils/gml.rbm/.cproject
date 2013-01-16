@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -7,7 +9,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gml.rbm"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gml.rbm/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gml.rbm" srcPrefixMapping="" srcRootPath=""/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gml.rbm"/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -36,7 +38,9 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
 								<option id="cuda.toolchain.compiler.option.misc.other.1792862958" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot; -Xcompiler -fpic" valueType="string"/>
-								<option id="cuda.toolchain.compiler.option.preprocessor.def.1297787527" name="Defined symbols (-D)" superClass="cuda.toolchain.compiler.option.preprocessor.def"/>
+								<option id="cuda.toolchain.compiler.option.preprocessor.def.1297787527" name="Defined symbols (-D)" superClass="cuda.toolchain.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="TBBLAS_DISABLE_CBLAS"/>
+								</option>
 								<inputType id="cuda.toolchain.compiler.input.59895398" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.1170087806" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
@@ -50,12 +54,17 @@
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.852641977" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x -fopenmp" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.other.pic.1251459806" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.1662817240" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1662817240" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="TBBLAS_DISABLE_CBLAS"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.316976842" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.1063875206" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.66925027" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.168854309" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.939018003" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="TBBLAS_DISABLE_CBLAS"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1833362246" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.linker.1286078622" name="NVCC Linker" superClass="cuda.toolchain.gnu.cpp.linker">
@@ -112,7 +121,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gml.rbm"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gml.rbm/Release"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gml.rbm" srcPrefixMapping="" srcRootPath=""/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gml.rbm"/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -141,6 +150,9 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
 								<option id="cuda.toolchain.compiler.option.misc.other.1020269543" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_20,code=\&quot;sm_20,compute_20\&quot; -Xcompiler -fpic" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.preprocessor.def.1130532191" superClass="cuda.toolchain.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="TBBLAS_DISABLE_CBLAS"/>
+								</option>
 								<inputType id="cuda.toolchain.compiler.input.1650212545" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.compiler.2031801411" name="GCC C++ Compiler" superClass="cuda.toolchain.gnu.cpp.compiler">
@@ -154,12 +166,17 @@
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.1103346782" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x -fopenmp" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.other.pic.95030833" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.468911490" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.468911490" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="TBBLAS_DISABLE_CBLAS"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1854735693" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.82526713" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
 								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1131774670" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.2025092551" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.2000238392" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="TBBLAS_DISABLE_CBLAS"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1691834949" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.cpp.linker.1434749106" name="NVCC Linker" superClass="cuda.toolchain.gnu.cpp.linker">

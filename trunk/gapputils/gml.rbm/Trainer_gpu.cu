@@ -79,7 +79,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
   const value_t sparsityWeight = getSparsityWeight();
 
   boost::shared_ptr<Model> rbm(new Model());
-  rbm->setHiddenUnitType(visibleUnitType);
+  rbm->setVisibleUnitType(visibleUnitType);
   rbm->setHiddenUnitType(hiddenUnitType);
 
   matrix_t X(sampleCount, visibleCount);
