@@ -162,7 +162,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
   newState->setWeights(boost::make_shared<host_matrix_t>(W));
 
-  //boost::progress_timer progresstimer;
   dlog() << "Preparation finished after " << timer.elapsed() << " s";
   dlog() << "Starting training";
   timer.restart();
@@ -174,7 +173,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
       /*** START POSITIVE PHASE ***/
 
       // Get current batch
-//      batch = tbblas::subrange(X, iBatch * batchSize, (iBatch + 1) * batchSize, 0, X.size2());
       batch = X[seq(iBatch * batchSize, 0), batch.size()];
 
       // Calculate p(h | X, W) = sigm(XW + C)
@@ -231,9 +229,15 @@ void Trainer::update(IProgressMonitor* monitor) const {
       negdata = prod(poshidstates, trans(W));
       negdata = negdata + repeat(b, negdata.size() / b.size());
 
-      switch (visibleUnitType) {
-        case UnitType::Bernoulli: negdata = sigm(negdata); break;
-        case UnitType::Gaussian: break;
+      switch(visibleUnitType) {
+        case UnitType::Bernoulli: negdata = sigm(negdata);    break;
+        case UnitType::Gaussian:  break;
+        case UnitType::ReLU:      negdata = max(0, negdata);  break;
+        case UnitType::MyReLU:    negdata = nrelu_mean(negdata); break;
+        case UnitType::ReLU1:     negdata = min(1.0, max(0.0, negdata));  break;
+        case UnitType::ReLU2:     negdata = min(2.0, max(0.0, negdata));  break;
+        case UnitType::ReLU4:     negdata = min(4.0, max(0.0, negdata));  break;
+        case UnitType::ReLU8:     negdata = min(8.0, max(0.0, negdata));  break;
         default:
           dlog(Severity::Error) << "Visible unit type '" << visibleUnitType << "' has not yet been implemented.";
       }

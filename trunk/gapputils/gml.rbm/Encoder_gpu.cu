@@ -95,6 +95,12 @@ void Encoder::update(IProgressMonitor* monitor) const {
     switch (visibleUnitType) {
       case UnitType::Bernoulli: V = sigm(V); break;
       case UnitType::Gaussian: break;
+      case UnitType::ReLU:      V = max(0, V);  break;
+      case UnitType::MyReLU:    V = nrelu_mean(V); break;
+      case UnitType::ReLU1:     V = min(1.0, max(0.0, V));  break;
+      case UnitType::ReLU2:     V = min(2.0, max(0.0, V));  break;
+      case UnitType::ReLU4:     V = min(4.0, max(0.0, V));  break;
+      case UnitType::ReLU8:     V = min(8.0, max(0.0, V));  break;
       default:
         dlog(Severity::Error) << "Visible unit type '" << visibleUnitType << "' has not yet been implemented.";
     }
