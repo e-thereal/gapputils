@@ -18,7 +18,7 @@
     <ClCompile Include="AdjustIntensities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VolumeRenderer.cpp">
+    <ClCompile Include="FunctionFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,11 +29,11 @@
     <ClInclude Include="math3d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VolumeRenderer.h">
+    <ClInclude Include="AdjustIntensities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="VolumeRenderer_gpu.cu" />
+    <ClInclude Include="FunctionFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

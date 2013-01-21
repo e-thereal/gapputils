@@ -21,7 +21,7 @@ namespace imaging {
 
 namespace ui {
 
-CapputilsEnumerator(ViewMode, Default, Wobble, Volume);
+CapputilsEnumerator(ViewMode, Greyscale, sRGB, XYZ, xyY);
 
 class ImageViewer : public DefaultWorkflowElement<ImageViewer> {
 
@@ -35,7 +35,7 @@ class ImageViewer : public DefaultWorkflowElement<ImageViewer> {
   Property(MaximumIntensity, double)
   Property(Contrast, double)
   Property(Mode, ViewMode)
-  Property(WobbleDelay, int)
+  //Property(WobbleDelay, int)
 
 public:
   static int imageId, imagesId, modeId, currentImageId, currentSliceId, minimumIntensityId, maximumIntensityId;

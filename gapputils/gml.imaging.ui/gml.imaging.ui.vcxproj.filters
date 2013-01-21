@@ -52,6 +52,9 @@
     <ClInclude Include="ImageViewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="math3d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ImageViewerDialog.h">

@@ -20,7 +20,11 @@ class AdjustIntensities : public DefaultWorkflowElement<AdjustIntensities> {
   InitReflectableClass(AdjustIntensities)
 
   Property(Input, boost::shared_ptr<image_t>)
+  Property(InputLowerBound, double)
+  Property(InputUpperBound, double)
   Property(InputIntensities, boost::shared_ptr<std::vector<double> >)
+  Property(OutputLowerBound, double)
+  Property(OutputUpperBound, double)
   Property(OutputIntensities, boost::shared_ptr<std::vector<double> >)
   Property(Output, boost::shared_ptr<image_t>)
 

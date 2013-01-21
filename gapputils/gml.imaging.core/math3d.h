@@ -11,7 +11,15 @@
 
 #include <cstdlib>
 #include <cmath>
-#include <cuda_runtime.h>
+
+#ifndef __CUDACC__
+#ifndef __host__
+#define __host__
+#endif
+#ifndef __device__
+#define __device__
+#endif
+#endif
 
 namespace gml {
 

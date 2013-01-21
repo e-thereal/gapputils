@@ -12,17 +12,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdjustIntensities.cpp" />
-    <ClCompile Include="VolumeRenderer.cpp" />
+    <ClCompile Include="FunctionFilter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="gml.imageprocessing.vcxproj" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AdjustIntensities.h" />
+    <ClInclude Include="FunctionFilter.h" />
     <ClInclude Include="math3d.h" />
-    <ClInclude Include="VolumeRenderer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="VolumeRenderer_gpu.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{553DEAE0-CA4A-4A5D-8A39-CB9450C88D46}</ProjectGuid>
@@ -73,7 +71,7 @@
       <AdditionalDependencies>cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CudaCompile>
-      <Include>$(BOOST_INC_PATH);$(SolutionDir);$(NVSDKCOMPUTE_ROOT)/C/common/inc</Include>
+      <Include>$(BOOST_INC_PATH);$(SolutionDir)</Include>
       <CodeGeneration>compute_20,sm_20</CodeGeneration>
     </CudaCompile>
     <CudaLink>
