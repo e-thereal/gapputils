@@ -21,7 +21,8 @@ require(reshape)
 #print(qplot(id, value, data = stats2, colour = variable, geom="line"))
 
 #logname = "logs/layer1_f16_e200.csv"
-logname = "logs/layer1_p4_f32_e500.csv"
+logname = "logs/layer4_p2_f64_e1000.csv"
+#logname = my.file.browse();
 training.mean = subset(read.csv(logname), select = c("F.mean", "c.mean", "b.mean", "h.mean", "vneg.mean", "error"))
 training.mean = data.frame(id=0:(nrow(training.mean)-1), training.mean)
 training.mean = melt(training.mean, id = "id")
@@ -31,6 +32,8 @@ print(head(training.mean))
 
 training.sd = subset(read.csv(logname), select = c("F.sd", "c.sd"))
 training.sd = data.frame(id=0:(nrow(training.sd)-1), training.sd, b.sd = 0, h.sd = 0, vneg.sd = 0, error.sd = 0)
+#training.sd = subset(read.csv(logname), select = c("F.sd"))
+#training.sd = data.frame(id=0:(nrow(training.sd)-1), training.sd)
 training.sd = melt(training.sd, id = "id")
 names(training.sd)[names(training.sd)=="value"] <- "sd"
 print(head(training.sd))
