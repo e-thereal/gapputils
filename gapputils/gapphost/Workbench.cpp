@@ -412,7 +412,7 @@ void Workbench::drawBackground(QPainter *painter, const QRectF &rect) {
 
   // Fill
   QLinearGradient gradient(sceneRect.topLeft(), sceneRect.bottomRight());
-  gradient.setColorAt(0, Qt::white);
+  gradient.setColorAt(0, QColor(240, 240, 240));
   gradient.setColorAt(1, Qt::lightGray);
   painter->fillRect(osceneRect, Qt::white);
   painter->fillRect(rect.intersect(sceneRect), gradient);
