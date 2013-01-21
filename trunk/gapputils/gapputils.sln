@@ -27,6 +27,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gml.imaging.io", "gml.imagi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gml.imaging.ui", "gml.imaging.ui\gml.imaging.ui.vcxproj", "{64BF1515-15A8-4E90-8D7F-F6FD44B74C36}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tbblas", "tbblas\tbblas.vcxproj", "{AD36BFDA-AA9E-427C-A4FC-16BCC0B1D2A2}"
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
@@ -124,6 +126,15 @@ Global
 		{64BF1515-15A8-4E90-8D7F-F6FD44B74C36}.Setup|Win32.ActiveCfg = Release|Win32
 		{64BF1515-15A8-4E90-8D7F-F6FD44B74C36}.Setup|Win32.Build.0 = Release|Win32
 		{64BF1515-15A8-4E90-8D7F-F6FD44B74C36}.Setup|x64.ActiveCfg = Release|Win32
+		{AD36BFDA-AA9E-427C-A4FC-16BCC0B1D2A2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AD36BFDA-AA9E-427C-A4FC-16BCC0B1D2A2}.Debug|Win32.Build.0 = Debug|Win32
+		{AD36BFDA-AA9E-427C-A4FC-16BCC0B1D2A2}.Debug|x64.ActiveCfg = Debug|Win32
+		{AD36BFDA-AA9E-427C-A4FC-16BCC0B1D2A2}.Release|Win32.ActiveCfg = Release|Win32
+		{AD36BFDA-AA9E-427C-A4FC-16BCC0B1D2A2}.Release|Win32.Build.0 = Release|Win32
+		{AD36BFDA-AA9E-427C-A4FC-16BCC0B1D2A2}.Release|x64.ActiveCfg = Release|Win32
+		{AD36BFDA-AA9E-427C-A4FC-16BCC0B1D2A2}.Setup|Win32.ActiveCfg = Release|Win32
+		{AD36BFDA-AA9E-427C-A4FC-16BCC0B1D2A2}.Setup|Win32.Build.0 = Release|Win32
+		{AD36BFDA-AA9E-427C-A4FC-16BCC0B1D2A2}.Setup|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

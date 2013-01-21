@@ -37,12 +37,12 @@ BeginPropertyDefinitions(ImageViewer)
   WorkflowProperty(MaximumIntensity, TimeStamp(maximumIntensityId = Id))
   WorkflowProperty(Contrast)
   WorkflowProperty(Mode, Enumerator<Type>(), TimeStamp(modeId = Id))
-  WorkflowProperty(WobbleDelay);
+  //WorkflowProperty(WobbleDelay);
 
 EndPropertyDefinitions
 
 ImageViewer::ImageViewer()
- : _CurrentImage(0), _CurrentSlice(0), _MinimumIntensity(0.0), _MaximumIntensity(1.0), _Contrast(1.0), _WobbleDelay(100)
+ : _CurrentImage(0), _CurrentSlice(0), _MinimumIntensity(0.0), _MaximumIntensity(1.0), _Contrast(1.0)//, _WobbleDelay(100)
 {
   setLabel("Viewer");
 }

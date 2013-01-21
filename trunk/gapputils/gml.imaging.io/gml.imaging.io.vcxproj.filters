@@ -31,12 +31,18 @@
     <ClCompile Include="ImageWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RawReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImageReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RawReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

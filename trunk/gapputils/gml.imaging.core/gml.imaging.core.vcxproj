@@ -78,16 +78,23 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConvertColorSpace.h" />
     <ClInclude Include="ImageMatrix.h" />
+    <ClInclude Include="math3d.h" />
+    <ClInclude Include="MergeChannels.h" />
     <ClInclude Include="ReorientSlices.h" />
+    <ClInclude Include="SplitChannels.h" />
     <ClInclude Include="SplitImage.h" />
     <ClInclude Include="StackImages.h" />
     <ClInclude Include="StackVolumes.h" />
     <ClInclude Include="VolumeMatrix.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ConvertColorSpace.cpp" />
     <ClCompile Include="ImageMatrix.cpp" />
+    <ClCompile Include="MergeChannels.cpp" />
     <ClCompile Include="ReorientSlices.cpp" />
+    <ClCompile Include="SplitChannels.cpp" />
     <ClCompile Include="SplitImage.cpp" />
     <ClCompile Include="StackImages.cpp" />
     <ClCompile Include="StackVolumes.cpp" />
