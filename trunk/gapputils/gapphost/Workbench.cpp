@@ -363,19 +363,21 @@ void Workbench::keyPressEvent(QKeyEvent *event)
 void Workbench::keyReleaseEvent(QKeyEvent *event) {
   if (event->key() == Qt::Key_Space) {
   }
+  QGraphicsView::keyReleaseEvent(event);
 }
 
 void Workbench::dragMoveEvent(QDragMoveEvent* event) {
   if (event->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist"))
     event->accept();
-
-  //QGraphicsView::dragMoveEvent(event);
+  else
+    QGraphicsView::dragMoveEvent(event);
 }
 
 void Workbench::dragEnterEvent(QDragEnterEvent *event) {
   if (event->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist"))
     event->accept();
-  QGraphicsView::dragEnterEvent(event);
+  else
+    QGraphicsView::dragEnterEvent(event);
 }
 
 void Workbench::dropEvent(QDropEvent *event) {
@@ -383,8 +385,6 @@ void Workbench::dropEvent(QDropEvent *event) {
   model.dropMimeData(event->mimeData(), Qt::CopyAction, 0, 0, QModelIndex());
 
   QPointF pos = mapToScene(event->pos());
-  //cout << "Class: " << model.item(0, 0)->data(Qt::UserRole).toString().toAscii().data() << endl;
-  //cout << "At: " << pos.x() << ", " << pos.y() << endl;
   Q_EMIT createItemRequest(pos.x(), pos.y(), model.item(0, 0)->data(Qt::UserRole).toString());
 
   QGraphicsView::dropEvent(event);
@@ -394,7 +394,6 @@ void Workbench::mouseMoveEvent(QMouseEvent* event) {
   for (unsigned i = 0; i < currentCables.size(); ++i)
     currentCables[i]->setDragPoint(mapToScene(event->pos()));
   QGraphicsView::mouseMoveEvent(event);
-
 }
 
 void Workbench::drawBackground(QPainter *painter, const QRectF &rect) {
@@ -446,12 +445,11 @@ void Workbench::drawBackground(QPainter *painter, const QRectF &rect) {
   painter->drawText(textRect, Qt::AlignBottom | Qt::AlignRight, message);
 
   QGraphicsView::drawBackground(painter, rect);
- }
+}
 
-void Workbench::wheelEvent(QWheelEvent *event)
- {
-     scaleView(pow((double)1.3, -event->delta() / 240.0));
- }
+void Workbench::wheelEvent(QWheelEvent *event) {
+  scaleView(pow((double)1.3, -event->delta() / 240.0));
+}
 
 qreal Workbench::getViewScale() {
   return viewScale;

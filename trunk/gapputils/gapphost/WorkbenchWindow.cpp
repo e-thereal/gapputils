@@ -477,6 +477,7 @@ void WorkbenchWindow::closeEvent(QCloseEvent *event) {
   } else {
     event->ignore();
   }
+  QMdiSubWindow::closeEvent(event);
 }
 
 void WorkbenchWindow::setUiEnabled(bool enabled) {
