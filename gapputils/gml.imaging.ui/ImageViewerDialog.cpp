@@ -8,6 +8,7 @@
 #include "ImageViewerDialog.h"
 #include <QWheelEvent>
 #include <QMouseEvent>
+#include <qfiledialog.h>
 
 #include "ImageViewer.h"
 
@@ -212,7 +213,7 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
     if (images.size()) {
       image_t& image = *images[viewer->getCurrentImage()];
 
-      const int width = image.getSize()[0], height = image.getSize()[1], count = width * height, depth = image.getSize()[2];
+      const int width = image.getSize()[0], height = image.getSize()[1], count = width * height;
 
       const int rx = std::max(0, std::min(width - 1, (int)std::min(dragStart.x(), dragEnd.x())));
       const int ry = std::max(0, std::min(height - 1, (int)std::min(dragStart.y(), dragEnd.y())));
@@ -282,6 +283,7 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
 
       float contrastMargin = (maximum - minimum) * (1.0 - viewer->getContrast()) / 2;
 
+      // make this updates atomic
       viewer->setMinimumIntensity(minimum - contrastMargin);
       viewer->setMaximumIntensity(maximum + contrastMargin);
     }
@@ -296,6 +298,22 @@ void ImageViewerWidget::wheelEvent(QWheelEvent *event) {
 }
 
 void ImageViewerWidget::keyPressEvent(QKeyEvent *event) {
+  std::cout << "Key pressed." << std::endl;
+  if (event->key() == Qt::Key_S) {
+    std::cout << "S pressed." << std::endl;
+    if(event->modifiers() == Qt::CTRL) {
+      std::cout << "Control pressed." << std::endl;
+      if (qimage) {
+        std::cout << "Qimage present." << std::endl;
+        QString filename = QFileDialog::getSaveFileName(this, "Save current image as ...");
+        if (filename.size()) {
+          qimage->save(filename);
+        }
+      }
+      return;
+    }
+  }
+
   switch (event->key()) {
   case Qt::Key_Q:
     dialog->close();
