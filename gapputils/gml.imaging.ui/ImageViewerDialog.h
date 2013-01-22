@@ -12,6 +12,7 @@
 #include <QGraphicsView>
 #include <qtimer.h>
 #include <qimage.h>
+#include <qlabel.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -65,10 +66,14 @@ class ImageViewerDialog : public QDialog {
 
 private:
   boost::shared_ptr<ImageViewerWidget> widget;
+  boost::shared_ptr<QLabel> helpLabel;
 
 public:
   ImageViewerDialog(ImageViewer* viewer);
 
+protected:
+  void keyPressEvent(QKeyEvent *event);
+  void keyReleaseEvent(QKeyEvent *event);
   virtual void resizeEvent(QResizeEvent* resizeEvent);
 };
 

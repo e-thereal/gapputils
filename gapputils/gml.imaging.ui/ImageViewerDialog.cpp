@@ -89,7 +89,7 @@ void ImageViewerWidget::updateView() {
 
     const int width = image.getSize()[0];
     const int height = image.getSize()[1];
-    const int depth = image.getSize()[2];
+//    const int depth = image.getSize()[2];
 
     const int count = width * height;
     qimage = boost::make_shared<QImage>(width, height, QImage::Format_ARGB32);
@@ -283,7 +283,7 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
 
       float contrastMargin = (maximum - minimum) * (1.0 - viewer->getContrast()) / 2;
 
-      // make this updates atomic
+      // TODO: make this updates atomic
       viewer->setMinimumIntensity(minimum - contrastMargin);
       viewer->setMaximumIntensity(maximum + contrastMargin);
     }
@@ -298,61 +298,57 @@ void ImageViewerWidget::wheelEvent(QWheelEvent *event) {
 }
 
 void ImageViewerWidget::keyPressEvent(QKeyEvent *event) {
-  std::cout << "Key pressed." << std::endl;
-  if (event->key() == Qt::Key_S) {
-    std::cout << "S pressed." << std::endl;
-    if(event->modifiers() == Qt::CTRL) {
-      std::cout << "Control pressed." << std::endl;
-      if (qimage) {
-        std::cout << "Qimage present." << std::endl;
-        QString filename = QFileDialog::getSaveFileName(this, "Save current image as ...");
-        if (filename.size()) {
-          qimage->save(filename);
-        }
+  if (event->key() == Qt::Key_S && event->modifiers() == Qt::CTRL) {
+    if (qimage) {
+      QString filename = QFileDialog::getSaveFileName(this, "Save current image as ...");
+      if (filename.size()) {
+        qimage->save(filename);
       }
-      return;
     }
+    return;
   }
 
   switch (event->key()) {
   case Qt::Key_Q:
+  case Qt::Key_Escape:
     dialog->close();
-    break;
+    return;
 
   case Qt::Key_W:
-  {
-    QRect rect = dialog->geometry();
-    rect.setWidth(scene()->sceneRect().width() * viewScale + 5);
-    rect.setHeight(scene()->sceneRect().height() * viewScale + 5);
-    dialog->setGeometry(rect);
-  }
-    break;
+    {
+      QRect rect = dialog->geometry();
+      rect.setWidth(scene()->sceneRect().width() * viewScale + 5);
+      rect.setHeight(scene()->sceneRect().height() * viewScale + 5);
+      dialog->setGeometry(rect);
+    }
+    return;
 
   case Qt::Key_R:
     scaleView(std::min((qreal)(dialog->geometry().width() - 5.0) / (qreal)scene()->sceneRect().width(),
         (qreal)(dialog->geometry().height() - 5.0) / (qreal)scene()->sceneRect().height()) / viewScale);
-    break;
+    return;
 
   case Qt::Key_Left:
   case Qt::Key_S:
     viewer->setCurrentImage(viewer->getCurrentImage() - 1);
-    break;
+    return;
 
   case Qt::Key_Right:
   case Qt::Key_F:
     viewer->setCurrentImage(viewer->getCurrentImage() + 1);
-    break;
+    return;
 
   case Qt::Key_Up:
   case Qt::Key_E:
     viewer->setCurrentSlice(viewer->getCurrentSlice() + 1);
-    break;
+    return;
 
   case Qt::Key_Down:
   case Qt::Key_D:
     viewer->setCurrentSlice(viewer->getCurrentSlice() - 1);
-    break;
+    return;
   }
+  QGraphicsView::keyPressEvent(event);
 }
 
 qreal ImageViewerWidget::getViewScale() {
@@ -413,7 +409,9 @@ void ImageViewerWidget::changedHandler(capputils::ObservableClass* /*sender*/, i
   }
 }
 
-ImageViewerDialog::ImageViewerDialog(ImageViewer* viewer) : QDialog(), widget(new ImageViewerWidget(viewer, this)) {
+ImageViewerDialog::ImageViewerDialog(ImageViewer* viewer) : QDialog(),
+    widget(new ImageViewerWidget(viewer, this)), helpLabel(new QLabel())
+{
   QRect rect = geometry();
   rect.setWidth(widget->width());
   rect.setHeight(widget->height());
@@ -421,10 +419,50 @@ ImageViewerDialog::ImageViewerDialog(ImageViewer* viewer) : QDialog(), widget(ne
   setWindowTitle((viewer->getLabel() + " (Image: 0/0; Slice: 0/0)").c_str());
   widget->setParent(this);
   widget->updateView();
+  helpLabel->setParent(this);
+  helpLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+  helpLabel->setStyleSheet("color: rgb(255, 255, 255); background-color: rgba(0, 0, 0, 210);");
+  helpLabel->setText("<h3>Hotkeys</h3>\n"
+      "<b>Space, H, F1:</b> Toggle help<br>\n"
+      "<b>S, arrow left:</b> View previous image<br>\n"
+      "<b>F, arrow right:</b> View next image<br>\n"
+      "<b>E, arrow up:</b> Show next slice<br>\n"
+      "<b>D, arrow down:</b> Show previous slice<br>\n"
+      "<b>W:</b> Resize window to match the image size<br>\n"
+      "<b>R:</b> Fit the image into the window<br>\n"
+      "<b>Q, Esc:</b> Close the viewer<br>\n"
+      "<b>Ctrl+S:</b> Save the current image<br>\n"
+      "<h3>Mouse Actions</h3>\n"
+      "<b>Left drag:</b> Panning<br>\n"
+      "<b>Right drag:</b> Maximize contrast in the selected region<br>\n"
+      "<b>Ctrl + right drag:</b> Add new region to intensity window<br>\n"
+      "<b>Mouse wheel:</b> Adjust zoom<br>\n");
+  helpLabel->setGeometry(0, 0, width(), height());
+}
+
+void ImageViewerDialog::keyPressEvent(QKeyEvent *event) {
+  if (event->key() == Qt::Key_Space || event->key() == Qt::Key_H || event->key() == Qt::Key_F1) {
+//    if (!helpLabel->isVisible()) {
+      helpLabel->setVisible(!helpLabel->isVisible());
+//    }
+    return;
+  }
+  QDialog::keyPressEvent(event);
+}
+
+void ImageViewerDialog::keyReleaseEvent(QKeyEvent *event) {
+  // even if you don't release the key, after a while multiple key press and key release events are issued.
+//  if (event->key() == Qt::Key_Space) {
+//    std::cout << "Key released." << std::endl;
+//    helpLabel->setVisible(false);
+//    return;
+//  }
+  QDialog::keyReleaseEvent(event);
 }
 
 void ImageViewerDialog::resizeEvent(QResizeEvent* resizeEvent) {
   widget->setGeometry(0, 0, width(), height());
+  helpLabel->setGeometry(0, 0, width(), height());
 
   QDialog::resizeEvent(resizeEvent);
 }
