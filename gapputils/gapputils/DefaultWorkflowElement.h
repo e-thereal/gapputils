@@ -135,9 +135,10 @@ public:
   ::capputils::reflection::IClassProperty* prop = new ::capputils::reflection::ClassProperty<Type>(#name, ClassType ::get##name, ClassType ::set##name, ##arguments, capputils::attributes::Observe(Id), NULL); \
   properties.push_back(prop); \
   if (is_pointer<Type>::value) { \
-    properties[properties.size()-1]->addAttribute(new capputils::attributes::VolatileAttribute()); \
+    if (!prop->getAttribute<capputils::attributes::IReflectableAttribute>()) \
+      properties[properties.size()-1]->addAttribute(new capputils::attributes::VolatileAttribute()); \
     /*if (!prop->getAttribute<capputils::attributes::FromEnumerableAttribute>())*/ \
-      properties[properties.size()-1]->addAttribute(new gapputils::attributes::ReadOnlyAttribute()); \
+    properties[properties.size()-1]->addAttribute(new gapputils::attributes::ReadOnlyAttribute()); \
   } \
   addressbook[#name] = (char*)&_##name - (char*)this; \
   CAPPUTILS_UNUSED(Id); \
