@@ -66,8 +66,63 @@ ImageViewerWidget::ImageViewerWidget(ImageViewer* viewer, ImageViewerDialog* dia
 
 #define F_TO_INT(value) std::min(255, std::max(0, (int)((value) * 256)))
 
+void getHeatMap1Color(float value, float *red, float *green, float *blue) {
+  const int NUM_COLORS = 4;
+  static float color[NUM_COLORS][3] = { {0,0,1}, {0,1,0}, {1,1,0}, {1,0,0} };
+    // a static array of 4 colors:  (blue,   green,  yellow,  red) using {r,g,b} for each
+
+  int idx1;        // |-- our desired color will be between these two indexes in "color"
+  int idx2;        // |
+  float fractBetween = 0;  // fraction between "idx1" and "idx2" where our value is
+
+  if(value <= 0)      {  idx1 = idx2 = 0;            }    // accounts for an input <=0
+  else if(value >= 1)  {  idx1 = idx2 = NUM_COLORS-1; }    // accounts for an input >=0
+  else
+  {
+    value = value * (NUM_COLORS-1);        // will multiply value by 3
+    idx1  = floor(value);                  // our desired color will be after this index
+    idx2  = idx1+1;                        // ... and before this index (inclusive)
+    fractBetween = value - float(idx1);    // distance between the two indexes (0-1)
+  }
+
+  *red   = (color[idx2][0] - color[idx1][0])*fractBetween + color[idx1][0];
+  *green = (color[idx2][1] - color[idx1][1])*fractBetween + color[idx1][1];
+  *blue  = (color[idx2][2] - color[idx1][2])*fractBetween + color[idx1][2];
+}
+
+void getHeatMap2Color(float value, float *red, float *green, float *blue) {
+  const int NUM_COLORS = 6;
+  static float color[NUM_COLORS][3] = {{0,0,0}, {0,0,0.5}, {0.5,0,0.5}, {1,0,0}, {1,1,0}, {1,1,1}};
+    // a static array of 6 colors:  (black,      blue,   violet,  red,  yellow,     white) using {r,g,b} for each
+
+  int idx1;        // |-- our desired color will be between these two indexes in "color"
+  int idx2;        // |
+  float fractBetween = 0;  // fraction between "idx1" and "idx2" where our value is
+
+  if(value <= 0)      {  idx1 = idx2 = 0;            }    // accounts for an input <=0
+  else if(value >= 1)  {  idx1 = idx2 = NUM_COLORS-1; }    // accounts for an input >=0
+  else
+  {
+    value = value * (NUM_COLORS-1);        // will multiply value by 3
+    idx1  = floor(value);                  // our desired color will be after this index
+    idx2  = idx1+1;                        // ... and before this index (inclusive)
+    fractBetween = value - float(idx1);    // distance between the two indexes (0-1)
+  }
+
+  *red   = (color[idx2][0] - color[idx1][0])*fractBetween + color[idx1][0];
+  *green = (color[idx2][1] - color[idx1][1])*fractBetween + color[idx1][1];
+  *blue  = (color[idx2][2] - color[idx1][2])*fractBetween + color[idx1][2];
+}
+
 void ImageViewerWidget::updateView() {
-  const int channelsPerImage = (viewer->getMode() == ViewMode::Greyscale ? 1 : 3);
+  int channelsPerImage = 1;
+  switch (viewer->getMode()) {
+  case ViewMode::XYZ:
+  case ViewMode::xyY:
+  case ViewMode::sRGB:
+    channelsPerImage = 3;
+    break;
+  }
 
   std::stringstream title;
   title << viewer->getLabel() << " (Image: ";
@@ -102,6 +157,36 @@ void ImageViewerWidget::updateView() {
         for (int x = 0; x < width; ++x, ++i) {
           int c = F_TO_INT((buffer[i + viewer->getCurrentSlice() * count] - viewer->getMinimumIntensity()) / (viewer->getMaximumIntensity() - viewer->getMinimumIntensity()));
           qimage->setPixel(x, y, QColor(c, c, c).rgb());
+        }
+      }
+      break;
+
+    case ViewMode::RedBlueMap:
+      for (int i = 0, y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x, ++i) {
+          int r = F_TO_INT((buffer[i + viewer->getCurrentSlice() * count] - viewer->getMinimumIntensity()) / (viewer->getMaximumIntensity() - viewer->getMinimumIntensity()));
+          int b = F_TO_INT(1.0 - (buffer[i + viewer->getCurrentSlice() * count] - viewer->getMinimumIntensity()) / (viewer->getMaximumIntensity() - viewer->getMinimumIntensity()));
+          qimage->setPixel(x, y, QColor(r, 0, b).rgb());
+        }
+      }
+      break;
+
+    case ViewMode::HeatMap1:
+      for (int i = 0, y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x, ++i) {
+          float r, g, b;
+          getHeatMap1Color((buffer[i + viewer->getCurrentSlice() * count] - viewer->getMinimumIntensity()) / (viewer->getMaximumIntensity() - viewer->getMinimumIntensity()), &r, &g, &b);
+          qimage->setPixel(x, y, QColor(F_TO_INT(r), F_TO_INT(g), F_TO_INT(b)).rgb());
+        }
+      }
+      break;
+
+    case ViewMode::HeatMap2:
+      for (int i = 0, y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x, ++i) {
+          float r, g, b;
+          getHeatMap2Color((buffer[i + viewer->getCurrentSlice() * count] - viewer->getMinimumIntensity()) / (viewer->getMaximumIntensity() - viewer->getMinimumIntensity()), &r, &g, &b);
+          qimage->setPixel(x, y, QColor(F_TO_INT(r), F_TO_INT(g), F_TO_INT(b)).rgb());
         }
       }
       break;
@@ -227,6 +312,9 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
       switch (viewer->getMode()) {
 
       case ViewMode::Greyscale:
+      case ViewMode::RedBlueMap:
+      case ViewMode::HeatMap1:
+      case ViewMode::HeatMap2:
         if (event->modifiers() == Qt::ControlModifier) {
           minimum = viewer->getMinimumIntensity();
           maximum = viewer->getMaximumIntensity();
@@ -248,7 +336,7 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
           minimum = viewer->getMinimumIntensity();
           maximum = viewer->getMaximumIntensity();
         } else {
-          minimum = maximum = buffer[ry * width + rx];
+          minimum = maximum = buffer[(3 * viewer->getCurrentSlice()) * count + ry * width + rx];
         }
 
         for (int y = ry; y < ry + rheight; ++y) {
@@ -269,7 +357,7 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
           minimum = viewer->getMinimumIntensity();
           maximum = viewer->getMaximumIntensity();
         } else {
-          minimum = maximum = buffer[ry * width + rx + 2 * count];
+          minimum = maximum = buffer[(3 * viewer->getCurrentSlice() + 2) * count + ry * width + rx];
         }
 
         for (int y = ry; y < ry + rheight; ++y) {
@@ -393,7 +481,14 @@ void ImageViewerWidget::changedHandler(capputils::ObservableClass* /*sender*/, i
   }
 
   if (eventId == ImageViewer::currentSliceId) {
-    const int channelCount = (viewer->getMode() == ViewMode::Greyscale ? 1 : 3);
+    int channelCount = 1;
+    switch (viewer->getMode()) {
+      case ViewMode::XYZ:
+      case ViewMode::xyY:
+      case ViewMode::sRGB:
+        channelCount = 3;
+        break;
+    }
     if (images.size()) {
       if (viewer->getCurrentSlice() < 0 || viewer->getCurrentSlice() >= (int)images[viewer->getCurrentImage()]->getSize()[2] / channelCount)
         viewer->setCurrentSlice(std::max(0, std::min(viewer->getCurrentSlice(), (int)images[viewer->getCurrentImage()]->getSize()[2] / channelCount - 1)));

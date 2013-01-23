@@ -78,25 +78,31 @@ FunctionFilter::FunctionFilter() : _Parameters(new NoParameters()) {
 void FunctionFilter::changedHandler(capputils::ObservableClass* sender, int eventId) {
   if (eventId == functionId) {
     switch (getFunction()) {
+    case FilterFunction::Abs:
     case FilterFunction::Log:
     case FilterFunction::Sqrt:
-      setParameters(boost::shared_ptr<FunctionParameters>(new NoParameters()));
+      if (!boost::dynamic_pointer_cast<NoParameters>(getParameters()))
+        setParameters(boost::shared_ptr<FunctionParameters>(new NoParameters()));
       break;
 
     case FilterFunction::Bernstein:
-      setParameters(boost::shared_ptr<FunctionParameters>(new BernsteinParameters()));
+      if (!boost::dynamic_pointer_cast<BernsteinParameters>(getParameters()))
+        setParameters(boost::shared_ptr<FunctionParameters>(new BernsteinParameters()));
       break;
 
     case FilterFunction::Gamma:
-      setParameters(boost::shared_ptr<GammaParameters>(new GammaParameters()));
+      if (!boost::dynamic_pointer_cast<GammaParameters>(getParameters()))
+        setParameters(boost::shared_ptr<GammaParameters>(new GammaParameters()));
       break;
 
     case FilterFunction::Sigmoid:
-      setParameters(boost::shared_ptr<SigmoidParameters>(new SigmoidParameters()));
+      if (!boost::dynamic_pointer_cast<SigmoidParameters>(getParameters()))
+        setParameters(boost::shared_ptr<SigmoidParameters>(new SigmoidParameters()));
       break;
 
     case FilterFunction::Threshold:
-      setParameters(boost::shared_ptr<ThresholdParameters>(new ThresholdParameters()));
+      if (!boost::dynamic_pointer_cast<ThresholdParameters>(getParameters()))
+        setParameters(boost::shared_ptr<ThresholdParameters>(new ThresholdParameters()));
       break;
     }
   }
@@ -129,15 +135,19 @@ struct cpu_sigmoid {
 void FunctionFilter::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
+  Logbook& dlog = getLogbook();
+
   image_t& input = *getInputImage();
   boost::shared_ptr<image_t> output(new image_t(input.getSize(), input.getPixelSize()));
 
-  const unsigned count = input.getSize()[0] * input.getSize()[1] * input.getSize()[2];
-
-  tensor<float, 3, false> img(input.getSize()[0], input.getSize()[1], input.getSize()[2]);
+  tensor<float, 3> img(input.getSize()[0], input.getSize()[1], input.getSize()[2]);
   std::copy(input.begin(), input.end(), img.begin());
 
   switch(getFunction()) {
+  case FilterFunction::Abs:
+    img = abs(img);
+    break;
+
   case FilterFunction::Log:
     img = log(img);
     break;
@@ -152,28 +162,28 @@ void FunctionFilter::update(IProgressMonitor* monitor) const {
       img = bernstein(img, params->getIndex(), params->getDegree());
     } break;
 
-  /*case FilterFunction::Gamma: {
+  case FilterFunction::Gamma: {
     GammaParameters* params = dynamic_cast<GammaParameters*>(getParameters().get());
-    if (params) {
-      thrust::transform(data.begin(), data.end(), data.begin(),
-        gpu_gamma(params->getSlope(), params->getGamma(), params->getIntercept()));
-    }
+    if (params)
+      img = params->getSlope() * pow(img, params->getGamma()) + params->getIntercept();
     } break;
 
-  case FilterFunction::Sigmoid: {
+  /*case FilterFunction::Sigmoid: {
     SigmoidParameters* params = dynamic_cast<SigmoidParameters*>(getParameters().get());
     if (params) {
       thrust::transform(data.begin(), data.end(), data.begin(),
         gpu_sigmoid(params->getSlope(), params->getInflection()));
     }
-    } break;
+    } break;*/
 
   case FilterFunction::Threshold: {
     ThresholdParameters* params = dynamic_cast<ThresholdParameters*>(getParameters().get());
-    if (params) {
-      thrust::transform(data.begin(), data.end(), data.begin(), _1 > params->getThreshold());
-    }
-    } break;*/
+    if (params)
+      img = img > params->getThreshold();
+    } break;
+
+  default:
+    dlog(Severity::Warning) << "Unsupported filter function: " << getFunction();
   }
 
   std::copy(img.begin(), img.end(), output->getData());
