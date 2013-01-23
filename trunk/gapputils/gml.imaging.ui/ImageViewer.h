@@ -21,7 +21,7 @@ namespace imaging {
 
 namespace ui {
 
-CapputilsEnumerator(ViewMode, Greyscale, sRGB, XYZ, xyY);
+CapputilsEnumerator(ViewMode, Greyscale, RedBlueMap, HeatMap1, HeatMap2, sRGB, XYZ, xyY);
 
 class ImageViewer : public DefaultWorkflowElement<ImageViewer> {
 

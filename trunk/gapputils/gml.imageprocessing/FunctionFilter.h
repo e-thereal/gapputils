@@ -18,7 +18,7 @@ namespace gml {
 
 namespace imageprocessing {
 
-CapputilsEnumerator(FilterFunction, Log, Sqrt, Bernstein, Gamma, Sigmoid, Threshold);
+CapputilsEnumerator(FilterFunction, Abs, Log, Sqrt, Bernstein, Gamma, Sigmoid, Threshold);
 
 class FunctionParameters : public capputils::reflection::ReflectableClass,
                            public ObservableClass

@@ -23,6 +23,7 @@ class MifWriter : public DefaultWorkflowElement<MifWriter> {
   InitReflectableClass(MifWriter)
 
   Property(Image, boost::shared_ptr<image_t>)
+  Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(MifName, std::string)
   Property(MinValue, double)
   Property(MaxValue, double)

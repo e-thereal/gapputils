@@ -45,7 +45,8 @@ void MergeChannels::update(IProgressMonitor* monitor) const {
   float *data = output->getData(), *data1 = channel1.getData(), *data2 = channel2.getData(), *data3 = channel3.getData();
 
   for (size_t i = 0; i < count && (monitor ? !monitor->getAbortRequested() : true); ++i) {
-    const size_t idx = i + 3 * (i / slicePitch);
+    const size_t idx = i + 2 * (i / slicePitch) * slicePitch;
+
     data[idx] = data1[i];
     data[idx + slicePitch] = data2[i];
     data[idx + 2 * slicePitch] = data3[i];

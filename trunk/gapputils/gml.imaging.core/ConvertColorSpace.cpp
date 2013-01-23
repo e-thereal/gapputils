@@ -38,7 +38,7 @@ void ConvertColorSpace::update(IProgressMonitor* monitor) const {
 
   for (size_t idx = 0; idx < input.getCount() / 3; ++idx) {
     float X = 0, Y = 0, Z = 0;
-    const size_t i = idx + 3 * (idx / slicePitch);
+    const size_t i = idx + 2 * (idx / slicePitch) * slicePitch;
 
     switch (inSpace) {
     case ColorSpace::XYZ:
