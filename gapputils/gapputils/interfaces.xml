@@ -74,6 +74,14 @@
           <Type value="double" />
         </gapputils-Interface>
       </Item>
+      
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="Reals" />
+          <Type value="double" />
+          <IsCollection value="1" />
+        </gapputils-Interface>
+      </Item>
 
       <Item>
         <gapputils-Interface>
