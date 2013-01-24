@@ -38,7 +38,6 @@ class BernsteinParameters : public FunctionParameters {
 
 public:
   BernsteinParameters();
-  virtual ~BernsteinParameters();
 };
 
 class GammaParameters : public FunctionParameters {
@@ -50,7 +49,6 @@ class GammaParameters : public FunctionParameters {
 
 public:
   GammaParameters();
-  virtual ~GammaParameters();
 };
 
 class SigmoidParameters : public FunctionParameters {

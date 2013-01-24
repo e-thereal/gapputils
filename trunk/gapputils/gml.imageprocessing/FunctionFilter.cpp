@@ -6,7 +6,7 @@
  */
 
 #include "FunctionFilter.h"
-#include <capputils/TimeStampAttribute.h>
+
 #include <capputils/EventHandler.h>
 
 #include <tbblas/tensor.hpp>
@@ -33,8 +33,6 @@ EndPropertyDefinitions
 
 BernsteinParameters::BernsteinParameters() : _Index(0), _Degree(0) { }
 
-BernsteinParameters::~BernsteinParameters() { }
-
 BeginPropertyDefinitions(GammaParameters)
   DefineProperty(Slope, Observe(Id))
   DefineProperty(Gamma, Observe(Id))
@@ -42,7 +40,6 @@ BeginPropertyDefinitions(GammaParameters)
 EndPropertyDefinitions
 
 GammaParameters::GammaParameters() : _Slope(1.f), _Gamma(1.f), _Intercept(0.f) { }
-GammaParameters::~GammaParameters() { }
 
 BeginPropertyDefinitions(SigmoidParameters)
   DefineProperty(Slope)
@@ -63,7 +60,7 @@ BeginPropertyDefinitions(FunctionFilter)
 
   ReflectableBase(DefaultWorkflowElement<FunctionFilter>)
   WorkflowProperty(InputImage, Input(""), NotNull<Type>())
-  WorkflowProperty(Function, Enumerator<Type>(), TimeStamp(functionId = Id))
+  WorkflowProperty(Function, Enumerator<Type>(), Dummy(functionId = Id))
   WorkflowProperty(Parameters, Reflectable<Type>())
   WorkflowProperty(OutputImage, Output(""))
 
@@ -82,27 +79,27 @@ void FunctionFilter::changedHandler(capputils::ObservableClass* sender, int even
     case FilterFunction::Log:
     case FilterFunction::Sqrt:
       if (!boost::dynamic_pointer_cast<NoParameters>(getParameters()))
-        setParameters(boost::shared_ptr<FunctionParameters>(new NoParameters()));
+        setParameters(boost::make_shared<NoParameters>());
       break;
 
     case FilterFunction::Bernstein:
       if (!boost::dynamic_pointer_cast<BernsteinParameters>(getParameters()))
-        setParameters(boost::shared_ptr<FunctionParameters>(new BernsteinParameters()));
+        setParameters(boost::make_shared<BernsteinParameters>());
       break;
 
     case FilterFunction::Gamma:
       if (!boost::dynamic_pointer_cast<GammaParameters>(getParameters()))
-        setParameters(boost::shared_ptr<GammaParameters>(new GammaParameters()));
+        setParameters(boost::make_shared<GammaParameters>());
       break;
 
     case FilterFunction::Sigmoid:
       if (!boost::dynamic_pointer_cast<SigmoidParameters>(getParameters()))
-        setParameters(boost::shared_ptr<SigmoidParameters>(new SigmoidParameters()));
+        setParameters(boost::make_shared<SigmoidParameters>());
       break;
 
     case FilterFunction::Threshold:
       if (!boost::dynamic_pointer_cast<ThresholdParameters>(getParameters()))
-        setParameters(boost::shared_ptr<ThresholdParameters>(new ThresholdParameters()));
+        setParameters(boost::make_shared<ThresholdParameters>());
       break;
     }
   }

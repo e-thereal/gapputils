@@ -20,20 +20,53 @@ namespace imageprocessing {
 
 CapputilsEnumerator(SimilarityMeasure, MSE, SSIM)
 
+struct CompareChecker { CompareChecker(); };
+
+class MeasureParameters : public capputils::reflection::ReflectableClass,
+                          public ObservableClass
+{
+  InitReflectableClass(MeasureParameters)
+};
+
+class NoMeasureParameters : public MeasureParameters {
+  InitReflectableClass(NoMeasureParameters)
+};
+
+class SsimParameters : public MeasureParameters {
+
+  friend struct CompareChecker;
+
+  InitReflectableClass(SsimParameters)
+
+  Property(WindowWidth, int)
+  Property(WindowHeight, int)
+  Property(WindowDepth, int)
+
+public:
+  SsimParameters();
+};
+
 class Compare : public DefaultWorkflowElement<Compare> {
+
+  friend struct CompareChecker;
 
   InitReflectableClass(Compare)
 
   Property(Image1, boost::shared_ptr<image_t>)
   Property(Image2, boost::shared_ptr<image_t>)
   Property(Measure, SimilarityMeasure)
+  Property(Parameters, boost::shared_ptr<MeasureParameters>)
   Property(Value, double)
+
+  static int measureId;
 
 public:
   Compare();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
+
+  void changedHandler(ObservableClass* sender, int eventId);
 };
 
 } /* namespace imageprocessing */
