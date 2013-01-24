@@ -7,12 +7,29 @@
 
 #include "Compare.h"
 
-#include <tbblas/tensor.hpp>
-#include <tbblas/math.hpp>
+#include <capputils/EventHandler.h>
 
 namespace gml {
 
 namespace imageprocessing {
+
+BeginPropertyDefinitions(MeasureParameters)
+EndPropertyDefinitions
+
+BeginPropertyDefinitions(NoMeasureParameters)
+EndPropertyDefinitions
+
+BeginPropertyDefinitions(SsimParameters)
+
+  DefineProperty(WindowWidth, Observe(Id))
+  DefineProperty(WindowHeight, Observe(Id))
+  DefineProperty(WindowDepth, Observe(Id))
+
+EndPropertyDefinitions
+
+SsimParameters::SsimParameters() : _WindowWidth(0), _WindowHeight(0), _WindowDepth(0) { }
+
+int Compare::measureId;
 
 BeginPropertyDefinitions(Compare)
 
@@ -20,40 +37,35 @@ BeginPropertyDefinitions(Compare)
 
   WorkflowProperty(Image1, Input("I1"), NotNull<Type>())
   WorkflowProperty(Image2, Input("I2"), NotNull<Type>())
-  WorkflowProperty(Measure, Enumerator<Type>())
+  WorkflowProperty(Measure, Enumerator<Type>(), Dummy(measureId = Id))
+  WorkflowProperty(Parameters, Reflectable<Type>())
   WorkflowProperty(Value, Output(""))
 
 EndPropertyDefinitions
 
 Compare::Compare() {
   setLabel("MSE");
+
+  Changed.connect(EventHandler<Compare>(this, &Compare::changedHandler));
 }
 
-void Compare::update(IProgressMonitor* monitor) const {
-  using namespace tbblas;
+void Compare::changedHandler(capputils::ObservableClass* sender, int eventId) {
+  if (eventId == measureId) {
+    switch (getMeasure()) {
+    case SimilarityMeasure::MSE:
+      if (!boost::dynamic_pointer_cast<NoMeasureParameters>(getParameters()))
+        setParameters(boost::make_shared<NoMeasureParameters>());
+      break;
 
-  Logbook& dlog = getLogbook();
-
-  image_t& input1 = *getImage1();
-  image_t& input2 = *getImage2();
-
-  tensor<float, 3> img1(input1.getSize()[0], input1.getSize()[1], input1.getSize()[2]);
-  tensor<float, 3> img2(input2.getSize()[0], input2.getSize()[1], input2.getSize()[2]);
-
-  thrust::copy(input1.begin(), input1.end(), img1.begin());
-  thrust::copy(input2.begin(), input2.end(), img2.begin());
-
-  switch (getMeasure()) {
-  case SimilarityMeasure::MSE:
-    img1 = (img1 - img2) * (img1 - img2);
-    newState->setValue(sum(img1) / img1.count());
-    return;
-
-  default:
-    dlog(Severity::Warning) << "Unsupported measure '" << getMeasure() << "'. Aborting!";
-    return;
+    case SimilarityMeasure::SSIM:
+      if (!boost::dynamic_pointer_cast<SsimParameters>(getParameters()))
+        setParameters(boost::make_shared<SsimParameters>());
+      break;
+    }
   }
 }
+
+CompareChecker compareChecker;
 
 } /* namespace imageprocessing */
 
