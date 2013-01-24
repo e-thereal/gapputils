@@ -11,6 +11,7 @@
 #include "WorkflowElement.h"
 
 #include <capputils/DescriptionAttribute.h>
+#include <capputils/DummyAttribute.h>
 #include <capputils/NotNullAttribute.h>
 #include <capputils/NotEmptyAttribute.h>
 #include <capputils/NotEqualAttribute.h>
