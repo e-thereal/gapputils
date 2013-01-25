@@ -583,7 +583,7 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
     PropertyReference outRef(shared_from_this(), outputNode->getUuid(), output->id);
     PropertyReference inRef(shared_from_this(), inputNode->getUuid(), input->id);
 
-    return Edge::areCompatible(inRef.getProperty(), outRef.getProperty());
+    return Edge::areCompatible(outRef.getProperty(), inRef.getProperty());
   }
 
   return false;

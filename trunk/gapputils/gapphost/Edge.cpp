@@ -3,6 +3,7 @@
 #include <capputils/EventHandler.h>
 #include <capputils/ObservableClass.h>
 #include <capputils/VolatileAttribute.h>
+#include <capputils/MergeAttribute.h>
 
 #include <capputils/Logbook.h>
 
@@ -105,7 +106,11 @@ bool Edge::activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> 
 bool Edge::areCompatible(const capputils::reflection::IClassProperty* outProp,
       const capputils::reflection::IClassProperty* inProp)
 {
-  return outProp->getType() == inProp->getType();
+  IMergeAttribute* mergeAttribute = inProp->getAttribute<IMergeAttribute>();
+  if (mergeAttribute)
+    return outProp->getType() == mergeAttribute->getValueType();
+  else
+    return outProp->getType() == inProp->getType();
 }
 
 void Edge::changedHandler(capputils::ObservableClass*, int eventId) {

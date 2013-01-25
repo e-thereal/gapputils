@@ -44,7 +44,8 @@ SOURCES = main.cpp \
 		  WorkbenchWindow.cpp \
 		  TestModule.cpp \
 		  HeadlessApp.cpp \
-		  WorkflowSnippets.cpp
+		  WorkflowSnippets.cpp \
+		  MergeTest.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
