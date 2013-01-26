@@ -18,7 +18,7 @@ namespace gml {
 
 namespace imageprocessing {
 
-CapputilsEnumerator(SimilarityMeasure, MSE, SSIM)
+CapputilsEnumerator(SimilarityMeasure, MSE, NRMSE, SSIM)
 
 struct CompareChecker { CompareChecker(); };
 

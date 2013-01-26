@@ -37,7 +37,8 @@ BeginPropertyDefinitions(Compare)
 
   WorkflowProperty(Image1, Input("I1"), NotNull<Type>())
   WorkflowProperty(Image2, Input("I2"), NotNull<Type>())
-  WorkflowProperty(Measure, Enumerator<Type>(), Dummy(measureId = Id))
+  WorkflowProperty(Measure, Enumerator<Type>(), Dummy(measureId = Id),
+      Description("NRMSE is the root mean squared error after normalizing the images."))
   WorkflowProperty(Parameters, Reflectable<Type>())
   WorkflowProperty(Value, Output(""))
 
@@ -53,6 +54,7 @@ void Compare::changedHandler(capputils::ObservableClass* sender, int eventId) {
   if (eventId == measureId) {
     switch (getMeasure()) {
     case SimilarityMeasure::MSE:
+    case SimilarityMeasure::NRMSE:
       if (!boost::dynamic_pointer_cast<NoMeasureParameters>(getParameters()))
         setParameters(boost::make_shared<NoMeasureParameters>());
       break;
