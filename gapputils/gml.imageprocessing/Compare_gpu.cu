@@ -12,6 +12,7 @@
 #include <tbblas/conv.hpp>
 #include <tbblas/ones.hpp>
 #include <tbblas/zeros.hpp>
+#include <tbblas/dot.hpp>
 
 namespace gml {
 
@@ -51,8 +52,20 @@ void Compare::update(IProgressMonitor* monitor) const {
 
   switch (getMeasure()) {
   case SimilarityMeasure::MSE:
-    img1 = (img1 - img2) * (img1 - img2);
-    newState->setValue(sum(img1) / img1.count());
+    newState->setValue(dot(img1 - img2, img1 - img2) / img1.count());
+    return;
+
+  case SimilarityMeasure::NRMSE:
+    {
+      const float mean = sum(img1) / img1.count();
+      img1 = img1 - mean;
+      img2 = img2 - mean;
+      const float sd = sqrt(dot(img1, img1) / img1.count());
+      img1 = img1 / sd;
+      img2 = img2 / sd;
+
+      newState->setValue(sqrt(dot(img1 - img2, img1 - img2) / img1.count()));
+    }
     return;
 
   case SimilarityMeasure::SSIM:
