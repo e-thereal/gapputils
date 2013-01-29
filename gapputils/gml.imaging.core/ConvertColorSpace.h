@@ -14,7 +14,7 @@ namespace imaging {
 
 namespace core {
 
-CapputilsEnumerator(ColorSpace, sRGB, XYZ, xyY);
+CapputilsEnumerator(ColorSpace, sRGB, XYZ, xyY, CIELAB);
 
 class ConvertColorSpace : public DefaultWorkflowElement<ConvertColorSpace> {
 
