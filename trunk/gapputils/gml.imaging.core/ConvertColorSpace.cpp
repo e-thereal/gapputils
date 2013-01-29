@@ -83,6 +83,38 @@ void ConvertColorSpace::update(IProgressMonitor* monitor) const {
       }
       break;
 
+    case ColorSpace::CIELAB:
+      {
+        const float L = inData[i] * 100.f;
+        const float a = inData[i + slicePitch] * 100.f;
+        const float b = inData[i + 2 * slicePitch] * 100.f;
+
+        const float fy = (L + 16.f) / 116.f;
+        const float fx = a / 500.f + fy;
+        const float fz = fy - b / 200.f;
+
+        float xr = fx * fx * fx;
+        if (xr <= eps)
+          xr = (116 * fx - 16) / kappa;
+
+        float yr = 0.f;
+        if (L > kappa * eps) {
+          yr = (L + 16.f) / 116.f;
+          yr = yr * yr * yr;
+        } else {
+          yr = L / kappa;
+        }
+
+        float zr = fz * fz * fz;
+        if (zr <= eps)
+          zr = (116 * fz - 16) / kappa;
+
+        X = xr * Xr;
+        Y = yr * Yr;
+        Z = zr * Zr;
+      }
+      break;
+
     default:
       dlog(Severity::Warning) << "Input color space '" << inSpace << "' has not yet been implemented.";
       return;
@@ -131,7 +163,7 @@ void ConvertColorSpace::update(IProgressMonitor* monitor) const {
 
         outData[i] = 1.16f * fy - .16f;
         outData[i + slicePitch] = 5.f * (fx - fy);
-        outData[i + 2 * slicePitch] = 2 * (fy - fz);
+        outData[i + 2 * slicePitch] = 2.f * (fy - fz);
       }
       break;
 
