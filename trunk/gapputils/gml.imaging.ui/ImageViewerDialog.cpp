@@ -293,12 +293,13 @@ void ImageViewerWidget::mousePressEvent(QMouseEvent* event) {
 }
 
 void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
+
   if (event->button() == Qt::RightButton) {
     QPointF dragEnd = mapToScene(event->pos());
     if (images.size()) {
       image_t& image = *images[viewer->getCurrentImage()];
 
-      const int width = image.getSize()[0], height = image.getSize()[1], count = width * height;
+      const int width = image.getSize()[0], height = image.getSize()[1], depth = image.getSize()[2], count = width * height;
 
       const int rx = std::max(0, std::min(width - 1, (int)std::min(dragStart.x(), dragEnd.x())));
       const int ry = std::max(0, std::min(height - 1, (int)std::min(dragStart.y(), dragEnd.y())));
@@ -315,6 +316,9 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
       case ViewMode::RedBlueMap:
       case ViewMode::HeatMap1:
       case ViewMode::HeatMap2:
+        if (depth < 1)
+          break;
+
         if (event->modifiers() == Qt::ControlModifier) {
           minimum = viewer->getMinimumIntensity();
           maximum = viewer->getMaximumIntensity();
@@ -332,6 +336,8 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
 
       case ViewMode::sRGB:
       case ViewMode::XYZ:
+        if (depth < 3)
+          break;
         if (event->modifiers() == Qt::ControlModifier) {
           minimum = viewer->getMinimumIntensity();
           maximum = viewer->getMaximumIntensity();
@@ -352,7 +358,9 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
         }
         break;
 
-        case ViewMode::xyY:
+      case ViewMode::xyY:
+        if (depth < 3)
+          break;
         if (event->modifiers() == Qt::ControlModifier) {
           minimum = viewer->getMinimumIntensity();
           maximum = viewer->getMaximumIntensity();
@@ -489,7 +497,7 @@ void ImageViewerWidget::changedHandler(capputils::ObservableClass* /*sender*/, i
         channelCount = 3;
         break;
     }
-    if (images.size()) {
+    if (images.size() && (int)images[viewer->getCurrentImage()]->getSize()[2] / channelCount) {
       if (viewer->getCurrentSlice() < 0 || viewer->getCurrentSlice() >= (int)images[viewer->getCurrentImage()]->getSize()[2] / channelCount)
         viewer->setCurrentSlice(std::max(0, std::min(viewer->getCurrentSlice(), (int)images[viewer->getCurrentImage()]->getSize()[2] / channelCount - 1)));
       else
