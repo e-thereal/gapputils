@@ -36,6 +36,10 @@ void ConvertColorSpace::update(IProgressMonitor* monitor) const {
   const ColorSpace inSpace = getInputColorSpace();
   const ColorSpace outSpace = getOutputColorSpace();
 
+  // D65 reference white
+  const float Xr = 0.95047f, Yr = 1.00000f, Zr = 1.08883f;
+  const float eps = 0.008856f, kappa = 903.3f;
+
   for (size_t idx = 0; idx < input.getCount() / 3; ++idx) {
     float X = 0, Y = 0, Z = 0;
     const size_t i = idx + 2 * (idx / slicePitch) * slicePitch;
@@ -112,6 +116,22 @@ void ConvertColorSpace::update(IProgressMonitor* monitor) const {
         outData[i] = (float)(r <= 0.00313088 ? 12.92 * r : 1.055 * pow((double)r, 1.0 / 2.4) - 0.055);
         outData[i + slicePitch] = (float)(g <= 0.00313088 ? 12.92 * g : 1.055 * pow((double)g, 1.0 / 2.4) - 0.055);
         outData[i + 2 * slicePitch] = (float)(b <= 0.00313088 ? 12.92 * b : 1.055 * pow((double)b, 1.0 / 2.4) - 0.055);
+      }
+      break;
+
+    case ColorSpace::CIELAB:
+      {
+        const float xr = X / Xr;
+        const float yr = Y / Yr;
+        const float zr = Z / Zr;
+
+        const float fx = (xr > eps ? pow(xr, 1.f/3.f) : (kappa * xr + 16) / 116);
+        const float fy = (xr > eps ? pow(yr, 1.f/3.f) : (kappa * yr + 16) / 116);
+        const float fz = (xr > eps ? pow(zr, 1.f/3.f) : (kappa * zr + 16) / 116);
+
+        outData[i] = 1.16f * fy - .16f;
+        outData[i + slicePitch] = 5.f * (fx - fy);
+        outData[i + 2 * slicePitch] = 2 * (fy - fz);
       }
       break;
 
