@@ -259,7 +259,7 @@ ToolItem::ToolItem(const std::string& label, Workbench* bench)
     labelFont.setPointSize(10);
   } else {
     labelFont.setBold(false);
-    labelFont.setPointSize(12);
+    labelFont.setPointSize(16);
   }
 
   updateSize();
@@ -278,7 +278,7 @@ void ToolItem::setItemStyle(ItemStyle style) {
     labelFont.setPointSize(10);
   } else {
     labelFont.setBold(false);
-    labelFont.setPointSize(12);
+    labelFont.setPointSize(16);
   }
   updateSize();
   update();
@@ -388,11 +388,11 @@ void ToolItem::updateSize() {
     height = max(height, outputsHeight);
     updateConnectionPositions();
   } else if (itemStyle == HorizontalAnnotation) {
-    width = labelFontMetrics.boundingRect(getLabel().c_str()).width() + 20;
-    height = 34;
+    width = labelFontMetrics.boundingRect(getLabel().c_str()).width() + 32;
+    height = 48;
   } else if (itemStyle == VerticalAnnotation) {
-    width = 34;
-    height = labelFontMetrics.boundingRect(getLabel().c_str()).width() + 20;
+    width = 48;
+    height = labelFontMetrics.boundingRect(getLabel().c_str()).width() + 32;
   }
 }
 
@@ -553,7 +553,7 @@ void ToolItem::drawBox(QPainter* painter) {
     }
   } else {
     painter->setBrush(QColor(255, 255, 192));
-    painter->setPen(Qt::black);
+    painter->setPen(QColor(96, 96, 64));
     painter->drawRect(0, 0, width, height);
   }
 
