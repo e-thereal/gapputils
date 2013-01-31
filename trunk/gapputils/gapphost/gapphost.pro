@@ -45,7 +45,9 @@ SOURCES = main.cpp \
 		  TestModule.cpp \
 		  HeadlessApp.cpp \
 		  WorkflowSnippets.cpp \
-		  MergeTest.cpp
+		  MergeTest.cpp \
+		  HorizontalAnnotation.cpp \
+		  VerticalAnnotation.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \

@@ -87,7 +87,8 @@ class ToolItem : public QObject, public QGraphicsItem {
   friend class MultiConnection;
 
 public:
-  enum ProgressStates {Neutral = -1, InProgress = -2};
+  enum ProgressStates { Neutral = -1, InProgress = -2 };
+  enum ItemStyle { Normal, HorizontalAnnotation, VerticalAnnotation };
 
 protected:
   std::string label;
@@ -97,10 +98,13 @@ protected:
   std::vector<boost::shared_ptr<MultiConnection> > outputs;
   QFont labelFont;
   double progress;
+  ItemStyle itemStyle;
 
 public:
   ToolItem(const std::string& label, Workbench* bench = 0);
   virtual ~ToolItem();
+
+  void setItemStyle(ItemStyle style);
 
   void setWorkbench(Workbench* bench);
 
