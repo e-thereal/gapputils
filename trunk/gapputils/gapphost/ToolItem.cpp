@@ -260,6 +260,7 @@ ToolItem::ToolItem(const std::string& label, Workbench* bench)
   } else {
     labelFont.setBold(false);
     labelFont.setPointSize(16);
+    labelWidth = 42;
   }
 
   updateSize();
@@ -279,6 +280,7 @@ void ToolItem::setItemStyle(ItemStyle style) {
   } else {
     labelFont.setBold(false);
     labelFont.setPointSize(16);
+    labelWidth = 42;
   }
   updateSize();
   update();
@@ -389,9 +391,9 @@ void ToolItem::updateSize() {
     updateConnectionPositions();
   } else if (itemStyle == HorizontalAnnotation) {
     width = labelFontMetrics.boundingRect(getLabel().c_str()).width() + 32;
-    height = 48;
+    height = labelWidth;
   } else if (itemStyle == VerticalAnnotation) {
-    width = 48;
+    width = labelWidth;
     height = labelFontMetrics.boundingRect(getLabel().c_str()).width() + 32;
   }
 }
@@ -630,10 +632,10 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
   } else if (itemStyle == HorizontalAnnotation) {
     painter->drawText(0, 0, width, height, Qt::AlignCenter, label);
   } else if (itemStyle == VerticalAnnotation) {
-    painter->translate((inputs.size() ? inputsWidth : 0) + labelWidth/2, height/2);
+    painter->translate(width/2, height/2);
     painter->rotate(270);
-    painter->translate(-(inputs.size() ? inputsWidth : 0) -labelWidth/2, -height/2);
-    painter->drawText((inputs.size() ? inputsWidth : 0) - height, 0, labelWidth + 2 * height, height, Qt::AlignCenter, label);
+    painter->translate(-width/2, -height/2);
+    painter->drawText(- height, 0, width + 2 * height, height, Qt::AlignCenter, label);
   }
   painter->restore();
 }
