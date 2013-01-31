@@ -17,6 +17,8 @@
 #include "ModelHarmonizer.h"
 #include "Node.h"
 
+class QGraphicsDropShadowEffect;
+
 namespace gapputils {
 
 class Workbench;
@@ -99,6 +101,7 @@ protected:
   QFont labelFont;
   double progress;
   ItemStyle itemStyle;
+  QGraphicsDropShadowEffect *effect;
 
 public:
   ToolItem(const std::string& label, Workbench* bench = 0);

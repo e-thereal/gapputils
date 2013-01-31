@@ -254,20 +254,23 @@ ToolItem::ToolItem(const std::string& label, Workbench* bench)
   setCacheMode(DeviceCoordinateCache);
   setZValue(3);
 
+  effect = new QGraphicsDropShadowEffect;
+  setGraphicsEffect(effect);
+
   if (itemStyle == Normal) {
     labelFont.setBold(true);
     labelFont.setPointSize(10);
+    effect->setColor(QColor(0, 0, 0, 160));
+    effect->setEnabled(false);
   } else {
     labelFont.setBold(false);
     labelFont.setPointSize(16);
     labelWidth = 42;
+    effect->setColor(QColor(0, 0, 0, 72));
+    effect->setEnabled(true);
   }
 
   updateSize();
-
-//  QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect;
-//  effect->setBlurRadius(8);
-//  this->setGraphicsEffect(effect);
 }
 
 ToolItem::~ToolItem() { }
@@ -277,10 +280,15 @@ void ToolItem::setItemStyle(ItemStyle style) {
   if (itemStyle == Normal) {
     labelFont.setBold(true);
     labelFont.setPointSize(10);
+    this->setGraphicsEffect(0);
+    effect->setColor(QColor(0, 0, 0, 160));
+    effect->setEnabled(false);
   } else {
     labelFont.setBold(false);
-    labelFont.setPointSize(16);
-    labelWidth = 42;
+    labelFont.setPointSize(14);
+    labelWidth = 36;
+    effect->setColor(QColor(0, 0, 0, 72));
+    effect->setEnabled(true);
   }
   updateSize();
   update();
@@ -511,20 +519,21 @@ void ToolItem::drawBox(QPainter* painter) {
 
     painter->setBrush(Qt::black);
 
+    effect->setEnabled(selected);
     if (selected) {
-      const int offset = 2;
-      painter->setOpacity(0.1 * opacity);
-      painter->setPen(QPen(Qt::black, 14));
-      painter->drawRoundedRect(0, offset, width, height, 4, 4);
-      painter->setOpacity(0.2 * opacity);
-      painter->setPen(QPen(Qt::black, 9));
-      painter->drawRoundedRect(0, offset, width, height, 4, 4);
-      painter->setOpacity(0.25 * opacity);
-      painter->setPen(QPen(Qt::black, 5.5));
-      painter->drawRoundedRect(0, offset, width, height, 4, 4);
-      painter->setOpacity(0.3 * opacity);
-      painter->setPen(QPen(Qt::black, 2.5));
-      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+//      const int offset = 2;
+//      painter->setOpacity(0.1 * opacity);
+//      painter->setPen(QPen(Qt::black, 14));
+//      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+//      painter->setOpacity(0.2 * opacity);
+//      painter->setPen(QPen(Qt::black, 9));
+//      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+//      painter->setOpacity(0.25 * opacity);
+//      painter->setPen(QPen(Qt::black, 5.5));
+//      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+//      painter->setOpacity(0.3 * opacity);
+//      painter->setPen(QPen(Qt::black, 2.5));
+//      painter->drawRoundedRect(0, offset, width, height, 4, 4);
     } else {
       /*const int offset = 1;
       painter->setOpacity(0.1);
@@ -615,7 +624,12 @@ void ToolItem::deleteConnection(const std::string& id, ToolConnection::Direction
 
 void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
-  Q_UNUSED(option)
+  Q_UNUSED(option);
+
+  if (bench && effect) {
+    effect->setBlurRadius(20 * bench->getViewScale());
+    effect->setOffset(5 * bench->getViewScale());
+  }
 
   QString label = getLabel().c_str();
 
