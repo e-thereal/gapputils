@@ -49,6 +49,9 @@
 #include "MakeGlobalDialog.h"
 #include "WorkflowSnippets.h"
 
+#include "HorizontalAnnotation.h"
+#include "VerticalAnnotation.h"
+
 using namespace capputils;
 using namespace capputils::attributes;
 using namespace capputils::reflection;
@@ -254,6 +257,11 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
       if (prop->getAttribute<OutputAttribute>())
         item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Output);
     }
+
+    if (boost::dynamic_pointer_cast<interfaces::HorizontalAnnotation>(node->getModule()))
+      item->setItemStyle(ToolItem::HorizontalAnnotation);
+    if (boost::dynamic_pointer_cast<interfaces::VerticalAnnotation>(node->getModule()))
+      item->setItemStyle(ToolItem::VerticalAnnotation);
   }
 
   item->setPos(node->getX(), node->getY());

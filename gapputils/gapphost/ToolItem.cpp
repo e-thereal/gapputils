@@ -243,7 +243,7 @@ int MultiConnection::getHeight() const {
 
 ToolItem::ToolItem(const std::string& label, Workbench* bench)
  : QObject(), label(label), bench(bench), width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
-   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), progress(Neutral)
+   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), progress(Neutral), itemStyle(Normal)
 {
   setFlag(ItemIsMovable);
   setFlag(ItemIsSelectable);
@@ -254,8 +254,13 @@ ToolItem::ToolItem(const std::string& label, Workbench* bench)
   setCacheMode(DeviceCoordinateCache);
   setZValue(3);
 
-  labelFont.setBold(true);
-  labelFont.setPointSize(10);
+  if (itemStyle == Normal) {
+    labelFont.setBold(true);
+    labelFont.setPointSize(10);
+  } else {
+    labelFont.setBold(false);
+    labelFont.setPointSize(12);
+  }
 
   updateSize();
 
@@ -265,6 +270,19 @@ ToolItem::ToolItem(const std::string& label, Workbench* bench)
 }
 
 ToolItem::~ToolItem() { }
+
+void ToolItem::setItemStyle(ItemStyle style) {
+  itemStyle = style;
+  if (itemStyle == Normal) {
+    labelFont.setBold(true);
+    labelFont.setPointSize(10);
+  } else {
+    labelFont.setBold(false);
+    labelFont.setPointSize(12);
+  }
+  updateSize();
+  update();
+}
 
 void ToolItem::setWorkbench(Workbench* bench) {
   this->bench = bench;
@@ -352,21 +370,30 @@ void ToolItem::updateCables() {
 void ToolItem::updateSize() {
   QFontMetrics fontMetrics(QApplication::font());
   QFontMetrics labelFontMetrics(labelFont);
-  inputsWidth = outputsWidth = 0;
-  for (unsigned i = 0; i < inputs.size(); ++i)
-    inputsWidth = max(inputsWidth, fontMetrics.boundingRect(inputs[i]->label).width() + 8);
-  for (unsigned i = 0; i < outputs.size(); ++i)
-    outputsWidth = max(outputsWidth, fontMetrics.boundingRect(outputs[i]->getLabel()).width() + 14);
 
-  width = (inputs.size() ? inputsWidth : 0) + labelWidth + (outputs.size() ? outputsWidth : 0);
-  height = 30;
-  height = max(height, labelFontMetrics.boundingRect(getLabel().c_str()).width() + 20);
-  height = max(height, connectionDistance * (int)inputs.size() + 12);
-  int outputsHeight = 12;
-  for (unsigned i = 0; i < outputs.size(); ++i)
-    outputsHeight += outputs[i]->getHeight();
-  height = max(height, outputsHeight);
-  updateConnectionPositions();
+  if (itemStyle == Normal) {
+    inputsWidth = outputsWidth = 0;
+    for (unsigned i = 0; i < inputs.size(); ++i)
+      inputsWidth = max(inputsWidth, fontMetrics.boundingRect(inputs[i]->label).width() + 8);
+    for (unsigned i = 0; i < outputs.size(); ++i)
+      outputsWidth = max(outputsWidth, fontMetrics.boundingRect(outputs[i]->getLabel()).width() + 14);
+
+    width = (inputs.size() ? inputsWidth : 0) + labelWidth + (outputs.size() ? outputsWidth : 0);
+    height = 30;
+    height = max(height, labelFontMetrics.boundingRect(getLabel().c_str()).width() + 20);
+    height = max(height, connectionDistance * (int)inputs.size() + 12);
+    int outputsHeight = 12;
+    for (unsigned i = 0; i < outputs.size(); ++i)
+      outputsHeight += outputs[i]->getHeight();
+    height = max(height, outputsHeight);
+    updateConnectionPositions();
+  } else if (itemStyle == HorizontalAnnotation) {
+    width = labelFontMetrics.boundingRect(getLabel().c_str()).width() + 20;
+    height = 34;
+  } else if (itemStyle == VerticalAnnotation) {
+    width = 34;
+    height = labelFontMetrics.boundingRect(getLabel().c_str()).width() + 20;
+  }
 }
 
 void ToolItem::updateConnectionPositions() {
@@ -431,95 +458,105 @@ void ToolItem::drawConnections(QPainter* painter, bool showLabel) {
 }
 
 void ToolItem::drawBox(QPainter* painter) {
-  QLinearGradient gradient(0, 0, 0, height);
-  QLinearGradient progressGradient(0, 0, 0, height);
-
-  bool selected = bench->scene()->selectedItems().contains(this);
-
-  qreal opacity = 1.0;
-
-  if (bench && isCurrentItem()) {
-    gradient.setColorAt(0, Qt::white);
-    switch ((int)progress) {
-    case -1:
-      gradient.setColorAt(1, Qt::lightGray);
-      break;
-    case -2:
-      gradient.setColorAt(1, Qt::yellow);
-      break;
-    default:
-      gradient.setColorAt(1, Qt::red);
-    }
-    progressGradient.setColorAt(0, Qt::white);
-    progressGradient.setColorAt(1, Qt::green);
-    setZValue(7);
-  } else {
-    gradient.setColorAt(0, Qt::lightGray);
-    switch ((int)progress) {
-    case -1:
-      gradient.setColorAt(1, Qt::gray);
-      break;
-    case -2:
-      gradient.setColorAt(1, Qt::yellow);
-      break;
-    default:
-      gradient.setColorAt(1, Qt::red);
-    }
-    progressGradient.setColorAt(0, Qt::lightGray);
-    progressGradient.setColorAt(1, Qt::green);
-    if (bench->isDependent(this)) {
-      setZValue(5);
-    } else {
-      setZValue(2);
-      painter->setOpacity(opacity = 0.5);
-    }
-  }
 
   painter->save();
-  painter->setBrush(Qt::black);
- 
-  if (selected) {
-    const int offset = 2;
-    painter->setOpacity(0.1 * opacity);
-    painter->setPen(QPen(Qt::black, 14));
-    painter->drawRoundedRect(0, offset, width, height, 4, 4);
-    painter->setOpacity(0.2 * opacity);
-    painter->setPen(QPen(Qt::black, 9));
-    painter->drawRoundedRect(0, offset, width, height, 4, 4);
-    painter->setOpacity(0.25 * opacity);
-    painter->setPen(QPen(Qt::black, 5.5));
-    painter->drawRoundedRect(0, offset, width, height, 4, 4);
-    painter->setOpacity(0.3 * opacity);
-    painter->setPen(QPen(Qt::black, 2.5));
-    painter->drawRoundedRect(0, offset, width, height, 4, 4);
-  } else {
-    /*const int offset = 1;
-    painter->setOpacity(0.1);
-    painter->setPen(QPen(Qt::black, 7));
-    painter->drawRoundedRect(0, offset, width, height, 4, 4);
-    painter->setOpacity(0.2);
-    painter->setPen(QPen(Qt::black, 5));
-    painter->drawRoundedRect(0, offset, width, height, 4, 4);
-    painter->setOpacity(0.25);
-    painter->setPen(QPen(Qt::black, 3));
-    painter->drawRoundedRect(0, offset, width, height, 4, 4);
-    painter->setOpacity(0.3);
-    painter->setPen(QPen(Qt::black, 1.5));
-    painter->drawRoundedRect(0, offset, width, height, 4, 4);*/
-  }
-  painter->setOpacity(0.9 * opacity);
-  painter->setBrush(gradient);
-  painter->setPen(QPen(Qt::black, 0));
-  painter->drawRoundedRect(0, 0, width, height, 4, 4);
 
-  if (progress >=0) {
-    painter->save();
-    painter->setClipping(true);
-    painter->setClipRect(QRectF(0, 0, width * min(100., progress) / 100., height));
-    painter->setBrush(progressGradient);
+  if (itemStyle == Normal) {
+
+    QLinearGradient gradient(0, 0, 0, height);
+    QLinearGradient progressGradient(0, 0, 0, height);
+
+    bool selected = bench->scene()->selectedItems().contains(this);
+
+    qreal opacity = 1.0;
+
+    if (bench && isCurrentItem()) {
+      gradient.setColorAt(0, Qt::white);
+      switch ((int)progress) {
+      case -1:
+        gradient.setColorAt(1, Qt::lightGray);
+        break;
+      case -2:
+        gradient.setColorAt(1, Qt::yellow);
+        break;
+      default:
+        gradient.setColorAt(1, Qt::red);
+      }
+      progressGradient.setColorAt(0, Qt::white);
+      progressGradient.setColorAt(1, Qt::green);
+      setZValue(7);
+    } else {
+      gradient.setColorAt(0, Qt::lightGray);
+      switch ((int)progress) {
+      case -1:
+        gradient.setColorAt(1, Qt::gray);
+        break;
+      case -2:
+        gradient.setColorAt(1, Qt::yellow);
+        break;
+      default:
+        gradient.setColorAt(1, Qt::red);
+      }
+      progressGradient.setColorAt(0, Qt::lightGray);
+      progressGradient.setColorAt(1, Qt::green);
+      if (bench->isDependent(this)) {
+        setZValue(5);
+      } else {
+        setZValue(2);
+        painter->setOpacity(opacity = 0.5);
+      }
+    }
+
+    painter->setBrush(Qt::black);
+
+    if (selected) {
+      const int offset = 2;
+      painter->setOpacity(0.1 * opacity);
+      painter->setPen(QPen(Qt::black, 14));
+      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+      painter->setOpacity(0.2 * opacity);
+      painter->setPen(QPen(Qt::black, 9));
+      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+      painter->setOpacity(0.25 * opacity);
+      painter->setPen(QPen(Qt::black, 5.5));
+      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+      painter->setOpacity(0.3 * opacity);
+      painter->setPen(QPen(Qt::black, 2.5));
+      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+    } else {
+      /*const int offset = 1;
+      painter->setOpacity(0.1);
+      painter->setPen(QPen(Qt::black, 7));
+      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+      painter->setOpacity(0.2);
+      painter->setPen(QPen(Qt::black, 5));
+      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+      painter->setOpacity(0.25);
+      painter->setPen(QPen(Qt::black, 3));
+      painter->drawRoundedRect(0, offset, width, height, 4, 4);
+      painter->setOpacity(0.3);
+      painter->setPen(QPen(Qt::black, 1.5));
+      painter->drawRoundedRect(0, offset, width, height, 4, 4);*/
+    }
+    painter->setOpacity(0.9 * opacity);
+    painter->setBrush(gradient);
+    painter->setPen(QPen(Qt::black, 0));
     painter->drawRoundedRect(0, 0, width, height, 4, 4);
-    painter->restore();
+
+    if (progress >=0) {
+      painter->save();
+      painter->setClipping(true);
+      painter->setClipRect(QRectF(0, 0, width * min(100., progress) / 100., height));
+      painter->setBrush(progressGradient);
+      painter->drawRoundedRect(0, 0, width, height, 4, 4);
+      painter->restore();
+    }
+  } else {
+    painter->setBrush(QColor(255, 255, 192));
+    painter->setPen(Qt::black);
+    painter->drawRect(0, 0, width, height);
   }
+
   painter->restore();
 }
 
@@ -584,14 +621,20 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
   drawConnections(painter);
  
   painter->save();
-  painter->translate((inputs.size() ? inputsWidth : 0) + labelWidth/2, height/2);
-  //painter->translate(width/2, height/2);
-  painter->rotate(270);
-  painter->translate(-(inputs.size() ? inputsWidth : 0) -labelWidth/2, -height/2);
-  //painter->translate(-width/2, -height/2);
   painter->setFont(labelFont);
-  painter->drawText((inputs.size() ? inputsWidth : 0) - height, 0, labelWidth + 2 * height, height, Qt::AlignCenter, label);
-  //painter->drawText(0, 0, width, height, Qt::AlignCenter, label);
+  if (itemStyle == Normal) {
+    painter->translate((inputs.size() ? inputsWidth : 0) + labelWidth/2, height/2);
+    painter->rotate(270);
+    painter->translate(-(inputs.size() ? inputsWidth : 0) -labelWidth/2, -height/2);
+    painter->drawText((inputs.size() ? inputsWidth : 0) - height, 0, labelWidth + 2 * height, height, Qt::AlignCenter, label);
+  } else if (itemStyle == HorizontalAnnotation) {
+    painter->drawText(0, 0, width, height, Qt::AlignCenter, label);
+  } else if (itemStyle == VerticalAnnotation) {
+    painter->translate((inputs.size() ? inputsWidth : 0) + labelWidth/2, height/2);
+    painter->rotate(270);
+    painter->translate(-(inputs.size() ? inputsWidth : 0) -labelWidth/2, -height/2);
+    painter->drawText((inputs.size() ? inputsWidth : 0) - height, 0, labelWidth + 2 * height, height, Qt::AlignCenter, label);
+  }
   painter->restore();
 }
 
