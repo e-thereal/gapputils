@@ -48,6 +48,7 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(LearningRateHB, trainer);
   CHECK_MEMORY_LAYOUT2(SparsityTarget, trainer);
   CHECK_MEMORY_LAYOUT2(SparsityWeight, trainer);
+  CHECK_MEMORY_LAYOUT2(SparsityMethod, trainer);
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, trainer);
   CHECK_MEMORY_LAYOUT2(CalculateError, trainer);
   CHECK_MEMORY_LAYOUT2(ShareBiasTerms, trainer);
@@ -476,12 +477,25 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
             // dF_k = ~h * v
             ch = fft(h, dimCount - 1, plan_h);
-            chdiff = getSparsityTarget() * h.count() * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) - ch;
             *cFinc[k] = *cFinc[k] + epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
-            *cFinc[k] = *cFinc[k] + epsilonsw * repeat(conj(chdiff), cv.size() / ch.size()) * cv;
             *ccinc[k] = *ccinc[k] + epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
-            *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * chdiff;
-//            *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) * (getSparsityTarget() * h.count() + -ch);
+
+            switch(getSparsityMethod()) {
+            case SparsityMethod::WeightsAndBias:
+              chdiff = getSparsityTarget() * h.count() * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) - ch;
+              *cFinc[k] = *cFinc[k] + epsilonsw * repeat(conj(chdiff), cv.size() / ch.size()) * cv;
+              *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * chdiff;
+              break;
+
+            case SparsityMethod::OnlyBias:
+              chdiff = getSparsityTarget() * h.count() * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) - ch;
+              *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * chdiff;
+              break;
+
+            case SparsityMethod::OnlySharedBias:
+              *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) * (getSparsityTarget() * h.count() + -ch);
+              break;
+            }
 
   #ifdef MONITOR_TRAINING
             if (iSample == 0 && iBatch == 0 && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {

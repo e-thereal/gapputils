@@ -11,6 +11,8 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
+#include "SparsityMethod.h"
+
 #include "Model.h"
 
 namespace gml {
@@ -38,6 +40,7 @@ public:
   Property(LearningRateHB, double)
   Property(SparsityTarget, double)
   Property(SparsityWeight, double)
+  Property(SparsityMethod, SparsityMethod)
   Property(RandomizeTraining, bool)
   Property(CalculateError, bool)
   Property(ShareBiasTerms, bool)
