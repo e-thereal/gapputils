@@ -19,7 +19,7 @@
 #include <capputils/VolatileAttribute.h>
 
 #include <gapputils/ReadOnlyAttribute.h>
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;

@@ -3,7 +3,7 @@
 #include <gapputils/LabelAttribute.h>
 #include <capputils/InputAttribute.h>
 #include <capputils/ObserveAttribute.h>
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 #include <capputils/VolatileAttribute.h>
 #include <capputils/EventHandler.h>
 

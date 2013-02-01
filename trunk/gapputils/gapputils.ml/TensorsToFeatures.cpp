@@ -20,7 +20,7 @@
 #include <capputils/NoParameterAttribute.h>
 #include <capputils/Logbook.h>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
 using namespace capputils::attributes;

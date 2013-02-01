@@ -12,7 +12,7 @@
 #include <capputils/VolatileAttribute.h>
 #include <capputils/TimeStampAttribute.h>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 #include <gapputils/LabelAttribute.h>
 
 #include <cstdio>

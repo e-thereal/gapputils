@@ -20,7 +20,7 @@
 #include <capputils/VolatileAttribute.h>
 #include <capputils/Xmlizer.h>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 
 #include <algorithm>
 #include <valarray>
@@ -28,7 +28,6 @@
 #include "AamMatchFunction.h"
 
 using namespace capputils::attributes;
-using namespace gapputils::attributes;
 using namespace std;
 
 namespace gapputils {
