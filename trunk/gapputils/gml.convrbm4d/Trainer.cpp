@@ -23,7 +23,7 @@ BeginPropertyDefinitions(Trainer)
   WorkflowProperty(LearningRateVB)
   WorkflowProperty(LearningRateHB)
   WorkflowProperty(SparsityTarget)
-  WorkflowProperty(SparsityWeight)
+  WorkflowProperty(SparsityWeight, Description("The sparsity weight is relative to the learning rate."))
   WorkflowProperty(RandomizeTraining)
   WorkflowProperty(CalculateError)
   WorkflowProperty(ShareBiasTerms)
@@ -42,7 +42,7 @@ EndPropertyDefinitions
 
 Trainer::Trainer()
  : _EpochCount(100), _BatchSize(20), _GpuCount(1), _LearningRateW(1e-3), _LearningRateVB(1e-3), _LearningRateHB(1e-3),
-   _SparsityTarget(1e-2), _SparsityWeight(0), _RandomizeTraining(false), _CalculateError(false), _ShareBiasTerms(false),
+   _SparsityTarget(1e-2), _SparsityWeight(0.1), _RandomizeTraining(false), _CalculateError(false), _ShareBiasTerms(false),
    _MonitorEvery(0), _ReconstructionCount(1)
 {
   setLabel("Trainer");
