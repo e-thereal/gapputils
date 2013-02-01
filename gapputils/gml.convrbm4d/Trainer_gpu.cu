@@ -220,9 +220,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
   // Initialize constants
   value_t epsilonw =  getLearningRateW() / batchSize / layerVoxelCount; // Learning rate for weights
+  value_t epsilonsw =  getLearningRateW() * getSparsityWeight() / batchSize / layerVoxelCount; // Sparsity weight
   value_t epsilonvb = getLearningRateVB() / batchSize;                  // Learning rate for biases of visible units
   value_t epsilonhb = getLearningRateHB() / batchSize;                  // Learning rate for biases of hidden units
-  value_t epsilonsb = getSparsityWeight() / batchSize;                  // Sparsity weight
+  value_t epsilonsb = getLearningRateHB() * getSparsityWeight() / batchSize;                  // Sparsity weight
   value_t weightcost = 0.0002 * getLearningRateW();
   value_t initialmomentum = 0.5; //65; // 0.5f;
   value_t finalmomentum = 0.9; // 65; // 0.9f;
@@ -301,7 +302,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
     // Declare variables used for training
     tensor_t h, h2, f;       // for sigm, sampling and masking
-    ctensor_t ch, ch_full;
+    ctensor_t ch, chdiff, ch_full;
     ctensor_t cv;         // Read from the master thread and then each other thread reads from the master device
     ctensor_t cvneg;      // All threads add their version to the master threads version (needs to be synchronized)
     random_tensor<value_t, dimCount, true, uniform<value_t> > h_rand(layerSize, tid);
@@ -475,9 +476,12 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
             // dF_k = ~h * v
             ch = fft(h, dimCount - 1, plan_h);
+            chdiff = getSparsityTarget() * h.count() * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) - ch;
             *cFinc[k] = *cFinc[k] + epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
+            *cFinc[k] = *cFinc[k] + epsilonsw * repeat(conj(chdiff), cv.size() / ch.size()) * cv;
             *ccinc[k] = *ccinc[k] + epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
-            *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) * (getSparsityTarget() * h.count() + -ch);
+            *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * chdiff;
+//            *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) * (getSparsityTarget() * h.count() + -ch);
 
   #ifdef MONITOR_TRAINING
             if (iSample == 0 && iBatch == 0 && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
