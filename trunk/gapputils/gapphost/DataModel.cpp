@@ -30,13 +30,21 @@ namespace host {
 
 int DataModel::WorkflowMapId = -1;
 
+#if defined(_RELEASE)
+  #define GRAPEVINE_LIBRARY_PATH "GRAPEVINE_LIBRARY_PATH"
+#elif defined(_DEBUG)
+  #define GRAPEVINE_LIBRARY_PATH "GRAPEVINE_DEBUG_LIBRARY_PATH"
+#else
+  #error "Neither _DEBUG nor _RELEASE has been defined."
+#endif
+
 BeginPropertyDefinitions(DataModel)
   DefineProperty(UpdateAll, Flag(), Volatile(),
-      Description("Automatically update the workflow and quit afterwards"))
+      Description("Automatically update the main workflow and quit afterwards"))
   DefineProperty(Update, Volatile(),
       Description("Automatically update only the specified output node and quit afterwards"))
   DefineProperty(Headless, Flag(), Volatile(),
-      Description("Starts grapevine without showing the main window (but you still need X). This really only makes sense along with the Run flag, hence Run is automatically activated."))
+      Description("Start grapevine without a GUI and update the main workflow if no other update target is given"))
   DefineProperty(Help, Flag(), Volatile(),
       Description("Shows this help"))
   DefineProperty(AutoReload, Flag(), Volatile(),
@@ -66,7 +74,8 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(Configuration, Volatile(), Filename(),
       Description("Name of the workflow configuration file"))
   DefineProperty(LibraryPath, Volatile(), Filename(),
-      Description("Path where default libraries are searched. The default value is read from 'GRAPEVINE_LIBRARY_PATH'"))
+
+      Description("Path where default libraries are searched. The default value is read from '" GRAPEVINE_LIBRARY_PATH "'"))
   DefineProperty(SnippetsPath, Volatile(), Filename(),
         Description("Path where workflow snippets are searched. The default value is read from 'GRAPEVINE_SNIPPETS_PATH'"))
   DefineProperty(LogfileName, Volatile(), Filename(),
@@ -90,13 +99,7 @@ DataModel::DataModel(void) : _UpdateAll(false), _Headless(false), _Help(false), 
     _Configuration(".gapphost/config.xml"), _SnippetsPath(".snippets"), _LogfileName("grapevine.log"), _SaveConfiguration(true),
     _WorkflowParameters(false)
 {
-#if defined(_RELEASE)
-  char* path = std::getenv("GRAPEVINE_LIBRARY_PATH");
-#elif defined(_DEBUG)
-  char* path = std::getenv("GRAPEVINE_DEBUG_LIBRARY_PATH");
-#else
-#error "Neither _DEBUG nor _RELEASE has been defined."
-#endif
+  char* path = std::getenv(GRAPEVINE_LIBRARY_PATH);
   if (path)
     setLibraryPath(path);
   boost::filesystem::create_directories(getLibraryPath());
