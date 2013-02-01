@@ -29,9 +29,16 @@ private:
   QTreeWidget* toolBox;
   std::map<QTreeWidgetItem*, boost::shared_ptr<std::vector<QTreeWidgetItem* > > > toolBoxItems;
 
-public:
+protected:
   WorkflowToolBox(QWidget * parent = 0);
+
+public:
   virtual ~WorkflowToolBox();
+
+  static WorkflowToolBox& GetInstance() {
+    static WorkflowToolBox* instance = 0;
+    return (instance ? *instance : *(instance = new WorkflowToolBox()));
+  }
 
   void update();
 

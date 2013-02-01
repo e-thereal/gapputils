@@ -48,6 +48,7 @@
 #include "DataModel.h"
 #include "MakeGlobalDialog.h"
 #include "WorkflowSnippets.h"
+#include "WorkflowToolBox.h"
 
 #include "HorizontalAnnotation.h"
 #include "VerticalAnnotation.h"
@@ -63,7 +64,7 @@ using namespace workflow;
 
 namespace host {
 
-void addDependencies(boost::shared_ptr<Workflow> workflow, const std::string& classname) {
+void addDependencies(Workflow& workflow, const std::string& classname) {
   // Update libraries
   std::string libName = LibraryLoader::getInstance().classDefinedIn(classname);
 
@@ -79,14 +80,14 @@ void addDependencies(boost::shared_ptr<Workflow> workflow, const std::string& cl
   }
 
   if (libName.size()) {
-    boost::shared_ptr<std::vector<std::string> > libraries = workflow->getLibraries();
+    boost::shared_ptr<std::vector<std::string> > libraries = workflow.getLibraries();
     unsigned i = 0;
     for (; i < libraries->size(); ++i)
       if (libraries->at(i).compare(libName) == 0)
         break;
     if (i == libraries->size()) {
       libraries->push_back(libName);
-      workflow->setLibraries(libraries);
+      workflow.setLibraries(libraries);
     }
   }
 }
@@ -316,6 +317,7 @@ boost::shared_ptr<workflow::Workflow> WorkbenchWindow::copySelectedNodes() {
     if (toolItem) {
       boost::shared_ptr<Node> node = workflow->getNode(toolItem);
       nodes->push_back(node);
+      addDependencies(*copyWorkflow, node->getModule()->getClassName());
       copied.insert(node->getUuid());
     }
   }
@@ -408,11 +410,19 @@ void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
   Q_FOREACH(QGraphicsItem* item, workbench->scene()->selectedItems())
     item->setSelected(false);
 
+  // Add libraries and update tool box
+  boost::shared_ptr<std::vector<std::string> > libraries = workflow->getLibraries();
+  std::vector<std::string>& pasteLibs = *pasteWorkflow.getLibraries();
+  for (size_t i = 0; i < pasteLibs.size(); ++i)
+    libraries->push_back(pasteLibs[i]);
+  workflow->setLibraries(libraries);
+  WorkflowToolBox::GetInstance().update();
+
   renewUuids(pasteWorkflow);
   std::vector<boost::shared_ptr<workflow::Node> >& nodes = *pasteWorkflow.getNodes();
   for (unsigned i = 0; i < nodes.size(); ++i) {
     if (nodes[i]->getModule())
-      addDependencies(workflow, nodes[i]->getModule()->getClassName());
+      addDependencies(*workflow, nodes[i]->getModule()->getClassName());
     workflow->getNodes()->push_back(nodes[i]);
     workflow->resumeNode(nodes[i]);
     createItem(nodes[i]);
@@ -591,12 +601,12 @@ boost::shared_ptr<workflow::Node> WorkbenchWindow::createModule(int x, int y, QS
   std::string name = classname.toAscii().data();
 
   boost::shared_ptr<ReflectableClass> object = boost::shared_ptr<ReflectableClass>(ReflectableClassFactory::getInstance().newInstance(name));
-  addDependencies(workflow, name);
+  addDependencies(*workflow, name);
 
   if (boost::dynamic_pointer_cast<WorkflowInterface>(object)) {
     boost::shared_ptr<Workflow> workflow = boost::shared_ptr<Workflow>(new Workflow());
     workflow->setModule(object);
-    addDependencies(workflow, name);
+    addDependencies(*workflow, name);
     workflow->resume();
     node = workflow;
   } else {

@@ -130,7 +130,9 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   QDockWidget *dock = new QDockWidget(tr("Modules"), this);
   dock->setObjectName("ModulesToolBox");
   dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-  toolBox = new WorkflowToolBox(dock);
+//  toolBox = new WorkflowToolBox(dock);
+  toolBox = &WorkflowToolBox::GetInstance();
+  toolBox->setParent(dock);
   dock->setWidget(toolBox);
 //  dock->setStyleSheet("::title { position: relative; padding-left: 50px;"
 //                            "          text-align: left center }");
