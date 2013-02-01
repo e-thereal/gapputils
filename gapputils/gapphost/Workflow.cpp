@@ -97,18 +97,11 @@ Workflow::Workflow()
    _GlobalProperties(new vector<boost::shared_ptr<GlobalProperty> >()),
    _GlobalEdges(new vector<boost::shared_ptr<GlobalEdge> >()),
    _ViewportScale(1.0), _Logbook(new Logbook(&host::LogbookModel::GetInstance()))//,
-   //ownWidget(true)
 {
   _ViewportPosition.push_back(0);
   _ViewportPosition.push_back(0);
 
   _Logbook->setModule("gapputils::workflow::Workflow");
-
-  //workbench = new Workbench();
-  //workbench->setGeometry(0, 0, 600, 600);
-  //workbench->setChecker(this);
-  //widget = workbench;
-
   this->Changed.connect(EventHandler<Workflow>(this, &Workflow::changedHandler));
 }
 
@@ -464,6 +457,11 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
       else
         loader.freeLibrary(*pos);
     }
+
+    // Sync libraries with loaded libraries (removes duplicates)
+    libraries->clear();
+    for (set<string>::iterator pos = loadedLibraries.begin(); pos != loadedLibraries.end(); ++pos)
+      libraries->push_back(*pos);
   }
 }
 
