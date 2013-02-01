@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
   ArgumentsParser::Parse(model, argc, argv);    // Needs to be here again to override configuration file parameters
   parseWorkflowParameters(argc, argv, *model.getMainWorkflow());
   if (model.getHelp()) {
-    ArgumentsParser::PrintDefaultUsage("gapphost", model);
+    ArgumentsParser::PrintDefaultUsage(argv[0], model);
     showWorkflowUsage(*model.getMainWorkflow());
     return 0;
   }
