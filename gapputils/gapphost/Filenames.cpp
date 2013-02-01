@@ -22,7 +22,6 @@
 #include <capputils/FromEnumerableAttribute.h>
 #include <capputils/ToEnumerableAttribute.h>
 
-#include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 #include <gapputils/InterfaceAttribute.h>
 

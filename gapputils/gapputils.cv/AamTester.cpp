@@ -11,7 +11,7 @@
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
 #include <culib/lintrans.h>

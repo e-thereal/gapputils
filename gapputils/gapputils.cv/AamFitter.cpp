@@ -21,7 +21,7 @@
 
 #include <culib/lintrans.h>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 
 #include <optlib/DownhillSimplexOptimizer.h>
 #include <optlib/SimplifiedPowellOptimizer.h>
@@ -39,7 +39,6 @@
 #include "AamWriter.h"
 
 using namespace capputils::attributes;
-using namespace gapputils::attributes;
 using namespace std;
 
 namespace gapputils {

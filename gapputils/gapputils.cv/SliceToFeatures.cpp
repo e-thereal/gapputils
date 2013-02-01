@@ -24,7 +24,7 @@
 #include <capputils/EnumerableAttribute.h>
 #include <capputils/NoParameterAttribute.h>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
 #include <CMIF.hpp>

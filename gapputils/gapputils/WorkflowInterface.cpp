@@ -11,7 +11,6 @@
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/VolatileAttribute.h>
 
-#include "HideAttribute.h"
 #include "LabelAttribute.h"
 
 using namespace capputils::attributes;

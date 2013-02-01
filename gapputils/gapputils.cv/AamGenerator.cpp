@@ -19,7 +19,7 @@
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 
 #include <culib/lintrans.h>
 #include <culib/CudaImage.h>
@@ -29,7 +29,6 @@
 #include "ImageWarp.h"
 
 using namespace capputils::attributes;
-using namespace gapputils::attributes;
 using namespace std;
 
 namespace gapputils {

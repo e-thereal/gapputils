@@ -6,22 +6,8 @@
 require(ggplot2)
 require(reshape)
 
-#stats = subset(read.csv("training_nosparse.csv"), select = c("F.mean", "F.sd", "b", "c.mean", "c.sd"))
-#stats2 = data.frame(id=0:(nrow(stats)-1), stats)
-#myplot = ggplot(stats2, aes(x = id))
-#myplot = myplot + geom_ribbon(aes(ymin=F.mean-F.sd, ymax=F.mean+F.sd))
-#myplot = myplot + geom_line(aes(y=F.mean))
-#print(myplot)
-
-#stats = subset(read.csv("training.csv"), select = c("b", "binc", "c.mean", "cinc.mean", "F.mean", "Finc.mean"))
-#stats = subset(read.csv("training_nosparse.csv"), select = c("b", "c.mean", "F.mean", "h.mean", "vneg.mean"))
-#stats2 = melt(data.frame(id=0:(nrow(stats)-1), stats), id="id")
-#head(stats2)
-#print(qplot(id, (log(abs(value)+0.001) - log(0.001)) * sign(value), data = stats2, colour = variable, geom="line"))
-#print(qplot(id, value, data = stats2, colour = variable, geom="line"))
-
-#logname = "logs/layer1_f16_e200.csv"
-logname = "logs/layer4_p2_f64_e1000.csv"
+logname = "logs/layer1_p4_f32_e1000.csv"
+#logname = "logs/nusparse_l1_p4_f32_e500.csv"
 #logname = my.file.browse();
 training.mean = subset(read.csv(logname), select = c("F.mean", "c.mean", "b.mean", "h.mean", "vneg.mean", "error"))
 training.mean = data.frame(id=0:(nrow(training.mean)-1), training.mean)

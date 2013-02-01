@@ -11,10 +11,10 @@
 #include <capputils/AbstractEnumerator.h>
 #include <capputils/IReflectableAttribute.h>
 #include <capputils/ScalarAttribute.h>
+#include <capputils/HideAttribute.h>
 #include <iostream>
 #include <sstream>
 #include <gapputils/LabelAttribute.h>
-#include <gapputils/HideAttribute.h>
 #include <capputils/ShortNameAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 #include "Workflow.h"

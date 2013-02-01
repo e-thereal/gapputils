@@ -18,7 +18,7 @@
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 
 #include <cassert>
 #include <cstdio>
@@ -26,7 +26,6 @@
 #include "AamReader.h"
 
 using namespace capputils::attributes;
-using namespace gapputils::attributes;
 
 namespace gapputils {
 

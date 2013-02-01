@@ -18,13 +18,12 @@
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 
 #include "AamUtils.h"
 #include "AamMatchFunction.h"
 
 using namespace capputils::attributes;
-using namespace gapputils::attributes;
 
 namespace gapputils {
 

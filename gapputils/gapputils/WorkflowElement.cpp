@@ -13,7 +13,6 @@
 #include <capputils/VolatileAttribute.h>
 #include <capputils/Logbook.h>
 
-#include "HideAttribute.h"
 #include "LabelAttribute.h"
 
 using namespace capputils;

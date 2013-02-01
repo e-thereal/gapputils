@@ -17,10 +17,9 @@
 
 #include <boost/filesystem.hpp>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 
 using namespace capputils::attributes;
-using namespace gapputils::attributes;
 using namespace std;
 
 #ifdef WIN32

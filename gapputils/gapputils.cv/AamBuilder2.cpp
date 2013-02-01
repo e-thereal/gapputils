@@ -19,7 +19,7 @@
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
 
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 
 #include <optlib/DownhillSimplexOptimizer.h>
 
@@ -37,7 +37,6 @@
 #include <sstream>
 
 using namespace capputils::attributes;
-using namespace gapputils::attributes;
 using namespace std;
 
 #define TRACE std::cout << __LINE__ << std::endl;

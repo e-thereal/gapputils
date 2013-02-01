@@ -7,7 +7,7 @@
 #include <capputils/FilenameAttribute.h>
 #include <capputils/ObserveAttribute.h>
 #include <capputils/VolatileAttribute.h>
-#include <gapputils/HideAttribute.h>
+#include <capputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 #include <capputils/InputAttribute.h>
 #include <capputils/TimeStampAttribute.h>
