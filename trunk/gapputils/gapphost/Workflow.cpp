@@ -132,8 +132,6 @@ Workflow::~Workflow() {
 }
 
 void Workflow::addInterfaceNode(boost::shared_ptr<Node> node) {
-  Logbook& dlog = *getLogbook();
-
   // Only add if not already added
   for (size_t i = 0; i < interfaceNodes.size(); ++i) {
     if (interfaceNodes[i].lock()->getUuid() == node->getUuid())
@@ -170,10 +168,9 @@ void Workflow::addInterfaceNode(boost::shared_ptr<Node> node) {
 }
 
 void Workflow::removeInterfaceNode(boost::shared_ptr<Node> node) {
-  Logbook& dlog = *getLogbook();
 //  std::cout << "[Info] removing interface node" << std::endl;
 
-  int deletedId = -1;
+//  int deletedId = -1;
   boost::shared_ptr<ReflectableClass> object = node->getModule();
   assert(object);
 
@@ -263,7 +260,6 @@ void Workflow::connectProperty(const std::string& name, const PropertyReference&
 }
 
 bool Workflow::activateGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
-  Logbook& dlog = *getLogbook();
   boost::shared_ptr<Node> inputNode = getNode(edge->getInputNode());
 
   boost::shared_ptr<GlobalProperty> globalProp = getGlobalProperty(edge->getGlobalProperty());
@@ -355,6 +351,17 @@ void Workflow::resume() {
   vector<boost::shared_ptr<GlobalProperty> >& globals = *getGlobalProperties();
   vector<boost::shared_ptr<GlobalEdge> >& gedges = *getGlobalEdges();
 
+  for (unsigned i = 0; i < nodes.size(); ++i)
+    resumeNode(nodes[i]);
+
+  for (unsigned i = 0; i < edges.size(); ++i) {
+    if (!resumeEdge(edges[i])) {
+      removeEdge(edges[i]);
+      --i;
+      dlog() << "Edge has been removed from the model.";
+    }
+  }
+
   for (unsigned i = 0; i < globals.size(); ++i) {
     boost::shared_ptr<GlobalProperty> gprop = globals[i];
     if (!PropertyReference::TryCreate(
@@ -366,17 +373,6 @@ void Workflow::resume() {
       dlog() << "Global property '" << gprop->getName() << "' has been removed from the model: "
           << gprop->getPropertyId();
       dlog.setUuid("");
-    }
-  }
-
-  for (unsigned i = 0; i < nodes.size(); ++i)
-    resumeNode(nodes[i]);
-
-  for (unsigned i = 0; i < edges.size(); ++i) {
-    if (!resumeEdge(edges[i])) {
-      removeEdge(edges[i]);
-      --i;
-      dlog() << "Edge has been removed from the model.";
     }
   }
 
@@ -465,8 +461,7 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
   }
 }
 
-void Workflow::interfaceChangedHandler(capputils::ObservableClass* sender, int eventId) {
-  Logbook& dlog = *getLogbook();
+void Workflow::interfaceChangedHandler(capputils::ObservableClass* sender, int /*eventId*/) {
 
   // Find the tool connection that corresponds to the sender
   Node* node = dynamic_cast<Node*>(sender);
@@ -818,14 +813,14 @@ boost::shared_ptr<GlobalProperty> Workflow::getGlobalProperty(const std::string&
   return boost::shared_ptr<GlobalProperty>();
 }
 
-boost::shared_ptr<GlobalProperty> Workflow::getGlobalProperty(const PropertyReference& reference)
-{
+boost::shared_ptr<GlobalProperty> Workflow::getGlobalProperty(const PropertyReference& reference) {
   boost::shared_ptr<GlobalProperty> gprop;
 
   for(unsigned pos = 0; pos < _GlobalProperties->size(); ++pos) {
     gprop = _GlobalProperties->at(pos);
-    if (gprop->getModuleUuid() == reference.getNodeId() && gprop->getPropertyId() == reference.getPropertyId())
+    if (gprop->getModuleUuid() == reference.getNodeId() && gprop->getPropertyId() == reference.getPropertyId()) {
       return gprop;
+    }
   }
   return boost::shared_ptr<GlobalProperty>();
 }

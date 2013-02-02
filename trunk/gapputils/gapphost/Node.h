@@ -80,8 +80,9 @@ public:
 
 //  QStandardItemModel* getModel();
 
-  virtual boost::shared_ptr<GlobalProperty> getGlobalProperty(const PropertyReference& reference);
-  virtual boost::shared_ptr<GlobalEdge> getGlobalEdge(const PropertyReference& reference);
+  // Having these methods is dangerous since in case of a workflow
+//  virtual boost::shared_ptr<GlobalProperty> getGlobalProperty(const PropertyReference& reference);
+//  virtual boost::shared_ptr<GlobalEdge> getGlobalEdge(const PropertyReference& reference);
 
 private:
   void changedHandler(capputils::ObservableClass* sender, int eventId);

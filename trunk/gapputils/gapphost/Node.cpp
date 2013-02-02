@@ -200,19 +200,19 @@ bool Node::isOutputNode() {
   return false;
 }
 
-boost::shared_ptr<GlobalProperty> Node::getGlobalProperty(const PropertyReference& reference) {
-  if (!getWorkflow().expired()) {
-    return getWorkflow().lock()->getGlobalProperty(reference);
-  }
-  return boost::shared_ptr<GlobalProperty>();
-}
-
-boost::shared_ptr<GlobalEdge> Node::getGlobalEdge(const PropertyReference& reference) {
-  if (!getWorkflow().expired()) {
-    return getWorkflow().lock()->getGlobalEdge(reference);
-  }
-  return boost::shared_ptr<GlobalEdge>();
-}
+//boost::shared_ptr<GlobalProperty> Node::getGlobalProperty(const PropertyReference& reference) {
+//  if (!getWorkflow().expired()) {
+//    return getWorkflow().lock()->getGlobalProperty(reference);
+//  }
+//  return boost::shared_ptr<GlobalProperty>();
+//}
+//
+//boost::shared_ptr<GlobalEdge> Node::getGlobalEdge(const PropertyReference& reference) {
+//  if (!getWorkflow().expired()) {
+//    return getWorkflow().lock()->getGlobalEdge(reference);
+//  }
+//  return boost::shared_ptr<GlobalEdge>();
+//}
 
 }
 
