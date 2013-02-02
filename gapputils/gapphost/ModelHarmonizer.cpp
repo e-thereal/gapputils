@@ -56,13 +56,13 @@ void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, int gridP
   key->setEditable(false);
   value->setData(QVariant::fromValue(ref), Qt::UserRole);
 
-  if (node->getGlobalProperty(ref)) {
+  if (node->getWorkflow().lock()->getGlobalProperty(ref)) {
     QFont font = value->font();
     font.setUnderline(true);
     value->setFont(font);
   }
 
-  if (node->getGlobalEdge(ref)) {
+  if (node->getWorkflow().lock()->getGlobalEdge(ref)) {
     QFont font = value->font();
     font.setItalic(true);
     value->setFont(font);

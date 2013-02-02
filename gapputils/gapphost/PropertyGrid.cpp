@@ -100,6 +100,7 @@ QLabel* createTopAlignedLabel(const std::string& text) {
 
 void PropertyGrid::currentChanged(const QModelIndex& current, const QModelIndex&) {
   boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
   assert(node);
 
   const QModelIndex& valueIndex = current.sibling(current.row(), 1);
@@ -137,11 +138,11 @@ void PropertyGrid::currentChanged(const QModelIndex& current, const QModelIndex&
   infoLayout->addRow(createTopAlignedLabel("Type:"), typeLabel);
 
   // check if global and check if connected and fill actions list accordingly
-  boost::shared_ptr<GlobalProperty> gprop = node->getGlobalProperty(reference);
+  boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(reference);
   if (gprop)
     infoLayout->addRow("Name:", new QLabel(gprop->getName().c_str()));
 
-  boost::shared_ptr<GlobalEdge> edge = node->getGlobalEdge(reference);
+  boost::shared_ptr<GlobalEdge> edge = workflow->getGlobalEdge(reference);
   if (edge)
     infoLayout->addRow("Connection:", new QLabel(edge->getGlobalProperty().c_str()));
 
@@ -161,6 +162,7 @@ void PropertyGrid::currentChanged(const QModelIndex& current, const QModelIndex&
 
 void PropertyGrid::showContextMenu(const QPoint& point) {
   boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
 
   QList<QAction*> actions;
   QModelIndex index = propertyGrid->indexAt(point);
@@ -174,13 +176,13 @@ void PropertyGrid::showContextMenu(const QPoint& point) {
   const PropertyReference& reference = varient.value<PropertyReference>();
 
   // check if global and check if connected and fill actions list accordingly
-  boost::shared_ptr<GlobalProperty> gprop = node->getGlobalProperty(reference);
+  boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(reference);
   if (gprop)
     actions.append(removeGlobal);
   else
     actions.append(makeGlobal);
 
-  boost::shared_ptr<GlobalEdge> edge = node->getGlobalEdge(reference);
+  boost::shared_ptr<GlobalEdge> edge = workflow->getGlobalEdge(reference);
   if (edge) {
     actions.append(disconnectFromGlobal);
   } else {
@@ -194,6 +196,7 @@ void PropertyGrid::showContextMenu(const QPoint& point) {
 void PropertyGrid::makePropertyGlobal() {
   boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
   boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
+
   MakeGlobalDialog dialog(propertyGrid);
   if (dialog.exec() == QDialog::Accepted) {
     QString text = dialog.getText();
@@ -230,7 +233,7 @@ void PropertyGrid::removePropertyFromGlobal() {
     item->setFont(font);
   }
 
-  boost::shared_ptr<GlobalProperty> gprop = node->getGlobalProperty(reference);
+  boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(reference);
   if (gprop)
     workflow->removeGlobalProperty(gprop);
 }
@@ -286,7 +289,7 @@ void PropertyGrid::disconnectProperty() {
     item->setFont(font);
   }
 
-  boost::shared_ptr<GlobalEdge> edge = node->getGlobalEdge(reference);
+  boost::shared_ptr<GlobalEdge> edge = workflow->getGlobalEdge(reference);
   if (edge)
     workflow->removeGlobalEdge(edge);
 }
