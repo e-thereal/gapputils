@@ -80,6 +80,7 @@ public:
   void resumeNode(boost::shared_ptr<Node> node);
   bool resumeEdge(boost::shared_ptr<Edge> edge);
 
+  bool isInterfaceNode(boost::shared_ptr<const Node> node) const;
   bool isInputNode(boost::shared_ptr<const Node> node) const;
   bool isOutputNode(boost::shared_ptr<const Node> node) const;
   void getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost::shared_ptr<Node> >& dependendNodes);

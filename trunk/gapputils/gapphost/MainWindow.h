@@ -20,6 +20,7 @@ class WorkflowToolBox;
 class PropertyGrid;
 class WorkbenchWindow;
 class WorkflowSnippets;
+class GlobalPropertiesView;
 
 class MainWindow : public QMainWindow
 {
@@ -35,6 +36,7 @@ private:
   WorkflowToolBox* toolBox;
   WorkflowSnippets* snippets;
   PropertyGrid* propertyGrid;
+  GlobalPropertiesView* globalPropertiesView;
   QMdiArea* area;
 
   QTimer reloadTimer;

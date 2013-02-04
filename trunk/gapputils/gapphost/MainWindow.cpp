@@ -127,6 +127,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
   setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
+  // Modules toolbox
   QDockWidget *dock = new QDockWidget(tr("Modules"), this);
   dock->setObjectName("ModulesToolBox");
   dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
@@ -140,6 +141,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   windowMenu->addAction(dock->toggleViewAction());
   editMenu->addAction("Filter", toolBox, SLOT(focusFilter()), QKeySequence(Qt::CTRL + Qt::Key_F));
 
+  // Workflow Snippets
   dock = new QDockWidget(tr("Snippets"), this);
   dock->setObjectName("WorkflowSnippets");
   dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
@@ -150,6 +152,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   addDockWidget(Qt::LeftDockWidgetArea, dock);
   windowMenu->addAction(dock->toggleViewAction());
 
+  // Property Grid
   dock = new QDockWidget(tr("Property Grid"), this);
   dock->setObjectName("PropertyGrid");
   dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
@@ -158,6 +161,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   addDockWidget(Qt::RightDockWidgetArea, dock);
   windowMenu->addAction(dock->toggleViewAction());
 
+  // Logbook
   dock = new QDockWidget(tr("Logbook"), this);
   dock->setObjectName("Logbook");
   dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea
@@ -167,12 +171,13 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   addDockWidget(Qt::BottomDockWidgetArea, dock);
   windowMenu->addAction(dock->toggleViewAction());
 
+  // Global Properties
   dock = new QDockWidget(tr("Global Properties"), this);
   dock->setObjectName("GlobalProperties");
   dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea
       | Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-  GlobalPropertiesView* propView = new GlobalPropertiesView(dock);
-  dock->setWidget(propView);
+  globalPropertiesView = new GlobalPropertiesView(dock);
+  dock->setWidget(globalPropertiesView);
   addDockWidget(Qt::BottomDockWidgetArea, dock);
   windowMenu->addAction(dock->toggleViewAction());
 
@@ -231,6 +236,8 @@ void MainWindow::resume() {
   grandpa->resume();
 //  workflow->resume();
   showWorkflow(workflow)->setClosable(false);
+
+  globalPropertiesView->setWorkflow(workflow);
 
   for (unsigned i = 0; i < model.getOpenWorkflows()->size(); ++i) {
     string uuid = model.getOpenWorkflows()->at(i);
@@ -486,6 +493,7 @@ void MainWindow::subWindowActivated(QMdiSubWindow* w) {
     return;
   DataModel::getInstance().setCurrentWorkflow(workflow->getUuid());
   propertyGrid->setNode(window->getCurrentNode());
+  globalPropertiesView->setWorkflow(workflow);
 }
 
 void MainWindow::handleCurrentNodeChanged(boost::shared_ptr<workflow::Node> node) {
