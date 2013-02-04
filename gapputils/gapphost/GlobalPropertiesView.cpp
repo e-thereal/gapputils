@@ -58,7 +58,12 @@ void GlobalPropertiesView::setWorkflow(boost::shared_ptr<Workflow> workflow) {
     if (ref.getNode()->getModule()->findProperty("Label"))
       label = ref.getNode()->getModule()->findProperty("Label")->getStringValue(*ref.getNode()->getModule());
 
-    propItem->setText(0, (globals[iProp]->getName() + " (" + globals[iProp]->getPropertyId() + ")").c_str());
+    if (ref.getObject()->getAttribute<InterfaceAttribute>()) {
+//      subItem->setText(0, ref.getObject()->findProperty("Label")->getStringValue(*ref.getObject()).c_str());
+      propItem->setText(0, (globals[iProp]->getName() + " (" + ref.getObject()->findProperty("Label")->getStringValue(*ref.getObject()) + ")").c_str());
+    } else {
+      propItem->setText(0, (globals[iProp]->getName() + " (" + ref.getPropertyId() + ")").c_str());
+    }
     propItem->setText(1, boost::units::detail::demangle(ref.getProperty()->getType().name()).c_str());
     propItem->setText(2, label.c_str());
     propItem->setText(3, ref.getNode()->getModule()->getClassName().c_str());

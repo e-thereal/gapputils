@@ -41,6 +41,7 @@
 #include <qmessagebox.h>
 
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <cmath>
 
@@ -333,6 +334,22 @@ boost::shared_ptr<workflow::Workflow> WorkbenchWindow::copySelectedNodes() {
     }
   }
 
+  // Add global properties of copied nodes
+  boost::shared_ptr<std::vector<boost::shared_ptr<GlobalProperty> > > gprops = copyWorkflow->getGlobalProperties();
+  for (size_t i = 0; i < workflow->getGlobalProperties()->size(); ++i) {
+    boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperties()->at(i);
+    if (copied.find(gprop->getModuleUuid()) != copied.end())
+      gprops->push_back(gprop);
+  }
+
+  // Add global edges of copied nodes. Edges are also copied if the global property hasn't been
+  boost::shared_ptr<std::vector<boost::shared_ptr<GlobalEdge> > > gedges = copyWorkflow->getGlobalEdges();
+  for (size_t i = 0; i < workflow->getGlobalEdges()->size(); ++i) {
+    boost::shared_ptr<GlobalEdge> edge = workflow->getGlobalEdges()->at(i);
+    if (copied.find(edge->getInputNode()) != copied.end())
+      gedges->push_back(edge);
+  }
+
   return copyWorkflow;
 }
 
@@ -356,7 +373,7 @@ void renewUuids(workflow::Workflow& workflow, std::map<std::string, std::string>
   for (unsigned i = 0; i < edges.size(); ++i) {
     workflow::Edge& edge = *edges[i];
 
-    // Change IDs only if mapping is available. If no mapping is availabe,
+    // Change IDs only if mapping is available. If no mapping is available,
     // the ID will likely not need a change
     if (uuidMap.find(edge.getInputNode()) != uuidMap.end())
       edge.setInputNode(uuidMap[edge.getInputNode()]);
@@ -419,8 +436,10 @@ void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
   WorkflowToolBox::GetInstance().update();
 
   renewUuids(pasteWorkflow);
+
+  // Paste nodes
   std::vector<boost::shared_ptr<workflow::Node> >& nodes = *pasteWorkflow.getNodes();
-  for (unsigned i = 0; i < nodes.size(); ++i) {
+  for (size_t i = 0; i < nodes.size(); ++i) {
     if (nodes[i]->getModule())
       addDependencies(*workflow, nodes[i]->getModule()->getClassName());
     workflow->getNodes()->push_back(nodes[i]);
@@ -429,12 +448,49 @@ void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
     nodes[i]->getToolItem()->setSelected(true);
   }
 
+  // Paste edges
   std::vector<boost::shared_ptr<workflow::Edge> >& edges = *pasteWorkflow.getEdges();
-  for (unsigned i = 0; i < edges.size(); ++i) {
+  for (size_t i = 0; i < edges.size(); ++i) {
     workflow->getEdges()->push_back(edges[i]);
     if (!workflow->resumeEdge(edges[i]) || !createCable(edges[i])) {
       workflow->removeEdge(edges[i]);
-      dlog() << "Edge has been removed from the model.";
+      dlog(Severity::Warning) << "Edge has been removed from the model.";
+    }
+  }
+
+  // Paste global properties
+  std::map<std::string, std::string> gpropNames;
+  std::vector<boost::shared_ptr<workflow::GlobalProperty> >& gprops = *pasteWorkflow.getGlobalProperties();
+  for (size_t i = 0; i < gprops.size(); ++i) {
+    boost::shared_ptr<workflow::GlobalProperty> gprop = gprops[i];
+    std::string originalName = gprop->getName();
+    std::string newName = originalName;
+    for (int iName = 0; workflow->getGlobalProperty(newName); ++iName) {
+      std::stringstream nameStream;
+      nameStream << "New" << originalName;
+      if (iName > 1)
+        nameStream << iName;
+      newName = nameStream.str();
+    }
+    if (originalName != newName)
+      dlog(Severity::Warning) << "Global property '" << originalName << "' has been renamed to '" << newName << "'.";
+    gprop->setName(newName);
+    gpropNames[originalName] = newName;
+    workflow->getGlobalProperties()->push_back(gprop);
+  }
+
+  // Paste global edges
+  std::vector<boost::shared_ptr<workflow::GlobalEdge> >& gedges = *pasteWorkflow.getGlobalEdges();
+  for (size_t i = 0; i < gedges.size(); ++i) {
+    boost::shared_ptr<GlobalEdge> gedge = gedges[i];
+    if (gpropNames.find(gedge->getGlobalProperty()) != gpropNames.end()) {
+      gedge->setGlobalProperty(gpropNames[gedge->getGlobalProperty()]);
+      dlog(Severity::Warning) << "Global edge connected to renamed global property '" << gedge->getGlobalProperty() << "'.";
+    }
+    workflow->getGlobalEdges()->push_back(gedge);
+    if (!workflow->activateGlobalEdge(gedge)) {
+      workflow->removeGlobalEdge(gedge);
+      dlog(Severity::Warning) << "Global edge has been removed from the model.";
     }
   }
 }
