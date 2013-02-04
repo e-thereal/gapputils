@@ -582,6 +582,18 @@ bool Workflow::areCompatibleConnections(const ToolConnection* output, const Tool
   return false;
 }
 
+bool Workflow::isInterfaceNode(boost::shared_ptr<const Node> node) const {
+  if (!node)
+    return false;
+
+  boost::shared_ptr<ReflectableClass> module = node->getModule();
+
+  if (!module)
+    return false;
+
+  return module->getAttribute<InterfaceAttribute>();
+}
+
 bool Workflow::isInputNode(boost::shared_ptr<const Node> node) const {
   if (!node)
     return false;
