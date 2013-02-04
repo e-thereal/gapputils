@@ -472,10 +472,11 @@ void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
         nameStream << iName;
       newName = nameStream.str();
     }
-    if (originalName != newName)
+    if (originalName != newName) {
       dlog(Severity::Warning) << "Global property '" << originalName << "' has been renamed to '" << newName << "'.";
+      gpropNames[originalName] = newName;
+    }
     gprop->setName(newName);
-    gpropNames[originalName] = newName;
     workflow->getGlobalProperties()->push_back(gprop);
   }
 

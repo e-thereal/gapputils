@@ -25,6 +25,9 @@ namespace host {
 
 GlobalPropertiesView::GlobalPropertiesView(QWidget* parent) :QWidget(parent) {
   propertiesWidget = new QTreeWidget();
+//  propertiesWidget->setAlternatingRowColors(true);
+//  propertiesWidget->setSelectionBehavior(QAbstractItemView::SelectItems);
+  propertiesWidget->setEditTriggers(QAbstractItemView::DoubleClicked);
   propertiesWidget->setHeaderLabels(QStringList() << "Property" << "Type" << "Label" << "Module" << "Node UUID");
 
   QVBoxLayout* mainLayout = new QVBoxLayout();
