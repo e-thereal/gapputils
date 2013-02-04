@@ -358,7 +358,7 @@ void Workflow::resume() {
     if (!resumeEdge(edges[i])) {
       removeEdge(edges[i]);
       --i;
-      dlog() << "Edge has been removed from the model.";
+      dlog(Severity::Warning) << "Edge has been removed from the model.";
     }
   }
 
@@ -370,7 +370,7 @@ void Workflow::resume() {
       globals.erase(globals.begin() + i);
       --i;
       dlog.setUuid(gprop->getModuleUuid());
-      dlog() << "Global property '" << gprop->getName() << "' has been removed from the model: "
+      dlog(Severity::Warning) << "Global property '" << gprop->getName() << "' has been removed from the model: "
           << gprop->getPropertyId();
       dlog.setUuid("");
     }
