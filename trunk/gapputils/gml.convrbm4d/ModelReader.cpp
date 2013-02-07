@@ -22,7 +22,7 @@ BeginPropertyDefinitions(ModelReader)
 
   ReflectableBase(DefaultWorkflowElement<ModelReader>)
 
-  WorkflowProperty(Filename, Input("File"), Filename(), FileExists())
+  WorkflowProperty(Filename, Input("File"), Filename("Compressed CRBM (*.crbm.gz)"), FileExists())
   WorkflowProperty(Model, Output("CRBM"))
   WorkflowProperty(FilterWidth, NoParameter())
   WorkflowProperty(FilterHeight, NoParameter())
