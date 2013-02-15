@@ -419,6 +419,8 @@ void renewUuids(workflow::Workflow& workflow) {
   renewUuids(workflow, uuidMap);
 }
 
+// TODO: Rename tags in expressions when the global property has been renamed
+
 void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
   boost::shared_ptr<workflow::Workflow> workflow = this->workflow.lock();
   Logbook& dlog = *workflow->getLogbook();
