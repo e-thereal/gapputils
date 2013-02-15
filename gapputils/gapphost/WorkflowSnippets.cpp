@@ -20,6 +20,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include <map>
+
 #include "DataModel.h"
 
 using namespace std;
@@ -72,15 +74,21 @@ void WorkflowSnippets::update() {
   toolBox->setRootIsDecorated(false);
   toolBox->clear();
 
+
   if (model.getSnippetsPath().size()) {
     directory_iterator end_itr;
     directory_entry entry;
+
+    std::map<std::string, std::string> snippets;
     for (directory_iterator itr(model.getSnippetsPath()); itr != end_itr; ++itr) {
       std::string filename = itr->path().filename();
       if (filename.substr(filename.size() - 4) == ".xml") {
-        toolBox->addTopLevelItem(newSnippet(filename.substr(0, filename.size() - 4), itr->path().string()));
+        snippets[filename.substr(0, filename.size() - 4)] = itr->path().string();
+//        toolBox->addTopLevelItem(newSnippet(filename.substr(0, filename.size() - 4), itr->path().string()));
       }
     }
+    for (std::map<std::string, std::string>::iterator iter = snippets.begin(); iter != snippets.end(); ++iter)
+      toolBox->addTopLevelItem(newSnippet(iter->first, iter->second));
   }
 
   toolBox->expandAll();
