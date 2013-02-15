@@ -18,7 +18,7 @@ namespace gml {
 
 namespace imageprocessing {
 
-CapputilsEnumerator(ColorMap, Greyscale, HeatMap1, HeatMap2);
+CapputilsEnumerator(ColorMap, Greyscale, HeatMap1, HeatMap2, ColorScale);
 
 class ColorMapper : public DefaultWorkflowElement<ColorMapper> {
 
@@ -28,6 +28,7 @@ class ColorMapper : public DefaultWorkflowElement<ColorMapper> {
   Property(ColorMap, ColorMap)
   Property(MinimumIntensity, double)
   Property(MaximumIntensity, double)
+  Property(Color, std::vector<double>)
   Property(OutputImage, boost::shared_ptr<image_t>)
 
 public:

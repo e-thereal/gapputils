@@ -28,6 +28,7 @@ class ReorientSlices : public DefaultWorkflowElement<ReorientSlices> {
 
   Property(InputImage, boost::shared_ptr<image_t>)
   Property(Orientation, SliceOrientation)
+  Property(Channels, int)
   Property(OutputImage, boost::shared_ptr<image_t>)
 
 public:

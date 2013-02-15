@@ -264,6 +264,7 @@ void ImageViewerWidget::updateView() {
 }
 
 void ImageViewerWidget::drawBackground(QPainter *painter, const QRectF &rect) {
+  painter->fillRect(rect, Qt::black);
   if (qimage) {
     painter->drawImage(0, 0, *qimage);
   }
