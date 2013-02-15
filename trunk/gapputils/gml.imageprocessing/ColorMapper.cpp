@@ -19,12 +19,14 @@ BeginPropertyDefinitions(ColorMapper)
   WorkflowProperty(ColorMap, Enumerator<Type>())
   WorkflowProperty(MinimumIntensity)
   WorkflowProperty(MaximumIntensity)
+  WorkflowProperty(Color, Description("The color is defined by an RGB triple in the range of [0, 1]."))
   WorkflowProperty(OutputImage, Output(""))
 
 EndPropertyDefinitions
 
-ColorMapper::ColorMapper() : _MinimumIntensity(0.0), _MaximumIntensity(1.0) {
+ColorMapper::ColorMapper() : _MinimumIntensity(0.0), _MaximumIntensity(1.0), _Color(3) {
   setLabel("Grey");
+  _Color[0] = _Color[1] = _Color[2] = 1.0;
 }
 
 void getHeatMap1Color(float value, float *red, float *green, float *blue) {
@@ -76,6 +78,8 @@ void getHeatMap2Color(float value, float *red, float *green, float *blue) {
 }
 
 void ColorMapper::update(IProgressMonitor* monitor) const {
+  Logbook& dlog = getLogbook();
+
   image_t& input = *getInputImage();
   boost::shared_ptr<image_t> output(new image_t(input.getSize()[0], input.getSize()[1], 3 * input.getSize()[2], input.getPixelSize()));
 
@@ -86,6 +90,13 @@ void ColorMapper::update(IProgressMonitor* monitor) const {
 
   float minimum = getMinimumIntensity();
   float range = getMaximumIntensity() - getMinimumIntensity();
+
+  std::vector<double> color = getColor();
+
+  if (colorMap == ColorMap::ColorScale && color.size() != 3) {
+    dlog(Severity::Warning) << "The specified color must have exactly 3 elements. Aborting!";
+    return;
+  }
 
   for (size_t idx = 0; idx < input.getCount(); ++idx) {
     float r = 0, g = 0, b = 0;
@@ -103,6 +114,12 @@ void ColorMapper::update(IProgressMonitor* monitor) const {
 
     case ColorMap::HeatMap2:
       getHeatMap2Color(value, &r, &g, &b);
+      break;
+
+    case ColorMap::ColorScale:
+      r = color[0] * value;
+      g = color[1] * value;
+      b = color[2] * value;
       break;
     }
     outData[i] = r;
