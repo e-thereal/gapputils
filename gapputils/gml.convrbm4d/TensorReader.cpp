@@ -23,6 +23,7 @@ BeginPropertyDefinitions(TensorReader)
   ReflectableBase(DefaultWorkflowElement<TensorReader>)
 
   WorkflowProperty(Filename, Input("File"), Filename(), FileExists())
+  WorkflowProperty(FirstIndex)
   WorkflowProperty(MaxCount)
   WorkflowProperty(Tensors, Output("Ts"))
   WorkflowProperty(Width, NoParameter())
@@ -33,7 +34,7 @@ BeginPropertyDefinitions(TensorReader)
 
 EndPropertyDefinitions
 
-TensorReader::TensorReader() : _MaxCount(-1), _Width(0), _Height(0), _Depth(0), _FilterCount(0), _TensorCount(0) {
+TensorReader::TensorReader() : _FirstIndex(0), _MaxCount(-1), _Width(0), _Height(0), _Depth(0), _FilterCount(0), _TensorCount(0) {
   setLabel("Reader");
 }
 
@@ -49,14 +50,28 @@ void TensorReader::update(gapputils::workflow::IProgressMonitor* monitor) const 
     return;
   }
 
+  int first = getFirstIndex();
+
   unsigned count;
   file.read((char*)&count, sizeof(count));
 
+  if (count <= first) {
+    dlog(Severity::Warning) << "Invalid FirstIndex. Aborting!";
+    return;
+  }
+
   if (getMaxCount() > 0)
-    count = std::min((int)count, getMaxCount());
+    count = std::min((int)count - first, getMaxCount());
 
   boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > tensors(
       new std::vector<boost::shared_ptr<tensor_t> >());
+
+  {
+    boost::shared_ptr<tensor_t> tensor(new tensor_t());
+    for (unsigned i = 0; i < first; ++i) {
+      tbblas::deserialize(file, *tensor);
+    }
+  }
 
   for (unsigned i = 0; i < count && (monitor ? !monitor->getAbortRequested() : true); ++i) {
     boost::shared_ptr<tensor_t> tensor(new tensor_t());

@@ -24,6 +24,7 @@ class TensorReader : public DefaultWorkflowElement<TensorReader> {
   InitReflectableClass(TensorReader)
 
   Property(Filename, std::string)
+  Property(FirstIndex, int)
   Property(MaxCount, int)
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(Width, int)

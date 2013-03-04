@@ -7,6 +7,7 @@
 
 #include "Aggregate.h"
 
+#include <cmath>
 #include <algorithm>
 
 namespace gml {
@@ -33,6 +34,20 @@ void Aggregate::update(IProgressMonitor* monitor) const {
   double result = 0;
 
   switch (getOperation()) {
+  case AggregatorOperation::Minimum:
+    if (data.size())
+      result = data[0];
+    for (size_t i = 0; i < data.size(); ++i)
+      result = std::min(result, data[i]);
+    break;
+
+  case AggregatorOperation::Maximum:
+    if (data.size())
+      result = data[0];
+    for (size_t i = 0; i < data.size(); ++i)
+      result = std::max(result, data[i]);
+    break;
+
   case AggregatorOperation::Sum:
     for (size_t i = 0; i < data.size(); ++i)
       result += data[i];

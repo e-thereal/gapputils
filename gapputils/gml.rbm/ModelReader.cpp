@@ -8,6 +8,7 @@
 #include "ModelReader.h"
 
 #include <capputils/Serializer.h>
+#include <tbblas/io.hpp>
 
 namespace gml {
 
@@ -31,8 +32,13 @@ ModelReader::ModelReader() : _VisibleCount(0), _HiddenCount(0) {
 }
 
 void ModelReader::update(IProgressMonitor* monitor) const {
+  Logbook& dlog = getLogbook();
+  using namespace tbblas;
+
   boost::shared_ptr<Model> rbm(new Model());
   Serializer::readFromFile(*rbm, getFilename());
+
+  dlog(Severity::Message) << "Mean: " << (*rbm->getMean())[seq(0,0)] << " Sd: " << (*rbm->getStddev())[seq(0,0)];
 
   newState->setModel(rbm);
   newState->setVisibleCount(rbm->getWeightMatrix()->size()[0]);
