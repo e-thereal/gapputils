@@ -20,7 +20,7 @@ class CombinerInterface : public WorkflowInterface {
   InitAbstractReflectableClass(CombinerInterface)
 
 private:
-  std::vector<capputils::reflection::IPropertyIterator*> inputIterators, outputIterators;
+  std::vector<boost::shared_ptr<capputils::reflection::IPropertyIterator> > inputIterators, outputIterators;
   std::vector<capputils::reflection::IClassProperty*> inputProperties, outputProperties;
   int maxIterations, currentIteration;
 

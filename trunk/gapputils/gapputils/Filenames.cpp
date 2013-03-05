@@ -37,7 +37,7 @@ int Filenames::patternId;
 BeginPropertyDefinitions(Filenames, Interface())
 
   ReflectableBase(gapputils::workflow::CollectionElement)
-  DefineProperty(Values, Output("Files"), Filename("All (*)", true), FileExists(), Enumerable<TYPE_OF(Values), false>(), Observe(filenamesId = Id))
+  DefineProperty(Values, Output("Files"), Filename("All (*)", true), FileExists(), Enumerable<Type, false>(), Observe(filenamesId = Id))
   DefineProperty(Value, Output("File"), Filename(), FileExists(), FromEnumerable(filenamesId), Observe(Id))
   DefineProperty(Pattern, Observe(patternId = Id))
 
@@ -68,7 +68,7 @@ int Filenames::filenamesId;
 BeginPropertyDefinitions(Filenames, Interface())
 
   ReflectableBase(gapputils::workflow::CollectionElement)
-  DefineProperty(Values, Input("Files"), Filename("All (*)", true), Enumerable<TYPE_OF(Values), false>(), Observe(filenamesId = Id))
+  DefineProperty(Values, Input("Files"), Filename("All (*)", true), Enumerable<Type, false>(), Observe(filenamesId = Id))
   DefineProperty(Value, Input("File"), Filename(), FileExists(), ToEnumerable(filenamesId), Observe(Id))
 
 EndPropertyDefinitions

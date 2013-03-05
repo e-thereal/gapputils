@@ -74,7 +74,7 @@ bool CollectionElement::resetCombinations() {
       const int enumId = fromEnumerable->getEnumerablePropertyId();
 
       if (enumId < (int)properties.size() && (enumerable = properties[enumId]->getAttribute<IEnumerableAttribute>())) {
-        IPropertyIterator* iterator = enumerable->getPropertyIterator(properties[enumId]);
+        boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(properties[enumId]);
         iterator->reset();
         for (count = 0; !iterator->eof(*this); iterator->next(), ++count);
         if (iterationCount == -1)
@@ -85,7 +85,7 @@ bool CollectionElement::resetCombinations() {
 
         if (iterator->eof(*this))
           return false;
-        properties[i]->setValue(*this, *this, iterator);
+        properties[i]->setValue(*this, *this, iterator.get());
         inputProperties.push_back(properties[i]);
         inputIterators.push_back(iterator);
       }
@@ -95,9 +95,10 @@ bool CollectionElement::resetCombinations() {
       const int enumId = toEnumerable->getEnumerablePropertyId();
 
       if (enumId < (int)properties.size() && (enumerable = properties[enumId]->getAttribute<IEnumerableAttribute>())) {
-        enumerable->clear(properties[enumId], *this);
-        IPropertyIterator* iterator = enumerable->getPropertyIterator(properties[enumId]);
+//        enumerable->clear(properties[enumId], *this);
+        boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(properties[enumId]);
         iterator->reset();
+        iterator->clear(*this);
         outputProperties.push_back(properties[i]);
         outputIterators.push_back(iterator);
       }
@@ -139,7 +140,7 @@ bool CollectionElement::advanceCombinations() {
       cout << "DONE" << endl;
       return false;
     }
-    inputProperties[i]->setValue(*this, *this, inputIterators[i]);
+    inputProperties[i]->setValue(*this, *this, inputIterators[i].get());
   }
 
   return true;
@@ -160,7 +161,7 @@ void CollectionElement::regressCombinations() {
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
     inputIterators[i]->prev();
     if (!inputIterators[i]->eof(*this))
-      inputProperties[i]->setValue(*this, *this, inputIterators[i]);
+      inputProperties[i]->setValue(*this, *this, inputIterators[i].get());
   }
 }
 

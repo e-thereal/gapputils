@@ -49,9 +49,9 @@ checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
   } else if (enumerable) {
     boost::crc_32_type valueSum;
     checksum_t checksum;
-    IPropertyIterator* iterator = enumerable->getPropertyIterator(property);
+    boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(property);
     for (iterator->reset(); !iterator->eof(object); iterator->next()) {
-      checksum = getChecksum(iterator, object);
+      checksum = getChecksum(iterator.get(), object);
       valueSum.process_bytes(&checksum, sizeof(checksum));
     }
     return valueSum.checksum();
