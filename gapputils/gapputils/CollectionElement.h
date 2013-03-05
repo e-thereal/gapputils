@@ -22,7 +22,7 @@ class CollectionElement : public WorkflowElement {
   Property(CalculateCombinations, bool)
 
 private:
-  std::vector<capputils::reflection::IPropertyIterator*> inputIterators, outputIterators;
+  std::vector<boost::shared_ptr<capputils::reflection::IPropertyIterator> > inputIterators, outputIterators;
   std::vector<capputils::reflection::IClassProperty*> inputProperties, outputProperties;
   int iterationCount, currentIteration;
 

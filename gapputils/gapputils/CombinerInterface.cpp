@@ -37,10 +37,6 @@ CombinerInterface::CombinerInterface() {
 }
 
 CombinerInterface::~CombinerInterface() {
-  for (unsigned i = 0; i < inputIterators.size(); ++i)
-    delete inputIterators[i];
-  for (unsigned i = 0; i < outputIterators.size(); ++i)
-    delete outputIterators[i];
 }
 
 bool CombinerInterface::resetCombinations() {
@@ -50,13 +46,7 @@ bool CombinerInterface::resetCombinations() {
 
   inputProperties.clear();
   outputProperties.clear();
-
-  for (unsigned i = 0; i < inputIterators.size(); ++i)
-    delete inputIterators[i];
   inputIterators.clear();
-
-  for (unsigned i = 0; i < outputIterators.size(); ++i)
-    delete outputIterators[i];
   outputIterators.clear();
 
   maxIterations = 0;
@@ -72,17 +62,16 @@ bool CombinerInterface::resetCombinations() {
       const int enumId = fromEnumerable->getEnumerablePropertyId();
 
       if (enumId < (int)properties.size() && (enumerable = properties[enumId]->getAttribute<IEnumerableAttribute>())) {
-        IPropertyIterator* iterator = enumerable->getPropertyIterator(properties[enumId]);
+        boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(properties[enumId]);
         iterator->reset();
         for (count = 0; !iterator->eof(*this); iterator->next(), ++count);
         maxIterations = max(maxIterations, count);
         iterator->reset();
 
         if (iterator->eof(*this)) {
-          delete iterator;
           return false;
         }
-        properties[i]->setValue(*this, *this, iterator);
+        properties[i]->setValue(*this, *this, iterator.get());
         inputProperties.push_back(properties[i]);
         inputIterators.push_back(iterator);
       }
@@ -92,9 +81,9 @@ bool CombinerInterface::resetCombinations() {
       const int enumId = toEnumerable->getEnumerablePropertyId();
 
       if (enumId < (int)properties.size() && (enumerable = properties[enumId]->getAttribute<IEnumerableAttribute>())) {
-        enumerable->clear(properties[enumId], *this);
-        IPropertyIterator* iterator = enumerable->getPropertyIterator(properties[enumId]);
+        boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(properties[enumId]);
         iterator->reset();
+        iterator->clear(*this);
         outputProperties.push_back(properties[i]);
         outputIterators.push_back(iterator);
       }
@@ -121,7 +110,7 @@ bool CombinerInterface::advanceCombinations() {
       cout << "DONE" << endl;
       return false;
     }
-    inputProperties[i]->setValue(*this, *this, inputIterators[i]);
+    inputProperties[i]->setValue(*this, *this, inputIterators[i].get());
   }
 
   return true;
