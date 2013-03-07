@@ -7,8 +7,6 @@
 
 #include "Trainer.h"
 
-//#define BOOST_CHRONO_HEADER_ONLY
-
 #include <tbblas/math.hpp>
 #include <tbblas/random.hpp>
 #include <tbblas/zeros.hpp>
@@ -21,7 +19,6 @@
 #include <tbblas/fft.hpp>
 
 #include <boost/timer.hpp>
-//#include <boost/chrono.hpp>
 
 #include <fstream>
 #include <omp.h>
@@ -29,7 +26,7 @@
 #include "math.hpp"
 
 // All monitoring code is enclosed by #ifdef MONITOR_TRAINING blocks
-#define MONITOR_TRAINING
+//#define MONITOR_TRAINING
 
 namespace gml {
 
@@ -63,25 +60,6 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(HiddenUnits, trainer);
   CHECK_MEMORY_LAYOUT2(Reconstructions, trainer);
 }
-
-//class timer {
-//private:
-//  boost::chrono::process_real_cpu_clock clock;
-//  boost::chrono::process_real_cpu_clock::time_point timePoint;
-//
-//public:
-//  timer() {
-//    timePoint = clock.now();
-//  }
-//
-//  boost::chrono::duration<double> elapsed() {
-//    return (clock.now() - timePoint);
-//  }
-//
-//  void restart() {
-//    timePoint = clock.now();
-//  }
-//};
 
 #define START size_t timerCycles = getEpochCount(); \
     boost::timer _timer;
@@ -119,10 +97,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
   const int gpuCount = getGpuCount();
 
-  if (deviceCount < gpuCount) {
-    dlog(Severity::Warning) << "Only " << deviceCount << " CUDA-enabled devices found, where " << gpuCount << " are required according to GpuCount. Aborting!";
-    return;
-  }
+//  if (deviceCount < gpuCount) {
+//    dlog(Severity::Warning) << "Only " << deviceCount << " CUDA-enabled devices found, where " << gpuCount << " are required according to GpuCount. Aborting!";
+//    return;
+//  }
 
   assert(omp_get_num_threads() == 1);
 
@@ -254,11 +232,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
     /*** PREPARE GPU THREADS ***/
 
     int tid = omp_get_thread_num();
-    cudaSetDevice(tid);
+    cudaSetDevice(tid % deviceCount);
 
     // Enable peer to peer access of each card with the master card and vice versa
     if (tid == 0) {
-      for (int i = 1; i < gpuCount; ++i)
+      for (int i = 1; i < min(deviceCount, gpuCount); ++i)
         cudaDeviceEnablePeerAccess(i, 0);
     } else {
       cudaDeviceEnablePeerAccess(0, 0);
@@ -787,7 +765,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     }
 
     if (tid == 0) {
-      for (int i = 1; i < gpuCount; ++i)
+      for (int i = 1; i < min(deviceCount, gpuCount); ++i)
         cudaDeviceDisablePeerAccess(i);
     } else {
       cudaDeviceDisablePeerAccess(0);
