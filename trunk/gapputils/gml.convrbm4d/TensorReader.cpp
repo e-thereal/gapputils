@@ -55,7 +55,7 @@ void TensorReader::update(gapputils::workflow::IProgressMonitor* monitor) const 
   unsigned count;
   file.read((char*)&count, sizeof(count));
 
-  if (count <= first) {
+  if ((int)count <= first) {
     dlog(Severity::Warning) << "Invalid FirstIndex. Aborting!";
     return;
   }
@@ -68,7 +68,7 @@ void TensorReader::update(gapputils::workflow::IProgressMonitor* monitor) const 
 
   {
     boost::shared_ptr<tensor_t> tensor(new tensor_t());
-    for (unsigned i = 0; i < first; ++i) {
+    for (int i = 0; i < first; ++i) {
       tbblas::deserialize(file, *tensor);
     }
   }
