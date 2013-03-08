@@ -48,8 +48,8 @@ BeginPropertyDefinitions(DataModel)
       Description("Start grapevine without a GUI and update the main workflow if no other update target is given"))
   DefineProperty(Help, Flag(), Volatile(),
       Description("Show this help"))
-  DefineProperty(AutoReload, Flag(), Volatile(),
-      Description("Automatically reload the workflow if one of the loaded libraries has been changend"))
+//  DefineProperty(AutoReload, Flag(), Volatile(),
+//      Description("Automatically reload the workflow if one of the loaded libraries has been changend"))
   DefineProperty(WindowX,
       Description("X position of the top left corner of the main window"))
   DefineProperty(WindowY,
@@ -92,7 +92,7 @@ EndPropertyDefinitions
 
 DataModel* DataModel::instance = 0;
 
-DataModel::DataModel(void) : _UpdateAll(false), _Headless(false), _Help(false), _AutoReload(false),
+DataModel::DataModel(void) : _UpdateAll(false), _Headless(false), _Help(false),
     _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600),
     _OpenWorkflows(new std::vector<std::string>()),
     _WorkflowMap(new std::map<std::string, boost::weak_ptr<workflow::Workflow> >),

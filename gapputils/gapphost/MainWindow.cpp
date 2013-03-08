@@ -46,7 +46,7 @@ using namespace workflow;
 namespace host {
 
 MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
-    : QMainWindow(parent, flags), libsChanged(false), autoQuit(false), workingWindow(0)
+    : QMainWindow(parent, flags), autoQuit(false), workingWindow(0)
 {
   DataModel& model = DataModel::getInstance();
 
@@ -89,12 +89,12 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   windowMenu = menuBar()->addMenu("&Window");
 
-  connect(&reloadTimer, SIGNAL(timeout()), this, SLOT(checkLibraryUpdates()));
+//  connect(&reloadTimer, SIGNAL(timeout()), this, SLOT(checkLibraryUpdates()));
 
-  if (DataModel::getInstance().getAutoReload()) {
-    reloadTimer.setInterval(1000);
-    reloadTimer.start();
-  }
+//  if (DataModel::getInstance().getAutoReload()) {
+//    reloadTimer.setInterval(1000);
+//    reloadTimer.start();
+//  }
 
   statusBar()->showMessage("Ready.");
 
@@ -382,18 +382,18 @@ void MainWindow::reload() {
   toolBox->update();
 }
 
-void MainWindow::checkLibraryUpdates() {
-  if (LibraryLoader::getInstance().librariesUpdated()) {
-    cout << "Update scheduled." << endl;
-    libsChanged = true;
-    return;
-  }
-  if (libsChanged) {
-    cout << "Updating libraries..." << endl;
-    reload();
-  }
-  libsChanged = false;
-}
+//void MainWindow::checkLibraryUpdates() {
+//  if (LibraryLoader::getInstance().librariesUpdated()) {
+//    cout << "Update scheduled." << endl;
+//    libsChanged = true;
+//    return;
+//  }
+//  if (libsChanged) {
+//    cout << "Updating libraries..." << endl;
+//    reload();
+//  }
+//  libsChanged = false;
+//}
 
 void MainWindow::setGuiEnabled(bool enabled) {
   fileMenu->setEnabled(enabled);

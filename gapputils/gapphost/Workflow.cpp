@@ -120,7 +120,7 @@ Workflow::~Workflow() {
 
   // Unload libraries
   for (unsigned i = 0; i < _Libraries->size(); ++i) {
-    loader.freeLibrary(_Libraries->at(i));
+    loader.unloadLibrary(_Libraries->at(i));
   }
 
   host::DataModel& model = host::DataModel::getInstance();
@@ -449,9 +449,9 @@ void Workflow::changedHandler(capputils::ObservableClass* /*sender*/, int eventI
         pos != unusedLibraries.end(); ++pos)
     {
       if (path.size() && QFile::exists(QString(path.c_str()) + "/" + pos->c_str()))
-        loader.freeLibrary(path + "/" + *pos);
+        loader.unloadLibrary(path + "/" + *pos);
       else
-        loader.freeLibrary(*pos);
+        loader.unloadLibrary(*pos);
     }
 
     // Sync libraries with loaded libraries (removes duplicates)
