@@ -32,17 +32,15 @@ private:
   QMenu* runMenu;
   QMenu* windowMenu;
   QAction* abortAction;
-  //QTabWidget* tabWidget;
   WorkflowToolBox* toolBox;
   WorkflowSnippets* snippets;
   PropertyGrid* propertyGrid;
   GlobalPropertiesView* globalPropertiesView;
   QMdiArea* area;
 
-  QTimer reloadTimer;
-  bool libsChanged, autoQuit;  ///< quits the problem when the workflow has been updated.
-  //std::vector<boost::weak_ptr<workflow::Workflow> > openWorkflows;
-  //boost::weak_ptr<workflow::Workflow> workingWorkflow;
+//  QTimer reloadTimer;
+//  bool libsChanged;
+  bool autoQuit;  ///< quits the problem when the workflow has been updated.
   WorkbenchWindow* workingWindow;
 
   boost::shared_ptr<workflow::Workflow> grandpa;
@@ -67,7 +65,7 @@ public Q_SLOTS:
   void saveAs();
   void loadLibrary();
   void reload();
-  void checkLibraryUpdates();
+//  void checkLibraryUpdates();
   void copy();
   void paste();
   void createSnippet();
