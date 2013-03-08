@@ -21,7 +21,7 @@
 #include <boost/timer.hpp>
 
 #include <fstream>
-//#include <omp.h>
+#include <omp.h>
 
 #include "math.hpp"
 
@@ -100,15 +100,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
   dlog.setSeverity(Severity::Message);
 
-//  tensor_t x;
-//  thrust::device_vector<double> test(1);
-  double* ptr;
-  cudaMalloc(&ptr, 8);
-//  sleep(5);
-  cudaFree(ptr);
-//  cudaDeviceReset();
-  return;
-#ifdef MY_OMP
   int deviceCount = 0;
   cudaGetDeviceCount(&deviceCount);
 
@@ -152,8 +143,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   const size_t epochCount = getEpochCount();
 
   std::vector<boost::shared_ptr<host_ctensor_t> > cX;
-
-  return;
 
   // Normalize input and pre-calculate the FFT
   {
@@ -246,11 +235,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
     cudaSetDevice(tid % deviceCount);
 
     // Enable peer to peer access of each card with the master card and vice versa
-    if (tid == 0) {
-      for (int i = 1; i < min(deviceCount, gpuCount); ++i)
-        cudaDeviceEnablePeerAccess(i, 0);
-    } else {
-      cudaDeviceEnablePeerAccess(0, 0);
+    if (tid < deviceCount) {
+      if (tid == 0) {
+        for (int i = 1; i < min(deviceCount, gpuCount); ++i)
+          cudaDeviceEnablePeerAccess(i, 0);
+      } else {
+        cudaDeviceEnablePeerAccess(0, 0);
+      }
     }
     #pragma omp barrier
 
@@ -778,11 +769,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
     cudaDeviceSynchronize();
     #pragma omp barrier
 
-    if (tid == 0) {
-      for (int i = 1; i < min(deviceCount, gpuCount); ++i)
-        cudaDeviceDisablePeerAccess(i);
-    } else {
-      cudaDeviceDisablePeerAccess(0);
+    if (tid < deviceCount) {
+      if (tid == 0) {
+        for (int i = 1; i < min(deviceCount, gpuCount); ++i)
+          cudaDeviceDisablePeerAccess(i);
+      } else {
+        cudaDeviceDisablePeerAccess(0);
+      }
     }
   } /* end of parallel code */
 
@@ -798,7 +791,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
 #endif
 
   newState->setModel(crbm);
-#endif
 }
 
 }
