@@ -75,6 +75,7 @@
 									<listOptionValue builtIn="false" value="tbblasd"/>
 									<listOptionValue builtIn="false" value="cufft"/>
 									<listOptionValue builtIn="false" value="gomp"/>
+									<listOptionValue builtIn="false" value="cuda"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.881294201" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -155,7 +156,7 @@
 								</option>
 								<option id="gnu.cpp.compiler.option.other.other.654552216" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++0x -fopenmp" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.other.pic.1496920239" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.1223807718" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1223807718" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1652791387" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cuda.toolchain.gnu.c.compiler.588304255" name="GCC C Compiler" superClass="cuda.toolchain.gnu.c.compiler">
@@ -178,6 +179,7 @@
 									<listOptionValue builtIn="false" value="tbblas"/>
 									<listOptionValue builtIn="false" value="cufft"/>
 									<listOptionValue builtIn="false" value="gomp"/>
+									<listOptionValue builtIn="false" value="cuda"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.412604528" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

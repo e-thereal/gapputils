@@ -21,7 +21,7 @@
 #include <boost/timer.hpp>
 
 #include <fstream>
-#include <omp.h>
+//#include <omp.h>
 
 #include "math.hpp"
 
@@ -89,9 +89,26 @@ void Trainer::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
   using namespace thrust::placeholders;
 
+  const unsigned dimCount = Model::dimCount;
+  typedef complex<value_t> complex_t;
+  typedef fft_plan<dimCount> plan_t;
+  typedef tensor<value_t, dimCount, true> tensor_t;
+  typedef tensor<complex_t, dimCount, true> ctensor_t;
+  typedef tensor<complex_t, dimCount, false> host_ctensor_t;
+  typedef tensor_t::dim_t dim_t;
+
   Logbook& dlog = getLogbook();
   dlog.setSeverity(Severity::Message);
 
+//  tensor_t x;
+//  thrust::device_vector<double> test(1);
+  double* ptr;
+  cudaMalloc(&ptr, 8);
+//  sleep(5);
+  cudaFree(ptr);
+//  cudaDeviceReset();
+  return;
+#ifdef MY_OMP
   int deviceCount = 0;
   cudaGetDeviceCount(&deviceCount);
 
@@ -107,14 +124,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   cudaSetDevice(0);
   omp_set_dynamic(0);
   omp_set_num_threads(gpuCount);
-
-  const unsigned dimCount = Model::dimCount;
-  typedef complex<value_t> complex_t;
-  typedef fft_plan<dimCount> plan_t;
-  typedef tensor<value_t, dimCount, true> tensor_t;
-  typedef tensor<complex_t, dimCount, true> ctensor_t;
-  typedef tensor<complex_t, dimCount, false> host_ctensor_t;
-  typedef tensor_t::dim_t dim_t;
 
 #ifdef MONITOR_TRAINING
   boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
@@ -143,6 +152,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
   const size_t epochCount = getEpochCount();
 
   std::vector<boost::shared_ptr<host_ctensor_t> > cX;
+
+  return;
 
   // Normalize input and pre-calculate the FFT
   {
@@ -764,6 +775,9 @@ void Trainer::update(IProgressMonitor* monitor) const {
       cF[k] = cFinc[k] = cc[k] = ccinc[k] = boost::shared_ptr<ctensor_t>();
     }
 
+    cudaDeviceSynchronize();
+    #pragma omp barrier
+
     if (tid == 0) {
       for (int i = 1; i < min(deviceCount, gpuCount); ++i)
         cudaDeviceDisablePeerAccess(i);
@@ -772,6 +786,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     }
   } /* end of parallel code */
 
+#ifdef MONITOR_TRAINING
   {
     boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
           new std::vector<boost::shared_ptr<host_tensor_t> >());
@@ -780,8 +795,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
     }
     newState->setFilters(debugFilters);
   }
+#endif
 
   newState->setModel(crbm);
+#endif
 }
 
 }
