@@ -41,8 +41,6 @@ EndPropertyDefinitions
 String::String() : data(0) {
   WfeUpdateTimestamp
   setLabel("String");
-
-  Changed.connect(capputils::EventHandler<String>(this, &String::changedHandler));
 }
 
 String::~String() {
@@ -50,11 +48,7 @@ String::~String() {
     delete data;
 }
 
-void String::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
-}
-
-void String::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+void String::execute(gapputils::workflow::IProgressMonitor* /*monitor*/) const {
   if (!data)
     data = new String();
 
@@ -84,8 +78,6 @@ EndPropertyDefinitions
 String::String() : data(0) {
   WfeUpdateTimestamp
   setLabel("String");
-
-  Changed.connect(capputils::EventHandler<String>(this, &String::changedHandler));
 }
 
 String::~String() {
@@ -93,11 +85,7 @@ String::~String() {
     delete data;
 }
 
-void String::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
-}
-
-void String::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+void String::execute(gapputils::workflow::IProgressMonitor* /*monitor*/) const {
   if (!data)
     data = new String();
 

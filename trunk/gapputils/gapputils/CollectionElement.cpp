@@ -74,20 +74,24 @@ bool CollectionElement::resetCombinations() {
       const int enumId = fromEnumerable->getEnumerablePropertyId();
 
       if (enumId < (int)properties.size() && (enumerable = properties[enumId]->getAttribute<IEnumerableAttribute>())) {
-        boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(properties[enumId]);
-        iterator->reset();
-        for (count = 0; !iterator->eof(*this); iterator->next(), ++count);
-        if (iterationCount == -1)
-          iterationCount = count;
-        else
-          iterationCount = min(iterationCount, count);
-        iterator->reset();
+        boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(*this, properties[enumId]);
+        if (iterator) {
+          iterator->reset();
+          for (count = 0; !iterator->eof(); iterator->next(), ++count);
+          if (iterationCount == -1)
+            iterationCount = count;
+          else
+            iterationCount = min(iterationCount, count);
+          iterator->reset();
 
-        if (iterator->eof(*this))
+          if (iterator->eof())
+            return false;
+          properties[i]->setValue(*this, *this, iterator.get());
+          inputProperties.push_back(properties[i]);
+          inputIterators.push_back(iterator);
+        } else {
           return false;
-        properties[i]->setValue(*this, *this, iterator.get());
-        inputProperties.push_back(properties[i]);
-        inputIterators.push_back(iterator);
+        }
       }
     }
 
@@ -96,11 +100,13 @@ bool CollectionElement::resetCombinations() {
 
       if (enumId < (int)properties.size() && (enumerable = properties[enumId]->getAttribute<IEnumerableAttribute>())) {
 //        enumerable->clear(properties[enumId], *this);
-        boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(properties[enumId]);
-        iterator->reset();
-        iterator->clear(*this);
-        outputProperties.push_back(properties[i]);
-        outputIterators.push_back(iterator);
+        boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(*this, properties[enumId]);
+        if (iterator) {
+          iterator->reset();
+          iterator->clear(*this);
+          outputProperties.push_back(properties[i]);
+          outputIterators.push_back(iterator);
+        }
       }
     }
   }
@@ -136,7 +142,7 @@ bool CollectionElement::advanceCombinations() {
 
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
     inputIterators[i]->next();
-    if (inputIterators[i]->eof(*this)) {
+    if (inputIterators[i]->eof()) {
       cout << "DONE" << endl;
       return false;
     }
@@ -160,7 +166,7 @@ void CollectionElement::regressCombinations() {
 
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
     inputIterators[i]->prev();
-    if (!inputIterators[i]->eof(*this))
+    if (!inputIterators[i]->eof())
       inputProperties[i]->setValue(*this, *this, inputIterators[i].get());
   }
 }

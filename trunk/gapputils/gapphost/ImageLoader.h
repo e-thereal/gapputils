@@ -15,7 +15,7 @@ namespace reflection {
 template<>
 class Converter<QImage, false> {
 public:
-  static std::string toString(const QImage& value) {
+  static std::string toString(const QImage& /*value*/) {
     return std::string("[QImage]");
   }
 };

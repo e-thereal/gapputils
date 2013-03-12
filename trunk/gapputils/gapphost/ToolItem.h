@@ -35,9 +35,9 @@ public:
   QString label;
   Direction direction;
   ToolItem* parent;
-  MultiConnection* multi;
-  CableItem* cable;
   std::string id;                 ///< PropertyId
+  CableItem* cable;
+  MultiConnection* multi;
 
 public:
   ToolConnection(const QString& label, Direction direction, ToolItem* parent,

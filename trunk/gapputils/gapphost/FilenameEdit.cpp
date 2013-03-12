@@ -18,7 +18,7 @@ path makeRelative(const path& absolute) {
   path relative;
 
   // skip what is the same
-  for(; !ci->compare(*ai); ++ci, ++ai);
+  for(; !ci->compare(*ai); ++ci, ++ai) { }
   for(; ci != current.end() && ci->compare("."); ++ci)
     relative /= "..";
   for(; ai != absolute.end(); ++ai)
@@ -33,13 +33,13 @@ bool inCurrentDir(const path filename) {
   path::iterator ci = current.begin();
   path::iterator ai = filename.begin();
 
-  for(; !ci->compare(*ai); ++ci, ++ai);
+  for(; !ci->compare(*ai); ++ci, ++ai) { }
 
   return ci == current.end();
 }
 
 FilenameEdit::FilenameEdit(bool exists, FilenameAttribute* filenameAttribute, QWidget *parent)
-  : exists(exists), filenameAttribute(filenameAttribute), QFrame(parent)
+  : QFrame(parent), exists(exists), filenameAttribute(filenameAttribute)
 {
   edit = new QLineEdit(this);
   edit->setVisible(true);
@@ -57,7 +57,7 @@ FilenameEdit::~FilenameEdit()
   delete edit;
 }
 
-void FilenameEdit::focusInEvent(QFocusEvent* e) {
+void FilenameEdit::focusInEvent(QFocusEvent* /*e*/) {
   edit->setFocus();
 }
 
@@ -100,7 +100,7 @@ void FilenameEdit::clickedHandler() {
   }
 }
 
-void FilenameEdit::resizeEvent(QResizeEvent* event) {
+void FilenameEdit::resizeEvent(QResizeEvent* /*event*/) {
   edit->setGeometry(1, 1, this->width()-27, this->height()-2);
   button->setGeometry(this->width()-27, 1, 26, this->height()-2);
 }

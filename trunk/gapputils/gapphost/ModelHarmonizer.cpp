@@ -220,7 +220,7 @@ QStandardItemModel* ModelHarmonizer::getModel() const {
   return model;
 }
 
-void ModelHarmonizer::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void ModelHarmonizer::changedHandler(capputils::ObservableClass* /*sender*/, int /*eventId*/) {
   modelLocked = true;
   updateModel(model->invisibleRootItem(), *node.lock()->getModule(), node.lock().get());
   modelLocked = false;

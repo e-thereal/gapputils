@@ -633,7 +633,7 @@ void WorkbenchWindow::changedHandler(capputils::ObservableClass* sender, int eve
   }
 }
 
-void WorkbenchWindow::handleModelEvents(capputils::ObservableClass* sender, int eventId) {
+void WorkbenchWindow::handleModelEvents(capputils::ObservableClass* /*sender*/, int eventId) {
   if (eventId == DataModel::WorkflowMapId && workflow.expired()) {
     setClosable(true);
     close();

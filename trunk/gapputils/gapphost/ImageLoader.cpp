@@ -43,7 +43,7 @@ ImageLoader::~ImageLoader(void)
     delete data;
 }
 
-void ImageLoader::execute(workflow::IProgressMonitor* monitor) const {
+void ImageLoader::execute(workflow::IProgressMonitor* /*monitor*/) const {
   if (!data)
     data = new ImageLoader();
 
