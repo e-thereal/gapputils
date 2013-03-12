@@ -39,12 +39,12 @@ ImageViewer::~ImageViewer(void)
   delete dialog;
 }
 
-void ImageViewer::execute(workflow::IProgressMonitor* monitor) const {
+void ImageViewer::execute(workflow::IProgressMonitor* /*monitor*/) const {
 }
 
 void ImageViewer::writeResults() { }
 
-void ImageViewer::changeHandler(capputils::ObservableClass* sender, int eventId) {
+void ImageViewer::changeHandler(capputils::ObservableClass* /*sender*/, int eventId) {
   if (eventId == labelId)
     dialog->setWindowTitle(QString("Image Viewer: ") + getLabel().c_str());
    

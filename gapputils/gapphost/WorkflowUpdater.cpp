@@ -94,8 +94,10 @@ void WorkflowUpdater::run() {
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
         boost::shared_ptr<workflow::CollectionElement> collection = boost::dynamic_pointer_cast<workflow::CollectionElement>(interfaceNodes[i].lock()->getModule());
         if (collection && collection->getCalculateCombinations()) {
-          if (!collection->resetCombinations())
+          if (!collection->resetCombinations()) {
+            dlog(capputils::Severity::Warning) << "Can't update workflow. Empty or null input collection detected.";
             needsUpdate = false;
+          }
           collectionElements.push_back(collection);
           collection->setCalculateCombinations(false);
           if (!workflow->isOutputNode(interfaceNodes[i].lock())) {

@@ -31,8 +31,6 @@ public:
 
   virtual void execute(gapputils::workflow::IProgressMonitor* monitor) const;
   virtual void writeResults();
-
-  void changedHandler(capputils::ObservableClass* sender, int eventId);
 };
 
 }

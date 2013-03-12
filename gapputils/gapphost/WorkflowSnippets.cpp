@@ -100,8 +100,8 @@ void WorkflowSnippets::focusFilter() {
   toolBoxFilterEdit->selectAll();
 }
 
-void WorkflowSnippets::filterToolBox(const QString& text) {
-  // Do the filtering stuff here
+void WorkflowSnippets::filterToolBox(const QString& /*text*/) {
+  // TODO: Do the filtering stuff here
 
 #if 0
   if (text.length()) {

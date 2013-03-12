@@ -133,7 +133,7 @@ LogbookWidget::~LogbookWidget() {
   settings.setValue("logbook/ModuleWidth", logbookWidget->columnWidth(ModuleColumn));
   settings.setValue("logbook/UuidWidth", logbookWidget->columnWidth(UuidColumn));
 
-  for (int i = 0; i < logEntries.size(); ++i)
+  for (size_t i = 0; i < logEntries.size(); ++i)
     delete logEntries[i];
 }
 
@@ -250,13 +250,13 @@ void LogbookWidget::clearFilter() {
 }
 
 void LogbookWidget::clearLog() {
-  for (int i = 0; i < logEntries.size(); ++i)
+  for (size_t i = 0; i < logEntries.size(); ++i)
     delete logEntries[i];
   logEntries.clear();
   logbookWidget->clear();
 }
 
-void LogbookWidget::handleItemDoubleClicked(QTreeWidgetItem* item, int column) {
+void LogbookWidget::handleItemDoubleClicked(QTreeWidgetItem* item, int /*column*/) {
   Q_EMIT selectModuleRequested(item->text(UuidColumn));
 }
 

@@ -41,8 +41,6 @@ EndPropertyDefinitions
 Filename::Filename() : data(0) {
   WfeUpdateTimestamp
   setLabel("Filename");
-
-  Changed.connect(capputils::EventHandler<Filename>(this, &Filename::changedHandler));
 }
 
 Filename::~Filename() {
@@ -50,11 +48,7 @@ Filename::~Filename() {
     delete data;
 }
 
-void Filename::changedHandler(capputils::ObservableClass* sender, int eventId) {
-
-}
-
-void Filename::execute(gapputils::workflow::IProgressMonitor* monitor) const {
+void Filename::execute(gapputils::workflow::IProgressMonitor* /*monitor*/) const {
   if (!data)
     data = new Filename();
 

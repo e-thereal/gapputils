@@ -63,8 +63,8 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
         IClassProperty* enumProperty = properties[fromEnumerable->getEnumerablePropertyId()];
         IEnumerableAttribute* enumAttr = enumProperty->getAttribute<IEnumerableAttribute>();
         if (enumAttr) {
-          boost::shared_ptr<IPropertyIterator> iter = enumAttr->getPropertyIterator(enumProperty);
-          for (iter->reset(); !iter->eof(*object); iter->next()) {
+          boost::shared_ptr<IPropertyIterator> iter = enumAttr->getPropertyIterator(*object, enumProperty);
+          for (iter->reset(); !iter->eof(); iter->next()) {
             box->addItem(iter->getStringValue(*object).c_str());
           }
         }
