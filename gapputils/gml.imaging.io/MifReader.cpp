@@ -35,7 +35,7 @@ MifReader::MifReader() : _MaximumIntensity(2048), _Width(0), _Height(0), _Depth(
   setLabel("Mif");
 }
 
-void MifReader::update(IProgressMonitor* monitor) const {
+void MifReader::update(IProgressMonitor* /*monitor*/) const {
   using namespace MSMRI::MIF;
   using namespace std;
 
