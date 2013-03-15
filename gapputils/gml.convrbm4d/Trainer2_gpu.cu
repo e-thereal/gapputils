@@ -697,7 +697,9 @@ void Trainer2::update(IProgressMonitor* monitor) const {
       #pragma omp master
       {
         if (getCalculateError())
-          dlog(Severity::Trace) << "Error: " << error / tensors.size();
+          dlog(Severity::Trace) << "Error at epoch " << iEpoch << " of " << epochCount << ": " << error / tensors.size();
+        else
+          dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
 
         if (monitor)
           monitor->reportProgress(100. * (iEpoch + 1) / epochCount,  getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0);
