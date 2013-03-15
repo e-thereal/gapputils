@@ -106,7 +106,7 @@ void CsvReader::update(IProgressMonitor* monitor) const {
     for (size_t iRow = 0; iRow < data->size(); ++iRow) {
       std::vector<double>& row = *data->at(iRow);
       for (int iCol = 0; iCol < columnCount; ++iCol) {
-        if (iCol < row.size())
+        if (iCol < (int)row.size())
           flatData->push_back(row[iCol]);
         else
           flatData->push_back(0.0);

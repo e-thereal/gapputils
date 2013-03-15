@@ -38,13 +38,13 @@ SliceFromMif::SliceFromMif() : _SlicePosition(0), _UseNormalizedIndex(false), _M
   setLabel("SliceFromMif");
 }
 
-void SliceFromMif::update(gapputils::workflow::IProgressMonitor* monitor) const {
+void SliceFromMif::update(gapputils::workflow::IProgressMonitor* /*monitor*/) const {
   using namespace MSMRI::MIF;
   using namespace std;
 
   CMIF mif(getMifName());
 
-  int width, height, slicePos;
+  int width = 0, height = 0, slicePos = 0;
 
   size_t pixelWidth = 1000, pixelHeight = 1000, pixelDepth = 1000;
 

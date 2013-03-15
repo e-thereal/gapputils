@@ -36,7 +36,7 @@ void RandomVectors::update(IProgressMonitor* monitor) const {
   random_tensor<double, 1, false, normal<double> > randn(getElementCount());
   boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<double> > > > vectors(
       new std::vector<boost::shared_ptr<std::vector<double> > >());
-  for (size_t i = 0; i < getVectorCount(); ++i) {
+  for (int i = 0; i < getVectorCount(); ++i) {
     boost::shared_ptr<std::vector<double> > vector(new std::vector<double>(getElementCount()));
     thrust::copy((sd * randn + mean).begin(), (sd * randn + mean).end(), vector->begin());
     vectors->push_back(vector);

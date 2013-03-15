@@ -36,12 +36,12 @@ void ExtractSlice::update(IProgressMonitor* monitor) const {
 
   image_t& input = *getVolume();
 
-  if (getChannels() > input.getSize()[2]) {
+  if (getChannels() > (int)input.getSize()[2]) {
     dlog(Severity::Warning) << "Channels must not be greater than the total number of slices of the input volume. Aborting!";
     return;
   }
 
-  if (getSliceIndex() < 0 || (getSliceIndex() + 1) * getChannels() > input.getSize()[2]) {
+  if (getSliceIndex() < 0 || (getSliceIndex() + 1) * getChannels() > (int)input.getSize()[2]) {
     dlog(Severity::Warning) << "Not a valid slice index. Aborting!";
     return;
   }
