@@ -54,6 +54,7 @@ public:
   Property(HiddenBiases, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(HiddenUnits, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(Reconstructions, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+  Property(AverageEpochTime, double)
 
 public:
   Trainer();

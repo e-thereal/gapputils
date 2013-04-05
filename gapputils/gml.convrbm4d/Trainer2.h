@@ -20,6 +20,8 @@ namespace convrbm4d {
 
 struct Trainer2Checker { Trainer2Checker(); };
 
+CapputilsEnumerator(FilterMethod, FFT, NaiveConvolution, OptimizedConvolution);
+
 class Trainer2 : public DefaultWorkflowElement<Trainer2> {
 public:
   typedef Model::value_t value_t;
@@ -34,7 +36,8 @@ public:
   Property(EpochCount, int)
   Property(BatchSize, int)
   Property(GpuCount, int)
-  int dummy;
+//  int dummy;
+  Property(FilterMethod, FilterMethod)
   Property(LearningRateW, double)
   Property(LearningRateVB, double)
   Property(LearningRateHB, double)
@@ -54,6 +57,7 @@ public:
   Property(HiddenBiases, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(HiddenUnits, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(Reconstructions, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+  Property(AverageEpochTime, double)
 
 public:
   Trainer2();
