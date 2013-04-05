@@ -17,8 +17,8 @@
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/Verifier.h>
 #include <capputils/VolatileAttribute.h>
+#include <capputils/HideAttribute.h>
 
-#include <gapputils/HideAttribute.h>
 #include <gapputils/ReadOnlyAttribute.h>
 
 #include <boost/regex.hpp>
