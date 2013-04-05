@@ -59,13 +59,14 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(HiddenBiases, trainer);
   CHECK_MEMORY_LAYOUT2(HiddenUnits, trainer);
   CHECK_MEMORY_LAYOUT2(Reconstructions, trainer);
+  CHECK_MEMORY_LAYOUT2(AverageEpochTime, trainer);
 }
 
 #define START size_t timerCycles = getEpochCount(); \
     boost::timer _timer;
 
 #define STOP { \
-    cudaThreadSynchronize(); \
+    cudaStreamSynchronize(0); \
     std::cout << __LINE__ << ": " << _timer.elapsed() << std::endl; \
     _timer.restart(); \
 }
@@ -88,6 +89,8 @@ unsigned int upper_power_of_two(unsigned int v) {
 void Trainer::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
   using namespace thrust::placeholders;
+
+  typedef float value_t;
 
   const unsigned dimCount = Model::dimCount;
   typedef complex<value_t> complex_t;
@@ -369,6 +372,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
     }
   #endif
 
+    START
+    tbblas_print(_timer.elapsed_max());
     for (size_t iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
       #pragma omp master
       {
@@ -520,6 +525,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
             // dvneg = F * h
             cvneg = cvneg + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
           }
+#if 1
 
           // Add up local copies
           #pragma omp critical
@@ -625,6 +631,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
           //binc = binc - epsilonvb * sum(vneg);
           #pragma omp master
           cbinc = cbinc - epsilonvb * mask<complex_t>(cvneg.size(), cvneg.fullsize(), vbMaskSize) * cvneg;
+#endif
         } /* end of sample */
 
         for (size_t k = tid; k < cF.size(); k += gpuCount) {
@@ -740,6 +747,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
           monitor->reportProgress(100. * (iEpoch + 1) / epochCount,  getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0);
       }
     } /* end of epochs */
+
+    #pragma omp master
+    {
+      newState->setAverageEpochTime(_timer.elapsed() / getEpochCount());
+    }
 
   #ifdef MONITOR_TRAINING
     #pragma omp master

@@ -19,6 +19,7 @@ BeginPropertyDefinitions(Trainer2)
   WorkflowProperty(EpochCount)
   WorkflowProperty(BatchSize)
   WorkflowProperty(GpuCount, Description("Specifies the number of GPUs used for training."))
+  WorkflowProperty(FilterMethod, Enumerator<Type>())
   WorkflowProperty(LearningRateW)
   WorkflowProperty(LearningRateVB)
   WorkflowProperty(LearningRateHB)
@@ -38,13 +39,14 @@ BeginPropertyDefinitions(Trainer2)
   WorkflowProperty(HiddenBiases, Output("C"))
   WorkflowProperty(HiddenUnits, Output("H"))
   WorkflowProperty(Reconstructions, Output("Vneg"))
+  WorkflowProperty(AverageEpochTime, Output("T"))
 
 EndPropertyDefinitions
 
 Trainer2::Trainer2()
  : _EpochCount(100), _BatchSize(20), _GpuCount(1), _LearningRateW(1e-3), _LearningRateVB(1e-3), _LearningRateHB(1e-3),
    _SparsityTarget(1e-2), _SparsityWeight(0.1), _RandomizeTraining(false), _CalculateError(false), _ShareBiasTerms(false),
-   _MonitorEvery(0), _ReconstructionCount(1)
+   _MonitorEvery(0), _ReconstructionCount(1), _AverageEpochTime(0.0)
 {
   setLabel("Trainer2");
 }

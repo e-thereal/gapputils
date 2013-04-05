@@ -19,6 +19,7 @@
 #include <tbblas/fft.hpp>
 #include <tbblas/filter.hpp>
 #include <tbblas/flip.hpp>
+#include <tbblas/filter2.hpp>
 
 #include <boost/timer.hpp>
 
@@ -42,6 +43,7 @@ Trainer2Checker::Trainer2Checker() {
   CHECK_MEMORY_LAYOUT2(EpochCount, trainer);
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(GpuCount, trainer);
+  CHECK_MEMORY_LAYOUT2(FilterMethod, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRateW, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRateVB, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRateHB, trainer);
@@ -61,13 +63,14 @@ Trainer2Checker::Trainer2Checker() {
   CHECK_MEMORY_LAYOUT2(HiddenBiases, trainer);
   CHECK_MEMORY_LAYOUT2(HiddenUnits, trainer);
   CHECK_MEMORY_LAYOUT2(Reconstructions, trainer);
+  CHECK_MEMORY_LAYOUT2(AverageEpochTime, trainer);
 }
 
 #define START size_t timerCycles = getEpochCount(); \
     boost::timer _timer;
 
 #define STOP { \
-    cudaThreadSynchronize(); \
+    cudaStreamSynchronize(0); \
     std::cout << __LINE__ << ": " << _timer.elapsed() << std::endl; \
     _timer.restart(); \
 }
@@ -81,6 +84,8 @@ unsigned int upper_power_of_two(unsigned int v);
 void Trainer2::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
   using namespace thrust::placeholders;
+
+  typedef float value_t;
 
   const unsigned dimCount = Model::dimCount;
 //  typedef complex<value_t> complex_t;
@@ -364,6 +369,7 @@ void Trainer2::update(IProgressMonitor* monitor) const {
     }
   #endif
 
+    START
     for (size_t iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
       #pragma omp master
       {
@@ -434,7 +440,18 @@ void Trainer2::update(IProgressMonitor* monitor) const {
 
             // h_k = sigm(~F_k * v + c)
             //ch_full = conj(*cF[k]) * cv;
-            h_full = filter(v, flip(*F[k]), dimCount - 1);
+            switch (getFilterMethod()) {
+            case FilterMethod::FFT:
+              h_full = filter(v, flip(*F[k]), dimCount - 1);
+              break;
+            case FilterMethod::NaiveConvolution:
+              h_full = filter3d(v, *F[k], naive());
+              break;
+            case FilterMethod::OptimizedConvolution:
+              h_full = filter3d(v, *F[k], optimized());
+              break;
+            }
+
             h = sum(h_full, dimCount - 1);
             h2 = h + *c[k];
 
@@ -451,7 +468,20 @@ void Trainer2::update(IProgressMonitor* monitor) const {
             }
 
             // dF_k = ~h * v
-            f = filter(v, repeat(flip(h), v.size() / h.size()), F[k]->size(), dimCount - 1);
+            if (iEpoch == 0 && iBatch == 0 && iSample == 0)
+              f = filter(v, repeat(flip(h), v.size() / h.size()), F[k]->size(), dimCount - 1);
+
+            switch (getFilterMethod()) {
+            case FilterMethod::FFT:
+              f = filter(v, repeat(flip(h), v.size() / h.size()), F[k]->size(), dimCount - 1);
+              break;
+            case FilterMethod::NaiveConvolution:
+              h_full = filter3d(v, *F[k], naive());
+              break;
+            case FilterMethod::OptimizedConvolution:
+              h_full = filter3d(v, *F[k], optimized());
+              break;
+            }
             *Finc[k] = *Finc[k] + epsilonw * f;
             *cinc[k] = *cinc[k] + epsilonhb * h;
             *cinc[k] = *cinc[k] + epsilonsb * (getSparsityTarget() - sum(h));
@@ -495,9 +525,22 @@ void Trainer2::update(IProgressMonitor* monitor) const {
             /*** BEGIN OF NEGATIVE PHASE ***/
 
             // dvneg = F * h
-            v2 = filter(repeat(h, v.size() / h.size()), *F[k], dimCount - 1);
+            if (iEpoch == 0 && iBatch == 0 && iSample == 0)
+              v2 = filter(repeat(h, v.size() / h.size()), *F[k], dimCount - 1);
+            switch (getFilterMethod()) {
+            case FilterMethod::FFT:
+              v2 = filter(repeat(h, v.size() / h.size()), *F[k], dimCount - 1);
+              break;
+            case FilterMethod::NaiveConvolution:
+              h_full = filter3d(v, *F[k], naive());
+              break;
+            case FilterMethod::OptimizedConvolution:
+              h_full = filter3d(v, *F[k], optimized());
+              break;
+            }
             vneg = vneg + v2;
           }
+#if 1
 
           // Add up local copies
           #pragma omp critical
@@ -568,7 +611,18 @@ void Trainer2::update(IProgressMonitor* monitor) const {
           for (size_t k = tid; k < F.size(); k += gpuCount) {
 
             // h_k = sigm(~F_k * v + c)
-            h_full = filter(vneg, flip(*F[k]), dimCount - 1);
+//            h_full = filter(vneg, flip(*F[k]), dimCount - 1);
+            switch (getFilterMethod()) {
+            case FilterMethod::FFT:
+              h_full = filter(vneg, flip(*F[k]), dimCount - 1);
+              break;
+            case FilterMethod::NaiveConvolution:
+              h_full = filter3d(vneg, *F[k], naive());
+              break;
+            case FilterMethod::OptimizedConvolution:
+              h_full = filter3d(vneg, *F[k], optimized());
+              break;
+            }
             h = sum(h_full, dimCount - 1);
             h2 = h + *c[k];
 
@@ -585,7 +639,17 @@ void Trainer2::update(IProgressMonitor* monitor) const {
             }
 
             // dF_k = ~h * v
-            f = filter(vneg, repeat(flip(h), vneg.size() / h.size()), F[k]->size(), dimCount - 1);
+            switch (getFilterMethod()) {
+            case FilterMethod::FFT:
+              f = filter(vneg, repeat(flip(h), vneg.size() / h.size()), F[k]->size(), dimCount - 1);
+              break;
+            case FilterMethod::NaiveConvolution:
+              h_full = filter3d(vneg, *F[k], naive());
+              break;
+            case FilterMethod::OptimizedConvolution:
+              h_full = filter3d(vneg, *F[k], optimized());
+              break;
+            }
             *Finc[k] = *Finc[k] - epsilonw * f;
             *cinc[k] = *cinc[k] - epsilonhb * h;
           }
@@ -593,6 +657,8 @@ void Trainer2::update(IProgressMonitor* monitor) const {
           //binc = binc - epsilonvb * sum(vneg);
           #pragma omp master
           binc = binc - epsilonvb * vneg;
+#endif
+
         } /* end of sample */
 
         for (size_t k = tid; k < F.size(); k += gpuCount) {
@@ -705,6 +771,11 @@ void Trainer2::update(IProgressMonitor* monitor) const {
           monitor->reportProgress(100. * (iEpoch + 1) / epochCount,  getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0);
       }
     } /* end of epochs */
+
+    #pragma omp master
+    {
+      newState->setAverageEpochTime(_timer.elapsed() / getEpochCount());
+    }
 
   #ifdef MONITOR_TRAINING
     #pragma omp master
