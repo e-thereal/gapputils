@@ -22,19 +22,20 @@ void Blurring::update(IProgressMonitor* monitor) const {
 
   image_t& image = *getInputImage();
 
-  tensor<double, 3, true> input(image.getSize()[0], image.getSize()[1], image.getSize()[2]), filter, output;
+  tensor<float, 3, true> input(image.getSize()[0], image.getSize()[1], image.getSize()[2]), filter, output;
   thrust::copy(image.begin(), image.end(), input.begin());
 
-  filter = gaussian<double>(input.size(), getSigma());
-  tensor<complex<double>, 3, true> cinput, cfilter, coutput;
-  cinput = fft(input);
+  filter = gaussian<float>(input.size(), getSigma());
+  tensor<complex<float>, 3, true> cinput, cfilter, coutput;
+  tensor<cufftComplex, 3, true> test;
+  /*cinput = fft(input);
   cfilter = fft(filter);
   coutput = cinput * cfilter;
   output = ifft(coutput);
 
   boost::shared_ptr<image_t> outputImage(new image_t(image.getSize(), image.getPixelSize()));
   thrust::copy(output.begin(), output.end(), outputImage->begin());
-  newState->setOutputImage(outputImage);
+  newState->setOutputImage(outputImage);*/
 }
 
 }

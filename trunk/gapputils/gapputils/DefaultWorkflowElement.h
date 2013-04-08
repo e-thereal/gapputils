@@ -118,9 +118,11 @@ public:
   { \
     typedef TYPE_OF(name) Type; \
     const unsigned Id = properties.size(); \
-    properties.push_back(new ::capputils::reflection::ClassProperty<Type>(#name, ClassType ::get##name, ClassType ::set##name, __VA_ARGS__, capputils::attributes::Observe(Id), NULL)); \
+    ::capputils::reflection::IClassProperty* prop = new ::capputils::reflection::ClassProperty<Type>(#name, _##name, ClassType ::get##name, ClassType ::set##name, ClassType ::reset##name, __VA_ARGS__, capputils::attributes::Observe(Id), NULL); \
+    properties.push_back(prop); \
     if (is_pointer<Type>::value) { \
-      properties[properties.size()-1]->addAttribute(new capputils::attributes::VolatileAttribute()); \
+      if (!prop->getAttribute<capputils::attributes::IReflectableAttribute>()) \
+        properties[properties.size()-1]->addAttribute(new capputils::attributes::VolatileAttribute()); \
       properties[properties.size()-1]->addAttribute(new gapputils::attributes::ReadOnlyAttribute()); \
     } \
     addressbook[#name] = (char*)&_##name - (char*)this; \

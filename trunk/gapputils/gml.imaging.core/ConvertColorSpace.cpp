@@ -85,29 +85,25 @@ void ConvertColorSpace::update(IProgressMonitor* monitor) const {
 
     case ColorSpace::CIELAB:
       {
-        const float L = inData[i] * 100.f;
-        const float a = inData[i + slicePitch] * 100.f;
-        const float b = inData[i + 2 * slicePitch] * 100.f;
+        const float L = inData[i] * 100.0;
+        const float a = inData[i + slicePitch] * 100.0;
+        const float b = inData[i + 2 * slicePitch] * 100.0;
 
-        const float fy = (L + 16.f) / 116.f;
-        const float fx = a / 500.f + fy;
-        const float fz = fy - b / 200.f;
+        const float fy = (L + 16.0) / 116.0;
+        const float fx = a / 500.0 + fy;
+        const float fz = fy - b / 200.0;
 
         float xr = fx * fx * fx;
         if (xr <= eps)
-          xr = (116 * fx - 16) / kappa;
+          xr = (116.0 * fx - 16.0) / kappa;
 
-        float yr = 0.f;
-        if (L > kappa * eps) {
-          yr = (L + 16.f) / 116.f;
-          yr = yr * yr * yr;
-        } else {
-          yr = L / kappa;
-        }
+        float yr = fy * fy * fy;
+        if (yr <= eps)
+          yr = (116.0 * fy - 16.0) / kappa;
 
         float zr = fz * fz * fz;
         if (zr <= eps)
-          zr = (116 * fz - 16) / kappa;
+          zr = (116.0 * fz - 16.0) / kappa;
 
         X = xr * Xr;
         Y = yr * Yr;
@@ -157,13 +153,13 @@ void ConvertColorSpace::update(IProgressMonitor* monitor) const {
         const float yr = Y / Yr;
         const float zr = Z / Zr;
 
-        const float fx = (xr > eps ? pow(xr, 1.f/3.f) : (kappa * xr + 16) / 116);
-        const float fy = (xr > eps ? pow(yr, 1.f/3.f) : (kappa * yr + 16) / 116);
-        const float fz = (xr > eps ? pow(zr, 1.f/3.f) : (kappa * zr + 16) / 116);
+        const float fx = (xr > eps ? pow(xr, 1.0f/3.0f) : (kappa * xr + 16.0) / 116.0);
+        const float fy = (xr > eps ? pow(yr, 1.0f/3.0f) : (kappa * yr + 16.0) / 116.0);
+        const float fz = (xr > eps ? pow(zr, 1.0f/3.0f) : (kappa * zr + 16.0) / 116.0);
 
-        outData[i] = 1.16f * fy - .16f;
-        outData[i + slicePitch] = 5.f * (fx - fy);
-        outData[i + 2 * slicePitch] = 2.f * (fy - fz);
+        outData[i] = 1.16 * fy - .16;
+        outData[i + slicePitch] = 5.0 * (fx - fy);
+        outData[i + 2 * slicePitch] = 2.0 * (fy - fz);
       }
       break;
 

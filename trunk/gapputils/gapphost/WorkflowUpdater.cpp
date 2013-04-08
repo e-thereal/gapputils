@@ -287,6 +287,9 @@ void WorkflowUpdater::updateNodes() {
 
 // The root thread handles node updates by invoking the writeResults method
 void WorkflowUpdater::handleNodeUpdateFinished(boost::shared_ptr<workflow::Node> node) {
+
+  //node->getWorkflow().lock()->getModule()->
+
   node->setOutputChecksum(node->getInputChecksum());
   boost::shared_ptr<workflow::WorkflowElement> element = boost::dynamic_pointer_cast<workflow::WorkflowElement>(node->getModule());
   if (element) {
