@@ -13,9 +13,21 @@
 
 namespace debug {
 
-class MemoryTest {
+class MemoryTest : public DefaultWorkflowElement<MemoryTest> {
+
+  InitReflectableClass(MemoryTest)
+
+  Property(Input, boost::shared_ptr<std::vector<double> >)
+  Property(Size, int)
+  Property(Iterations, int)
+  Property(Delay, int)
+  Property(Output, boost::shared_ptr<std::vector<double> >)
+
 public:
   MemoryTest();
+
+protected:
+  virtual void update(IProgressMonitor* monitor) const;
 };
 
 } /* namespace debug */

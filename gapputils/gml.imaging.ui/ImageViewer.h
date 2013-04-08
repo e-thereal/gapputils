@@ -21,9 +21,13 @@ namespace imaging {
 
 namespace ui {
 
-CapputilsEnumerator(ViewMode, Greyscale, RedBlueMap, HeatMap1, HeatMap2, sRGB, XYZ, xyY);
+CapputilsEnumerator(ViewMode, Greyscale, RedBlueMap, HeatMap1, HeatMap2, sRGB, XYZ, xyY, CIELAB);
+
+class ImageViewerWidget;
 
 class ImageViewer : public DefaultWorkflowElement<ImageViewer> {
+
+  friend class ImageViewerWidget;
 
   InitReflectableClass(ImageViewer)
 

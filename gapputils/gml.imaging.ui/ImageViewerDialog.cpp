@@ -115,11 +115,16 @@ void getHeatMap2Color(float value, float *red, float *green, float *blue) {
 }
 
 void ImageViewerWidget::updateView() {
+  // D65 reference white
+  const float Xr = 0.95047f, Yr = 1.00000f, Zr = 1.08883f;
+  const float eps = 0.008856f, kappa = 903.3f;
+
   int channelsPerImage = 1;
   switch (viewer->getMode()) {
   case ViewMode::XYZ:
   case ViewMode::xyY:
   case ViewMode::sRGB:
+  case ViewMode::CIELAB:
     channelsPerImage = 3;
     break;
   }
@@ -228,7 +233,7 @@ void ImageViewerWidget::updateView() {
       }
       break;
 
-      case ViewMode::xyY:
+    case ViewMode::xyY:
       for (int i = 0, y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x, ++i) {
           const float cx = buffer[i + 3 * viewer->getCurrentSlice() * count];
@@ -253,6 +258,58 @@ void ImageViewerWidget::updateView() {
           int B = F_TO_INT((b <= 0.00313088 ? 12.92 * b : 1.055 * powf(b, 1.f / 2.4f) - 0.055));
 
           qimage->setPixel(x, y, QColor(R, G, B).rgb());
+        }
+      }
+      break;
+
+    case ViewMode::CIELAB:
+      for (int i = 0, y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x, ++i) {
+          const float L = (buffer[i + 3 * viewer->getCurrentSlice() * count] - viewer->getMinimumIntensity()) / (viewer->getMaximumIntensity() - viewer->getMinimumIntensity()) * 100.0;
+          const float a = buffer[i + (3 * viewer->getCurrentSlice() + 1) * count] * 100.0;
+          const float b = buffer[i + (3 * viewer->getCurrentSlice() + 2) * count] * 100.0;
+
+          const float fy = (L + 16.f) / 116.f;
+          const float fx = a / 500.f + fy;
+          const float fz = fy - b / 200.f;
+
+          float xr = fx * fx * fx;
+          if (xr <= eps)
+            xr = (116 * fx - 16) / kappa;
+
+          float yr = 0.f;
+          if (L > kappa * eps) {
+            yr = (L + 16.f) / 116.f;
+            yr = yr * yr * yr;
+          } else {
+            yr = L / kappa;
+          }
+
+          float zr = fz * fz * fz;
+          if (zr <= eps)
+            zr = (116 * fz - 16) / kappa;
+
+          const float X = xr * Xr;
+          const float Y = yr * Yr;
+          const float Z = zr * Zr;
+
+          gml::fmatrix4 xyz2rgb = gml::make_fmatrix4(3.2404542f, -1.5371385f, -0.4985314f, 0,
+                                                    -0.9692660f,  1.8760108f,  0.0415560f, 0,
+                                                     0.055644f, -0.2040259f,  1.0572252f, 0,
+                                                     0, 0, 0, 1);
+          gml::float4 xyz = make_float4(X, Y, Z, 1);
+          gml::float4 rgb = xyz2rgb * xyz;
+
+          
+          const float r2 = gml::get_x(rgb);
+          const float g2 = gml::get_y(rgb);
+          const float b2 = gml::get_z(rgb);
+          int R = F_TO_INT((r2 <= 0.00313088 ? 12.92 * r2 : 1.055 * powf(r2, 1.f / 2.4f) - 0.055));
+          int G = F_TO_INT((g2 <= 0.00313088 ? 12.92 * g2 : 1.055 * powf(g2, 1.f / 2.4f) - 0.055));
+          int B = F_TO_INT((b2 <= 0.00313088 ? 12.92 * b2 : 1.055 * powf(b2, 1.f / 2.4f) - 0.055));
+
+          qimage->setPixel(x, y, QColor(R, G, B).rgb());
+          
         }
       }
       break;
@@ -376,11 +433,29 @@ void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
           }
         }
         break;
+
+      case ViewMode::CIELAB:
+        if (depth < 3)
+          break;
+        if (event->modifiers() == Qt::ControlModifier) {
+          minimum = viewer->getMinimumIntensity();
+          maximum = viewer->getMaximumIntensity();
+        } else {
+          minimum = maximum = buffer[3 * viewer->getCurrentSlice() * count + ry * width + rx];
+        }
+
+        for (int y = ry; y < ry + rheight; ++y) {
+          for (int x = rx; x < rx + rwidth; ++x) {
+            minimum = std::min(minimum, buffer[3 * viewer->getCurrentSlice() * count + y * width + x]);
+            maximum = std::max(maximum, buffer[3 * viewer->getCurrentSlice() * count + y * width + x]);
+          }
+        }
+        break;
       }
 
       float contrastMargin = (maximum - minimum) * (1.0 - viewer->getContrast()) / 2;
 
-      // TODO: make this updates atomic
+      // TODO: Makes the update somewhat atomic
       viewer->setMinimumIntensity(minimum - contrastMargin);
       viewer->setMaximumIntensity(maximum + contrastMargin);
     }
@@ -495,6 +570,7 @@ void ImageViewerWidget::changedHandler(capputils::ObservableClass* /*sender*/, i
       case ViewMode::XYZ:
       case ViewMode::xyY:
       case ViewMode::sRGB:
+      case ViewMode::CIELAB:
         channelCount = 3;
         break;
     }

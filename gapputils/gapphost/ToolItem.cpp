@@ -201,7 +201,7 @@ void MultiConnection::draw(QPainter* painter, bool showLabel) const {
   int labelWidth = fontMetrics.boundingRect(label).width();
 
   // TODO: if one of the connections is connected with a current cable, draw that one
-  for (unsigned i = 0; i < connections.size() && (expanded ? 1 : i < 1); ++i)
+  for (unsigned i = 0; i < connections.size() && (expanded ? true : i < 1); ++i)
     connections[i]->draw(painter, showLabel);
 
   QPainterPath path;
