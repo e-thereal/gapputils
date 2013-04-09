@@ -41,24 +41,20 @@ namespace workflow {
 template<class T>
 class DefaultWorkflowElement : public WorkflowElement {
 protected:
-  mutable T* newState;
+  mutable boost::shared_ptr<T> newState;
 
 private:
   mutable bool writeEnabled;
 
 public:
-  DefaultWorkflowElement() : newState(0), writeEnabled(true) { }
+  DefaultWorkflowElement() : writeEnabled(true) { }
 
-  virtual ~DefaultWorkflowElement() {
-    if (newState)
-      delete newState;
-    newState = 0;
-  }
+  virtual ~DefaultWorkflowElement() { }
 
   virtual void execute(IProgressMonitor* monitor) const {
     capputils::Logbook& dlog = getLogbook();
     if (!newState)
-      newState = new T();
+      newState = boost::make_shared<T>();
 
     if (!capputils::Verifier::Valid(*this, dlog)) {
       dlog(capputils::Severity::Warning) << "Invalid arguments. Aborting!";
@@ -69,18 +65,28 @@ public:
   }
 
   virtual void writeResults() {
-    if (!newState || !writeEnabled)
+    if (!newState)
       return;
 
-    std::vector<capputils::reflection::IClassProperty*>& properties = getProperties();
-    for (unsigned i = 0; i < properties.size(); ++i) {
-      capputils::reflection::IClassProperty* prop = properties[i];
-      if (prop->getAttribute<capputils::attributes::NoParameterAttribute>() &&
-          !prop->getAttribute<gapputils::attributes::LabelAttribute>())
-      {
-        prop->setValue(*this, *newState, prop);
+    if (writeEnabled) {
+      std::vector<capputils::reflection::IClassProperty*>& properties = getProperties();
+      for (unsigned i = 0; i < properties.size(); ++i) {
+        capputils::reflection::IClassProperty* prop = properties[i];
+        if (prop->getAttribute<capputils::attributes::NoParameterAttribute>() &&
+            !prop->getAttribute<gapputils::attributes::LabelAttribute>())
+        {
+          prop->setValue(*this, *newState, prop);
+        }
+      }
+    } else {
+      std::vector<capputils::reflection::IClassProperty*>& properties = getProperties();
+      for (unsigned i = 0; i < properties.size(); ++i) {
+        capputils::reflection::IClassProperty* prop = properties[i];
+        prop->setValue(*this, *this, prop);
       }
     }
+
+    newState = boost::make_shared<T>();
   }
 
 protected:
@@ -135,7 +141,7 @@ public:
 { \
   typedef TYPE_OF(name) Type; \
   const unsigned Id = properties.size(); \
-  ::capputils::reflection::IClassProperty* prop = new ::capputils::reflection::ClassProperty<Type>(#name, ClassType ::get##name, ClassType ::set##name, ##arguments, capputils::attributes::Observe(Id), NULL); \
+  ::capputils::reflection::IClassProperty* prop = new ::capputils::reflection::ClassProperty<Type>(#name, _##name, ClassType ::get##name, ClassType ::set##name, ClassType ::reset##name, ##arguments, capputils::attributes::Observe(Id), NULL); \
   properties.push_back(prop); \
   if (is_pointer<Type>::value) { \
     if (!prop->getAttribute<capputils::attributes::IReflectableAttribute>()) \

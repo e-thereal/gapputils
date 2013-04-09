@@ -184,6 +184,14 @@ bool Node::isDependentProperty(const std::string& propertyName) const {
   return false;
 }
 
+bool Node::isInterfaceNode() {
+  boost::shared_ptr<Workflow> workflow = getWorkflow().lock();
+  if (workflow) {
+    return workflow->isInterfaceNode(shared_from_this());
+  }
+  return false;
+}
+
 bool Node::isInputNode() {
   boost::shared_ptr<Workflow> workflow = getWorkflow().lock();
   if (workflow) {

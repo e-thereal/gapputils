@@ -6,13 +6,13 @@
 
 namespace interfaces {
 
-class SubWorkflow : public gapputils::workflow::WorkflowInterface
-{
+class SubWorkflow : public gapputils::workflow::WorkflowInterface {
   InitReflectableClass(SubWorkflow)
 
+  Property(Atomic, bool)
+
 public:
-    SubWorkflow(void);
-  virtual ~SubWorkflow(void);
+  SubWorkflow(void);
 };
 
 }

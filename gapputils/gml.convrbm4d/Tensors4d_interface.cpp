@@ -18,7 +18,7 @@ class Tensors4d : public gapputils::workflow::CollectionElement
 {
   InitReflectableClass(Tensors4d)
   
-  typedef boost::shared_ptr<tbblas::tensor<double,4> > property_t;
+  typedef boost::shared_ptr<tbblas::tensor<float,4> > property_t;
   
   Property(Values, boost::shared_ptr<std::vector<property_t> >)
   Property(Description, std::string)
@@ -43,7 +43,7 @@ class Tensors4d : public gapputils::workflow::CollectionElement
 {
   InitReflectableClass(Tensors4d)
   
-  typedef boost::shared_ptr<tbblas::tensor<double,4> > property_t;
+  typedef boost::shared_ptr<tbblas::tensor<float,4> > property_t;
   
   Property(Values, boost::shared_ptr<std::vector<property_t> >)
   Property(Description, std::string)

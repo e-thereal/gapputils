@@ -136,67 +136,19 @@ void Trainer::update(IProgressMonitor* monitor) const {
   ctensor_t dcv_master;
 #endif
 
-  /*** PREPARE MASTER THREAD ***/
+  /*** SETUP TRAINING PARAMETERS ***/
 
-  boost::shared_ptr<Model> crbm = getInitialModel()->clone();
-
-  std::vector<boost::shared_ptr<host_tensor_t> >& tensors = *getTensors();
   const size_t batchSize = getBatchSize();
-  const size_t batchCount = tensors.size() / batchSize;
+  const size_t batchCount = getTensors()->size() / batchSize;
   const size_t epochCount = getEpochCount();
 
-  std::vector<boost::shared_ptr<host_ctensor_t> > cX;
-
-  // Normalize input and pre-calculate the FFT
-  {
-    tensor_t x;
-    ctensor_t cx;
-    plan_t plan_v;
-    for (size_t i = 0; i < tensors.size(); ++i) {
-      x = *tensors[i];
-
-      for (unsigned j = 0; j < dimCount - 1; ++j) {
-        if (x.size()[j] != upper_power_of_two(x.size()[j])) {
-          dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Aborting!";
-          return;
-        }
-      }
-
-      if (crbm->getVisibleUnitType() == UnitType::Gaussian)
-        x = (x - crbm->getMean()) / crbm->getStddev();
-      cx = fft(x, dimCount - 1, plan_v);
-      cX.push_back(boost::shared_ptr<host_ctensor_t>(new host_ctensor_t(cx)));
-    }
-  }
-
-  // Create arrays for filters
-  std::vector<boost::shared_ptr<host_tensor_t> >& filters = *crbm->getFilters();
-  std::vector<boost::shared_ptr<ctensor_t> > cF(filters.size()), cFinc(filters.size());
-
-  // Copy visible bias to the device
-  host_tensor_t& b = *crbm->getVisibleBias();
-  ctensor_t cb, cbinc;
-  cb.set_name("cb");
-  cbinc.set_name("cbinc");
-  {
-    tensor_t f = b;
-    plan_t plan_v;
-    if (getShareBiasTerms())
-      f = ones<value_t>(f.size()) * sum(f) / f.count();
-    cb = fft(f, dimCount - 1, plan_v);
-    cbinc = zeros<complex_t>(cb.size(), cb.fullsize());
-  }
-
-  std::vector<boost::shared_ptr<host_tensor_t> >& c = *crbm->getHiddenBiases();
-  std::vector<boost::shared_ptr<ctensor_t> > cc(c.size()), ccinc(c.size());
-
   // Prepare sizes
-  dim_t size = tensors[0]->size();
+  dim_t size = getTensors()->at(0)->size();
   dim_t layerSize = size;
   layerSize[dimCount - 1] = 1;
 
   size_t layerVoxelCount = 1;
-  size_t voxelCount = tensors[0]->count();
+  size_t voxelCount = getTensors()->at(0)->count();
   for (size_t i = 0; i < dimCount - 1; ++i)
     layerVoxelCount *= layerSize[i];
 
@@ -210,6 +162,82 @@ void Trainer::update(IProgressMonitor* monitor) const {
   value_t initialmomentum = 0.5; //65; // 0.5f;
   value_t finalmomentum = 0.9; // 65; // 0.9f;
   value_t momentum;
+
+  /*** PREPARE MASTER THREAD ***/
+
+  boost::shared_ptr<Model> crbm(new Model());
+  boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > filters;
+  boost::shared_ptr<host_tensor_t> b;
+  boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > c;
+  {
+    // Copy the old model as far as necessary
+    boost::shared_ptr<Model> oldCrbm = getInitialModel();
+    filters = oldCrbm->getFilters();
+    b = oldCrbm->getVisibleBias();
+    c = oldCrbm->getHiddenBiases();
+    crbm->setFilterKernelSize(oldCrbm->getFilterKernelSize());
+    crbm->setMean(oldCrbm->getMean());
+    crbm->setStddev(oldCrbm->getStddev());
+    crbm->setVisibleUnitType(oldCrbm->getVisibleUnitType());
+    crbm->setHiddenUnitType(oldCrbm->getHiddenUnitType());
+
+    // Prepare an early memory clean up of the old model
+    // The trainer holds to pointers to the model, hence if the use_count is 2
+    // no other modules have any business with the old model any more
+    if (getAtomicWorkflow() && oldCrbm.use_count() == 2) {
+      oldCrbm->setFilters(boost::make_shared<std::vector<boost::shared_ptr<host_tensor_t> > >());
+      oldCrbm->setVisibleBias(boost::shared_ptr<host_tensor_t>());
+      oldCrbm->setHiddenBiases(boost::make_shared<std::vector<boost::shared_ptr<host_tensor_t> > >());
+    }
+  }
+
+  // Normalize input and pre-calculate the FFT
+  std::vector<boost::shared_ptr<host_ctensor_t> > cX;
+  {
+    boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > tensors = getTensors();
+    tensor_t x;
+    ctensor_t cx;
+    plan_t plan_v;
+    for (size_t i = 0; i < tensors->size(); ++i) {
+      x = *tensors->at(i);
+
+      for (unsigned j = 0; j < dimCount - 1; ++j) {
+        if (x.size()[j] != upper_power_of_two(x.size()[j])) {
+          dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Aborting!";
+          return;
+        }
+      }
+
+      if (crbm->getVisibleUnitType() == UnitType::Gaussian)
+        x = (x - crbm->getMean()) / crbm->getStddev();
+      cx = fft(x, dimCount - 1, plan_v);
+      cX.push_back(boost::shared_ptr<host_ctensor_t>(new host_ctensor_t(cx)));
+    }
+
+    // Prepare an early memory clean up of the training set
+    // The trainer holds to pointers to the training set, hence if the use_count is 2
+    // no other modules have any business with the training set any more
+    if (getAtomicWorkflow() && tensors.use_count() == 2)
+      tensors->clear();
+  }
+
+  std::vector<boost::shared_ptr<ctensor_t> > cF(filters->size()), cFinc(filters->size());
+
+  // Copy visible bias to the device
+  ctensor_t cb, cbinc;
+  cb.set_name("cb");
+  cbinc.set_name("cbinc");
+  {
+    tensor_t f = *b;
+    plan_t plan_v;
+    if (getShareBiasTerms())
+      f = ones<value_t>(f.size()) * sum(f) / f.count();
+    cb = fft(f, dimCount - 1, plan_v);
+    cbinc = zeros<complex_t>(cb.size(), cb.fullsize());
+  }
+  b.reset();
+
+  std::vector<boost::shared_ptr<ctensor_t> > cc(c->size()), ccinc(c->size());
 
   // Declare variables used for training
   tensor_t v, vneg; // to monitor training (calculate the error)
@@ -263,18 +291,20 @@ void Trainer::update(IProgressMonitor* monitor) const {
     {
       tensor_t f;
       ctensor_t cf;
-      for (size_t i = tid; i < filters.size(); i += gpuCount) {
-        f = *filters[i];
+      for (size_t i = tid; i < filters->size(); i += gpuCount) {
+        f = *filters->at(i);
         cf = fft(f, dimCount - 1, plan_v);
         cF[i] = boost::make_shared<ctensor_t>(cf);
         cFinc[i] = boost::make_shared<ctensor_t>(zeros<complex_t>(cf.size(), cf.fullsize()));
       }
+      #pragma omp master
+      filters = boost::make_shared<std::vector<boost::shared_ptr<host_tensor_t> > >(filters->size());
     }
     {
       tensor_t h;
       ctensor_t ch;
-      for (size_t i = tid; i < c.size(); i += gpuCount) {
-        h = *c[i];
+      for (size_t i = tid; i < c->size(); i += gpuCount) {
+        h = *c->at(i);
         if (getShareBiasTerms())
           h = ones<value_t>(h.size()) * sum(h) / h.count();
         ch = fft(h, dimCount - 1, plan_h);
@@ -282,6 +312,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
         ch = zeros<complex_t>(ch.size(), ch.fullsize());
         ccinc[i] = boost::make_shared<ctensor_t>(ch);
       }
+      #pragma omp master
+      c = boost::make_shared<std::vector<boost::shared_ptr<host_tensor_t> > >(c->size());
     }
 
     // Declare variables used for training
@@ -739,7 +771,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
       #pragma omp master
       {
         if (getCalculateError())
-          dlog(Severity::Trace) << "Error at epoch " << iEpoch << " of " << epochCount << ": " << error / tensors.size();
+          dlog(Severity::Trace) << "Error at epoch " << iEpoch << " of " << epochCount << ": " << error / cX.size();
         else
           dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
 
@@ -765,13 +797,14 @@ void Trainer::update(IProgressMonitor* monitor) const {
         f = ifft(*cF[k], dimCount - 1, iplan_v);
         hb = ifft(*cc[k], dimCount - 1, iplan_h);
 
-        *filters[k] = f * (abs(f) > 1e-16);
-        *c[k] = hb * (abs(hb) > 1e-16);
+        filters->at(k) = boost::make_shared<host_tensor_t>(f * (abs(f) > 1e-16));
+        c->at(k) = boost::make_shared<host_tensor_t>(hb * (abs(hb) > 1e-16));
       }
+
       #pragma omp master
       {
         f = ifft(cb, dimCount - 1, iplan_v);
-        b = f * (abs(f) > 1e-16);
+        b = boost::make_shared<host_tensor_t>(f * (abs(f) > 1e-16));
       }
     }
 
@@ -803,6 +836,9 @@ void Trainer::update(IProgressMonitor* monitor) const {
     newState->setFilters(debugFilters);
   }
 #endif
+  crbm->setFilters(filters);
+  crbm->setVisibleBias(b);
+  crbm->setHiddenBiases(c);
 
   newState->setModel(crbm);
 }

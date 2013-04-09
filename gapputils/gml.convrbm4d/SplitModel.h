@@ -30,8 +30,8 @@ class SplitModel : public DefaultWorkflowElement<SplitModel> {
   Property(VisibleBias, boost::shared_ptr<tensor_t>)
   Property(HiddenBiases, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(FilterKernelSize, dim_t)
-  Property(Mean, value_t)
-  Property(Stddev, value_t)
+  Property(Mean, double)
+  Property(Stddev, double)
   Property(VisibleUnitType, UnitType)
   Property(HiddenUnitType, UnitType)
 

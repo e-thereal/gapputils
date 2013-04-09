@@ -23,7 +23,7 @@ struct ModelChecker { ModelChecker(); };
 class Model : public capputils::reflection::ReflectableClass {
 public:
   const static unsigned dimCount = 4;
-  typedef double value_t;
+  typedef float value_t;
   typedef tbblas::tensor<value_t, dimCount> tensor_t;
   typedef tensor_t::dim_t dim_t;
 

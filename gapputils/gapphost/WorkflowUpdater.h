@@ -50,6 +50,7 @@ public:
 private:
   void buildStack(boost::shared_ptr<workflow::Node> node);
   void updateNodes();
+  void resetNode(boost::shared_ptr<workflow::Node> node);
 
 public Q_SLOTS:
 

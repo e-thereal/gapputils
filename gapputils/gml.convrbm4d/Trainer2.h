@@ -31,12 +31,13 @@ public:
 
   InitReflectableClass(Trainer2)
 
+  int dummy;
+
   Property(InitialModel, boost::shared_ptr<Model>)
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(EpochCount, int)
   Property(BatchSize, int)
   Property(GpuCount, int)
-//  int dummy;
   Property(FilterMethod, FilterMethod)
   Property(LearningRateW, double)
   Property(LearningRateVB, double)
