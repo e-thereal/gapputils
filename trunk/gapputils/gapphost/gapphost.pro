@@ -47,7 +47,8 @@ SOURCES = main.cpp \
 		  WorkflowSnippets.cpp \
 		  MergeTest.cpp \
 		  HorizontalAnnotation.cpp \
-		  VerticalAnnotation.cpp
+		  VerticalAnnotation.cpp \
+		  MemoryTest.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \

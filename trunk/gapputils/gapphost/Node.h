@@ -75,6 +75,7 @@ public:
   virtual void resume();
   void resumeExpressions();
   bool isDependentProperty(const std::string& propertyName) const;
+  bool isInterfaceNode();
   bool isInputNode();
   bool isOutputNode();
 

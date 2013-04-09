@@ -41,6 +41,7 @@ public:
 private:
   boost::shared_ptr<capputils::Logbook> logbook;
   boost::shared_ptr<IGapphostInterface> hostInterface;
+  bool atomicWorkflow;
 
 public:
   WorkflowElement();
@@ -48,6 +49,9 @@ public:
   capputils::Logbook& getLogbook() const;
   boost::shared_ptr<IGapphostInterface> getHostInterface() const;
   void setHostInterface(const boost::shared_ptr<IGapphostInterface>& interface);
+
+  bool getAtomicWorkflow() const;
+  void setAtomicWorkflow(bool atomic);
 
   virtual void execute(IProgressMonitor* monitor) const = 0;
   virtual void writeResults() = 0;

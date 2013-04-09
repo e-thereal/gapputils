@@ -33,7 +33,7 @@
       <Item>
         <gapputils-Interface>
           <Identifier value="Tensors4d" />
-          <Type value="boost::shared_ptr<tbblas::tensor<double,4> >" />
+          <Type value="boost::shared_ptr<tbblas::tensor<float,4> >" />
           <Header value="tbblas/tensor.hpp" />
           <IsParameter value="0" />
           <IsCollection value="1" />

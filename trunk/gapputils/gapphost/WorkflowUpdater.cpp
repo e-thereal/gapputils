@@ -6,7 +6,9 @@
 #include "NodeCache.h"
 
 #include <gapputils/WorkflowElement.h>
+#include <gapputils/SubWorkflow.h>
 #include <gapputils/CollectionElement.h>
+#include <gapputils/LabelAttribute.h>
 
 #include <cassert>
 #include <iostream>
@@ -14,6 +16,8 @@
 #include "ChecksumUpdater.h"
 
 #include <capputils/Logbook.h>
+#include <capputils/NoParameterAttribute.h>
+#include <capputils/InputAttribute.h>
 #include "LogbookModel.h"
 
 namespace gapputils {
@@ -215,8 +219,8 @@ void WorkflowUpdater::buildStack(boost::shared_ptr<workflow::Node> node) {
     oldStack.pop();
   }
 
-  // Only add it if it needs an update or if it is the first node
-  if (node->getInputChecksum() != node->getOutputChecksum() || nodesStack.empty()) {
+  // Only add it if it needs an update or if it is the first node or if it is an interface node (they are cheap anyways)
+  if (node->getInputChecksum() != node->getOutputChecksum() || nodesStack.empty() || node->isInterfaceNode()) {
     reportProgress(node, 0, false);
     nodesStack.push(node);
     //dlog() << "Added node to build stack: " << node->getUuid();
@@ -243,7 +247,7 @@ void WorkflowUpdater::updateNodes() {
 
     // update node
     // TODO: check if value could be read from cache. Never read it from cache if it is the last node
-    if (nodesStack.empty() || currentNode->getInputChecksum() != currentNode->getOutputChecksum()) {
+    if (nodesStack.empty() || currentNode->getInputChecksum() != currentNode->getOutputChecksum() || currentNode->isInterfaceNode()) {
       boost::shared_ptr<workflow::Workflow> workflow = boost::dynamic_pointer_cast<workflow::Workflow>(currentNode);
       if (workflow) {
 
@@ -270,6 +274,9 @@ void WorkflowUpdater::updateNodes() {
           dlog.setModule(element->getClassName());
           dlog.setUuid(currentNode->getUuid());
           dlog(capputils::Severity::Trace) << "Starting update. (" << currentNode->getInputChecksum() << ", " << currentNode->getOutputChecksum() << ")";
+          boost::shared_ptr<interfaces::SubWorkflow> subworkflow = boost::dynamic_pointer_cast<interfaces::SubWorkflow>(currentNode->getWorkflow().lock()->getModule());
+          if (subworkflow)
+            element->setAtomicWorkflow(subworkflow->getAtomic());
           element->execute(this);
         }
       }
@@ -285,16 +292,43 @@ void WorkflowUpdater::updateNodes() {
   }
 }
 
+void WorkflowUpdater::resetNode(boost::shared_ptr<workflow::Node> node) {
+  // Iterate through properties. If a property is dependent on another module
+  // or an output property, reset the property
+
+  assert(node->getModule());
+
+  boost::shared_ptr<workflow::Workflow> workflow = node->getWorkflow().lock();
+  boost::shared_ptr<workflow::Workflow> workflowNode = boost::dynamic_pointer_cast<workflow::Workflow>(node);
+  if (workflowNode) {
+    std::vector<boost::shared_ptr<workflow::Node> >& nodes = *workflowNode->getNodes();
+    for (size_t i = 0; i < nodes.size(); ++i)
+      resetNode(nodes[i]);
+  } else {
+    std::vector<capputils::reflection::IClassProperty*>& properties = node->getModule()->getProperties();
+    for (size_t i = 0; i < properties.size(); ++i) {
+      if ((workflow->isDependentProperty(node, properties[i]->getName()) && properties[i]->getAttribute<capputils::attributes::InputAttribute>()) ||
+          (properties[i]->getAttribute<capputils::attributes::NoParameterAttribute>() && !properties[i]->getAttribute<gapputils::attributes::LabelAttribute>()))
+      {
+        properties[i]->resetValue(*node->getModule());
+      }
+    }
+  }
+  node->setOutputChecksum(0);
+}
+
 // The root thread handles node updates by invoking the writeResults method
 void WorkflowUpdater::handleNodeUpdateFinished(boost::shared_ptr<workflow::Node> node) {
+  boost::shared_ptr<workflow::Workflow> workflow = node->getWorkflow().lock();
+  boost::shared_ptr<interfaces::SubWorkflow> subworkflow = boost::dynamic_pointer_cast<interfaces::SubWorkflow>(workflow->getModule());
 
-  //node->getWorkflow().lock()->getModule()->
-
-  node->setOutputChecksum(node->getInputChecksum());
   boost::shared_ptr<workflow::WorkflowElement> element = boost::dynamic_pointer_cast<workflow::WorkflowElement>(node->getModule());
-  if (element) {
+  if (element)
     element->writeResults();
-  }
+  node->setOutputChecksum(node->getInputChecksum());
+
+  if (subworkflow && subworkflow->getAtomic() && !node->isInterfaceNode())
+    resetNode(node);
 
   // TODO: Avoid update if state was read from cache
   NodeCache::Update(node);

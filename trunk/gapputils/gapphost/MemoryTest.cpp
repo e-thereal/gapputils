@@ -29,9 +29,13 @@ MemoryTest::MemoryTest() : _Size(1), _Iterations(5), _Delay(1) {
 
 void MemoryTest::update(IProgressMonitor* monitor) const {
   for (int i = 0; i < getIterations() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
+#ifdef WIN32
     _sleep(getDelay());
+#else
+    sleep(getDelay());
+#endif
     if (monitor)
-      monitor->reportProgress(100.0 * i / getIterations());
+      monitor->reportProgress(100.0 * (i + 1) / getIterations());
   }
 
   newState->setOutput(boost::make_shared<std::vector<double> >(getSize()));

@@ -31,7 +31,7 @@ BeginAbstractPropertyDefinitions(WorkflowElement)
 
 EndPropertyDefinitions
 
-WorkflowElement::WorkflowElement() : _Label("Element"), logbook(new Logbook()) {
+WorkflowElement::WorkflowElement() : _Label("Element"), logbook(new Logbook()), atomicWorkflow(false) {
 }
 
 Logbook& WorkflowElement::getLogbook() const {
@@ -44,6 +44,14 @@ boost::shared_ptr<IGapphostInterface> WorkflowElement::getHostInterface() const 
 
 void WorkflowElement::setHostInterface(const boost::shared_ptr<IGapphostInterface>& interface) {
   hostInterface = interface;
+}
+
+bool WorkflowElement::getAtomicWorkflow() const {
+  return atomicWorkflow;
+}
+
+void WorkflowElement::setAtomicWorkflow(bool atomic) {
+  atomicWorkflow = atomic;
 }
 
 }
