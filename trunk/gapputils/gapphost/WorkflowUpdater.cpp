@@ -18,6 +18,7 @@
 #include <capputils/Logbook.h>
 #include <capputils/NoParameterAttribute.h>
 #include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
 #include "LogbookModel.h"
 
 namespace gapputils {
@@ -308,7 +309,8 @@ void WorkflowUpdater::resetNode(boost::shared_ptr<workflow::Node> node) {
     std::vector<capputils::reflection::IClassProperty*>& properties = node->getModule()->getProperties();
     for (size_t i = 0; i < properties.size(); ++i) {
       if ((workflow->isDependentProperty(node, properties[i]->getName()) && properties[i]->getAttribute<capputils::attributes::InputAttribute>()) ||
-          (properties[i]->getAttribute<capputils::attributes::NoParameterAttribute>() && !properties[i]->getAttribute<gapputils::attributes::LabelAttribute>()))
+//          (properties[i]->getAttribute<capputils::attributes::NoParameterAttribute>() && !properties[i]->getAttribute<gapputils::attributes::LabelAttribute>()))
+          properties[i]->getAttribute<capputils::attributes::OutputAttribute>())
       {
         properties[i]->resetValue(*node->getModule());
       }
