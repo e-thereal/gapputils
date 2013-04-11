@@ -185,9 +185,9 @@ void Trainer::update(IProgressMonitor* monitor) const {
     // The trainer holds to pointers to the model, hence if the use_count is 2
     // no other modules have any business with the old model any more
     if (getAtomicWorkflow() && oldCrbm.use_count() == 2) {
-      oldCrbm->setFilters(boost::make_shared<std::vector<boost::shared_ptr<host_tensor_t> > >());
+      oldCrbm->setFilters(boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >());
       oldCrbm->setVisibleBias(boost::shared_ptr<host_tensor_t>());
-      oldCrbm->setHiddenBiases(boost::make_shared<std::vector<boost::shared_ptr<host_tensor_t> > >());
+      oldCrbm->setHiddenBiases(boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >());
     }
   }
 
@@ -220,6 +220,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     if (getAtomicWorkflow() && tensors.use_count() == 2)
       tensors->clear();
   }
+  dlog() << "FFTs precalculated.";
 
   std::vector<boost::shared_ptr<ctensor_t> > cF(filters->size()), cFinc(filters->size());
 
@@ -241,12 +242,12 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
   // Declare variables used for training
   tensor_t v, vneg; // to monitor training (calculate the error)
-  ctensor_t cv_master;      // Read from the master thread and then each other thread reads from the master device
-  ctensor_t cvneg_master;   // All threads add their version to the master threads version (needs to be synchronized)
+  ctensor_t* cv_master;      // Read from the master thread and then each other thread reads from the master device
+  ctensor_t* cvneg_master;   // All threads add their version to the master threads version (needs to be synchronized)
   v.set_name("v");
   vneg.set_name("vneg");
-  cv_master.set_name("cv_master");
-  cvneg_master.set_name("cvneg_master");
+//  cv_master.set_name("cv_master");
+//  cvneg_master.set_name("cvneg_master");
 
   dim_t vbMaskSize = cb.size(), hbMaskSize, spMaskSize;
   if (getShareBiasTerms()) {
@@ -321,6 +322,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
     ctensor_t ch, chdiff, ch_full;
     ctensor_t cv;         // Read from the master thread and then each other thread reads from the master device
     ctensor_t cvneg;      // All threads add their version to the master threads version (needs to be synchronized)
+
+    #pragma omp master
+    {
+      cv_master = &cv;
+      cvneg_master = &cvneg;
+    }
+
     random_tensor<value_t, dimCount, true, uniform<value_t> > h_rand(layerSize, tid);
     random_tensor<value_t, dimCount, true, normal<value_t> > h_noise(layerSize, tid);
 
@@ -405,7 +413,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   #endif
 
     START
-    tbblas_print(_timer.elapsed_max());
     for (size_t iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
       #pragma omp master
       {
@@ -447,15 +454,16 @@ void Trainer::update(IProgressMonitor* monitor) const {
           #pragma omp master
           {
             if (getRandomizeTraining())
-              cv_master = *cX[rand() % cX.size()];
+              *cv_master = *cX[rand() % cX.size()];
             else
-              cv_master = *cX[iSample + iBatch * batchSize];
-            cvneg_master = zeros<complex_t>(cv_master.size(), cv_master.fullsize());
+              *cv_master = *cX[iSample + iBatch * batchSize];
+            *cvneg_master = zeros<complex_t>(cv_master->size(), cv_master->fullsize());
             cudaStreamSynchronize(0);
           }
           #pragma omp barrier
 
-          cv = cv_master;
+          if (tid != 0)
+            cv = *cv_master;
           cvneg = zeros<complex_t>(cv.size(), cv.fullsize());
 
   #ifdef MONITOR_TRAINING
@@ -562,7 +570,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
           // Add up local copies
           #pragma omp critical
           {
-            cvneg_master = cvneg_master + cvneg;
+            if (tid != 0)
+              *cvneg_master = *cvneg_master + cvneg;
 #ifdef MONITOR_TRAINING
             if (iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0)
               dcv_master = dcv_master + dcv;
@@ -583,17 +592,17 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
             /*** END OF NEGATIVE PHASE ***/
 
-            cvneg_master = cvneg_master + cb;
+            *cvneg_master = *cvneg_master + cb;
 
             if (getCalculateError() || monitorTraining)
-              vneg = ifft(cvneg_master, dimCount - 1, iplan_v);
+              vneg = ifft(*cvneg_master, dimCount - 1, iplan_v);
 
             switch(crbm->getVisibleUnitType()) {
               case UnitType::Bernoulli:
                 if (!getCalculateError())
-                  vneg = ifft(cvneg_master, dimCount - 1, iplan_v);
+                  vneg = ifft(*cvneg_master, dimCount - 1, iplan_v);
                 vneg = sigm(vneg);
-                cvneg_master = fft(vneg, dimCount - 1, plan_v);
+                *cvneg_master = fft(vneg, dimCount - 1, plan_v);
                 break;
 
               case UnitType::Gaussian:
@@ -629,7 +638,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
           // Wait until master is done and copy result of cvneg_master to local thread copies
           #pragma omp barrier
 
-          cvneg = cvneg_master;
+          if (tid != 0)
+            cvneg = *cvneg_master;
 
           cudaStreamSynchronize(0);
           #pragma omp barrier
@@ -795,16 +805,19 @@ void Trainer::update(IProgressMonitor* monitor) const {
       tensor_t hb;
       for (size_t k = tid; k < cF.size(); k += gpuCount) {
         f = ifft(*cF[k], dimCount - 1, iplan_v);
-        hb = ifft(*cc[k], dimCount - 1, iplan_h);
+        f = f * (abs(f) > 1e-16);
+        filters->at(k) = boost::make_shared<host_tensor_t>(f);
 
-        filters->at(k) = boost::make_shared<host_tensor_t>(f * (abs(f) > 1e-16));
-        c->at(k) = boost::make_shared<host_tensor_t>(hb * (abs(hb) > 1e-16));
+        hb = ifft(*cc[k], dimCount - 1, iplan_h);
+        hb = hb * (abs(hb) > 1e-16);
+        c->at(k) = boost::make_shared<host_tensor_t>(hb);
       }
 
       #pragma omp master
       {
         f = ifft(cb, dimCount - 1, iplan_v);
-        b = boost::make_shared<host_tensor_t>(f * (abs(f) > 1e-16));
+        f = f * (abs(f) > 1e-16);
+        b = boost::make_shared<host_tensor_t>(f);
       }
     }
 
