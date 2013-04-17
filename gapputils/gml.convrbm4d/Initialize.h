@@ -32,7 +32,6 @@ public:
   Property(FilterHeight, int)
   Property(FilterDepth, int)
   Property(FilterCount, int)
-  Property(Sigma, double)
   Property(WeightMean, double)
   Property(WeightStddev, double)
   Property(VisibleUnitType, UnitType)

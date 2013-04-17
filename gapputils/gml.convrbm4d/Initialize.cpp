@@ -21,7 +21,6 @@ BeginPropertyDefinitions(Initialize)
   WorkflowProperty(FilterHeight)
   WorkflowProperty(FilterDepth)
   WorkflowProperty(FilterCount)
-  WorkflowProperty(Sigma)
   WorkflowProperty(WeightMean)
   WorkflowProperty(WeightStddev)
   WorkflowProperty(VisibleUnitType, Enumerator<Type>())
@@ -33,7 +32,7 @@ EndPropertyDefinitions
 
 Initialize::Initialize()
  : _FilterWidth(9), _FilterHeight(9), _FilterDepth(9), _FilterCount(24),
-   _Sigma(1.0), _WeightMean(0.0), _WeightStddev(1e-3)
+   _WeightMean(0.0), _WeightStddev(1e-3)
 {
   setLabel("Initialize");
 }

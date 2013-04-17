@@ -17,6 +17,7 @@
 #include <tbblas/io.hpp>
 #include <tbblas/mask.hpp>
 #include <tbblas/fft.hpp>
+#include <tbblas/shift.hpp>
 
 #include <boost/timer.hpp>
 
@@ -212,6 +213,9 @@ void Trainer::update(IProgressMonitor* monitor) const {
         x = (x - crbm->getMean()) / crbm->getStddev();
       cx = fft(x, dimCount - 1, plan_v);
       cX.push_back(boost::shared_ptr<host_ctensor_t>(new host_ctensor_t(cx)));
+
+      if (getAtomicWorkflow() && tensors.use_count() == 2)
+        tensors->at(i) = boost::shared_ptr<host_tensor_t>();
     }
 
     // Prepare an early memory clean up of the training set
@@ -246,8 +250,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   ctensor_t* cvneg_master;   // All threads add their version to the master threads version (needs to be synchronized)
   v.set_name("v");
   vneg.set_name("vneg");
-//  cv_master.set_name("cv_master");
-//  cvneg_master.set_name("cvneg_master");
 
   dim_t vbMaskSize = cb.size(), hbMaskSize, spMaskSize;
   if (getShareBiasTerms()) {
@@ -290,10 +292,16 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
     // Copy filters to the device and pre-calculate the FFT
     {
-      tensor_t f;
+      tensor_t f, k, p;   // filter, kernel, padded kernel
       ctensor_t cf;
       for (size_t i = tid; i < filters->size(); i += gpuCount) {
-        f = *filters->at(i);
+        k = *filters->at(i);
+        dim_t topleft = size / 2 - k.size() / 2;
+        p = zeros<value_t>(size);
+        p[topleft, k.size()] = k;
+        f = ifftshift(p, dimCount - 1);
+
+//        f = *filters->at(i);
         cf = fft(f, dimCount - 1, plan_v);
         cF[i] = boost::make_shared<ctensor_t>(cf);
         cFinc[i] = boost::make_shared<ctensor_t>(zeros<complex_t>(cf.size(), cf.fullsize()));
@@ -793,6 +801,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     #pragma omp master
     {
       newState->setAverageEpochTime(_timer.elapsed() / getEpochCount());
+      cX.clear();
     }
 
   #ifdef MONITOR_TRAINING
@@ -801,16 +810,26 @@ void Trainer::update(IProgressMonitor* monitor) const {
       logfile.close();
   #endif
 
-    {
-      tensor_t hb;
-      for (size_t k = tid; k < cF.size(); k += gpuCount) {
-        f = ifft(*cF[k], dimCount - 1, iplan_v);
-        f = f * (abs(f) > 1e-16);
-        filters->at(k) = boost::make_shared<host_tensor_t>(f);
+    // Free up memory
+    for (size_t k = tid; k < cF.size(); k += gpuCount) {
+      cFinc[k] = ccinc[k] = boost::shared_ptr<ctensor_t>();
+    }
 
-        hb = ifft(*cc[k], dimCount - 1, iplan_h);
+    {
+      tensor_t hb, p, k;
+      for (size_t i = tid; i < cF.size(); i += gpuCount) {
+        dim_t topleft = size / 2 - crbm->getFilterKernelSize() / 2;
+
+        f = ifft(*cF[i], dimCount - 1, iplan_v);
+        p = fftshift(f, dimCount - 1);
+        k = p[topleft, crbm->getFilterKernelSize()];
+        filters->at(i) = boost::make_shared<host_tensor_t>(k);
+
+        hb = ifft(*cc[i], dimCount - 1, iplan_h);
         hb = hb * (abs(hb) > 1e-16);
-        c->at(k) = boost::make_shared<host_tensor_t>(hb);
+        c->at(i) = boost::make_shared<host_tensor_t>(hb);
+
+        cF[i] = cc[i] = boost::shared_ptr<ctensor_t>();
       }
 
       #pragma omp master
@@ -819,11 +838,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
         f = f * (abs(f) > 1e-16);
         b = boost::make_shared<host_tensor_t>(f);
       }
-    }
-
-    // Free up memory
-    for (size_t k = tid; k < cF.size(); k += gpuCount) {
-      cF[k] = cFinc[k] = cc[k] = ccinc[k] = boost::shared_ptr<ctensor_t>();
     }
 
     cudaDeviceSynchronize();
