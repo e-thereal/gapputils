@@ -262,10 +262,11 @@ void Trainer2::update(IProgressMonitor* monitor) const {
     {
       tensor_t f, f2;
       for (size_t i = tid; i < filters.size(); i += gpuCount) {
-        f = *filters[i];
-        f2 = fftshift(f);
-        dim_t topleft = (f2.size() - crbm->getFilterKernelSize() + 1) / 2;
-        F[i] = boost::make_shared<tensor_t>(f2[topleft, crbm->getFilterKernelSize()]);
+//        f = *filters[i];
+//        f2 = fftshift(f, dimCount - 1);
+//        dim_t topleft = (f2.size() - crbm->getFilterKernelSize() + 1) / 2;
+//        F[i] = boost::make_shared<tensor_t>(f2[topleft, crbm->getFilterKernelSize()]);
+        F[i] = boost::make_shared<tensor_t>(*filters[i]);
         Finc[i] = boost::make_shared<tensor_t>(zeros<value_t>(crbm->getFilterKernelSize()));
       }
     }
@@ -786,11 +787,12 @@ void Trainer2::update(IProgressMonitor* monitor) const {
     {
       tensor_t f2;
       for (size_t k = tid; k < F.size(); k += gpuCount) {
-        dim_t topleft = (filters[k]->size() - crbm->getFilterKernelSize() + 1) / 2;
-        tensor_t f = zeros<value_t>(filters[k]->size());
-        f[topleft, crbm->getFilterKernelSize()] = *F[k];
-        f2 = ifftshift(f);
-        *filters[k] = f2; //*F[k] * (abs(*F[k]) > 1e-16);
+//        dim_t topleft = (filters[k]->size() - crbm->getFilterKernelSize() + 1) / 2;
+//        tensor_t f = zeros<value_t>(filters[k]->size());
+//        f[topleft, crbm->getFilterKernelSize()] = *F[k];
+//        f2 = ifftshift(f, dimCount - 1);
+//        *filters[k] = f2; //*F[k] * (abs(*F[k]) > 1e-16);
+        *filters[k] = *F[k];
         *hb[k] = *c[k] * (abs(*c[k]) > 1e-16);
       }
       #pragma omp master

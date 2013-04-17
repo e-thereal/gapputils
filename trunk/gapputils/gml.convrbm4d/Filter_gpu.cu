@@ -11,6 +11,7 @@
 #include <tbblas/math.hpp>
 #include <tbblas/zeros.hpp>
 #include <tbblas/repeat.hpp>
+#include <tbblas/shift.hpp>
 
 #include <omp.h>
 
@@ -55,6 +56,8 @@ void Filter::update(IProgressMonitor* monitor) const {
 
   // Load model into device memory
   Model& crbm = *getModel();
+  dim_t size = inputs[0]->size();
+  size[dimCount - 1] = crbm.getFilterKernelSize()[dimCount - 1];
 
   int deviceCount = 0;
   cudaGetDeviceCount(&deviceCount);
@@ -100,10 +103,15 @@ void Filter::update(IProgressMonitor* monitor) const {
 
     // Copy filters to the device and pre-calculate the FFT
     {
-      tensor_t f, h;
+      tensor_t f, h, kern, pad;
       ctensor_t cf, ch;
       for (size_t k = tid; k < filters.size(); k += gpuCount) {
-        f = *filters[k];
+//        f = *filters[k];
+        kern = *filters[k];
+        dim_t topleft = size / 2 - kern.size() / 2;
+        pad = zeros<value_t>(size);
+        pad[topleft, kern.size()] = kern;
+        f = ifftshift(pad, dimCount - 1);
         cf = fft(f, dimCount - 1, plan_v);
         cF[k] = boost::make_shared<ctensor_t>(cf);
 
