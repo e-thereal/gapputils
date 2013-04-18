@@ -818,28 +818,30 @@ void WorkbenchWindow::showProgress(boost::shared_ptr<Node> node, double progress
     startTime = time(0);
   }
 
-  int passedSeconds = time(0) - startTime;
-  etaRegression.addXY(progress, passedSeconds);
-  if (etaRegression.haveData()) {
-    int totalSeconds = etaRegression.estimateY(100.0);
-    int remainingSeconds = totalSeconds - passedSeconds;
+  if (progress > 0) {
+    int passedSeconds = time(0) - startTime;
+    etaRegression.addXY(progress, passedSeconds);
+    if (etaRegression.haveData()) {
+      int totalSeconds = etaRegression.estimateY(100.0);
+      int remainingSeconds = totalSeconds - passedSeconds;
 
-    struct tm* timeinfo;
-    char buffer[256];
-    time_t finishTime = startTime + totalSeconds;
+      struct tm* timeinfo;
+      char buffer[256];
+      time_t finishTime = startTime + totalSeconds;
 
-    timeinfo = localtime(&finishTime);
-    strftime(buffer, 256, "%b %d %Y %H:%M:%S", timeinfo);
+      timeinfo = localtime(&finishTime);
+      strftime(buffer, 256, "%b %d %Y %H:%M:%S", timeinfo);
 
-    host::DataModel& model = host::DataModel::getInstance();
-    if (model.getPassedLabel())
-      model.getPassedLabel()->setText(formatTime(passedSeconds).c_str());
-    if (model.getRemainingLabel())
-      model.getRemainingLabel()->setText(formatTime(remainingSeconds).c_str());
-    if (model.getTotalLabel())
-      model.getTotalLabel()->setText(formatTime(totalSeconds).c_str());
-    if (model.getFinishedLabel())
-      model.getFinishedLabel()->setText(buffer);
+      host::DataModel& model = host::DataModel::getInstance();
+      if (model.getPassedLabel())
+        model.getPassedLabel()->setText(formatTime(passedSeconds).c_str());
+      if (model.getRemainingLabel())
+        model.getRemainingLabel()->setText(formatTime(remainingSeconds).c_str());
+      if (model.getTotalLabel())
+        model.getTotalLabel()->setText(formatTime(totalSeconds).c_str());
+      if (model.getFinishedLabel())
+        model.getFinishedLabel()->setText(buffer);
+    }
   }
   progressNode = node;
 }

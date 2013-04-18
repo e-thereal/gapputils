@@ -71,6 +71,13 @@ public:
    * properties have been read.
    */
   virtual void resume() { }
+
+  /**
+   * \brief Called by the WorkflowUpdater when a node reset is performed
+   *
+   * Overload this method to free all temporary memory used by the module.
+   */
+  virtual void reset() { }
 };
 
 }

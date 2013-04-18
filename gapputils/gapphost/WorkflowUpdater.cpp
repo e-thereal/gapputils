@@ -306,6 +306,9 @@ void WorkflowUpdater::resetNode(boost::shared_ptr<workflow::Node> node) {
     for (size_t i = 0; i < nodes.size(); ++i)
       resetNode(nodes[i]);
   } else {
+    boost::shared_ptr<workflow::WorkflowElement> element = boost::dynamic_pointer_cast<workflow::WorkflowElement>(node->getModule());
+    if (element)
+      element->reset();
     std::vector<capputils::reflection::IClassProperty*>& properties = node->getModule()->getProperties();
     for (size_t i = 0; i < properties.size(); ++i) {
       if ((workflow->isDependentProperty(node, properties[i]->getName()) && properties[i]->getAttribute<capputils::attributes::InputAttribute>()) ||
