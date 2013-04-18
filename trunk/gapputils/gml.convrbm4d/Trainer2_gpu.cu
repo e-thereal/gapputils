@@ -53,16 +53,9 @@ Trainer2Checker::Trainer2Checker() {
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, trainer);
   CHECK_MEMORY_LAYOUT2(CalculateError, trainer);
   CHECK_MEMORY_LAYOUT2(ShareBiasTerms, trainer);
-  CHECK_MEMORY_LAYOUT2(Logfile, trainer);
-  CHECK_MEMORY_LAYOUT2(MonitorEvery, trainer);
-  CHECK_MEMORY_LAYOUT2(ReconstructionCount, trainer);
+//  CHECK_MEMORY_LAYOUT2(Logfile, trainer);
 
   CHECK_MEMORY_LAYOUT2(Model, trainer);
-  CHECK_MEMORY_LAYOUT2(Filters, trainer);
-  CHECK_MEMORY_LAYOUT2(VisibleBiases, trainer);
-  CHECK_MEMORY_LAYOUT2(HiddenBiases, trainer);
-  CHECK_MEMORY_LAYOUT2(HiddenUnits, trainer);
-  CHECK_MEMORY_LAYOUT2(Reconstructions, trainer);
   CHECK_MEMORY_LAYOUT2(AverageEpochTime, trainer);
 }
 
@@ -769,7 +762,7 @@ void Trainer2::update(IProgressMonitor* monitor) const {
           dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
 
         if (monitor)
-          monitor->reportProgress(100. * (iEpoch + 1) / epochCount,  getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0);
+          monitor->reportProgress(100. * (iEpoch + 1) / epochCount);
       }
     } /* end of epochs */
 

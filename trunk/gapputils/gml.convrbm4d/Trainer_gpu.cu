@@ -26,9 +26,6 @@
 
 #include "math.hpp"
 
-// All monitoring code is enclosed by #ifdef MONITOR_TRAINING blocks
-//#define MONITOR_TRAINING
-
 namespace gml {
 
 namespace convrbm4d {
@@ -50,16 +47,10 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, trainer);
   CHECK_MEMORY_LAYOUT2(CalculateError, trainer);
   CHECK_MEMORY_LAYOUT2(ShareBiasTerms, trainer);
-  CHECK_MEMORY_LAYOUT2(Logfile, trainer);
-  CHECK_MEMORY_LAYOUT2(MonitorEvery, trainer);
-  CHECK_MEMORY_LAYOUT2(ReconstructionCount, trainer);
+  CHECK_MEMORY_LAYOUT2(Dropout, trainer);
+//  CHECK_MEMORY_LAYOUT2(Logfile, trainer);
 
   CHECK_MEMORY_LAYOUT2(Model, trainer);
-  CHECK_MEMORY_LAYOUT2(Filters, trainer);
-  CHECK_MEMORY_LAYOUT2(VisibleBiases, trainer);
-  CHECK_MEMORY_LAYOUT2(HiddenBiases, trainer);
-  CHECK_MEMORY_LAYOUT2(HiddenUnits, trainer);
-  CHECK_MEMORY_LAYOUT2(Reconstructions, trainer);
   CHECK_MEMORY_LAYOUT2(AverageEpochTime, trainer);
 }
 
@@ -119,23 +110,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   cudaSetDevice(0);
   omp_set_dynamic(0);
   omp_set_num_threads(gpuCount);
-
-#ifdef MONITOR_TRAINING
-  boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
-      new std::vector<boost::shared_ptr<host_tensor_t> >());
-  boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugVisibleBiases(
-      new std::vector<boost::shared_ptr<host_tensor_t> >());
-  boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugHiddenBiases(
-      new std::vector<boost::shared_ptr<host_tensor_t> >());
-  boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugHiddenUnits(
-      new std::vector<boost::shared_ptr<host_tensor_t> >());
-  boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugReconstructions(
-      new std::vector<boost::shared_ptr<host_tensor_t> >());
-
-  std::ofstream logfile;
-  value_t bmean, bsd, cmean, csd, Fmean, Fsd, hmean, vnegmean;
-  ctensor_t dcv_master;
-#endif
 
   /*** SETUP TRAINING PARAMETERS ***/
 
@@ -258,7 +232,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
     vbMaskSize[2] = 1;
   }
 
-  bool monitorTraining = false;
   value_t error = 0, batchError = 0;
 
   #pragma omp parallel
@@ -278,11 +251,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
       }
     }
     #pragma omp barrier
-
-#ifdef MONITOR_TRAINING
-    tensor_t l;
-    ctensor_t dcv;
-#endif
 
     #pragma omp master
     assert(tid == 0);   // Check the assumption that the first thread is the master thread
@@ -326,10 +294,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
     }
 
     // Declare variables used for training
-    tensor_t h, h2, f;       // for sigm, sampling and masking
+    tensor_t h, h2, f, drop;        // for sigm, sampling, masking, and dropout
     ctensor_t ch, chdiff, ch_full;
-    ctensor_t cv;         // Read from the master thread and then each other thread reads from the master device
-    ctensor_t cvneg;      // All threads add their version to the master threads version (needs to be synchronized)
+    ctensor_t cv;                   // Read from the master thread and then each other thread reads from the master device
+    ctensor_t cvneg;                // All threads add their version to the master threads version (needs to be synchronized)
 
     #pragma omp master
     {
@@ -359,76 +327,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
     #pragma omp master
     dlog() << "Trainer initialized. Starting training.";
 
-  #ifdef MONITOR_TRAINING
-    #pragma omp master
-    monitorTraining = getLogfile().size();
-    #pragma omp barrier
-
-    if (monitorTraining) {
-      #pragma omp master
-      {
-        logfile.open(getLogfile().c_str());
-
-        logfile << "b.mean, b.sd, c.mean, c.sd, F.mean, F.sd, h.mean, vneg.mean, error" << std::endl;
-
-        bmean = bsd = cmean = csd = Fmean = Fsd = hmean = vnegmean = 0;
-
-        f = ifft(cb, dimCount - 1, iplan_v);
-        bmean = sum(f) / f.count();
-      }
-      value_t tc = 0, tF = 0;
-      for (size_t k = tid; k < filters.size(); k += gpuCount) {
-        l = ifft(*cc[k], dimCount - 1, iplan_h);
-        tc += sum(l) / l.count();
-        f = ifft(*cF[k], dimCount - 1, iplan_v);
-        tF += sum(f) / f.count();
-      }
-      #pragma omp critical
-      {
-        cmean += tc;
-        Fmean += tF;
-      }
-      #pragma omp barrier
-      #pragma omp master
-      {
-        cmean /= filters.size();
-        Fmean /= filters.size();
-
-        f = ifft(cb, dimCount - 1, iplan_v);
-        bsd = sqrt(dot(f - bmean, f - bmean) / f.count());
-      }
-      tc = tF = 0;
-      for (size_t k = tid; k < filters.size(); k += gpuCount) {
-        l = ifft(*cc[k], dimCount - 1, iplan_h);
-        tc += dot(l - cmean, l - cmean) / l.count();
-        f = ifft(*cF[k], dimCount - 1, iplan_v);
-        tF += dot(f - Fmean, f - Fmean) / f.count();
-      }
-      #pragma omp critical
-      {
-        csd += tc;
-        Fsd += tF;
-      }
-      #pragma omp barrier
-      #pragma omp master
-      {
-        csd = sqrt(csd / filters.size());
-        Fsd = sqrt(Fsd / filters.size());
-
-        logfile << bmean << ", " << bsd << ", " << cmean << ", " << csd << ", " << Fmean << ", " << Fsd << ", " << hmean << ", " << vnegmean << ", " << 0 << std::endl;
-      }
-    }
-  #endif
-
     START
     for (size_t iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
       #pragma omp master
       {
-  #ifdef MONITOR_TRAINING
-      debugHiddenUnits->clear();
-      debugReconstructions->clear();
-  #endif
-
         error = 0;
         momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
       }
@@ -436,14 +338,15 @@ void Trainer::update(IProgressMonitor* monitor) const {
       // Momentum is read by all threads therefore wait here until the master has done its work
       #pragma omp barrier
 
+      // Decide which units to drop
+      if (getDropout())
+        drop = h_rand < 0.5;
+      else
+        drop = ones<value_t>(layerSize);
+
       for (size_t iBatch = 0; iBatch < batchCount; ++iBatch) {
         #pragma omp master
         batchError = 0;
-
-  #ifdef MONITOR_TRAINING
-        #pragma omp master
-        bmean = bsd = cmean = csd = Fmean = Fsd = hmean = vnegmean = 0;
-  #endif
 
         for (size_t k = tid; k < cF.size(); k += gpuCount) {
           *cFinc[k] = momentum * *cFinc[k] - weightcost * *cF[k];
@@ -473,18 +376,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
           if (tid != 0)
             cv = *cv_master;
           cvneg = zeros<complex_t>(cv.size(), cv.fullsize());
-
-  #ifdef MONITOR_TRAINING
-          if (iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-            #pragma omp master
-            {
-              dcv_master = zeros<complex_t>(cv_master.size(), cv_master.fullsize());
-              cudaStreamSynchronize(0);
-            }
-            #pragma omp barrier
-            dcv = zeros<complex_t>(cv.size(), cv.fullsize());
-          }
-  #endif
 
           for (size_t k = tid; k < cF.size(); k += gpuCount) {
 
@@ -530,22 +421,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
               break;
             }
 
-  #ifdef MONITOR_TRAINING
-            if (iSample == 0 && iBatch == 0 && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-              #pragma omp critical
-              debugHiddenUnits->push_back(boost::make_shared<host_tensor_t>(h));
-            }
-
-            if (iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-              dcv = dcv + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
-            }
-
-            if (monitorTraining && iSample == 0) {
-              #pragma omp critical
-              hmean += sum(h) / h.count() / cF.size();
-            }
-  #endif
-
             // Sample hidden states
             switch (crbm->getHiddenUnitType()) {
               case UnitType::Bernoulli: h = h > h_rand; break;
@@ -559,13 +434,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
                 dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
             }
 
-  #ifdef MONITOR_TRAINING
-            if (iSample == 0 && iBatch == 0 && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-              #pragma omp critical
-              debugHiddenUnits->push_back(boost::make_shared<host_tensor_t>(h));
-            }
-  #endif
-
             ch = fft(h, dimCount - 1, plan_h);
 
             /*** BEGIN OF NEGATIVE PHASE ***/
@@ -573,17 +441,12 @@ void Trainer::update(IProgressMonitor* monitor) const {
             // dvneg = F * h
             cvneg = cvneg + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
           }
-#if 1
 
           // Add up local copies
           #pragma omp critical
           {
             if (tid != 0)
               *cvneg_master = *cvneg_master + cvneg;
-#ifdef MONITOR_TRAINING
-            if (iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0)
-              dcv_master = dcv_master + dcv;
-#endif
             cudaStreamSynchronize(0);
           }
           #pragma omp barrier
@@ -592,7 +455,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
           #pragma omp master
           {
-            if (getCalculateError() || monitorTraining)
+            if (getCalculateError())
               v = ifft(cv, dimCount - 1, iplan_v);
 
             //binc = binc + epsilonvb * sum(v);
@@ -602,7 +465,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
             *cvneg_master = *cvneg_master + cb;
 
-            if (getCalculateError() || monitorTraining)
+            if (getCalculateError())
               vneg = ifft(*cvneg_master, dimCount - 1, iplan_v);
 
             switch(crbm->getVisibleUnitType()) {
@@ -619,23 +482,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
               default:
                 dlog(Severity::Warning) << "Unsupported visible unit type: " << crbm->getVisibleUnitType();
             }
-
-    #ifdef MONITOR_TRAINING
-            if (monitorTraining && iSample == 0 && iBatch < getReconstructionCount() && getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-              dcv_master = dcv_master + cb;
-              f = ifft(dcv_master, dimCount - 1, iplan_v);
-              if (crbm->getVisibleUnitType() == UnitType::Bernoulli)
-                f = sigm(f);
-
-              debugReconstructions->push_back(boost::make_shared<host_tensor_t>(v));
-              debugReconstructions->push_back(boost::make_shared<host_tensor_t>(f));
-              debugReconstructions->push_back(boost::make_shared<host_tensor_t>(vneg));
-            }
-
-            if (iSample == 0 && monitorTraining) {
-              vnegmean = sum(vneg) / vneg.count();
-            }
-    #endif
 
             if (getCalculateError()) {
               batchError += sqrt(dot(vneg - v, vneg - v) / v.count());
@@ -681,7 +527,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
           //binc = binc - epsilonvb * sum(vneg);
           #pragma omp master
           cbinc = cbinc - epsilonvb * mask<complex_t>(cvneg.size(), cvneg.fullsize(), vbMaskSize) * cvneg;
-#endif
         } /* end of sample */
 
         for (size_t k = tid; k < cF.size(); k += gpuCount) {
@@ -701,90 +546,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
           error += batchError;
         }
 
-  #ifdef MONITOR_TRAINING
-        if (monitorTraining) {
-
-          #pragma omp master
-          {
-            f = ifft(cb, dimCount - 1, iplan_v);
-            bmean = sum(f) / f.count();
-          }
-          value_t tc = 0, tF = 0;
-          for (size_t k = tid; k < filters.size(); k += gpuCount) {
-            l = ifft(*cc[k], dimCount - 1, iplan_h);
-            tc += sum(l) / l.count();  // check what to do here with synchronization
-            f = ifft(*cF[k], dimCount - 1, iplan_v);
-            tF += sum(f) / f.count();
-          }
-          #pragma omp critical
-          {
-            cmean += tc;
-            Fmean += tF;
-          }
-          #pragma omp barrier
-          #pragma omp master
-          {
-            cmean /= filters.size();
-            Fmean /= filters.size();
-
-            f = ifft(cb, dimCount - 1, iplan_v);
-            bsd = sqrt(dot(f - bmean, f - bmean) / f.count());
-          }
-          tc = tF = 0;
-          for (size_t k = tid; k < filters.size(); k += gpuCount) {
-            l = ifft(*cc[k], dimCount - 1, iplan_h);
-            tc += dot(l - cmean, l - cmean) / l.count();
-            f = ifft(*cF[k], dimCount - 1, iplan_v);
-            tF += dot(f - Fmean, f - Fmean) / f.count();
-          }
-          #pragma omp critical
-          {
-            csd += tc;
-            Fsd += tF;
-          }
-          #pragma omp barrier
-          #pragma omp master
-          {
-            csd = sqrt(csd / filters.size());
-            Fsd = sqrt(Fsd / filters.size());
-
-            logfile << bmean << ", " << bsd << ", " << cmean << ", " << csd << ", " << Fmean << ", " << Fsd << ", " << hmean << ", " << vnegmean << ", " << batchError / batchSize << std::endl;
-          }
-        }
-  #endif
 
       } /* end of batch */
-
-  #ifdef MONITOR_TRAINING
-      if (getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0) {
-        #pragma omp master
-        {
-          debugFilters->clear();
-          debugVisibleBiases->clear();
-          debugHiddenBiases->clear();
-        }
-        #pragma omp barrier
-        for (size_t k = tid; k < filters.size(); k += gpuCount) {
-          f = ifft(*cF[k], dimCount - 1, iplan_v);
-          #pragma omp critical
-          debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(f)));
-          l = ifft(*cc[k], dimCount - 1, iplan_h);
-          #pragma omp critical
-          debugHiddenBiases->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(l)));
-        }
-        #pragma omp master
-        {
-          f = ifft(cb, dimCount - 1, iplan_v);
-          debugVisibleBiases->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(f)));
-
-          newState->setFilters(debugFilters);
-          newState->setVisibleBiases(debugVisibleBiases);
-          newState->setHiddenBiases(debugHiddenBiases);
-          newState->setHiddenUnits(debugHiddenUnits);
-          newState->setReconstructions(debugReconstructions);
-        }
-      }
-  #endif
 
       #pragma omp master
       {
@@ -794,7 +557,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
           dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
 
         if (monitor)
-          monitor->reportProgress(100. * (iEpoch + 1) / epochCount,  getMonitorEvery() > 0 && iEpoch % getMonitorEvery() == 0);
+          monitor->reportProgress(100. * (iEpoch + 1) / epochCount);
       }
     } /* end of epochs */
 
@@ -803,12 +566,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
       newState->setAverageEpochTime(_timer.elapsed() / getEpochCount());
       cX.clear();
     }
-
-  #ifdef MONITOR_TRAINING
-    #pragma omp master
-    if (monitorTraining)
-      logfile.close();
-  #endif
 
     // Free up memory
     for (size_t k = tid; k < cF.size(); k += gpuCount) {
@@ -853,16 +610,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
     }
   } /* end of parallel code */
 
-#ifdef MONITOR_TRAINING
-  {
-    boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > debugFilters(
-          new std::vector<boost::shared_ptr<host_tensor_t> >());
-    for (size_t i = 0; i < filters.size(); ++i) {
-      debugFilters->push_back(boost::shared_ptr<host_tensor_t> (new host_tensor_t(*filters[i])));
-    }
-    newState->setFilters(debugFilters);
-  }
-#endif
   crbm->setFilters(filters);
   crbm->setVisibleBias(b);
   crbm->setHiddenBiases(c);
