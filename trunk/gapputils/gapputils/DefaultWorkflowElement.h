@@ -64,6 +64,10 @@ public:
     update(monitor);
   }
 
+  virtual void reset() {
+    newState = boost::make_shared<T>();
+  }
+
   virtual void writeResults() {
     if (!newState)
       return;
@@ -85,8 +89,6 @@ public:
         prop->setValue(*this, *this, prop);
       }
     }
-
-    newState = boost::make_shared<T>();
   }
 
 protected:
