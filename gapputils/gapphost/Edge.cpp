@@ -58,6 +58,9 @@ bool Edge::activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> 
   setOutputNodePtr(outputNode);
   setInputNodePtr(inputNode);
 
+  if (!outputNode || outputNode->getWorkflow().expired())
+    return false;
+
   boost::shared_ptr<PropertyReference> outputRef = PropertyReference::TryCreate(outputNode->getWorkflow().lock(), outputNode->getUuid(), getOutputProperty());
   if (!outputRef)
     return false;

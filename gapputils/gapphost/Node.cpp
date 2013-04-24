@@ -148,8 +148,12 @@ void Node::resume() {
 void Node::resumeExpressions() {
   std::vector<boost::shared_ptr<Expression> >& expressions = *getExpressions();
 
-  for (unsigned i = 0; i < expressions.size(); ++i)
-    expressions[i]->resume();
+  for (size_t i = 0; i < expressions.size(); ++i) {
+    if (!expressions[i]->resume()) {
+      expressions.erase(expressions.begin() + i);
+      --i;
+    }
+  }
 }
 
 void Node::getDependentNodes(std::vector<boost::shared_ptr<Node> >& dependendNodes) {

@@ -93,7 +93,7 @@ int getPropertyPos(const capputils::reflection::ReflectableClass& object,
   return 0;
 }
 
-void Expression::resume() {
+bool Expression::resume() {
   assert(!getNode().expired());
   assert(!getNode().lock()->getWorkflow().expired());
 
@@ -139,7 +139,11 @@ void Expression::resume() {
 
   ReflectableClass* object = getNode().lock()->getModule().get();
   assert(object);
+  if (!object->hasProperty(getPropertyName()))
+    return false;
+
   object->findProperty(getPropertyName())->setStringValue(*object, evaluate());
+  return true;
 }
 
 void Expression::disconnect(boost::shared_ptr<GlobalProperty> gprop) {
