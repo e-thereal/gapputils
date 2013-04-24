@@ -44,7 +44,7 @@ public:
 
   std::string evaluate() const;
 
-  void resume();
+  bool resume();
   void disconnect(boost::shared_ptr<GlobalProperty> gprop);
   void disconnectAll();
   void changedHandler(capputils::ObservableClass* sender, int eventId);
