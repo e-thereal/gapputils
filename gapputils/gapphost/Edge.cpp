@@ -33,13 +33,9 @@ BeginPropertyDefinitions(Edge)
 
 EndPropertyDefinitions
 
-Edge::Edge(void)
- : _CableItem(0), handler(this, &Edge::changedHandler), outputId(-1)
-{
-}
+Edge::Edge(void) : _CableItem(0), handler(this, &Edge::changedHandler), outputId(-1) { }
 
-Edge::~Edge(void)
-{
+Edge::~Edge(void) {
   PropertyReference* outputRef = getOutputReference().get();
   if (outputRef) {
     capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(outputRef->getObject());
@@ -119,19 +115,18 @@ bool Edge::areCompatible(const capputils::reflection::IClassProperty* outProp,
 void Edge::changedHandler(capputils::ObservableClass*, int eventId) {
   // check for the right property ID
 
-  if (eventId != (int)outputId)
-    return;
+  if (eventId == (int)outputId) {
+    PropertyReference* inputRef = getInputReference().get();
+    PropertyReference* outputRef = getOutputReference().get();
 
-  PropertyReference* inputRef = getInputReference().get();
-  PropertyReference* outputRef = getOutputReference().get();
+    if (!inputRef || !outputRef)
+      return;
 
-  if (!inputRef || !outputRef)
-    return;
-
-  capputils::reflection::IClassProperty* inProp = inputRef->getProperty();
-  capputils::reflection::IClassProperty* outProp = outputRef->getProperty();
-  if (inProp && outProp) {
-    inProp->setValue(*inputRef->getObject(), *outputRef->getObject(), outProp);
+    capputils::reflection::IClassProperty* inProp = inputRef->getProperty();
+    capputils::reflection::IClassProperty* outProp = outputRef->getProperty();
+    if (inProp && outProp) {
+      inProp->setValue(*inputRef->getObject(), *outputRef->getObject(), outProp);
+    }
   }
 }
 
