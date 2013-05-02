@@ -96,7 +96,7 @@ DataModel::DataModel(void) : _UpdateAll(false), _Headless(false), _Help(false),
     _WindowX(150), _WindowY(150), _WindowWidth(1200), _WindowHeight(600),
     _OpenWorkflows(new std::vector<std::string>()),
     _WorkflowMap(new std::map<std::string, boost::weak_ptr<workflow::Workflow> >),
-    _Configuration(".gapphost/config.xml"), _SnippetsPath(".snippets"), _LogfileName("grapevine.log"), _SaveConfiguration(true),
+    _Configuration(".gapphost/config.xml"), _LibraryPath(".libraries"), _SnippetsPath(".snippets"), _LogfileName("grapevine.log"), _SaveConfiguration(true),
     _WorkflowParameters(false)
 {
   char* path = std::getenv(GRAPEVINE_LIBRARY_PATH);
@@ -109,8 +109,7 @@ DataModel::DataModel(void) : _UpdateAll(false), _Headless(false), _Help(false),
   boost::filesystem::create_directories(getSnippetsPath());
 }
 
-DataModel::~DataModel(void)
-{
+DataModel::~DataModel(void) {
 }
 
 DataModel& DataModel::getInstance() {
