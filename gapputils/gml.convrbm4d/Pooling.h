@@ -25,7 +25,9 @@ class Pooling : public DefaultWorkflowElement<Pooling> {
   InitReflectableClass(Pooling)
 
   Property(Inputs, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
-  Property(BlockSize, int)
+  Property(BlockWidth, int)
+  Property(BlockHeight, int)
+  Property(BlockDepth, int)
   Property(Method, PoolingMethod)
   Property(Direction, CodingDirection)
   Property(Outputs, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)

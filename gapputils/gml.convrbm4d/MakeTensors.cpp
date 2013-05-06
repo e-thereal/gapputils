@@ -23,6 +23,7 @@ BeginPropertyDefinitions(MakeTensors)
   WorkflowProperty(Depth)
   WorkflowProperty(ChannelCount)
   WorkflowProperty(Tensors, Output("Ts"))
+  WorkflowProperty(Tensor, Output("T"))
 
 EndPropertyDefinitions
 
@@ -48,6 +49,7 @@ void MakeTensors::update(IProgressMonitor* monitor) const {
   }
 
   newState->setTensors(outputs);
+  newState->setTensor(outputs->at(0));
 }
 
 } /* namespace convrbm4d */

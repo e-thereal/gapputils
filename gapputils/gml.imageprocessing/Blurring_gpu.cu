@@ -28,14 +28,14 @@ void Blurring::update(IProgressMonitor* monitor) const {
   filter = gaussian<float>(input.size(), getSigma());
   tensor<complex<float>, 3, true> cinput, cfilter, coutput;
   tensor<cufftComplex, 3, true> test;
-  /*cinput = fft(input);
+  cinput = fft(input);
   cfilter = fft(filter);
   coutput = cinput * cfilter;
   output = ifft(coutput);
 
   boost::shared_ptr<image_t> outputImage(new image_t(image.getSize(), image.getPixelSize()));
   thrust::copy(output.begin(), output.end(), outputImage->begin());
-  newState->setOutputImage(outputImage);*/
+  newState->setOutputImage(outputImage);
 }
 
 }

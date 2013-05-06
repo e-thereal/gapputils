@@ -12,6 +12,7 @@
 #include <gapputils/namespaces.h>
 
 #include "SparsityMethod.h"
+#include "DropoutMethod.h"
 
 #include "Model.h"
 
@@ -29,27 +30,46 @@ public:
 
   InitReflectableClass(Trainer)
 
+  // Primary inputs
   Property(InitialModel, boost::shared_ptr<Model>)
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+
+  // Data set size dependent parameters
   Property(EpochCount, int)
   Property(BatchSize, int)
   Property(GpuCount, int)
   int dummy;
-  Property(LearningRateW, double)
-  Property(LearningRateVB, double)
-  Property(LearningRateHB, double)
+
+  // Sparsity parameters
   Property(SparsityTarget, double)
   Property(SparsityWeight, double)
   Property(SparsityMethod, SparsityMethod)
+
+  // Learning algorithm parameters
+  Property(LearningRate, double)
+  Property(LearningDecay, double)
+  Property(InitialMomentum, double)
+  Property(FinalMomentum, double)
+  Property(MomentumDecayEpochs, int)
+  Property(WeightDecay, double)
+  Property(WeightVectorLimit, double)
   Property(RandomizeTraining, bool)
-  Property(CalculateError, bool)
   Property(ShareBiasTerms, bool)
-  Property(Dropout, bool)
-//  Property(Logfile, std::string)
+  Property(VisibleDropout, double)
+  Property(HiddenDropout, double)
+  Property(FilterDropout, double)
+  Property(DropoutMethod, DropoutMethod)
+  Property(DropoutStage, DropoutStage)
+  Property(CalculateError, bool)
+  Property(UpdateModel, int)
   int dummy2;
 
+  // Output parameters
+  Property(CurrentEpoch, int)
   Property(Model, boost::shared_ptr<Model>)
+  Property(ModelIncrement, boost::shared_ptr<Model>)
   Property(AverageEpochTime, double)
+  Property(ReconstructionError, double)
 
 public:
   Trainer();

@@ -8,11 +8,13 @@
 #include "TensorWriter.h"
 #include <tbblas/serialize.hpp>
 
+#include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 
 namespace bio = boost::iostreams;
+namespace fs = boost::filesystem;
 
 namespace gml {
 
@@ -33,6 +35,9 @@ TensorWriter::TensorWriter() {
 
 void TensorWriter::update(gapputils::workflow::IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
+
+  fs::path path(getFilename());
+  fs::create_directories(path.parent_path());
 
   bio::filtering_ostream file;
   file.push(boost::iostreams::gzip_compressor());

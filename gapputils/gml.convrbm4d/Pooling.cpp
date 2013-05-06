@@ -17,20 +17,22 @@ BeginPropertyDefinitions(Pooling)
   ReflectableBase(DefaultWorkflowElement<Pooling>)
 
   WorkflowProperty(Inputs, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
-  WorkflowProperty(BlockSize)
+  WorkflowProperty(BlockWidth)
+  WorkflowProperty(BlockHeight)
+  WorkflowProperty(BlockDepth)
   WorkflowProperty(Method, Enumerator<Type>())
   WorkflowProperty(Direction, Enumerator<Type>())
   WorkflowProperty(Outputs, Output("Ts"))
 EndPropertyDefinitions
 
-Pooling::Pooling() : _BlockSize(2) {
+Pooling::Pooling() : _BlockWidth(2), _BlockHeight(2), _BlockDepth(2) {
   setLabel("Pooling");
 }
 
 Pooling::~Pooling() { }
 
-size_t count(const Model::tensor_t::dim_t& size) {
-  size_t count = 1;
+int count(const Model::tensor_t::dim_t& size) {
+  int count = 1;
   for (unsigned i = 0; i < Model::dimCount; ++i)
     count *= size[i];
   return count;
@@ -40,7 +42,6 @@ void Pooling::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
   typedef tensor_t::dim_t dim_t;
-  const unsigned dimCount = Model::dimCount;
 
   boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > inputs = getInputs();
   const bool cleanup = getAtomicWorkflow() && inputs.use_count() == 2;
@@ -51,17 +52,11 @@ void Pooling::update(IProgressMonitor* monitor) const {
   dim_t inSize = inputs->at(0)->size(), inBlock, outBlock;
 
   if (getDirection() == CodingDirection::Encode) {
-    inBlock = dim_t(getBlockSize());
-    inBlock[dimCount - 1] = 1;
-
-    outBlock = dim_t(1);
-    outBlock[dimCount - 1] = count(inBlock);
+    inBlock = seq(getBlockWidth(), getBlockHeight(), getBlockDepth(), 1);
+    outBlock = seq(1, 1, 1, count(inBlock));
   } else {
-    outBlock = dim_t(getBlockSize());
-    outBlock[dimCount - 1] = 1;
-
-    inBlock = dim_t(1);
-    inBlock[dimCount - 1] = count(outBlock);
+    outBlock = seq(getBlockWidth(), getBlockHeight(), getBlockDepth(), 1);
+    inBlock = seq(1, 1, 1, count(outBlock));
   }
 
   dim_t outSize = inSize / inBlock * outBlock;

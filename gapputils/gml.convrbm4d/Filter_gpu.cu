@@ -28,6 +28,7 @@ FilterChecker::FilterChecker() {
   CHECK_MEMORY_LAYOUT2(Inputs, filter);
   CHECK_MEMORY_LAYOUT2(Direction, filter);
   CHECK_MEMORY_LAYOUT2(GpuCount, filter);
+  CHECK_MEMORY_LAYOUT2(OnlyFilters, filter);
 
   CHECK_MEMORY_LAYOUT2(Outputs, filter);
 }
@@ -56,8 +57,9 @@ void Filter::update(IProgressMonitor* monitor) const {
 
   // Load model into device memory
   Model& crbm = *getModel();
-  dim_t size = inputs[0]->size();
+  dim_t size = inputs[0]->size(), layerSize = size;
   size[dimCount - 1] = crbm.getFilterKernelSize()[dimCount - 1];
+  layerSize[dimCount - 1] = 1;
 
   int deviceCount = 0;
   cudaGetDeviceCount(&deviceCount);
@@ -85,8 +87,6 @@ void Filter::update(IProgressMonitor* monitor) const {
 
   #pragma omp parallel
   {
-    plan_t plan_v, iplan_v, plan_h, iplan_h;
-
     /*** PREPARE GPU THREADS ***/
 
     int tid = omp_get_thread_num();
@@ -100,6 +100,9 @@ void Filter::update(IProgressMonitor* monitor) const {
       cudaDeviceEnablePeerAccess(0, 0);
     }
     #pragma omp barrier
+
+    plan_t plan_v, iplan_v, plan_h, iplan_h;
+    tensor_t hMask = *crbm.getMask();
 
     // Copy filters to the device and pre-calculate the FFT
     {
@@ -136,6 +139,7 @@ void Filter::update(IProgressMonitor* monitor) const {
           v_master = *inputs[i];
           if (crbm.getVisibleUnitType() == UnitType::Gaussian)
             v_master = (v_master - crbm.getMean()) / crbm.getStddev();
+          v_master = v_master * repeat(hMask, size / layerSize);
           cv_master = fft(v_master, dimCount - 1, plan_v);
           output.resize(seq(v_master.size()[0], v_master.size()[1], v_master.size()[2], (int)cF.size()),
               seq(v_master.size()[0], v_master.size()[1], v_master.size()[2], (int)cF.size()));
@@ -173,7 +177,7 @@ void Filter::update(IProgressMonitor* monitor) const {
             default:
               dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm.getVisibleUnitType();
           }
-          output[seq(0,0,0,(int)k), h.size()] = h;
+          output[seq(0,0,0,(int)k), h.size()] = h * hMask;
         }
         cudaStreamSynchronize(0);
         #pragma omp barrier
@@ -191,6 +195,8 @@ void Filter::update(IProgressMonitor* monitor) const {
 
         for (size_t k = tid; k < cF.size(); k += gpuCount) {
           h = (*inputs[i])[seq(0,0,0,(int)k), seq(inputs[i]->size()[0],inputs[i]->size()[1], inputs[i]->size()[2],1)];
+          if (!getOnlyFilters())
+            h = h * hMask;
           ch = fft(h, dimCount - 1, plan_h);
 
           cv = cv + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
@@ -207,13 +213,18 @@ void Filter::update(IProgressMonitor* monitor) const {
         {
           v = ifft(cv_master, dimCount - 1, iplan_v);
 
-          switch(crbm.getVisibleUnitType()) {
-            case UnitType::Bernoulli: v = sigm(v + b); break;
-            case UnitType::Gaussian:  v = v + b;       break;
-            default:
-              dlog(Severity::Warning) << "Unsupported unit type: " << crbm.getVisibleUnitType();
+          if (getOnlyFilters()) {
+            output = v;
+          } else {
+            switch(crbm.getVisibleUnitType()) {
+              case UnitType::Bernoulli: v = sigm(v + b); break;
+              case UnitType::Gaussian:  v = v + b;       break;
+              default:
+                dlog(Severity::Warning) << "Unsupported unit type: " << crbm.getVisibleUnitType();
+            }
+            output = ((v * crbm.getStddev()) + crbm.getMean()) * repeat(hMask, size / layerSize);
           }
-          output = (v * crbm.getStddev()) + crbm.getMean();
+
           cudaStreamSynchronize(0);
         }
         #pragma omp barrier

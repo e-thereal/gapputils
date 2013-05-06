@@ -17,6 +17,7 @@ BeginPropertyDefinitions(Initialize)
   ReflectableBase(DefaultWorkflowElement<Initialize>)
 
   WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(Mask, Input("Mask"))
   WorkflowProperty(FilterWidth)
   WorkflowProperty(FilterHeight)
   WorkflowProperty(FilterDepth)

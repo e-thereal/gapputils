@@ -22,10 +22,16 @@ class ModelWriter : public DefaultWorkflowElement<ModelWriter> {
 
   Property(Model, boost::shared_ptr<Model>)
   Property(Filename, std::string)
+  Property(AutoSave, bool)
   Property(OutputName, std::string)
+
+private:
+  static int modelId;
 
 public:
   ModelWriter();
+
+  void changedHandler(ObservableClass* sender, int eventId);
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;

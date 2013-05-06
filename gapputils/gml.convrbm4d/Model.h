@@ -43,6 +43,7 @@ private:
   Property(Stddev, value_t)
   Property(VisibleUnitType, UnitType)
   Property(HiddenUnitType, UnitType)
+  Property(Mask, boost::shared_ptr<tensor_t>) // The mask has always only one channel and must be extended if necessary
 
 public:
   Model();
