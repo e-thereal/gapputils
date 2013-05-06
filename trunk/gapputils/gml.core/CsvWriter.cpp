@@ -2,6 +2,10 @@
 
 #include <fstream>
 
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
+
 namespace gml {
 
 namespace core {
@@ -25,6 +29,9 @@ CsvWriter::CsvWriter() : _ColumnCount(0) {
 void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
   std::ofstream outfile(getFilename().c_str());
   Logbook& dlog = getLogbook();
+
+  fs::path path(getFilename());
+  fs::create_directories(path.parent_path());
 
   if (getData()) {
     std::vector<boost::shared_ptr<std::vector<double> > >& data = *getData();

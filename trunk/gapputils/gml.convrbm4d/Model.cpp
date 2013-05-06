@@ -26,6 +26,7 @@ BeginPropertyDefinitions(Model)
   DefineProperty(Stddev, Serialize<Type>())
   DefineProperty(VisibleUnitType, Serialize<Type>())
   DefineProperty(HiddenUnitType, Serialize<Type>())
+  DefineProperty(Mask, Serialize<Type>())
 EndPropertyDefinitions
 
 Model::Model() : _Mean(0.0), _Stddev(1.0) { }
@@ -56,6 +57,7 @@ boost::shared_ptr<Model> Model::clone() {
   model->setStddev(getStddev());
   model->setVisibleUnitType(getVisibleUnitType());
   model->setHiddenUnitType(getHiddenUnitType());
+  model->setMask(boost::make_shared<tensor_t>(*getMask()));
 
   return model;
 }

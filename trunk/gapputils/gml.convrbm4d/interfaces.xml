@@ -41,6 +41,15 @@
       </Item>
       <Item>
         <gapputils-Interface>
+          <Identifier value="Tensor4d" />
+          <Type value="boost::shared_ptr<tbblas::tensor<float,4> >" />
+          <Header value="tbblas/tensor.hpp" />
+          <IsParameter value="0" />
+          <IsCollection value="0" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
           <Identifier value="Crbm4d" />
           <Type value="boost::shared_ptr<gml::convrbm4d::Model>" />
           <Header value="Model.h" />

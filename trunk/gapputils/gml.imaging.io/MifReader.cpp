@@ -39,6 +39,10 @@ void MifReader::update(IProgressMonitor* /*monitor*/) const {
   using namespace MSMRI::MIF;
   using namespace std;
 
+  Logbook& dlog = getLogbook();
+  dlog.setSeverity(Severity::Trace);
+  dlog() << "Hello";
+
   CMIF mif(getMifName());
 
   int width, height, depth;

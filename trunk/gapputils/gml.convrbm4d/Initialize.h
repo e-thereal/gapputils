@@ -28,6 +28,7 @@ public:
   InitReflectableClass(Initialize)
 
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(Mask, boost::shared_ptr<tensor_t>)
   Property(FilterWidth, int)
   Property(FilterHeight, int)
   Property(FilterDepth, int)

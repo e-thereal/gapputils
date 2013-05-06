@@ -29,6 +29,7 @@ class MakeTensors : public DefaultWorkflowElement<MakeTensors> {
   Property(Depth, int)
   Property(ChannelCount, int)
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(Tensor, boost::shared_ptr<tensor_t>)
 
 public:
   MakeTensors();

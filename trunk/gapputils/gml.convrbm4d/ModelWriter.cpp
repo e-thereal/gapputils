@@ -7,31 +7,49 @@
 
 #include "ModelWriter.h"
 
+#include <capputils/DummyAttribute.h>
+#include <capputils/EventHandler.h>
 #include <capputils/Serializer.h>
 
+#include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 
 namespace bio = boost::iostreams;
+namespace fs = boost::filesystem;
 
 namespace gml {
 namespace convrbm4d {
 
+int ModelWriter::modelId;
+
 BeginPropertyDefinitions(ModelWriter)
   ReflectableBase(DefaultWorkflowElement<ModelWriter>)
 
-  WorkflowProperty(Model, Input("CRBM"), NotNull<Type>())
+  WorkflowProperty(Model, Input("CRBM"), NotNull<Type>(), Dummy(modelId = Id))
   WorkflowProperty(Filename, Filename(), NotEmpty<Type>())
+  WorkflowProperty(AutoSave, Description("If 1, the model is saved automatically when a change is detected."))
   WorkflowProperty(OutputName, Output("File"))
 EndPropertyDefinitions
 
-ModelWriter::ModelWriter() {
+ModelWriter::ModelWriter() : _AutoSave(false) {
   setLabel("Writer");
+  Changed.connect(EventHandler<ModelWriter>(this, &ModelWriter::changedHandler));
+}
+
+void ModelWriter::changedHandler(ObservableClass* sender, int eventId) {
+  if (eventId == modelId && getAutoSave()) {
+    this->execute(0);
+    this->writeResults();
+  }
 }
 
 void ModelWriter::update(IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
+
+  fs::path path(getFilename());
+  fs::create_directories(path.parent_path());
 
   bio::filtering_ostream file;
   file.push(boost::iostreams::gzip_compressor());

@@ -11,8 +11,9 @@
 #include <tbblas/dot.hpp>
 #include <tbblas/random.hpp>
 #include <tbblas/gaussian.hpp>
-#include <tbblas/mask.hpp>
 #include <tbblas/zeros.hpp>
+#include <tbblas/ones.hpp>
+#include <tbblas/repeat.hpp>
 
 namespace gml {
 
@@ -22,6 +23,7 @@ InitializeChecker::InitializeChecker() {
   Initialize test;
   test.initializeClass();
   CHECK_MEMORY_LAYOUT2(Tensors, test);
+  CHECK_MEMORY_LAYOUT2(Mask, test);
   CHECK_MEMORY_LAYOUT2(FilterWidth, test);
   CHECK_MEMORY_LAYOUT2(FilterHeight, test);
   CHECK_MEMORY_LAYOUT2(FilterDepth, test);
@@ -37,14 +39,29 @@ InitializeChecker::InitializeChecker() {
 void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace tbblas;
 
+  typedef tensor_t::value_t value_t;
+
+  Logbook& dlog = getLogbook();
+
   // Calculate the mean and the std of all features
   const int filterCount = getFilterCount();
+  const int dimCount = tensor_t::dimCount;
 
   boost::shared_ptr<Model> crbm(new Model());
   crbm->setVisibleUnitType(getVisibleUnitType());
   crbm->setHiddenUnitType(getHiddenUnitType());
 
   std::vector<boost::shared_ptr<tensor_t> >& tensors = *getTensors();
+  tensor_t::dim_t size = tensors[0]->size(), maskSize = size;
+  maskSize[dimCount - 1] = 1;
+
+  tensor_t mask = (getMask() ? *getMask() : ones<value_t>(maskSize));
+  const value_t count = sum(mask) * size[dimCount - 1];
+
+  if (!(mask.size() == maskSize)) {
+    dlog(Severity::Warning) << "Size mismatch between input tensors and mask. Aborting!";
+    return;
+  }
 
   const int totalCount = tensors.size() * 2 + filterCount;
 
@@ -53,7 +70,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
     // Calculate the mean and normalize the data
     value_t mean = 0;
     for (size_t i = 0; i < tensors.size(); ++i) {
-      mean = mean + sum(*tensors[i]) / tensors[i]->count();
+      mean = mean + sum(*tensors[i] * repeat(mask, size / maskSize)) / count;
       if (monitor)
         monitor->reportProgress(100.0 * i / totalCount);
     }
@@ -62,7 +79,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
     // Calculate the stddev and normalize the data
     value_t var = 0;
     for (size_t i = 0; i < tensors.size(); ++i) {
-      var += dot(*tensors[i] - mean, *tensors[i] - mean) / tensors[i]->count();
+      var += dot((*tensors[i] - mean) * repeat(mask, size / maskSize), (*tensors[i] - mean) * repeat(mask, size / maskSize)) / count;
       if (monitor)
         monitor->reportProgress(100.0 * (i + tensors.size()) / totalCount);
     }
@@ -70,6 +87,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
     value_t stddev = sqrt(var / tensors.size());
     crbm->setMean(mean);
     crbm->setStddev(stddev);
+    std::cout << mean << ", " << stddev << std::endl;
   } else {
     crbm->setMean(0.0);
     crbm->setStddev(1.0);
@@ -84,7 +102,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   kernelSize[0] = getFilterWidth();
   kernelSize[1] = getFilterHeight();
   kernelSize[2] = getFilterDepth();
-  kernelSize[3] = tensors[0]->size()[3];
+  kernelSize[3] = size[3];
 
   random_tensor<value_t, Model::dimCount, false, normal<value_t> > randn(kernelSize);
   tensor_t sample;
@@ -93,7 +111,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   hiddenSize[Model::dimCount - 1] = 1;
 
   for (int i = 0; i < filterCount; ++i) {
-    sample = getWeightStddev() * randn + getWeightMean();
+    sample = (getWeightStddev() * randn + getWeightMean()) / (value_t)randn.count();
     filters->push_back(boost::make_shared<tensor_t>(sample));
     hb->push_back(boost::make_shared<tensor_t>(zeros<value_t>(hiddenSize)));
     if (monitor)
@@ -104,6 +122,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   crbm->setHiddenBiases(hb);
   crbm->setVisibleBias(vb);
   crbm->setFilterKernelSize(kernelSize);
+  crbm->setMask(boost::make_shared<tensor_t>(mask));
 
   newState->setModel(crbm);
 }
