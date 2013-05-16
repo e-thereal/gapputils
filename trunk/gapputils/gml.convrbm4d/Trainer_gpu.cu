@@ -674,6 +674,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
         }
         #pragma omp master
         {
+
+          if (getShareBiasTerms()) {
+            const int channelsPerBlock = getChannelsPerBlock();
+            for (int i = 0; i < size[3]; i += channelsPerBlock)
+              cbinc[seq(0,0,0,i), seq(1,1,1,channelsPerBlock)] = ones<complex_t>(1,1,1,channelsPerBlock) * sum(cbinc[seq(0,0,0,i), seq(1,1,1,channelsPerBlock)]) * (1.f / (float)channelsPerBlock);
+          }
+
           cb = cb + cbinc;
 
           if (monitor)
