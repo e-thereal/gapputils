@@ -55,6 +55,7 @@ public:
   Property(WeightVectorLimit, double)
   Property(RandomizeTraining, bool)
   Property(ShareBiasTerms, bool)
+  Property(ChannelsPerBlock, int)
   Property(VisibleDropout, double)
   Property(HiddenDropout, double)
   Property(FilterDropout, double)

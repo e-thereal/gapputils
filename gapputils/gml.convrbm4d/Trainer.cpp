@@ -34,6 +34,7 @@ BeginPropertyDefinitions(Trainer)
   WorkflowProperty(WeightVectorLimit, Description("Maximum length of the weight update vector. Lower values reduce oscillation."))
   WorkflowProperty(RandomizeTraining, Description("Randomly select images of a mini-batch."))
   WorkflowProperty(ShareBiasTerms, Description("If 1, visible and hidden units of the same filter share bias terms."))
+  WorkflowProperty(ChannelsPerBlock, Description("All channels of the same pooling block share the same bias terms when shared bias terms are active. Hence, this number must be known."))
   WorkflowProperty(VisibleDropout, Description("Probability of a visible unit of being ignored."))
   WorkflowProperty(HiddenDropout, Description("Probability of a hidden unit of being ignored."))
   WorkflowProperty(FilterDropout, Description("Probability of an entire filter of being ignored."))
@@ -55,7 +56,7 @@ Trainer::Trainer()
    _SparsityTarget(1e-2), _SparsityWeight(0.1),
    _LearningRate(1e-3), _LearningDecay(0.98), _InitialMomentum(0.5), _FinalMomentum(0.9),
    _MomentumDecayEpochs(50), _WeightDecay(0), _WeightVectorLimit(1), _RandomizeTraining(false),
-   _ShareBiasTerms(false), _VisibleDropout(0.2), _HiddenDropout(0.5), _FilterDropout(0.0),
+   _ShareBiasTerms(false), _ChannelsPerBlock(1), _VisibleDropout(0.2), _HiddenDropout(0.5), _FilterDropout(0.0),
    _CalculateError(false), _UpdateModel(0),
    _CurrentEpoch(0), _AverageEpochTime(0.0), _ReconstructionError(0.0)
 {
