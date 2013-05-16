@@ -45,7 +45,7 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
     FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
     FilenameAttribute* fa = 0;
 
-    ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
+    //ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
 
     if (enumAttr) {
       boost::shared_ptr<capputils::AbstractEnumerator> enumerator = enumAttr->getEnumerator(*object, property);
@@ -76,10 +76,10 @@ QWidget *PropertyGridDelegate::createEditor(QWidget *parent,
       connect(editor, SIGNAL(editingFinished()),
                  this, SLOT(commitAndCloseEditor()));
       return editor;
-    } else if (stringProperty) {
+    } //else if (stringProperty) {
       QLineEdit* edit = new QLineEdit(parent);
       return edit;
-    }
+    //}
 
     /* else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
       QCheckBox* editor = new QCheckBox(parent);
@@ -101,7 +101,7 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
 
     //IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
     FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
-    ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
+    //ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
     IEnumeratorAttribute* enumAttr = property->getAttribute<IEnumeratorAttribute>();
     if (enumAttr) {
       boost::shared_ptr<capputils::AbstractEnumerator> enumerator = enumAttr->getEnumerator(*object, property);
@@ -130,7 +130,7 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
         edit->setText(index.model()->data(index).toString());
       }
       return;
-    } else if (stringProperty) {
+    }// else if (stringProperty) {
       QLineEdit* edit = static_cast<QLineEdit*>(editor);
 
       boost::shared_ptr<Expression> expression = node->getExpression(property->getName());
@@ -140,7 +140,7 @@ void PropertyGridDelegate::setEditorData(QWidget *editor,
         edit->setText(index.model()->data(index).toString());
       }
       return;
-    }
+    //}
 
     /* else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
       QCheckBox* cb = static_cast<QCheckBox*>(editor);
@@ -164,7 +164,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
     //IReflectableAttribute* reflectable = property->getAttribute<IReflectableAttribute>();
     IEnumeratorAttribute* enumAttr = property->getAttribute<IEnumeratorAttribute>();
     FromEnumerableAttribute* fromEnumerable = property->getAttribute<FromEnumerableAttribute>();
-    ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
+    //ClassProperty<std::string>* stringProperty = dynamic_cast<ClassProperty<std::string>*>(property);
     if (enumAttr) {
       boost::shared_ptr<capputils::AbstractEnumerator> enumerator = enumAttr->getEnumerator(*object, property);
       if (enumerator) {
@@ -204,7 +204,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
         model->setData(index, text);
       }
       return;
-    } else if (stringProperty) {
+    } //else if (stringProperty) {
       QLineEdit* edit = static_cast<QLineEdit*>(editor);
       QString text = edit->text();
       if (text[0] == '=') {
@@ -229,7 +229,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
         model->setData(index, text);
       }
       return;
-    }
+    //}
 
     /*else if (reference.getProperty()->getAttribute<FlagAttribute>()) {
       QCheckBox* cb = static_cast<QCheckBox*>(editor);
