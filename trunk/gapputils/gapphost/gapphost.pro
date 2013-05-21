@@ -24,7 +24,6 @@ SOURCES = main.cpp \
 		  PopUpList.cpp \
 		  GlobalEdge.cpp \
 		  Expression.cpp \
-		  trace.cpp \
 		  HostInterface.cpp \
 		  linreg.cpp \
 		  Filename.cpp \

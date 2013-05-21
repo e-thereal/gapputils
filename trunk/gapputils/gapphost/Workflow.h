@@ -83,7 +83,7 @@ public:
   bool isInterfaceNode(boost::shared_ptr<const Node> node) const;
   bool isInputNode(boost::shared_ptr<const Node> node) const;
   bool isOutputNode(boost::shared_ptr<const Node> node) const;
-  void getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost::shared_ptr<Node> >& dependendNodes);
+  void getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost::shared_ptr<Node> >& dependendNodes, bool includeParentDependencies = false);
   bool isDependentProperty(boost::shared_ptr<const Node> node, const std::string& propertyName) const;
 
   void addInterfaceNode(boost::shared_ptr<Node> node);
@@ -123,6 +123,7 @@ public:
   void connectProperty(const std::string& name, const PropertyReference& propertyReference);
   void removeGlobalEdge(boost::shared_ptr<GlobalEdge> edge);
   void removeGlobalProperty(boost::shared_ptr<GlobalProperty> gprop);
+  boost::shared_ptr<Edge> createEdge(const PropertyReference& fromProperty, const PropertyReference& toProperty);
 
   bool activateGlobalEdge(boost::shared_ptr<GlobalEdge> edge);
 

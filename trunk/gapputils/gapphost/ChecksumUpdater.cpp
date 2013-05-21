@@ -169,7 +169,7 @@ void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
       // TODO: test if it makes a difference when I cache the checksums in a vector and calculate the total sum in one go
 
       std::vector<boost::shared_ptr<workflow::Node> > dependentNodes;
-      currentNode->getDependentNodes(dependentNodes);
+      currentNode->getDependentNodes(dependentNodes, true);
       //std::cout << "  Dependent nodes: " << dependentNodes.size() << std::endl;
       for (unsigned i = 0; i < dependentNodes.size(); ++i) {
         //std::cout << "  " << dependentNodes[i]->getUuid() << std::endl;
@@ -231,7 +231,7 @@ void ChecksumUpdater::buildStack(boost::shared_ptr<workflow::Node> node) {
 
   // call build stack for all output nodes
   std::vector<boost::shared_ptr<workflow::Node> > dependentNodes;
-  node->getDependentNodes(dependentNodes);
+  node->getDependentNodes(dependentNodes, true);
   for (unsigned i = 0; i < dependentNodes.size(); ++i)
     buildStack(dependentNodes[i]);
 }
