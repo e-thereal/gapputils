@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <boost/typeof/std/utility.hpp>
+#include <boost/make_shared.hpp>
 
 #include "WorkflowToolBox.h"
 #include "WorkflowSnippets.h"

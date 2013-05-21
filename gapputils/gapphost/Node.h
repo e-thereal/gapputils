@@ -52,7 +52,7 @@ public:
 
   static std::string CreateUuid();
 
-  void getDependentNodes(std::vector<boost::shared_ptr<Node> >& dependendNodes);
+  void getDependentNodes(std::vector<boost::shared_ptr<Node> >& dependendNodes, bool includeParentDependencies = false);
 
   /**
    * \brief Returns the expression object of the named property if the property is associated to one.

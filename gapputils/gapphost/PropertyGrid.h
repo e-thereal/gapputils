@@ -36,7 +36,7 @@ class PropertyGrid : public QSplitter {
 private:
   QTreeView* propertyGrid;
   QFormLayout* infoLayout;
-  QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal, *makeParameter;
+  QAction *makeGlobal, *removeGlobal, *connectToGlobal, *disconnectFromGlobal, *makeParameter, *makeInput, *makeOutput;
   boost::weak_ptr<workflow::Node> node;
   boost::shared_ptr<ModelHarmonizer> harmonizer;
 
@@ -57,6 +57,8 @@ private Q_SLOTS:
   void connectProperty();
   void disconnectProperty();
   void makePropertyParameter();
+  void makePropertyInput();
+  void makePropertyOutput();
 };
 
 } /* namespace host */

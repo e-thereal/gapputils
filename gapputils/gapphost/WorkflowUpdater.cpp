@@ -89,12 +89,13 @@ void WorkflowUpdater::run() {
       bool needsUpdate = true;
       bool lastIteration = false;
 
-      checksumUpdater.update(node.lock());
-      for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-        if (!workflow->isOutputNode(interfaceNodes[i].lock()))
-          buildStack(interfaceNodes[i].lock());
-      }
-      updateNodes();
+      // TODO: don't do this anymore
+//      checksumUpdater.update(node.lock());
+//      for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+//        if (!workflow->isOutputNode(interfaceNodes[i].lock()))
+//          buildStack(interfaceNodes[i].lock());
+//      }
+//      updateNodes();
 
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
         boost::shared_ptr<workflow::CollectionElement> collection = boost::dynamic_pointer_cast<workflow::CollectionElement>(interfaceNodes[i].lock()->getModule());
@@ -231,7 +232,7 @@ void WorkflowUpdater::buildStack(boost::shared_ptr<workflow::Node> node) {
   
   // call build stack for all dependent nodes
   std::vector<boost::shared_ptr<workflow::Node> > dependentNodes;
-  node->getDependentNodes(dependentNodes);
+  node->getDependentNodes(dependentNodes, !boost::dynamic_pointer_cast<workflow::Workflow>(this->node.lock()));
   for (unsigned i = 0; i < dependentNodes.size(); ++i)
     buildStack(dependentNodes[i]);
 }
@@ -299,6 +300,8 @@ void WorkflowUpdater::resetNode(boost::shared_ptr<workflow::Node> node) {
 
   assert(node->getModule());
 
+  std::cout << "Resetting: " << node->getModule()->getProperty("Label") << std::endl;
+
   boost::shared_ptr<workflow::Workflow> workflow = node->getWorkflow().lock();
   boost::shared_ptr<workflow::Workflow> workflowNode = boost::dynamic_pointer_cast<workflow::Workflow>(node);
   if (workflowNode) {
@@ -311,10 +314,17 @@ void WorkflowUpdater::resetNode(boost::shared_ptr<workflow::Node> node) {
       element->reset();
     std::vector<capputils::reflection::IClassProperty*>& properties = node->getModule()->getProperties();
     for (size_t i = 0; i < properties.size(); ++i) {
+      std::cout << "Testing prop: " << properties[i]->getName() << std::endl;
+      if (properties[i]->getName() == "Values") {
+        std::cout << "Dependent: " << workflow->isDependentProperty(node, properties[i]->getName()) << std::endl;
+        std::cout << "Input: " << properties[i]->getAttribute<capputils::attributes::InputAttribute>() << std::endl;
+        std::cout << "Output: " << properties[i]->getAttribute<capputils::attributes::OutputAttribute>() << std::endl;
+      }
       if ((workflow->isDependentProperty(node, properties[i]->getName()) && properties[i]->getAttribute<capputils::attributes::InputAttribute>()) ||
 //          (properties[i]->getAttribute<capputils::attributes::NoParameterAttribute>() && !properties[i]->getAttribute<gapputils::attributes::LabelAttribute>()))
           properties[i]->getAttribute<capputils::attributes::OutputAttribute>())
       {
+        std::cout << "resetting property" << std::endl;
         properties[i]->resetValue(*node->getModule());
       }
     }

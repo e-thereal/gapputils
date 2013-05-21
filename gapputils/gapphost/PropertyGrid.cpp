@@ -11,6 +11,8 @@
 
 #include <capputils/DescriptionAttribute.h>
 #include <capputils/ReflectableClassFactory.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
 
 #include <boost/units/detail/utility.hpp>
 #include <qmenu.h>
@@ -54,11 +56,15 @@ PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent) {
   connectToGlobal = new QAction("Connect", propertyGrid);
   disconnectFromGlobal = new QAction("Disconnect", propertyGrid);
   makeParameter = new QAction("Make Parameter", propertyGrid);
+  makeInput = new QAction("Make Input", propertyGrid);
+  makeOutput = new QAction("Make Output", propertyGrid);
   connect(makeGlobal, SIGNAL(triggered()), this, SLOT(makePropertyGlobal()));
   connect(removeGlobal, SIGNAL(triggered()), this, SLOT(removePropertyFromGlobal()));
   connect(connectToGlobal, SIGNAL(triggered()), this, SLOT(connectProperty()));
   connect(disconnectFromGlobal, SIGNAL(triggered()), this, SLOT(disconnectProperty()));
   connect(makeParameter, SIGNAL(triggered()), this, SLOT(makePropertyParameter()));
+  connect(makeInput, SIGNAL(triggered()), this, SLOT(makePropertyInput()));
+  connect(makeOutput, SIGNAL(triggered()), this, SLOT(makePropertyOutput()));
 
   propertyGrid->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(propertyGrid, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
@@ -188,6 +194,18 @@ void PropertyGrid::showContextMenu(const QPoint& point) {
   } else {
     actions.append(connectToGlobal);
     actions.append(makeParameter);
+    if (reference.getProperty()->getAttribute<InputAttribute>()) {
+      if (boost::dynamic_pointer_cast<Workflow>(reference.getNode()))
+        actions.append(makeOutput);
+      else
+        actions.append(makeInput);
+    }
+    if (reference.getProperty()->getAttribute<OutputAttribute>()) {
+      if (boost::dynamic_pointer_cast<Workflow>(reference.getNode()))
+        actions.append(makeInput);
+      else
+        actions.append(makeOutput);
+    }
   }
 
   QMenu::exec(actions, propertyGrid->mapToGlobal(point));
@@ -342,32 +360,124 @@ void PropertyGrid::makePropertyParameter() {
   paraRef.getProperty()->setValue(*paraRef.getObject(), *reference.getObject(), reference.getProperty());
   workflow->makePropertyGlobal(parameterName, paraRef);
   workflow->connectProperty(parameterName, reference);
+}
 
-//
-//  PopUpList list;
-//  boost::shared_ptr<std::vector<boost::shared_ptr<GlobalProperty> > > globals = workflow->getGlobalProperties();
-//  for (unsigned i = 0; i < globals->size(); ++i) {
-//    PropertyReference ref(reference.getWorkflow(), globals->at(i)->getModuleUuid(), globals->at(i)->getPropertyId());
-//    if (Edge::areCompatible(ref.getProperty(), reference.getProperty())) {
-//      list.getList()->addItem(globals->at(i)->getName().c_str());
-//    }
-//  }
-//  if (list.getList()->count() == 0) {
-//    QMessageBox::information(0, "No Compatible Global Connection", "There are no compatible global connections to connect to.");
-//    return;
-//  }
-//
-//  QStandardItemModel* model = dynamic_cast<QStandardItemModel*>(propertyGrid->model());
-//  if (model) {
-//    QStandardItem* item = model->itemFromIndex(index);
-//    QFont font = item->font();
-//    font.setItalic(true);
-//    item->setFont(font);
-//  }
-//
-//  if (list.exec() == QDialog::Accepted) {
-//    workflow->connectProperty(list.getList()->selectedItems()[0]->text().toAscii().data(), reference);
-//  }
+void PropertyGrid::makePropertyInput() {
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
+  std::string connectPropertyName; // name of the property that will be connected
+
+  // Get compatible input module
+  // Create input module
+  // Connect to newly created input module (create edge)
+  QModelIndex index = propertyGrid->currentIndex();
+  PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
+
+  ReflectableClassFactory& factory = ReflectableClassFactory::getInstance();
+  std::vector<std::string>& classnames = factory.getClassNames();
+
+  std::string classname;
+  for (size_t i = 0; i < classnames.size(); ++i) {
+    if (strncmp(classnames[i].c_str(), "interfaces::inputs", strlen("interfaces::inputs")) == 0) {
+      boost::shared_ptr<ReflectableClass> object(factory.newInstance(classnames[i]));
+      IClassProperty* valuesProp = object->findProperty("Values");
+      if (valuesProp) {
+        if (valuesProp->getType() == reference.getProperty()->getType()) {
+          classname = classnames[i];
+          connectPropertyName = "Values";
+          break;
+        }
+      } else {
+        IClassProperty* valueProp = object->findProperty("Value");
+        if (valueProp && valueProp->getType() == reference.getProperty()->getType()) {
+          classname = classnames[i];
+          connectPropertyName = "Value";
+          break;
+        }
+      }
+    }
+  }
+
+  if (classname.size() == 0) {
+    QMessageBox::information(0, "No Compatible Input Modules", "There are no compatible input modules for the selected property.");
+    return;
+  }
+
+  std::string inputName;
+  MakeGlobalDialog dialog(propertyGrid);
+  if (dialog.exec() == QDialog::Accepted) {
+    inputName = dialog.getText().toAscii().data();
+    if (inputName.size() == 0)
+      return;
+  }
+
+  boost::shared_ptr<Node> inputNode = DataModel::getInstance().getMainWindow()->getCurrentWorkbenchWindow()->createModule(reference.getNode()->getX() - 160, reference.getNode()->getY(), classname.c_str());
+  WorkflowElement* element = dynamic_cast<WorkflowElement*>(inputNode->getModule().get());
+  assert(element);
+
+  element->setLabel(inputName);
+
+  PropertyReference paraRef(workflow, inputNode->getUuid(), connectPropertyName);
+  DataModel::getInstance().getMainWindow()->getCurrentWorkbenchWindow()->createCable(workflow->createEdge(paraRef, reference));
+}
+
+void PropertyGrid::makePropertyOutput() {
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
+  std::string connectPropertyName; // name of the property that will be connected
+
+  // Get compatible input module
+  // Create input module
+  // Connect to newly created input module (create edge)
+  QModelIndex index = propertyGrid->currentIndex();
+  PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
+
+  ReflectableClassFactory& factory = ReflectableClassFactory::getInstance();
+  std::vector<std::string>& classnames = factory.getClassNames();
+
+  std::string classname;
+  for (size_t i = 0; i < classnames.size(); ++i) {
+    if (strncmp(classnames[i].c_str(), "interfaces::outputs", strlen("interfaces::outputs")) == 0) {
+      boost::shared_ptr<ReflectableClass> object(factory.newInstance(classnames[i]));
+      IClassProperty* valuesProp = object->findProperty("Values");
+      if (valuesProp) {
+        if (valuesProp->getType() == reference.getProperty()->getType()) {
+          classname = classnames[i];
+          connectPropertyName = "Values";
+          break;
+        }
+      } else {
+        IClassProperty* valueProp = object->findProperty("Value");
+        if (valueProp && valueProp->getType() == reference.getProperty()->getType()) {
+          classname = classnames[i];
+          connectPropertyName = "Value";
+          break;
+        }
+      }
+    }
+  }
+
+  if (classname.size() == 0) {
+    QMessageBox::information(0, "No Compatible Input Modules", "There are no compatible input modules for the selected property.");
+    return;
+  }
+
+  std::string outputName;
+  MakeGlobalDialog dialog(propertyGrid);
+  if (dialog.exec() == QDialog::Accepted) {
+    outputName = dialog.getText().toAscii().data();
+    if (outputName.size() == 0)
+      return;
+  }
+
+  boost::shared_ptr<Node> outputNode = DataModel::getInstance().getMainWindow()->getCurrentWorkbenchWindow()->createModule(reference.getNode()->getX() + 160, reference.getNode()->getY(), classname.c_str());
+  WorkflowElement* element = dynamic_cast<WorkflowElement*>(outputNode->getModule().get());
+  assert(element);
+
+  element->setLabel(outputName);
+
+  PropertyReference paraRef(workflow, outputNode->getUuid(), connectPropertyName);
+  DataModel::getInstance().getMainWindow()->getCurrentWorkbenchWindow()->createCable(workflow->createEdge(reference, paraRef));
 }
 
 } /* namespace host */

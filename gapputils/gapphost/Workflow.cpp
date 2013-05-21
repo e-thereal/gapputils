@@ -303,6 +303,18 @@ void Workflow::removeGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
   }
 }
 
+boost::shared_ptr<Edge> Workflow::createEdge(const PropertyReference& fromProperty, const PropertyReference& toProperty) {
+  boost::shared_ptr<Edge> edge(new Edge());
+  edge->setOutputNode(fromProperty.getNodeId());
+  edge->setOutputProperty(fromProperty.getPropertyId());
+  edge->setInputNode(toProperty.getNodeId());
+  edge->setInputProperty(toProperty.getPropertyId());
+  _Edges->push_back(edge);
+  assert(resumeEdge(edge));
+
+  return edge;
+}
+
 const std::string& getPropertyLabel(IClassProperty* prop) {
   ShortNameAttribute* shortName = prop->getAttribute<ShortNameAttribute>();
   if (shortName) {
@@ -618,9 +630,13 @@ bool Workflow::isOutputNode(boost::shared_ptr<const Node> node) const {
   return module->getAttribute<InterfaceAttribute>() && module->findProperty("Value")->getAttribute<InputAttribute>();
 }
 
-void Workflow::getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost::shared_ptr<Node> >& dependendNodes) {
+void Workflow::getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost::shared_ptr<Node> >& dependendNodes, bool includeParentDependencies) {
+  bool isWorkflow = boost::dynamic_pointer_cast<Workflow>(node);
+
   // If input node see to which node of the parent workflow this node is connected
   if (isInputNode(node)) {
+    if (!includeParentDependencies)
+      return;
     boost::shared_ptr<Workflow> workflow = getWorkflow().lock();
     if (workflow) {
       {vector<boost::shared_ptr<Edge> >& edges = *workflow->getEdges();
@@ -643,7 +659,7 @@ void Workflow::getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost
       boost::shared_ptr<Edge> edge = edges[i];
       if (edge->getInputNode() == node->getUuid()) {
         PropertyReference ref(shared_from_this(), node->getUuid(), edge->getInputProperty());
-        if (!ref.getProperty()->getAttribute<NoParameterAttribute>())
+        if (!ref.getProperty()->getAttribute<NoParameterAttribute>() || isWorkflow)
           dependendNodes.push_back(getNode(edge->getOutputNode()));
       }
     }
@@ -653,7 +669,7 @@ void Workflow::getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost
       boost::shared_ptr<GlobalEdge> gedge = gedges[i];
       if (gedge->getInputNode() == node->getUuid()) {
         PropertyReference ref(shared_from_this(), node->getUuid(), gedge->getInputProperty());
-        if (!ref.getProperty()->getAttribute<NoParameterAttribute>())
+        if (!ref.getProperty()->getAttribute<NoParameterAttribute>() || isWorkflow)
           dependendNodes.push_back(getNode(gedge->getOutputNode()));
       }
     }

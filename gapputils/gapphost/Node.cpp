@@ -156,9 +156,9 @@ void Node::resumeExpressions() {
   }
 }
 
-void Node::getDependentNodes(std::vector<boost::shared_ptr<Node> >& dependendNodes) {
+void Node::getDependentNodes(std::vector<boost::shared_ptr<Node> >& dependendNodes, bool includeParentDependencies) {
   if (!getWorkflow().expired())
-    getWorkflow().lock()->getDependentNodes(shared_from_this(), dependendNodes);
+    getWorkflow().lock()->getDependentNodes(shared_from_this(), dependendNodes, includeParentDependencies);
 }
 
 //QStandardItemModel* Node::getModel() {
