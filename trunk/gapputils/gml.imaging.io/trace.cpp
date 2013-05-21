@@ -112,7 +112,7 @@ void CTrace::redirectOutput(const std::string& file)
     } else if (file == "cerr") {
         s_fd = 2; // stderr
     } else {
-        s_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_TRUNC);
+        s_fd = open(file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	fchmod(s_fd, 0644);
     }
 }
