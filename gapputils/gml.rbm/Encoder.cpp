@@ -18,11 +18,12 @@ BeginPropertyDefinitions(Encoder)
   WorkflowProperty(Model, Input("RBM"), NotNull<Type>())
   WorkflowProperty(Inputs, Input("In"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Direction, Enumerator<Type>())
+  WorkflowProperty(OnlyFilters)
   WorkflowProperty(Outputs, Output("Out"))
 
 EndPropertyDefinitions
 
-Encoder::Encoder() {
+Encoder::Encoder() : _OnlyFilters(false) {
   setLabel("Encoder");
 }
 

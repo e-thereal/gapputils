@@ -25,6 +25,7 @@ class SplitModel : public DefaultWorkflowElement<SplitModel> {
   InitReflectableClass(SplitModel)
 
   Property(Model, boost::shared_ptr<Model>)
+  Property(MaxFilterCount, int)
 
   Property(Filters, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(VisibleBias, boost::shared_ptr<tensor_t>)

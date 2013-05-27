@@ -52,6 +52,7 @@ class Encoder : public DefaultWorkflowElement<Encoder> {
   Property(Model, boost::shared_ptr<Model>)
   Property(Inputs, boost::shared_ptr<std::vector<data_t> >)
   Property(Direction, CodingDirection)
+  Property(OnlyFilters, bool)
   Property(Outputs, boost::shared_ptr<std::vector<data_t> >)
 
 public:
