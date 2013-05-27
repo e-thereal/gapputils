@@ -12,11 +12,18 @@
 #include <cstdlib>
 #include <ctime>
 
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
+
 namespace gapputils {
 
 namespace host {
 
 LogbookModel::LogbookModel() : QObject() {
+  fs::path path(DataModel::getInstance().getLogfileName());
+  fs::create_directories(path.parent_path());
+
   logname = DataModel::getInstance().getLogfileName();
   logfile.open(logname.c_str());
   struct tm* timeinfo;
@@ -55,6 +62,10 @@ void LogbookModel::addMessage(const std::string& message, const capputils::Sever
   if (currentlogname != logname) {
     logname = currentlogname;
     logfile.close();
+
+    fs::path path(DataModel::getInstance().getLogfileName());
+    fs::create_directories(path.parent_path());
+
     logfile.open(logname.c_str());
     logfile << "Time stamp\tSeverity\tMessage\tModule\tUUID" << std::endl;
     logfile << "[" << buffer << "]\tMessage\tStarting log session" << std::endl;
