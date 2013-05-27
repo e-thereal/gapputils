@@ -24,7 +24,7 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
 {
   QGraphicsScene *scene = new QGraphicsScene(this);
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-  scene->setSceneRect(0, 0, 2000, 2000);
+  scene->setSceneRect(0, 0, 3000, 2000);
   setScene(scene);
   setCacheMode(CacheBackground);
   setRenderHint(QPainter::Antialiasing);
@@ -419,10 +419,10 @@ void Workbench::drawBackground(QPainter *painter, const QRectF &rect) {
   // Draw lines
   painter->save();
   painter->setPen(Qt::white);
-  qreal lineCount = 30;
+  qreal lineCount = 50;
   for (qreal x = sceneRect.x(); x <= sceneRect.x() + sceneRect.width(); x += sceneRect.width() / lineCount)
     painter->drawLine(x, sceneRect.y(), x, sceneRect.y() + sceneRect.height());
-  for (qreal y = sceneRect.y(); y <= sceneRect.y() + sceneRect.height(); y += sceneRect.height() / lineCount)
+  for (qreal y = sceneRect.y(); y <= sceneRect.y() + sceneRect.height(); y += sceneRect.width() / lineCount)
     painter->drawLine(sceneRect.x(), y, sceneRect.x() + sceneRect.width(), y);
   painter->restore();
 

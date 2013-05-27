@@ -26,7 +26,7 @@ BeginPropertyDefinitions(Images, Interface())
 
 EndPropertyDefinitions
 
-Images::Images() : _Values(new std::vector<boost::shared_ptr<gapputils::image_t> >) {
+Images::Images() {
   setLabel("Images");
 }
 
@@ -43,7 +43,7 @@ BeginPropertyDefinitions(Images, Interface())
 
 EndPropertyDefinitions
 
-Images::Images() : _Values(new std::vector<boost::shared_ptr<gapputils::image_t> >)  {
+Images::Images() {
   setLabel("Images");
 }
 

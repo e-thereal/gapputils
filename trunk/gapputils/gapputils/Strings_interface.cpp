@@ -23,7 +23,7 @@ class Strings : public gapputils::workflow::CollectionElement
   Property(Value, property_t)
   
 public:
-  Strings() : _Values(new std::vector<property_t>()) { setLabel("Strings"); }
+  Strings() { setLabel("Strings"); }
 };
 
 BeginPropertyDefinitions(Strings, Interface())
@@ -48,7 +48,7 @@ class Strings : public gapputils::workflow::CollectionElement
   Property(Value, property_t)
   
 public:
-  Strings() : _Values(new std::vector<property_t>()) { setLabel("Strings"); }
+  Strings() { setLabel("Strings"); }
 };
 
 BeginPropertyDefinitions(Strings, Interface())
