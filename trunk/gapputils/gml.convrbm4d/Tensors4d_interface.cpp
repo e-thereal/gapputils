@@ -25,7 +25,7 @@ class Tensors4d : public gapputils::workflow::CollectionElement
   Property(Value, property_t)
   
 public:
-  Tensors4d() : _Values(new std::vector<property_t>()) { setLabel("Tensors4d"); }
+  Tensors4d() { setLabel("Tensors4d"); }
 };
 
 BeginPropertyDefinitions(Tensors4d, Interface())
@@ -50,7 +50,7 @@ class Tensors4d : public gapputils::workflow::CollectionElement
   Property(Value, property_t)
   
 public:
-  Tensors4d() : _Values(new std::vector<property_t>()) { setLabel("Tensors4d"); }
+  Tensors4d() { setLabel("Tensors4d"); }
 };
 
 BeginPropertyDefinitions(Tensors4d, Interface())

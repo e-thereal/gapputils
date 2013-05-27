@@ -12,15 +12,13 @@
 #include <gapputils/Image.h>
 #include <gapputils/namespaces.h>
 
-#include <capputils/Enumerators.h>
+#include "SliceOrientation.h"
 
 namespace gml {
 
 namespace imaging {
 
 namespace core {
-
-CapputilsEnumerator(SliceOrientation, Axial, Sagital, Coronal);
 
 class ReorientSlices : public DefaultWorkflowElement<ReorientSlices> {
 
