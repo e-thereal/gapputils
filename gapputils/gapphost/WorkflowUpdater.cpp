@@ -300,8 +300,6 @@ void WorkflowUpdater::resetNode(boost::shared_ptr<workflow::Node> node) {
 
   assert(node->getModule());
 
-  std::cout << "Resetting: " << node->getModule()->getProperty("Label") << std::endl;
-
   boost::shared_ptr<workflow::Workflow> workflow = node->getWorkflow().lock();
   boost::shared_ptr<workflow::Workflow> workflowNode = boost::dynamic_pointer_cast<workflow::Workflow>(node);
   if (workflowNode) {
@@ -314,17 +312,10 @@ void WorkflowUpdater::resetNode(boost::shared_ptr<workflow::Node> node) {
       element->reset();
     std::vector<capputils::reflection::IClassProperty*>& properties = node->getModule()->getProperties();
     for (size_t i = 0; i < properties.size(); ++i) {
-      std::cout << "Testing prop: " << properties[i]->getName() << std::endl;
-      if (properties[i]->getName() == "Values") {
-        std::cout << "Dependent: " << workflow->isDependentProperty(node, properties[i]->getName()) << std::endl;
-        std::cout << "Input: " << properties[i]->getAttribute<capputils::attributes::InputAttribute>() << std::endl;
-        std::cout << "Output: " << properties[i]->getAttribute<capputils::attributes::OutputAttribute>() << std::endl;
-      }
       if ((workflow->isDependentProperty(node, properties[i]->getName()) && properties[i]->getAttribute<capputils::attributes::InputAttribute>()) ||
 //          (properties[i]->getAttribute<capputils::attributes::NoParameterAttribute>() && !properties[i]->getAttribute<gapputils::attributes::LabelAttribute>()))
           properties[i]->getAttribute<capputils::attributes::OutputAttribute>())
       {
-        std::cout << "resetting property" << std::endl;
         properties[i]->resetValue(*node->getModule());
       }
     }

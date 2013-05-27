@@ -23,7 +23,7 @@ class Reals : public gapputils::workflow::CollectionElement
   Property(Value, property_t)
   
 public:
-  Reals() : _Values(new std::vector<property_t>()) { setLabel("Reals"); }
+  Reals() { setLabel("Reals"); }
 };
 
 BeginPropertyDefinitions(Reals, Interface())
@@ -48,7 +48,7 @@ class Reals : public gapputils::workflow::CollectionElement
   Property(Value, property_t)
   
 public:
-  Reals() : _Values(new std::vector<property_t>()) { setLabel("Reals"); }
+  Reals() { setLabel("Reals"); }
 };
 
 BeginPropertyDefinitions(Reals, Interface())

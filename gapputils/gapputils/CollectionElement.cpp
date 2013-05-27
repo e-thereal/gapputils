@@ -100,6 +100,7 @@ bool CollectionElement::resetCombinations() {
 
       if (enumId < (int)properties.size() && (enumerable = properties[enumId]->getAttribute<IEnumerableAttribute>())) {
 //        enumerable->clear(properties[enumId], *this);
+        enumerable->renewCollection(*this, properties[enumId]);
         boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(*this, properties[enumId]);
         if (iterator) {
           iterator->reset();
