@@ -41,7 +41,6 @@ void MifReader::update(IProgressMonitor* /*monitor*/) const {
 
   Logbook& dlog = getLogbook();
   dlog.setSeverity(Severity::Trace);
-  dlog() << "Hello";
 
   CMIF mif(getMifName());
 
