@@ -23,6 +23,7 @@
 #include "Node.h"
 
 #include <cassert>
+#include <iomanip>
 
 #include "PropertyReference.h"
 
@@ -55,6 +56,16 @@ void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, int gridP
   QStandardItem* value = new QStandardItem();
   key->setEditable(false);
   value->setData(QVariant::fromValue(ref), Qt::UserRole);
+
+  if (name.size()) {
+    key->setFlags(key->flags() | Qt::ItemIsDragEnabled);
+  } else {
+    key->setFlags(key->flags() & ~Qt::ItemIsDragEnabled);
+  }
+
+  key->setFlags(key->flags() & ~Qt::ItemIsDropEnabled);
+  value->setFlags(key->flags() & ~Qt::ItemIsDropEnabled);
+  value->setFlags(key->flags() & ~Qt::ItemIsDragEnabled);
 
   if (node->getWorkflow().lock()->getGlobalProperty(ref)) {
     QFont font = value->font();

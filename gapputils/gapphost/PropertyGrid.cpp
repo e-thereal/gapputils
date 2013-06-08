@@ -50,6 +50,13 @@ PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent) {
   propertyGrid->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::CurrentChanged);
   propertyGrid->setItemDelegate(new PropertyGridDelegate());
 
+  propertyGrid->setDefaultDropAction(Qt::MoveAction);
+  propertyGrid->setDragEnabled(true);
+  propertyGrid->setAcceptDrops(false);
+  propertyGrid->setDragDropMode(QAbstractItemView::InternalMove);
+  propertyGrid->setDropIndicatorShown(true);
+  propertyGrid->setDragDropOverwriteMode(true);
+
   // Context Menu
   makeGlobal = new QAction("Make Global", propertyGrid);
   removeGlobal = new QAction("Remove Global", propertyGrid);
