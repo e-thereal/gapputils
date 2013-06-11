@@ -51,6 +51,7 @@ public:
   Property(InitialMomentum, double)
   Property(FinalMomentum, double)
   Property(MomentumDecayEpochs, int)
+  int dummy2;
   Property(WeightDecay, double)
   Property(WeightVectorLimit, double)
   Property(RandomizeTraining, bool)
@@ -63,7 +64,7 @@ public:
   Property(DropoutStage, DropoutStage)
   Property(CalculateError, bool)
   Property(UpdateModel, int)
-  int dummy2;
+  int dummy3;
 
   // Output parameters
   Property(CurrentEpoch, int)
