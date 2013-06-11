@@ -88,14 +88,15 @@ public:
 
   void addInterfaceNode(boost::shared_ptr<Node> node);
   void removeInterfaceNode(boost::shared_ptr<Node> node);
+  void moveInterfaceNode(int from, int to);
   bool hasCollectionElementInterface() const;
 
   // id is as set by ToolItem (propertyCount + pos)
-  boost::shared_ptr<const Node> getInterfaceNode(int id) const;
+//  boost::shared_ptr<const Node> getInterfaceNode(int id) const;
   std::vector<boost::weak_ptr<Node> >& getInterfaceNodes();
 
   /// Returns true if the propertyName was found
-  bool getToolConnectionId(boost::shared_ptr<const Node> node, const std::string& propertyName, unsigned& id) const;
+//  bool getToolConnectionId(boost::shared_ptr<const Node> node, const std::string& propertyName, unsigned& id) const;
 
   boost::shared_ptr<Node> getNode(ToolItem* item);
   boost::shared_ptr<Node> getNode(ToolItem* item, unsigned& pos);
