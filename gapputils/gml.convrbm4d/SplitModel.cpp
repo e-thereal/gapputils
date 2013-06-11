@@ -41,8 +41,8 @@ void SplitModel::update(IProgressMonitor* monitor) const {
   const int filterCount = std::min(getMaxFilterCount(), (int)model.getFilters()->size());
 
   if (filterCount > 0) {
-    auto filters = boost::make_shared<std::vector<boost::shared_ptr<tensor_t> > >(filterCount);
-    auto biases = boost::make_shared<std::vector<boost::shared_ptr<tensor_t> > >(filterCount);
+    boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > filters = boost::make_shared<std::vector<boost::shared_ptr<tensor_t> > >(filterCount);
+    boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > biases = boost::make_shared<std::vector<boost::shared_ptr<tensor_t> > >(filterCount);
     std::copy(model.getFilters()->begin(), model.getFilters()->begin() + filterCount, filters->begin());
     std::copy(model.getHiddenBiases()->begin(), model.getHiddenBiases()->begin() + filterCount, biases->begin());
     newState->setFilters(filters);

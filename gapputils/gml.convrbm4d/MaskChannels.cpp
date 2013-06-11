@@ -38,15 +38,15 @@ void MaskChannels::update(IProgressMonitor* monitor) const {
 
   const unsigned dimCount = tensor_t::dimCount;
 
-  auto& inputs = *getInputs();
-  auto& channelMask = *getChannelMask();
-  auto outputs = boost::make_shared<std::vector<boost::shared_ptr<tensor_t> > >();
+  std::vector<boost::shared_ptr<tensor_t> >& inputs = *getInputs();
+  std::vector<double>& channelMask = *getChannelMask();
+  boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > outputs = boost::make_shared<std::vector<boost::shared_ptr<tensor_t> > >();
 
   Logbook& dlog = getLogbook();
 
   for (size_t i = 0; i < inputs.size(); ++i) {
-    auto& input = *inputs[i];
-    auto output = boost::make_shared<tensor_t>(zeros<value_t>(input.size()));
+    tensor_t& input = *inputs[i];
+    boost::shared_ptr<tensor_t> output = boost::make_shared<tensor_t>(zeros<value_t>(input.size()));
 
     dim_t sliceSize = input.size();
     const int channelCount = sliceSize[dimCount - 1];
