@@ -216,6 +216,59 @@ void Workflow::removeInterfaceNode(boost::shared_ptr<Node> node) {
   }
 }
 
+void Workflow::moveInterfaceNode(int from, int to) {
+  assert(from >= 0);
+  assert(to >= 0);
+  assert(from < (int)interfaceNodes.size());
+  assert(to < (int)interfaceNodes.size());
+
+  boost::weak_ptr<Node> temp;
+  boost::shared_ptr<Node> fromNode = interfaceNodes[from].lock();
+  boost::shared_ptr<Node> toNode = interfaceNodes[to].lock();
+  boost::shared_ptr<Node> temp2;
+  std::vector<boost::shared_ptr<Node> >& nodes = *getNodes();
+
+  int nodesFrom = -1, nodesTo = -1;
+
+  for (size_t iNode = 0; iNode < nodes.size(); ++iNode) {
+    if (nodes[iNode] == fromNode)
+      nodesFrom = iNode;
+    if (nodes[iNode] == toNode)
+      nodesTo = iNode;
+  }
+  assert(nodesFrom >= 0);
+  assert(nodesTo >= 0);
+
+  if (from < to) {
+    for (int iNode = from; iNode + 1 <= to; ++iNode) {
+      temp = interfaceNodes[iNode];
+      interfaceNodes[iNode] = interfaceNodes[iNode + 1];
+      interfaceNodes[iNode + 1] = temp;
+    }
+
+    for (int iNode = nodesFrom; iNode + 1 <= nodesTo; ++iNode) {
+      temp2 = nodes[iNode];
+      nodes[iNode] = nodes[iNode + 1];
+      nodes[iNode + 1] = temp2;
+    }
+
+
+  } else {
+    for (int iNode = from; iNode - 1 >= to; --iNode) {
+      temp = interfaceNodes[iNode];
+      interfaceNodes[iNode] = interfaceNodes[iNode - 1];
+      interfaceNodes[iNode - 1] = temp;
+    }
+
+    for (int iNode = nodesFrom; iNode - 1 >= nodesTo; --iNode) {
+      temp2 = nodes[iNode];
+      nodes[iNode] = nodes[iNode - 1];
+      nodes[iNode - 1] = temp2;
+    }
+
+  }
+}
+
 bool Workflow::hasCollectionElementInterface() const {
   boost::shared_ptr<CollectionElement> collection;
   for (unsigned i = 0; i < interfaceNodes.size(); ++i)
@@ -224,13 +277,13 @@ bool Workflow::hasCollectionElementInterface() const {
   return false;
 }
 
-boost::shared_ptr<const Node> Workflow::getInterfaceNode(int id) const {
-  assert(getModule());
-  const int pos = id - getModule()->getProperties().size();
-  if (pos >= 0 && (unsigned)pos < interfaceNodes.size())
-    return interfaceNodes[pos].lock();
-  return boost::shared_ptr<Node>();
-}
+//boost::shared_ptr<const Node> Workflow::getInterfaceNode(int id) const {
+//  assert(getModule());
+//  const int pos = id - getModule()->getProperties().size();
+//  if (pos >= 0 && (unsigned)pos < interfaceNodes.size())
+//    return interfaceNodes[pos].lock();
+//  return boost::shared_ptr<Node>();
+//}
 
 std::vector<boost::weak_ptr<Node> >& Workflow::getInterfaceNodes() {
   return interfaceNodes;
@@ -546,27 +599,28 @@ void Workflow::removeNode(boost::shared_ptr<Node> node) {
   }
 }
 
-bool Workflow::getToolConnectionId(boost::shared_ptr<const Node> node, const std::string& propertyName, unsigned& id) const {
-  assert(node);
-  boost::shared_ptr<ReflectableClass> object = node->getModule();
-  assert(object);
+//bool Workflow::getToolConnectionId(boost::shared_ptr<const Node> node, const std::string& propertyName, unsigned& id) const {
+//  assert(node);
+//  boost::shared_ptr<ReflectableClass> object = node->getModule();
+//  assert(object);
+//
+//  if (object->getPropertyIndex(id, propertyName))
+//    return true;
+//
+//  boost::shared_ptr<const Workflow> workflow = boost::dynamic_pointer_cast<const Workflow>(node);
+//  if (workflow) {
+//    const std::vector<boost::weak_ptr<Node> >& interfaceNodes = workflow->interfaceNodes;
+//    for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+//      if (interfaceNodes[i].lock()->getUuid() == propertyName) {
+//        id = object->getProperties().size() + i;
+//        return true;
+//      }
+//    }
+//  }
+//
+//  return false;
+//}
 
-  if (object->getPropertyIndex(id, propertyName))
-    return true;
-
-  boost::shared_ptr<const Workflow> workflow = boost::dynamic_pointer_cast<const Workflow>(node);
-  if (workflow) {
-    const std::vector<boost::weak_ptr<Node> >& interfaceNodes = workflow->interfaceNodes;
-    for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-      if (interfaceNodes[i].lock()->getUuid() == propertyName) {
-        id = object->getProperties().size() + i;
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
 //boost::enable_shared_from_this<Workflow>::
 void Workflow::removeEdge(boost::shared_ptr<Edge> edge) {
   boost::shared_ptr<vector<boost::shared_ptr<Edge> > > edges = getEdges();

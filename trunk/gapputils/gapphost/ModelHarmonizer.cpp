@@ -23,6 +23,7 @@
 #include "Node.h"
 
 #include <cassert>
+#include <cmath>
 #include <iomanip>
 
 #include "PropertyReference.h"
@@ -55,6 +56,7 @@ void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, int gridP
   QStandardItem* key = new QStandardItem(keyName.c_str());
   QStandardItem* value = new QStandardItem();
   key->setEditable(false);
+  key->setData(QVariant::fromValue(gridPos), Qt::UserRole);
   value->setData(QVariant::fromValue(ref), Qt::UserRole);
 
   if (name.size()) {
@@ -64,8 +66,8 @@ void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, int gridP
   }
 
   key->setFlags(key->flags() & ~Qt::ItemIsDropEnabled);
-  value->setFlags(key->flags() & ~Qt::ItemIsDropEnabled);
-  value->setFlags(key->flags() & ~Qt::ItemIsDragEnabled);
+  value->setFlags(value->flags() & ~Qt::ItemIsDropEnabled);
+  value->setFlags(value->flags() & ~Qt::ItemIsDragEnabled);
 
   if (node->getWorkflow().lock()->getGlobalProperty(ref)) {
     QFont font = value->font();
@@ -209,6 +211,7 @@ ModelHarmonizer::ModelHarmonizer(boost::shared_ptr<gapputils::workflow::Node> no
 
   buildModel(model->invisibleRootItem(), node->getModule().get(), node.get());
   connect(model, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(itemChanged(QStandardItem*)));
+
   ObservableClass* observable = dynamic_cast<ObservableClass*>(node->getModule().get());
   if (observable) {
     observable->Changed.connect(handler);
@@ -238,6 +241,43 @@ void ModelHarmonizer::changedHandler(capputils::ObservableClass* /*sender*/, int
 }
 
 void ModelHarmonizer::itemChanged(QStandardItem* item) {
+  if (!item)
+    return;
+
+  if (item->data(Qt::UserRole).canConvert<int>()) {
+    int from = item->data(Qt::UserRole).value<int>();
+    int to = item->index().row();
+
+    // Delete new row if new row (new role if value does not have a property reference)
+    if (!model->item(to, 1) || !model->item(to, 1)->data(Qt::UserRole).canConvert<PropertyReference>()) {
+      model->removeRow(to, item->index().parent());
+
+      if (from != to) {
+
+        // move rows to first valid position (count number of workflow module properties)
+        // Update grid positions of all keys
+        // Update workflow interface node order
+
+        const int propCount = node.lock()->getModule()->getProperties().size();
+
+        to = std::max(to, propCount);
+        if (from < to)
+          --to;
+        model->insertRow(to, model->takeRow(from));
+
+        for (int gridPos = 0; gridPos < model->rowCount(); ++gridPos)
+          model->item(gridPos, 0)->setData(QVariant::fromValue(gridPos), Qt::UserRole);
+
+        boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+        gapputils::Workflow* workflow = dynamic_cast<gapputils::Workflow*>(node.get());
+        if (workflow) {
+          workflow->moveInterfaceNode(from - propCount, to - propCount);
+        }
+      }
+      return;
+    }
+  }
+
   if (modelLocked)
     return;
 
