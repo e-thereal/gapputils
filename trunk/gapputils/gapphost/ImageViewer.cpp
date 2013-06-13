@@ -6,6 +6,7 @@
 #include <capputils/HideAttribute.h>
 #include <capputils/VolatileAttribute.h>
 #include <capputils/EventHandler.h>
+#include <capputils/DeprecatedAttribute.h>
 
 #include <iostream>
 
@@ -18,7 +19,7 @@ using namespace attributes;
 
 int ImageViewer::imageId;
 
-BeginPropertyDefinitions(ImageViewer)
+BeginPropertyDefinitions(ImageViewer, Deprecated("Use gml.imaging.ui viewer classes instead."))
 
   ReflectableBase(workflow::WorkflowElement)
   DefineProperty(ImagePtr, Input("Img"), Observe(imageId = Id), Hide(), Volatile())

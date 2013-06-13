@@ -12,6 +12,7 @@
 #include <capputils/InputAttribute.h>
 #include <capputils/TimeStampAttribute.h>
 #include <capputils/NoParameterAttribute.h>
+#include <capputils/DeprecatedAttribute.h>
 
 #include <iostream>
 
@@ -21,7 +22,7 @@ namespace gapputils {
 
 using namespace attributes;
 
-BeginPropertyDefinitions(ImageLoader)
+BeginPropertyDefinitions(ImageLoader, Deprecated("Use gml.imaging.io classes instead."))
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
