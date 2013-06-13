@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <capputils/EventHandler.h>
 #include <capputils/VolatileAttribute.h>
+#include <capputils/DeprecatedAttribute.h>
 
 #include <iostream>
 #include <signal.h>
@@ -25,7 +26,7 @@ using namespace std;
 
 namespace gapputils {
 
-BeginPropertyDefinitions(GenericViewer)
+BeginPropertyDefinitions(GenericViewer, Deprecated("Use gml.core classes instead."))
 
   ReflectableBase(workflow::WorkflowElement)
   DefineProperty(Program, Observe(Id))

@@ -7,11 +7,17 @@
 
 #include "MemoryTest.h"
 
+#include <capputils/DeprecatedAttribute.h>
+
 #include <cstdlib>
 
 namespace debug {
 
+#ifdef _RELEASE
+BeginPropertyDefinitions(MemoryTest, Deprecated("Only available in debug mode."))
+#else
 BeginPropertyDefinitions(MemoryTest)
+#endif
 
   ReflectableBase(DefaultWorkflowElement<MemoryTest>)
 

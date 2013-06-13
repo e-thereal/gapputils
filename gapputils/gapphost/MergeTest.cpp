@@ -8,12 +8,17 @@
 #include "MergeTest.h"
 
 #include <capputils/MergeAttribute.h>
+#include <capputils/DeprecatedAttribute.h>
 
 namespace gapputils {
 
 namespace testing {
 
+#ifdef _RELEASE
+BeginPropertyDefinitions(MergeTest, Deprecated("Only available in debug mode."))
+#else
 BeginPropertyDefinitions(MergeTest)
+#endif
 
   ReflectableBase(DefaultWorkflowElement<MergeTest>)
 
