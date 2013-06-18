@@ -24,6 +24,9 @@ class FlattenImage : public DefaultWorkflowElement<FlattenImage> {
 
   Property(Image, boost::shared_ptr<image_t>)
   Property(Data, boost::shared_ptr<std::vector<double> >)
+  Property(Width, int)
+  Property(Height, int)
+  Property(Depth, int)
 
 public:
   FlattenImage();
