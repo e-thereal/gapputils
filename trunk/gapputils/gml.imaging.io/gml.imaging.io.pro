@@ -1,5 +1,6 @@
 SOURCES = ImageReader.cpp \
-          ImageWriter.cpp
+          ImageWriter.cpp \
+          MnistReader.cpp
 		  
 HEADERS = 
           

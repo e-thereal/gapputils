@@ -1,0 +1,97 @@
+/***************************************************************************
+                                vecmatsymf.h
+                             -------------------
+                               W. Michael Brown
+
+  Symmetric Matrix Class with size known at compile time
+  Insert/Access in constant time
+
+ __________________________________________________________________________
+    This file is part of the YALA++ Library
+ __________________________________________________________________________
+
+    begin      : Tue Apr 17 2007
+    authors    : W. Michael Brown
+    email      : wmbrown@sandia.gov
+ ***************************************************************************/
+
+/* -----------------------------------------------------------------------
+   Copyright (2009) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under 
+   the GNU General Public License.
+   ----------------------------------------------------------------------- */
+
+#ifndef VECMATSYMF_H
+#define VECMATSYMF_H
+
+//using namespace std;
+
+YALANAMESPACE
+
+/// Symmetric Matrix Class with size known at compile time
+template<class eltype, ya_sizet nrows>
+class VecMatSymF : public YA_Common<eltype,VM_SymMatF> {
+ public:
+  /// Return types for indexing into this matrix
+  typedef typename YA_Traits<VM_SymMatF>::ref ref;
+  typedef typename YA_Traits<VM_SymMatF>::cref cref;
+  /// Iterator to a matrix element
+  typedef typename YA_Traits<VM_SymMatF>::iter iter;
+  typedef typename YA_Traits<VM_SymMatF>::citer citer;
+
+  /// Empty matrix
+  VecMatSymF();
+  /// Copy
+  VecMatSymF(const VecMatSymF &v);
+  /// Initialize a matrix
+  VecMatSymF(const ya_sizet rows, const ya_sizet columns);
+  template <class ya_type2>
+  VecMatSymF(const ya_type2 &);
+
+  /// Does nothing
+  inline void setup(const ya_sizet rows, const ya_sizet columns);
+  /// 1D Setup is not allowed - This generates an error
+  inline void setup(const ya_sizet length);
+  
+  /// Generates error
+  inline void clear();
+
+  /// Get the length of a vector
+  inline ya_sizet numel() const { return (nrows*nrows+nrows)/2; }
+  /// Get the number of columns in the matrix
+  inline ya_sizet cols() const { return nrows; }
+  /// Get the number of rows in the matrix
+  inline ya_sizet rows() const { return nrows; }
+
+  /// Return the pointer to the begining of the array
+  inline eltype* c_ptr() { return array; }
+  /// Return the pointer to the begining of the array
+  inline const eltype* c_ptr() const { return array; }
+
+  /// Access element in vector
+  inline cref at (const ya_sizet i) const;
+  inline ref at (const ya_sizet i);
+  using YA_Common<eltype,VM_SymMatF>::operator();
+  /// Access element in matrix
+  inline cref at2(const ya_sizet row,
+                          const ya_sizet col) const;
+  inline ref at2(const ya_sizet row, const ya_sizet col);
+
+  using YA_Common<eltype,VM_SymMatF>::operator=;
+  inline const VM_SymMatF& operator=(const VM_SymMatF &v)
+    { setup(v.rows(),v.cols()); ya_copy_matrix(*this,v); return *this; }
+  #ifdef _MSC_VER
+  template<class ya_type2>
+  inline const VM_SymMatF& operator=(const ya_type2 &v)
+    { setup(v.rows(),v.cols()); ya_copy_matrix(*this,v); return *this; }
+  #endif
+
+  template<class one> friend class VecMatSym;
+
+protected:
+  eltype array[(nrows*nrows+nrows)/2];
+};
+
+}
+#endif
