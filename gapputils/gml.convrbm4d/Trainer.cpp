@@ -8,6 +8,7 @@
 #include "Trainer.h"
 
 namespace gml {
+
 namespace convrbm4d {
 
 BeginPropertyDefinitions(Trainer)

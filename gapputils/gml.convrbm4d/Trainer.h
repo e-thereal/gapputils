@@ -5,11 +5,11 @@
  *      Author: tombr
  */
 
-#ifndef TRAINER_H_
-#define TRAINER_H_
+#ifndef GML_TRAINER_H_
+#define GML_TRAINER_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
-//#include <gapputils/namespaces.h>
+#include <gapputils/namespaces.h>
 
 #include "SparsityMethod.h"
 #include "DropoutMethod.h"
@@ -21,7 +21,7 @@ namespace convrbm4d {
 
 struct TrainerChecker { TrainerChecker(); };
 
-class Trainer : public gapputils::workflow::DefaultWorkflowElement<Trainer> {
+class Trainer : public DefaultWorkflowElement<Trainer> {
 public:
   typedef Model::value_t value_t;
   typedef Model::tensor_t host_tensor_t;
@@ -77,9 +77,11 @@ public:
   Trainer();
 
 protected:
-  virtual void update(gapputils::workflow::IProgressMonitor* monitor) const;
+  virtual void update(IProgressMonitor* monitor) const;
 };
 
 } /* namespace convrbm4d */
+
 } /* namespace gml */
-#endif /* TRAINER_H_ */
+
+#endif /* GML_TRAINER_H_ */
