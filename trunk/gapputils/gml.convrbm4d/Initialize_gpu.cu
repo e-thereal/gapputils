@@ -111,7 +111,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   hiddenSize[Model::dimCount - 1] = 1;
 
   for (int i = 0; i < filterCount; ++i) {
-    sample = (getWeightStddev() * randn + getWeightMean()) / (value_t)randn.count();
+    sample = (getWeightStddev() * randn + getWeightMean()); // / (value_t)randn.count();
     filters->push_back(boost::make_shared<tensor_t>(sample));
     hb->push_back(boost::make_shared<tensor_t>(zeros<value_t>(hiddenSize)));
     if (monitor)
