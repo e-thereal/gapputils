@@ -15,7 +15,7 @@ namespace gml {
 namespace convrbm4d {
 
 CapputilsEnumerator(DropoutStage, Epoch, Batch, Sample);
-CapputilsEnumerator(DropoutMethod, DropColumn, DropIndividual);
+CapputilsEnumerator(DropoutMethod, DropColumn, DropUnit);
 
 }
 
