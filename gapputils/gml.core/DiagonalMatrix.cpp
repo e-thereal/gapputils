@@ -35,9 +35,9 @@ void DiagonalMatrix::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  auto matrix = boost::make_shared<std::vector<boost::shared_ptr<std::vector<double> > > >();
+  boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<double> > > > matrix = boost::make_shared<std::vector<boost::shared_ptr<std::vector<double> > > >();
   for (int i = 0; i < rows; ++i) {
-    auto row = boost::make_shared<std::vector<double> >(cols, 0);
+    boost::shared_ptr<std::vector<double> > row = boost::make_shared<std::vector<double> >(cols, 0);
     row->at(i) = 1.0;
     matrix->push_back(row);
   }
