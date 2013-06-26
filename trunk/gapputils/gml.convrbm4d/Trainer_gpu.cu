@@ -515,7 +515,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
               /*** BEGIN OF POSITIVE PHASE ***/
 
               // h_k = sigm(~F_k * v + c)
-              ch_full = conj(*cF[k]) * cv;
+              if (getDbmLayer() == DbmLayer::VisibleLayer)
+                ch_full = 2 * conj(*cF[k]) * cv;
+              else
+                ch_full = conj(*cF[k]) * cv;
               ch = sum(ch_full, dimCount - 1);
               ch = ch + *cc[k];
               h2 = ifft(ch, dimCount - 1, iplan_h);
@@ -574,7 +577,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
               /*** BEGIN OF NEGATIVE PHASE ***/
 
               // dvneg = F * h
-              cvneg = cvneg + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
+              if (getDbmLayer() == DbmLayer::TopLayer)
+                cvneg = cvneg + 2 * *cF[k] * repeat(ch, cF[k]->size() / ch.size());
+              else
+                cvneg = cvneg + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
             }
           }
 
@@ -638,7 +644,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
             if (!dropFilter[k]) {
 
               // h_k = sigm(~F_k * v + c)
-              ch_full = conj(*cF[k]) * cvneg;
+              if (getDbmLayer() == DbmLayer::VisibleLayer)
+                ch_full = 2 * conj(*cF[k]) * cvneg;
+              else
+                ch_full = conj(*cF[k]) * cvneg;
               ch = sum(ch_full, dimCount - 1);
               ch = ch + *cc[k];
               h2 = ifft(ch, dimCount - 1, iplan_h);
@@ -704,7 +713,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
           f = ifft(*cF[i], dimCount - 1, iplan_v);
           p = fftshift(f, dimCount - 1);
           k = p[topleft, crbm->getFilterKernelSize()];
-          filters->at(i) = boost::make_shared<host_tensor_t>(k);
+          if (getDbmLayer() == DbmLayer::IntermediateLayer)
+            filters->at(i) = boost::make_shared<host_tensor_t>(0.5 * k);
+          else
+            filters->at(i) = boost::make_shared<host_tensor_t>(k);
 
           hb = ifft(*cc[i], dimCount - 1, iplan_h);
           hb = hb * (abs(hb) > 1e-16);
@@ -779,7 +791,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
         f = ifft(*cF[i], dimCount - 1, iplan_v);
         p = fftshift(f, dimCount - 1);
         k = p[topleft, crbm->getFilterKernelSize()];
-        filters->at(i) = boost::make_shared<host_tensor_t>(k);
+
+        if (getDbmLayer() == DbmLayer::IntermediateLayer)
+          filters->at(i) = boost::make_shared<host_tensor_t>(0.5 * k);
+        else
+          filters->at(i) = boost::make_shared<host_tensor_t>(k);
 
         hb = ifft(*cc[i], dimCount - 1, iplan_h);
         hb = hb * (abs(hb) > 1e-16);
