@@ -14,7 +14,7 @@ namespace gml {
 
 namespace convrbm4d {
 
-CapputilsEnumerator(SparsityMethod, OnlySharedBias, OnlyBias, WeightsAndBias);
+CapputilsEnumerator(SparsityMethod, NoSparsity, OnlySharedBias, OnlyBias, WeightsAndBias);
 
 }
 

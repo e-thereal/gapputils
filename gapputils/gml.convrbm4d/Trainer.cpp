@@ -17,14 +17,15 @@ BeginPropertyDefinitions(Trainer)
 
   WorkflowProperty(InitialModel, Input("CRBM"), NotNull<Type>())
   WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(DbmLayer, Enumerator<Type>())
 
   WorkflowProperty(EpochCount, Description("Number of sweeps through the entire training set."))
   WorkflowProperty(BatchSize, Description("Number of images used per gradient update."))
   WorkflowProperty(GpuCount, Description("Number of GPUs used for training."))
 
+  WorkflowProperty(SparsityMethod, Enumerator<Type>())
   WorkflowProperty(SparsityTarget, Description("Target expected activation of a hidden unit."))
   WorkflowProperty(SparsityWeight, Description("Weight of the sparsity target relative to the learning rate."))
-  WorkflowProperty(SparsityMethod, Enumerator<Type>())
 
   WorkflowProperty(LearningRate, Description("Initial value of the exponentially decaying learning rate."))
   WorkflowProperty(LearningDecay, Description("Rate at which the learning rate decays."))

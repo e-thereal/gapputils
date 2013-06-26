@@ -38,13 +38,14 @@ TrainerChecker::TrainerChecker() {
 
   CHECK_MEMORY_LAYOUT2(InitialModel, trainer);
   CHECK_MEMORY_LAYOUT2(Tensors, trainer);
+  CHECK_MEMORY_LAYOUT2(DbmLayer, trainer);
   CHECK_MEMORY_LAYOUT2(EpochCount, trainer);
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(GpuCount, trainer);
 
+  CHECK_MEMORY_LAYOUT2(SparsityMethod, trainer);
   CHECK_MEMORY_LAYOUT2(SparsityTarget, trainer);
   CHECK_MEMORY_LAYOUT2(SparsityWeight, trainer);
-  CHECK_MEMORY_LAYOUT2(SparsityMethod, trainer);
 
   CHECK_MEMORY_LAYOUT2(LearningRate, trainer);
   CHECK_MEMORY_LAYOUT2(LearningDecay, trainer);
@@ -363,6 +364,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
     random_tensor<value_t, dimCount, true, uniform<value_t> > h_rand(layerSize, tid);
     random_tensor<value_t, dimCount, true, normal<value_t> > h_noise(layerSize, tid);
+    random_tensor<value_t, dimCount, true, normal<value_t> > v_noise(size, tid);
 
     hMask = *crbm->getMask();
 
@@ -603,13 +605,14 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
             switch (crbm->getVisibleUnitType()) {
               case UnitType::Gaussian: break;
-              case UnitType::Bernoulli: vneg = sigm(vneg); break;
-              case UnitType::ReLU:      vneg = max(0.0, vneg);  break;
-              case UnitType::MyReLU:    vneg = nrelu_mean(vneg); break;
-              case UnitType::ReLU1:     vneg = min(1.0, max(0.0, vneg));  break;
-              case UnitType::ReLU2:     vneg = min(2.0, max(0.0, vneg));  break;
-              case UnitType::ReLU4:     vneg = min(4.0, max(0.0, vneg));  break;
-              case UnitType::ReLU8:     vneg = min(8.0, max(0.0, vneg));  break;
+//              case UnitType::Bernoulli: vneg = sigm(vneg); break;
+              case UnitType::MyReLU:
+              case UnitType::ReLU:      vneg = max(0.0, vneg + sqrt(sigm(vneg)) * v_noise); break;
+              case UnitType::ReLU1:     vneg = min(1.0, max(0.0, vneg + (vneg > 0) * (vneg < 1.0) * v_noise)); break;
+              case UnitType::ReLU2:     vneg = min(2.0, max(0.0, vneg + (vneg > 0) * (vneg < 2.0) * v_noise)); break;
+              case UnitType::ReLU4:     vneg = min(4.0, max(0.0, vneg + (vneg > 0) * (vneg < 4.0) * v_noise)); break;
+              case UnitType::ReLU8:     vneg = min(8.0, max(0.0, vneg + (vneg > 0) * (vneg < 8.0) * v_noise)); break;
+
               default:
                 dlog(Severity::Warning) << "Unsupported visible unit type: " << crbm->getVisibleUnitType();
             }
