@@ -11,6 +11,8 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
+#include <capputils/Enumerators.h>
+
 #include "SparsityMethod.h"
 #include "DropoutMethod.h"
 
@@ -18,6 +20,8 @@
 
 namespace gml {
 namespace convrbm4d {
+
+CapputilsEnumerator(DbmLayer, RBM, VisibleLayer, IntermediateLayer, TopLayer);
 
 struct TrainerChecker { TrainerChecker(); };
 
@@ -33,6 +37,7 @@ public:
   // Primary inputs
   Property(InitialModel, boost::shared_ptr<Model>)
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+  Property(DbmLayer, DbmLayer)
 
   // Data set size dependent parameters
   Property(EpochCount, int)
@@ -41,9 +46,9 @@ public:
   int dummy;
 
   // Sparsity parameters
+  Property(SparsityMethod, SparsityMethod)
   Property(SparsityTarget, double)
   Property(SparsityWeight, double)
-  Property(SparsityMethod, SparsityMethod)
 
   // Learning algorithm parameters
   Property(LearningRate, double)

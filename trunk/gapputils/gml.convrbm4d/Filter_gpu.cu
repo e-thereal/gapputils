@@ -219,6 +219,12 @@ void Filter::update(IProgressMonitor* monitor) const {
             switch(crbm.getVisibleUnitType()) {
               case UnitType::Bernoulli: v = sigm(v + b); break;
               case UnitType::Gaussian:  v = v + b;       break;
+              case UnitType::ReLU:      v = max(0.0, v + b);  break;
+              case UnitType::MyReLU:    v = nrelu_mean(v + b); break;
+              case UnitType::ReLU1:     v = min(1.0, max(0.0, v + b));  break;
+              case UnitType::ReLU2:     v = min(2.0, max(0.0, v + b));  break;
+              case UnitType::ReLU4:     v = min(4.0, max(0.0, v + b));  break;
+              case UnitType::ReLU8:     v = min(8.0, max(0.0, v + b));  break;
               default:
                 dlog(Severity::Warning) << "Unsupported unit type: " << crbm.getVisibleUnitType();
             }
