@@ -28,6 +28,7 @@ FilterChecker::FilterChecker() {
   CHECK_MEMORY_LAYOUT2(Inputs, filter);
   CHECK_MEMORY_LAYOUT2(Direction, filter);
   CHECK_MEMORY_LAYOUT2(GpuCount, filter);
+  CHECK_MEMORY_LAYOUT2(DoubleWeights, filter);
   CHECK_MEMORY_LAYOUT2(OnlyFilters, filter);
 
   CHECK_MEMORY_LAYOUT2(Outputs, filter);
@@ -110,7 +111,11 @@ void Filter::update(IProgressMonitor* monitor) const {
       ctensor_t cf, ch;
       for (size_t k = tid; k < filters.size(); k += gpuCount) {
 //        f = *filters[k];
-        kern = *filters[k];
+
+        if (getDoubleWeights())
+          kern = 2 * *filters[k];
+        else
+          kern = *filters[k];
         dim_t topleft = size / 2 - kern.size() / 2;
         pad = zeros<value_t>(size);
         pad[topleft, kern.size()] = kern;

@@ -18,11 +18,12 @@ BeginPropertyDefinitions(Filter)
   WorkflowProperty(Inputs, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Direction, Enumerator<Type>())
   WorkflowProperty(GpuCount)
+  WorkflowProperty(DoubleWeights)
   WorkflowProperty(OnlyFilters)
   WorkflowProperty(Outputs, Output("Ts"))
 EndPropertyDefinitions
 
-Filter::Filter() : _GpuCount(1), _OnlyFilters(false) {
+Filter::Filter() : _GpuCount(1), _DoubleWeights(false), _OnlyFilters(false) {
   setLabel("Filter");
 }
 
