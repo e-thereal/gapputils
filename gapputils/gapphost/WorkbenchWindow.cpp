@@ -586,7 +586,12 @@ bool WorkbenchWindow::trySelectNode(const std::string& uuid) {
 boost::shared_ptr<workflow::Node> WorkbenchWindow::getCurrentNode() {
   boost::shared_ptr<Workflow> workflow = this->workflow.lock();
 
-  return workflow->getNode(workbench->getCurrentItem());
+  ToolItem* item = workbench->getCurrentItem();
+
+  if (item)
+    return workflow->getNode(item);
+  else
+    return workflow;
 }
 
 void WorkbenchWindow::updateCurrentModule() {
