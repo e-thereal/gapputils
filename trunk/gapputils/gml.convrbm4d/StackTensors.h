@@ -26,8 +26,7 @@ class StackTensors : public DefaultWorkflowElement<StackTensors> {
 
   InitReflectableClass(StackTensors)
 
-  Property(Tensor1, boost::shared_ptr<tensor_t>)
-  Property(Tensor2, boost::shared_ptr<tensor_t>)
+  Property(InputTensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(OutputTensor, boost::shared_ptr<tensor_t>)
 
 public:

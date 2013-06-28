@@ -7,6 +7,8 @@
 
 #include "StackVolumes.h"
 
+#include <capputils/MergeAttribute.h>
+
 namespace gml {
 
 namespace imaging {
@@ -17,11 +19,9 @@ BeginPropertyDefinitions(StackVolumes)
 
   ReflectableBase(DefaultWorkflowElement<StackVolumes>)
 
-  WorkflowProperty(Volumes1, Input("Vols1"))
-  WorkflowProperty(Volumes2, Input("Vols2"))
-  WorkflowProperty(Volume1, Input("Vol1"))
-  WorkflowProperty(Volume2, Input("Vol2"))
-  WorkflowProperty(Output, Output("Vols"))
+  WorkflowProperty(Volumes, Input("Vs"), Merge<Type>())
+  WorkflowProperty(Volume, Input("V"), Merge<Type>())
+  WorkflowProperty(Output, Output("Vs"))
 
 EndPropertyDefinitions
 
@@ -34,23 +34,18 @@ void StackVolumes::update(IProgressMonitor* monitor) const {
 
   boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > > output(new std::vector<boost::shared_ptr<image_t> >());
 
-  if (getVolumes1()) {
-    std::vector<boost::shared_ptr<image_t> >& inputs = *getVolumes1();
-    for (size_t i = 0; i < inputs.size(); ++i)
-      output->push_back(inputs[i]);
+  if (getVolumes()) {
+    for (size_t j = 0; j < getVolumes()->size(); ++j) {
+      std::vector<boost::shared_ptr<image_t> >& inputs = *getVolumes()->at(j);
+      for (size_t i = 0; i < inputs.size(); ++i)
+        output->push_back(inputs[i]);
+    }
   }
 
-  if (getVolumes2()) {
-    std::vector<boost::shared_ptr<image_t> >& inputs = *getVolumes2();
-    for (size_t i = 0; i < inputs.size(); ++i)
-      output->push_back(inputs[i]);
+  if (getVolume()) {
+    for (size_t i = 0; i < getVolume()->size(); ++i)
+      output->push_back(getVolume()->at(i));
   }
-
-  if (getVolume1())
-    output->push_back(getVolume1());
-
-  if (getVolume2())
-    output->push_back(getVolume2());
 
   if (!output->size()) {
     dlog(Severity::Warning) << "No volumes given. Output stack is empty.";
