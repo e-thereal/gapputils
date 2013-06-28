@@ -1,9 +1,8 @@
 #include "Edge.h"
 
-#include <capputils/EventHandler.h>
-#include <capputils/ObservableClass.h>
 #include <capputils/VolatileAttribute.h>
 #include <capputils/MergeAttribute.h>
+#include <capputils/ObserveAttribute.h>
 
 #include <capputils/Logbook.h>
 
@@ -17,6 +16,8 @@ namespace gapputils {
 
 namespace workflow {
 
+int Edge::positionId;
+
 BeginPropertyDefinitions(Edge)
 
   DefineProperty(OutputNode)
@@ -28,12 +29,15 @@ BeginPropertyDefinitions(Edge)
   DefineProperty(InputProperty)
   DefineProperty(InputNodePtr, Volatile())
   DefineProperty(InputReference, Volatile())
+  DefineProperty(InputPosition, Observe(positionId = Id), Volatile())
 
   DefineProperty(CableItem, Volatile())
 
 EndPropertyDefinitions
 
-Edge::Edge(void) : _CableItem(0), handler(this, &Edge::changedHandler), outputId(-1) { }
+Edge::Edge(void) : _InputPosition(0), _CableItem(0), handler(this, &Edge::changedHandler), outputId(-1) {
+  Changed.connect(handler);
+}
 
 Edge::~Edge(void) {
   PropertyReference* outputRef = getOutputReference().get();
@@ -83,7 +87,13 @@ bool Edge::activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> 
   }
 
   if (inputRef->getProperty() && outputRef->getProperty()) {
-    inputRef->getProperty()->setValue(*inputRef->getObject(), *outputRef->getObject(), outputRef->getProperty());
+    IMergeAttribute* merge = inputRef->getProperty()->getAttribute<IMergeAttribute>();
+    if (merge) {
+      merge->setValue(*inputRef->getObject(), inputRef->getProperty(), getInputPosition(),
+          *outputRef->getObject(), outputRef->getProperty());
+    } else {
+      inputRef->getProperty()->setValue(*inputRef->getObject(), *outputRef->getObject(), outputRef->getProperty());
+    }
   }
 
   setInputReference(inputRef);
@@ -91,16 +101,6 @@ bool Edge::activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> 
 
   return true;
 }
-
-/*bool Edge::areCompatible(const Node* outputNode, int outputId, const Node* inputNode, int inputId) {
-  if (!outputNode || !outputNode->getModule() || !inputNode || !inputNode->getModule())
-    return false;
-
-  capputils::reflection::IClassProperty* inProp = inputNode->getModule()->getProperties()[inputId];
-  capputils::reflection::IClassProperty* outProp = outputNode->getModule()->getProperties()[outputId];
-
-  return Edge::areCompatible(outProp, inProp);
-}*/
 
 bool Edge::areCompatible(const capputils::reflection::IClassProperty* outProp,
       const capputils::reflection::IClassProperty* inProp)
@@ -112,10 +112,10 @@ bool Edge::areCompatible(const capputils::reflection::IClassProperty* outProp,
     return outProp->getType() == inProp->getType();
 }
 
-void Edge::changedHandler(capputils::ObservableClass*, int eventId) {
+void Edge::changedHandler(capputils::ObservableClass* object, int eventId) {
   // check for the right property ID
 
-  if (eventId == (int)outputId) {
+  if ((object != this && eventId == (int)outputId) || (object == this && eventId == positionId)) {
     PropertyReference* inputRef = getInputReference().get();
     PropertyReference* outputRef = getOutputReference().get();
 
@@ -124,8 +124,14 @@ void Edge::changedHandler(capputils::ObservableClass*, int eventId) {
 
     capputils::reflection::IClassProperty* inProp = inputRef->getProperty();
     capputils::reflection::IClassProperty* outProp = outputRef->getProperty();
+
     if (inProp && outProp) {
-      inProp->setValue(*inputRef->getObject(), *outputRef->getObject(), outProp);
+      IMergeAttribute* merge = inProp->getAttribute<IMergeAttribute>();
+      if (merge) {
+        merge->setValue(*inputRef->getObject(), inProp, getInputPosition(), *outputRef->getObject(), outProp);
+      } else {
+        inProp->setValue(*inputRef->getObject(), *outputRef->getObject(), outProp);
+      }
     }
   }
 }

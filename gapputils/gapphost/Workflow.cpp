@@ -41,6 +41,7 @@
 #include <set>
 #include <map>
 #include <iomanip>
+#include <algorithm>
 
 #include "CableItem.h"
 #include "Workbench.h"
@@ -151,19 +152,13 @@ void Workflow::addInterfaceNode(boost::shared_ptr<Node> node) {
 
   if (prop->getAttribute<InputAttribute>()) {
     ToolItem* item = getToolItem();
-    if (!item) {
-      //dlog(Severity::Trace) << "Workflow does not have a ToolItem";
-    } else {
-      item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Output);
-    }
+    if (item)
+      item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Output, true);
   }
   if (prop->getAttribute<OutputAttribute>()) {
     ToolItem* item = getToolItem();
-    if (!item) {
-      //dlog(Severity::Trace) << "Workflow does not have a ToolItem";
-    } else {
-      item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Input);
-    }
+    if (item)
+      item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Input, false);
   }
 }
 
@@ -378,6 +373,18 @@ const std::string& getPropertyLabel(IClassProperty* prop) {
 
 bool Workflow::resumeEdge(boost::shared_ptr<Edge> edge) {
   Logbook& dlog = *getLogbook();
+
+  // Update input positions
+  // Only edges that are in the edge list can be resumed
+  std::vector<boost::shared_ptr<Edge> >& edges = *getEdges();
+  assert(std::find(edges.begin(), edges.end(), edge) != edges.end());
+  for (size_t iEdge = 0, pos = 0; iEdge < edges.size(); ++iEdge) {
+    if (edges[iEdge]->getInputNode() == edge->getInputNode() &&
+        edges[iEdge]->getInputProperty() == edge->getInputProperty())
+    {
+      edges[iEdge]->setInputPosition(pos++);
+    }
+  }
 
 //  cout << "Connecting " << edge->getOutputNode() << "." << edge->getOutputProperty()
 //       << " with " << edge->getInputNode() << "." << edge->getInputProperty() << "... " << flush;
@@ -623,10 +630,18 @@ void Workflow::removeNode(boost::shared_ptr<Node> node) {
 
 //boost::enable_shared_from_this<Workflow>::
 void Workflow::removeEdge(boost::shared_ptr<Edge> edge) {
-  boost::shared_ptr<vector<boost::shared_ptr<Edge> > > edges = getEdges();
-  for (unsigned i = 0; i < edges->size(); ++i) {
-    if (edges->at(i) == edge) {
-      edges->erase(edges->begin() + i);
+  vector<boost::shared_ptr<Edge> >& edges = *getEdges();
+  for (size_t i = 0; i < edges.size(); ++i) {
+    if (edges[i] == edge) {
+      edges.erase(edges.begin() + i);
+    }
+  }
+
+  for (size_t iEdge = 0, pos = 0; iEdge < edges.size(); ++iEdge) {
+    if (edges[iEdge]->getInputNode() == edge->getInputNode() &&
+        edges[iEdge]->getInputProperty() == edge->getInputProperty())
+    {
+      edges[iEdge]->setInputPosition(pos++);
     }
   }
 }

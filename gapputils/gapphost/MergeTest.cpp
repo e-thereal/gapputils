@@ -23,7 +23,7 @@ BeginPropertyDefinitions(MergeTest)
   ReflectableBase(DefaultWorkflowElement<MergeTest>)
 
   WorkflowProperty(Inputs, Input("Ds"), NotNull<Type>(), Merge<Type>())
-  WorkflowProperty(Inputs2, Input("Ds"), NotNull<Type>())
+  WorkflowProperty(Inputs2, Input("Ds"))
   WorkflowProperty(Outputs, Output("Out"))
 
 EndPropertyDefinitions

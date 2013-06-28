@@ -33,11 +33,6 @@ Workbench::Workbench(QWidget *parent) : QGraphicsView(parent), selectedItem(0),
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setAcceptDrops(true);
-
-  //shadowRect = new QGraphicsRectItem(0, 0, 2000, 1300);
-  //shadowRect->setBrush(QBrush(QColor(0, 0, 0, 0)));
-  //shadowRect->setZValue(3);
-  //scene->addItem(shadowRect);
 }
 
 Workbench::~Workbench() { }
@@ -56,15 +51,16 @@ void Workbench::addToolItem(ToolItem* item) {
 }
 
 void Workbench::removeToolItem(ToolItem* item) {
-  vector<boost::shared_ptr<ToolConnection> >& inputs = item->getInputs();
-  for (unsigned i = 0; i < inputs.size(); ++i) {
+  vector<boost::shared_ptr<ToolConnection> > inputs;
+  item->getInputs(inputs);
+  for (size_t i = 0; i < inputs.size(); ++i) {
     if (inputs[i]->cable)
       removeCableItem(inputs[i]->cable);
   }
 
   vector<boost::shared_ptr<ToolConnection> > outputs;
   item->getOutputs(outputs);
-  for (unsigned i = 0; i < outputs.size(); ++i) {
+  for (size_t i = 0; i < outputs.size(); ++i) {
     if (outputs[i]->cable)
       removeCableItem(outputs[i]->cable);
   }
@@ -104,8 +100,9 @@ bool Workbench::isDependent(QGraphicsItem* item) {
 void addAllInputs(set<QGraphicsItem*>& items, ToolItem* item) {
   if (!item)
     return;
-  vector<boost::shared_ptr<ToolConnection> >& inputs = item->getInputs();
-  for(unsigned i = 0; i < inputs.size(); ++i) {
+  vector<boost::shared_ptr<ToolConnection> > inputs;
+  item->getInputs(inputs);
+  for(size_t i = 0; i < inputs.size(); ++i) {
     if (inputs[i]->cable) {
       items.insert(inputs[i]->cable);
       if (inputs[i]->cable->getInput()) {
@@ -121,7 +118,7 @@ void addAllOutputs(set<QGraphicsItem*>& items, ToolItem* item) {
     return;
   vector<boost::shared_ptr<ToolConnection> > outputs;
   item->getOutputs(outputs);
-  for(unsigned i = 0; i < outputs.size(); ++i) {
+  for(size_t i = 0; i < outputs.size(); ++i) {
     if (outputs[i]->cable) {
       items.insert(outputs[i]->cable);
       if (outputs[i]->cable->getOutput()) {
@@ -214,16 +211,23 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
         }
         return;
       }
-      boost::shared_ptr<ToolConnection> connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
-      if (connection) {
-        if (connection->cable) {
-          CableItem* currentCable = connection->cable;
-          currentCables.push_back(currentCable);
-          currentCable->setOutput(boost::shared_ptr<ToolConnection>());
-          currentCable->setDragPoint(mapToScene(event->pos()));
-          Q_EMIT connectionRemoved(currentCable);
-        } else {
-          CableItem* currentCable = new CableItem(this, boost::shared_ptr<ToolConnection>(), connection);
+
+      // Input
+      connections.clear();
+      if (tool->hitConnections(connections, ex - tx, ey - ty, ToolConnection::Input)) {
+        // all connected cables are current cables
+        for (size_t i = 0; i < connections.size(); ++i) {
+          boost::shared_ptr<ToolConnection> connection = connections[i];
+          if (connection->cable) {
+            CableItem* currentCable = connection->cable;
+            currentCables.push_back(currentCable);
+            currentCable->setOutput(boost::shared_ptr<ToolConnection>());
+            currentCable->setDragPoint(mapToScene(event->pos()));
+            Q_EMIT connectionRemoved(currentCable);
+          }
+        }
+        if (currentCables.size() == 0) {
+          CableItem* currentCable = new CableItem(this, boost::shared_ptr<ToolConnection>(), connections[0]);
           currentCables.push_back(currentCable);
           currentCable->setDragPoint(mapToScene(event->pos()));
           scene()->addItem(currentCable);
@@ -233,6 +237,25 @@ void Workbench::mousePressEvent(QMouseEvent* event) {
         }
         return;
       }
+//      boost::shared_ptr<ToolConnection> connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
+//      if (connection) {
+//        if (connection->cable) {
+//          CableItem* currentCable = connection->cable;
+//          currentCables.push_back(currentCable);
+//          currentCable->setOutput(boost::shared_ptr<ToolConnection>());
+//          currentCable->setDragPoint(mapToScene(event->pos()));
+//          Q_EMIT connectionRemoved(currentCable);
+//        } else {
+//          CableItem* currentCable = new CableItem(this, boost::shared_ptr<ToolConnection>(), connection);
+//          currentCables.push_back(currentCable);
+//          currentCable->setDragPoint(mapToScene(event->pos()));
+//          scene()->addItem(currentCable);
+//        }
+//        Q_FOREACH (QGraphicsItem *item, scene()->items()) {
+//          item->update();
+//        }
+//        return;
+//      }
     }
   }
 
@@ -260,21 +283,62 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
         int ey = mousePos.y();
         int tx = item->x();
         int ty = item->y();
-        if (currentCables.size() == 1 && currentCables[0]->needOutput()) {
-          boost::shared_ptr<ToolConnection> connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
-          if (connection && areCompatible(currentCables[0]->getInput().get(), connection.get())) {
-            foundConnection = true;
-            CableItem* oldCable = connection->cable;
-            currentCables[0]->setOutput(connection);
-            currentCables[0]->endDrag();
-            if (oldCable) {
-              Q_EMIT connectionRemoved(oldCable);
-              removeCableItem(oldCable);
+
+        if (currentCables[0]->needOutput()) {
+          // Single Cable Case
+          if (currentCables.size() == 1) {
+//            boost::shared_ptr<ToolConnection> connection = tool->hitConnection(ex - tx, ey - ty, ToolConnection::Input);
+//            if (connection && areCompatible(currentCables[0]->getInput().get(), connection.get())) {
+//              foundConnection = true;
+//              CableItem* oldCable = connection->cable;
+//              currentCables[0]->setOutput(connection);
+//              currentCables[0]->endDrag();
+//              if (oldCable) {
+//                Q_EMIT connectionRemoved(oldCable);
+//                removeCableItem(oldCable);
+//              }
+//              Q_EMIT connectionCompleted(currentCables[0]);
+//              break;
+//            }
+
+            vector<boost::shared_ptr<ToolConnection> > connections;
+            tool->hitConnections(connections, ex - tx, ey - ty, ToolConnection::Input);
+            if (connections.size()) {
+              boost::shared_ptr<ToolConnection> connection = connections[connections.size()-1];
+              if (areCompatible(currentCables[0]->getInput().get(), connection.get())) {
+                foundConnection = true;
+                CableItem* oldCable = connection->cable;
+                currentCables[0]->setOutput(connection);
+                currentCables[0]->endDrag();
+                if (oldCable) {
+                  Q_EMIT connectionRemoved(oldCable);
+                  removeCableItem(oldCable);
+                }
+                Q_EMIT connectionCompleted(currentCables[0], connection->getIndex());
+                break;
+              }
             }
-            Q_EMIT connectionCompleted(currentCables[0]);
-            break;
+          } else {
+            vector<boost::shared_ptr<ToolConnection> > connections;
+            tool->hitConnections(connections, ex - tx, ey - ty, ToolConnection::Input);
+            if (connections.size()) {
+              boost::shared_ptr<ToolConnection> connection = connections[connections.size()-1];
+
+              for (size_t iCable = 0; iCable < currentCables.size(); ++iCable) {
+                boost::shared_ptr<ToolConnection> newConnection = connection->parent->getConnection(connection->id, ToolConnection::Input);
+
+                if (areCompatible(currentCables[iCable]->getInput().get(), newConnection.get())) {
+                  foundConnection = true;
+                  currentCables[iCable]->setOutput(newConnection);
+                  currentCables[iCable]->endDrag();
+                  Q_EMIT connectionCompleted(currentCables[iCable], newConnection->getIndex());
+                }
+              }
+              if (foundConnection)
+                break;
+            }
           }
-        } else if (currentCables[0]->needInput()) {
+        } else {
 
           // Single Cable Case
           if (currentCables.size() == 1) {
@@ -291,7 +355,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
                   Q_EMIT connectionRemoved(oldCable);
                   removeCableItem(oldCable);
                 }
-                Q_EMIT connectionCompleted(currentCables[0]);
+                Q_EMIT connectionCompleted(currentCables[0], connection->getIndex());
                 break;
               }
             }
@@ -308,7 +372,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
                   foundConnection = true;
                   currentCables[iCable]->setInput(newConnection);
                   currentCables[iCable]->endDrag();
-                  Q_EMIT connectionCompleted(currentCables[iCable]);
+                  Q_EMIT connectionCompleted(currentCables[iCable], newConnection->getIndex());
                 }
               }
               if (foundConnection)
