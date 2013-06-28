@@ -22,10 +22,8 @@ class StackVolumes : public DefaultWorkflowElement<StackVolumes> {
 
   InitReflectableClass(StackVolumes)
 
-  Property(Volumes1, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
-  Property(Volumes2, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
-  Property(Volume1, boost::shared_ptr<image_t>)
-  Property(Volume2, boost::shared_ptr<image_t>)
+  Property(Volumes, boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > > > >)
+  Property(Volume, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
 
   Property(Output, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
 
