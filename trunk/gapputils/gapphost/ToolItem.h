@@ -49,6 +49,7 @@ public:
   void setPos(int x, int y);
   QPointF attachmentPos() const;
   void connect(CableItem* cable);
+  int getIndex() const;
 
   void setLabel(const QString& label);
 };
@@ -63,11 +64,11 @@ public:
   std::string id;
   std::vector<boost::shared_ptr<ToolConnection> > connections;
   int x, y;
-  bool expanded;
+  bool expanded, staticConnection;
 
 public:
   MultiConnection(const QString& label, ToolConnection::Direction direction, ToolItem* parent,
-      const std::string& id);
+      const std::string& id, bool staticConnection);
   virtual ~MultiConnection();
 
   bool hits(std::vector<boost::shared_ptr<ToolConnection> >& connections, int x, int y) const;
@@ -96,7 +97,7 @@ protected:
   std::string label;
   Workbench* bench;
   int width, height, adjust, connectionDistance, inputsWidth, labelWidth, outputsWidth;
-  std::vector<boost::shared_ptr<ToolConnection> > inputs;
+  std::vector<boost::shared_ptr<MultiConnection> > inputs;
   std::vector<boost::shared_ptr<MultiConnection> > outputs;
   QFont labelFont;
   double progress;
@@ -117,12 +118,12 @@ public:
   bool hitConnections(std::vector<boost::shared_ptr<ToolConnection> >& connections, int x, int y, ToolConnection::Direction direction) const;
 
   boost::shared_ptr<ToolConnection> getConnection(const std::string& id, ToolConnection::Direction direction) const;
-  std::vector<boost::shared_ptr<ToolConnection> >& getInputs();
+  void getInputs(std::vector<boost::shared_ptr<ToolConnection> >& connections);
   void getOutputs(std::vector<boost::shared_ptr<ToolConnection> >& connections);
   void updateSize();
 
   void updateConnectionPositions();
-  void addConnection(const QString& label, const std::string& id, ToolConnection::Direction direction);
+  void addConnection(const QString& label, const std::string& id, ToolConnection::Direction direction, bool staticConnection);
   void deleteConnection(const std::string& id, ToolConnection::Direction direction);
   void drawConnections(QPainter* painter, bool showLabel = true);
   void drawBox(QPainter* painter);

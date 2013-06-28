@@ -90,7 +90,7 @@ protected:
 
 public Q_SLOTS:
   boost::shared_ptr<workflow::Node> createModule(int x, int y, QString classname);
-  void createEdge(CableItem* cable);
+  void createEdge(CableItem* cable, int position);
   void deleteEdge(CableItem* cable);
   void deleteModule(ToolItem* item);
 

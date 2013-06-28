@@ -32,6 +32,7 @@
 #include <capputils/ReflectableClassFactory.h>
 #include <capputils/LibraryLoader.h>
 #include <capputils/ObservableClass.h>
+#include <capputils/MergeAttribute.h>
 
 #include <qevent.h>
 #include <qmdiarea.h>
@@ -107,7 +108,7 @@ WorkbenchWindow::WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow,
   workbench->setChecker(workflow.get());
 
   connect(workbench, SIGNAL(createItemRequest(int, int, QString)), this, SLOT(createModule(int, int, QString)));
-  connect(workbench, SIGNAL(connectionCompleted(CableItem*)), this, SLOT(createEdge(CableItem*)));
+  connect(workbench, SIGNAL(connectionCompleted(CableItem*, int)), this, SLOT(createEdge(CableItem*, int)));
   connect(workbench, SIGNAL(connectionRemoved(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
   connect(workbench, SIGNAL(preItemDeleted(ToolItem*)), this, SLOT(deleteModule(ToolItem*)));
 
@@ -210,9 +211,9 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
     for (unsigned i = 0; i < properties.size(); ++i) {
       capputils::reflection::IClassProperty* prop = properties[i];
       if (prop->getAttribute<InputAttribute>() && !prop->getAttribute<FromEnumerableAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Input);
+        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Input, true);
       if (prop->getAttribute<OutputAttribute>() && !prop->getAttribute<ToEnumerableAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Output);
+        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Output, false);
     }
 
     // Add tool connections for interface nodes
@@ -227,10 +228,10 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
         return;
 
       if (prop->getAttribute<InputAttribute>())
-        item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Output);
+        item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Output, false);
       
       if (prop->getAttribute<OutputAttribute>()) {
-        item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Input);
+        item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Input, true);
       }
     }
   } else if (node->getModule()->getAttribute<InterfaceAttribute>()) {
@@ -243,9 +244,9 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
       //if (prop->getName() != "Value")
       //  continue;
       if (prop->getAttribute<InputAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Input);
+        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Input, true);
       if (prop->getAttribute<OutputAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Output);
+        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Output, false);
       //break;
     }
   } else {
@@ -255,9 +256,9 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
     for (unsigned i = 0; i < properties.size(); ++i) {
       capputils::reflection::IClassProperty* prop = properties[i];
       if (prop->getAttribute<InputAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Input);
+        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Input, !prop->getAttribute<IMergeAttribute>());
       if (prop->getAttribute<OutputAttribute>())
-        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Output);
+        item->addConnection(getPropertyLabel(prop).c_str(), prop->getName(), ToolConnection::Output, false);
     }
 
     if (boost::dynamic_pointer_cast<interfaces::HorizontalAnnotation>(node->getModule()))
@@ -691,7 +692,7 @@ boost::shared_ptr<workflow::Node> WorkbenchWindow::createModule(int x, int y, QS
   return node;
 }
 
-void WorkbenchWindow::createEdge(CableItem* cable) {
+void WorkbenchWindow::createEdge(CableItem* cable, int position) {
   boost::shared_ptr<Workflow> workflow = this->workflow.lock();
 
   boost::shared_ptr<Node> outputNode = workflow->getNode(cable->getInput()->parent);
@@ -706,13 +707,34 @@ void WorkbenchWindow::createEdge(CableItem* cable) {
   edge->setOutputProperty(cable->getInput()->id);
   edge->setInputNode(inputNode->getUuid());
   edge->setInputProperty(cable->getOutput()->id);
-
+  edge->setInputPosition(position);
   edge->setCableItem(cable);
-  if (!edge->activate(outputNode, inputNode)) {
-    workbench->removeCableItem(cable);
-  } else {
-    workflow->getEdges()->push_back(edge);
+
+  // TODO: reorder edges
+  std::vector<boost::shared_ptr<Edge> >& edges = *workflow->getEdges();
+  edges.push_back(edge);
+
+  // bubble up the edge
+  for (int iCurrent = edges.size() - 2, iEdge = edges.size() - 1; iCurrent >= 0; --iCurrent) {
+    if (edges[iCurrent]->getInputNode() == edge->getInputNode() &&
+        edges[iCurrent]->getInputProperty() == edge->getInputProperty() &&
+        edges[iCurrent]->getInputPosition() >= edge->getInputPosition())
+    {
+      std::swap(edges[iCurrent], edges[iEdge]);
+      iEdge = iCurrent;
+    }
   }
+
+  if (!workflow->resumeEdge(edge)) {
+    workflow->removeEdge(edge);
+    workbench->removeCableItem(cable);
+  }
+
+//  if (!edge->activate(outputNode, inputNode)) {
+//    workbench->removeCableItem(cable);
+//  } else {
+//    workflow->getEdges()->push_back(edge);
+//  }
 }
 
 void WorkbenchWindow::deleteEdge(CableItem* cable) {

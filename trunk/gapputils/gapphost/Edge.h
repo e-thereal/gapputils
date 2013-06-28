@@ -21,7 +21,8 @@ namespace workflow {
 
 class Node;
 
-class Edge : public capputils::reflection::ReflectableClass
+class Edge : public capputils::reflection::ReflectableClass,
+             public capputils::ObservableClass
 {
 
   InitReflectableClass(Edge)
@@ -36,12 +37,14 @@ class Edge : public capputils::reflection::ReflectableClass
   Property(InputProperty, std::string)
   Property(InputNodePtr, boost::weak_ptr<Node>)
   Property(InputReference, boost::shared_ptr<PropertyReference>)
+  Property(InputPosition, int)
 
   Property(CableItem, CableItem*)
 
 private:
   capputils::EventHandler<Edge> handler;
   int outputId; // TODO: get rid of outputId
+  static int positionId;
 
 public:
   Edge(void);
@@ -60,7 +63,6 @@ public:
   bool activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> inputNode);
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
-  //static bool areCompatible(const Node* outputNode, int outputId, const Node* inputNode, int inputId);
   static bool areCompatible(const capputils::reflection::IClassProperty* outputProperty,
       const capputils::reflection::IClassProperty* inputProperty);
 };
