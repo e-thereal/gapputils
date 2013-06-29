@@ -26,6 +26,7 @@ public:
   typedef float value_t;
   typedef tbblas::tensor<value_t, dimCount> tensor_t;
   typedef tensor_t::dim_t dim_t;
+  typedef std::vector<boost::shared_ptr<tensor_t> > v_tensor_t;
 
   friend class ModelChecker;
 
@@ -34,9 +35,9 @@ private:
 
   int dummy; ///< needed to align GCC and NVCC memory layouts.
 
-  Property(Filters, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(Filters, boost::shared_ptr<v_tensor_t>)
   Property(VisibleBias, boost::shared_ptr<tensor_t>)
-  Property(HiddenBiases, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(HiddenBiases, boost::shared_ptr<v_tensor_t>)
   Property(FilterKernelSize, dim_t)
 //  int dummy2;
   Property(Mean, value_t)
