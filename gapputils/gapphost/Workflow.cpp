@@ -153,12 +153,12 @@ void Workflow::addInterfaceNode(boost::shared_ptr<Node> node) {
   if (prop->getAttribute<InputAttribute>()) {
     ToolItem* item = getToolItem();
     if (item)
-      item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Output, true);
+      item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Output, false);
   }
   if (prop->getAttribute<OutputAttribute>()) {
     ToolItem* item = getToolItem();
     if (item)
-      item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Input, false);
+      item->addConnection(QString(object->getProperty("Label").c_str()), node->getUuid(), ToolConnection::Input, true);
   }
 }
 
