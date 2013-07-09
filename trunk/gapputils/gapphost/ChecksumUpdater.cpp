@@ -181,36 +181,34 @@ void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
 
 //      std::cout << "Class name: " << currentNode->getModule()->getClassName() << std::endl;
 
-      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors")
-        std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
-
-      // TODO: test if it makes a difference when I cache the checksums in a vector and calculate the total sum in one go
+//      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors")
+//        std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
 
       std::vector<boost::shared_ptr<workflow::Node> > dependentNodes;
       currentNode->getDependentNodes(dependentNodes, true);
-      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors")
-       std::cout << "  Dependent nodes: " << dependentNodes.size() << std::endl;
+//      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors")
+//       std::cout << "  Dependent nodes: " << dependentNodes.size() << std::endl;
       for (unsigned i = 0; i < dependentNodes.size(); ++i) {
-        if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors") {
-          std::cout << "  " << dependentNodes[i]->getUuid() << std::endl;
-          std::cout << "    In:  " << dependentNodes[i]->getInputChecksum() << std::endl;
-          std::cout << "    Out: " << dependentNodes[i]->getOutputChecksum() << std::endl;
-        }
+//        if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors") {
+//          std::cout << "  " << dependentNodes[i]->getUuid() << std::endl;
+//          std::cout << "    In:  " << dependentNodes[i]->getInputChecksum() << std::endl;
+//          std::cout << "    Out: " << dependentNodes[i]->getOutputChecksum() << std::endl;
+//        }
         dependentSum = dependentNodes[i]->getInputChecksum();
         valueSum.process_bytes(&dependentSum, sizeof(dependentSum));
-        if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors") {
-          std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
-        }
+//        if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors") {
+//          std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
+//        }
       }
-      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors")
-        std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
+//      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors")
+//        std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
       currentNode->setInputChecksum(valueSum.checksum());
-      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors") {
-        std::cout << "  In:  " << currentNode->getInputChecksum() << std::endl;
-        std::cout << "  Out: " << currentNode->getOutputChecksum() << std::endl;
-        if (currentNode->getInputChecksum() != currentNode->getOutputChecksum())
-          std::cout << currentNode->getUuid() << " changed!" << std::endl;
-      }
+//      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors") {
+//        std::cout << "  In:  " << currentNode->getInputChecksum() << std::endl;
+//        std::cout << "  Out: " << currentNode->getOutputChecksum() << std::endl;
+//        if (currentNode->getInputChecksum() != currentNode->getOutputChecksum())
+//          std::cout << currentNode->getUuid() << " changed!" << std::endl;
+//      }
     }
   }
 
