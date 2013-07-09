@@ -120,8 +120,10 @@ checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags
   }
 
   // Add UUID of node
-  std::string uuid = node->getUuid();
-  checksum.process_bytes((void*)&uuid[0], uuid.size());
+  if (node) {
+    std::string uuid = node->getUuid();
+    checksum.process_bytes((void*)&uuid[0], uuid.size());
+  }
 
   // Add the class name
   std::string className = object->getClassName();
