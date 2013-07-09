@@ -47,7 +47,8 @@ checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
     if (subobject)
       return getChecksum(subobject);
   } else if (enumerable) {
-    boost::crc_32_type valueSum;
+//    boost::crc_32_type valueSum;
+    boost::crc_optimal<32, 0x04C11DB7> valueSum;
     checksum_t checksum;
     boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(object, property);
     if (iterator) {
@@ -60,7 +61,8 @@ checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
     }
     return valueSum.checksum();
   } else {
-    boost::crc_32_type valueSum;
+//    boost::crc_32_type valueSum;
+    boost::crc_optimal<32, 0x04C11DB7> valueSum;
     const std::string& str = property->getStringValue(object);
     valueSum.process_bytes(&str[0], str.size());
 
@@ -75,7 +77,8 @@ checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
 }
 
 checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags) {
-  boost::crc_32_type checksum;
+//  boost::crc_32_type checksum;
+  boost::crc_optimal<32, 0x04C11DB7> checksum;
   assert(object);
 
   workflow::CollectionElement* collection = dynamic_cast<workflow::CollectionElement*>(object);
@@ -116,6 +119,10 @@ checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags
     checksum.process_bytes(&cs, sizeof(cs));
   }
 
+  // Add UUID of node
+  std::string uuid = node->getUuid();
+  checksum.process_bytes((void*)&uuid[0], uuid.size());
+
   // Add the class name
   std::string className = object->getClassName();
   checksum.process_bytes((void*)&className[0], className.size());
@@ -155,7 +162,8 @@ void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
     nodesStack.pop();
 
     // Update checksum + checksum from dependent stuff
-    boost::crc_32_type valueSum;
+//    boost::crc_32_type valueSum;
+    boost::crc_optimal<32, 0x04C11DB7> valueSum;
 
     boost::shared_ptr<workflow::Workflow> subworkflow = boost::dynamic_pointer_cast<workflow::Workflow>(currentNode);
     if (subworkflow) {
@@ -168,33 +176,46 @@ void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
       checksum_t selfSum = getChecksum(currentNode->getModule().get(), currentNode.get());
 
       valueSum.process_bytes(&selfSum, sizeof(selfSum));
-      //std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
+
+      std::cout << "Class name: " << currentNode->getModule()->getClassName() << std::endl;
+
+      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors")
+        std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
 
       // TODO: test if it makes a difference when I cache the checksums in a vector and calculate the total sum in one go
 
       std::vector<boost::shared_ptr<workflow::Node> > dependentNodes;
       currentNode->getDependentNodes(dependentNodes, true);
-      //std::cout << "  Dependent nodes: " << dependentNodes.size() << std::endl;
+      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors")
+       std::cout << "  Dependent nodes: " << dependentNodes.size() << std::endl;
       for (unsigned i = 0; i < dependentNodes.size(); ++i) {
-        //std::cout << "  " << dependentNodes[i]->getUuid() << std::endl;
-        //std::cout << "    In:  " << dependentNodes[i]->getInputChecksum() << std::endl;
-        //std::cout << "    Out: " << dependentNodes[i]->getOutputChecksum() << std::endl;
+        if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors") {
+          std::cout << "  " << dependentNodes[i]->getUuid() << std::endl;
+          std::cout << "    In:  " << dependentNodes[i]->getInputChecksum() << std::endl;
+          std::cout << "    Out: " << dependentNodes[i]->getOutputChecksum() << std::endl;
+        }
         dependentSum = dependentNodes[i]->getInputChecksum();
         valueSum.process_bytes(&dependentSum, sizeof(dependentSum));
-        //std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
+        if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors") {
+          std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
+        }
       }
-      //std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
+      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors")
+        std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
       currentNode->setInputChecksum(valueSum.checksum());
-      //std::cout << "  In:  " << currentNode->getInputChecksum() << std::endl;
-      //std::cout << "  Out: " << currentNode->getOutputChecksum() << std::endl;
-      //if (currentNode->getInputChecksum() != currentNode->getOutputChecksum())
-      //  std::cout << currentNode->getUuid() << " changed!" << std::endl;
+      if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors") {
+        std::cout << "  In:  " << currentNode->getInputChecksum() << std::endl;
+        std::cout << "  Out: " << currentNode->getOutputChecksum() << std::endl;
+        if (currentNode->getInputChecksum() != currentNode->getOutputChecksum())
+          std::cout << currentNode->getUuid() << " changed!" << std::endl;
+      }
     }
   }
 
   if (workflow) {
     // accumulate checksums of output nodes
-    boost::crc_32_type valueSum;
+//    boost::crc_32_type valueSum;
+    boost::crc_optimal<32, 0x04C11DB7> valueSum;
 
     std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
     for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
