@@ -253,15 +253,18 @@ int main(int argc, char *argv[])
       w.show();
       w.resume();
       if (model.getUpdateAll()) {
+        model.setSaveConfiguration(false);
         w.setAutoQuit(true);
         w.updateMainWorkflow();
       } else if (model.getUpdate().size()) {
+        model.setSaveConfiguration(false);
         w.setAutoQuit(true);
         w.updateMainWorkflowNode(model.getUpdate());
       }
       ret = qapp->exec();
     } else {
       qapp = new QCoreApplication(argc, argv);
+      model.setSaveConfiguration(false);
       if (model.getUpdate().size() == 0)
         model.setUpdateAll(true);
       HeadlessApp app;
