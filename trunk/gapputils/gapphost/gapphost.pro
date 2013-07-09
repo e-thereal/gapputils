@@ -79,6 +79,7 @@ CONFIG += no_keywords console
 
 CONFIG(debug, debug|release) {
   DEFINES += _DEBUG
+  TARGET = grapevined
 
   QMAKE_CXXFLAGS += -pg
   QMAKE_LFLAGS += -pg
@@ -92,6 +93,7 @@ CONFIG(debug, debug|release) {
 
 CONFIG(release, debug|release) {
   DEFINES += _RELEASE
+  TARGET = grapevine
 
   LIBS += -L"../../tinyxml/Release"
   LIBS += -L"../../capputils/Release"

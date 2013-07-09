@@ -179,7 +179,7 @@ void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
 
       valueSum.process_bytes(&selfSum, sizeof(selfSum));
 
-      std::cout << "Class name: " << currentNode->getModule()->getClassName() << std::endl;
+//      std::cout << "Class name: " << currentNode->getModule()->getClassName() << std::endl;
 
       if (currentNode->getModule()->getClassName() == "gml::convrbm4d::StackTensors")
         std::cout << "  Checksum: " << valueSum.checksum() << std::endl;
