@@ -15,6 +15,7 @@
 #include <tbblas/zeros.hpp>
 #include <tbblas/ones.hpp>
 #include <tbblas/dot.hpp>
+#include <tbblas/io.hpp>
 
 #include <boost/timer.hpp>
 
@@ -28,12 +29,15 @@ TrainerChecker::TrainerChecker() {
   Trainer test;
   test.initializeClass();
   CHECK_MEMORY_LAYOUT2(TrainingSet, test);
+  CHECK_MEMORY_LAYOUT2(Mask, test);
+  CHECK_MEMORY_LAYOUT2(AutoCreateMask, test);
   CHECK_MEMORY_LAYOUT2(HiddenCount, test);
   CHECK_MEMORY_LAYOUT2(SampleHiddens, test);
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(LearningRate, test);
   CHECK_MEMORY_LAYOUT2(InitialWeights, test);
+  CHECK_MEMORY_LAYOUT2(InitialVisible, test);
   CHECK_MEMORY_LAYOUT2(InitialHidden, test);
   CHECK_MEMORY_LAYOUT2(SparsityTarget, test);
   CHECK_MEMORY_LAYOUT2(SparsityWeight, test);
@@ -87,10 +91,32 @@ void Trainer::update(IProgressMonitor* monitor) const {
     thrust::copy(data[i]->begin(), data[i]->end(), row(X, i).begin());
   }
 
+  matrix_t mask(1, visibleCount);
+  if (getMask()) {
+    assert(getMask()->size() == visibleCount);
+    thrust::copy(getMask()->begin(), getMask()->end(), mask.begin());
+  } else if (getAutoCreateMask()) {
+    mask = sum(X, 0);
+    {
+      data_t maskData(new std::vector<double>(visibleCount));
+      thrust::copy(mask.begin(), mask.end(), maskData->begin());
+      newState->setDebugMask(maskData);
+    }
+    mask = mask > 1e-9;
+    {
+      data_t maskData(new std::vector<double>(visibleCount));
+      thrust::copy(mask.begin(), mask.end(), maskData->begin());
+      newState->setDebugMask2(maskData);
+    }
+  } else {
+    mask = ones<value_t>(1, visibleCount);
+  }
+
   boost::shared_ptr<host_matrix_t> visibleMeans(new host_matrix_t(zeros<value_t>(1, visibleCount)));
   boost::shared_ptr<host_matrix_t> visibleStds(new host_matrix_t(ones<value_t>(1, visibleCount)));
   rbm->setMean(visibleMeans);
   rbm->setStddev(visibleStds);
+  rbm->setVisibleMask(boost::make_shared<host_matrix_t>(mask));
 
   if (visibleUnitType == UnitType::Gaussian) {
 //    matrix_t means = sum(X, 0);
@@ -102,7 +128,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
 //    matrix_t stddev = sum(X, 0);
 //    stddev = sqrt(stddev / X.size()[0]) + (stddev == 0);  // If stddev == 0 set stddev to 1
     matrix_t stddev = ones<value_t>(visibleStds->size()) * sqrt(dot(X, X) / X.count());
-    X = X / repeat(stddev, X.size() / stddev.size());
+    X = X / repeat(stddev, X.size() / stddev.size()) * repeat(mask, X.size() / mask.size());
 
     *visibleMeans = means;
     *visibleStds = stddev;
@@ -125,8 +151,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
   // W_ij ~ N(mu = 0, sigma^2 = 0.1^2)
 
   matrix_t W = getInitialWeights() * randn_t(visibleCount, hiddenCount);
-  matrix_t b = zeros<value_t>(1, visibleCount);
+  matrix_t b = getInitialVisible() * ones<value_t>(1, visibleCount);
   matrix_t c = getInitialHidden() * ones<value_t>(1, hiddenCount);
+
+  W = W * repeat(trans(mask), W.size() / trans(mask).size());
 
 
   dlog() << "RBM initialized: " << timer.elapsed() << " s";
@@ -142,8 +170,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
   float finalmomentum = 0.9f;
   float momentum;
 
-  randn_t poshidnoise(batchSize, hiddenCount);
-  randn_t poshidrand(batchSize, hiddenCount);
+//  randn_t hidnoise(batchSize, hiddenCount, rand()), visnoise(batchSize, visibleCount, rand());
+//  randu_t hidrand(batchSize, hiddenCount, rand()), visrand(batchSize, visibleCount, rand());
+  randn_t hidnoise(batchSize, hiddenCount), visnoise(batchSize, visibleCount);
+  randu_t hidrand(batchSize, hiddenCount), visrand(batchSize, visibleCount);
   
   matrix_t batch(batchSize, visibleCount), poshidprobs, poshidx, poshidstates, posprods,
       negdata, neghidprobs, negprods,
@@ -209,13 +239,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
       // Sample the hidden states
       if (getSampleHiddens()) {
         switch(hiddenUnitType) {
-          case UnitType::Bernoulli: poshidstates = poshidprobs > poshidrand; break;
+          case UnitType::Bernoulli: poshidstates = poshidprobs > hidrand; break;
           case UnitType::MyReLU:
-          case UnitType::ReLU:      poshidstates = max(0.0, poshidx + sqrt(sigm(poshidx)) * poshidnoise); break;
-          case UnitType::ReLU1:     poshidstates = min(1.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 1.0) * poshidnoise)); break;
-          case UnitType::ReLU2:     poshidstates = min(2.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 2.0) * poshidnoise)); break;
-          case UnitType::ReLU4:     poshidstates = min(4.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 4.0) * poshidnoise)); break;
-          case UnitType::ReLU8:     poshidstates = min(8.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 8.0) * poshidnoise)); break;
+          case UnitType::ReLU:      poshidstates = max(0.0, poshidx + sqrt(sigm(poshidx)) * hidnoise); break;
+          case UnitType::ReLU1:     poshidstates = min(1.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 1.0) * hidnoise)); break;
+          case UnitType::ReLU2:     poshidstates = min(2.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 2.0) * hidnoise)); break;
+          case UnitType::ReLU4:     poshidstates = min(4.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 4.0) * hidnoise)); break;
+          case UnitType::ReLU8:     poshidstates = min(8.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 8.0) * hidnoise)); break;
           default:
             dlog(Severity::Error) << "Hidden unit type '" << hiddenUnitType << "' has not yet been implemented.";
         }
@@ -230,17 +260,25 @@ void Trainer::update(IProgressMonitor* monitor) const {
       negdata = negdata + repeat(b, negdata.size() / b.size());
 
       switch(visibleUnitType) {
-        case UnitType::Bernoulli: negdata = sigm(negdata);    break;
         case UnitType::Gaussian:  break;
-        case UnitType::ReLU:      negdata = max(0, negdata);  break;
-        case UnitType::MyReLU:    negdata = nrelu_mean(negdata); break;
-        case UnitType::ReLU1:     negdata = min(1.0, max(0.0, negdata));  break;
-        case UnitType::ReLU2:     negdata = min(2.0, max(0.0, negdata));  break;
-        case UnitType::ReLU4:     negdata = min(4.0, max(0.0, negdata));  break;
-        case UnitType::ReLU8:     negdata = min(8.0, max(0.0, negdata));  break;
+        case UnitType::Bernoulli: negdata = sigm(negdata) > visrand;    break;
+        case UnitType::MyReLU:
+        case UnitType::ReLU:      negdata = max(0.0, negdata + sqrt(sigm(negdata)) * visnoise); break;
+        case UnitType::ReLU1:     negdata = min(1.0, max(0.0, negdata + (negdata > 0) * (negdata < 1.0) * visnoise)); break;
+        case UnitType::ReLU2:     negdata = min(2.0, max(0.0, negdata + (negdata > 0) * (negdata < 2.0) * visnoise)); break;
+        case UnitType::ReLU4:     negdata = min(4.0, max(0.0, negdata + (negdata > 0) * (negdata < 4.0) * visnoise)); break;
+        case UnitType::ReLU8:     negdata = min(8.0, max(0.0, negdata + (negdata > 0) * (negdata < 8.0) * visnoise)); break;
+//        case UnitType::Bernoulli: negdata = sigm(negdata);    break;
+//        case UnitType::ReLU:      negdata = max(0, negdata);  break;
+//        case UnitType::MyReLU:    negdata = nrelu_mean(negdata); break;
+//        case UnitType::ReLU1:     negdata = min(1.0, max(0.0, negdata));  break;
+//        case UnitType::ReLU2:     negdata = min(2.0, max(0.0, negdata));  break;
+//        case UnitType::ReLU4:     negdata = min(4.0, max(0.0, negdata));  break;
+//        case UnitType::ReLU8:     negdata = min(8.0, max(0.0, negdata));  break;
         default:
           dlog(Severity::Error) << "Visible unit type '" << visibleUnitType << "' has not yet been implemented.";
       }
+      negdata = negdata * repeat(mask, negdata.size() / mask.size());
 
       // Calculate p(h | Xneg, W) = sigm(XnegW + C)
       neghidprobs = prod(negdata, W);
@@ -280,6 +318,14 @@ void Trainer::update(IProgressMonitor* monitor) const {
         dW = momentum * dW + epsilonw * ((posprods - negprods) / batchSize - weightcost * W);
         db = momentum * db + (epsilonvb / batchSize) * (posvisact - negvisact);
         dc = momentum * dc + (epsilonhb / batchSize) * (poshidact - neghidact);
+      }
+
+      if (iBatch == 0) {
+        std::cout << "Data:    " << sum(X) / X.count() << " : " << sum(negdata) / negdata.count() << std::endl;
+        std::cout << "Hiddens: " << sum(poshidprobs) / poshidprobs.count() << " : " << sum(neghidprobs) / neghidprobs.count() << std::endl;
+        std::cout << "Weights: " << sum(W) / W.count() << " + " << sum(abs(dW)) / dW.count() << std::endl;
+        std::cout << "VB:      " << sum(b) / b.count() << " + " << sum(abs(db)) / db.count() << std::endl;
+        std::cout << "HB:      " << sum(c) / c.count() << " + " << sum(abs(dc)) / dc.count() << std::endl << std::endl;
       }
 
       W = W + dW;

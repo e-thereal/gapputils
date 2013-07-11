@@ -8,6 +8,7 @@
 #include "ModelReader.h"
 
 #include <capputils/Serializer.h>
+#include <tbblas/ones.hpp>
 #include <tbblas/io.hpp>
 
 namespace gml {
@@ -35,8 +36,15 @@ void ModelReader::update(IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
   using namespace tbblas;
 
+  typedef Model::matrix_t matrix_t;
+  typedef Model::value_t value_t;
+
   boost::shared_ptr<Model> rbm(new Model());
   Serializer::readFromFile(*rbm, getFilename());
+
+  // Compatibility with unmasked model
+  if (!rbm->getVisibleMask())
+    rbm->setVisibleMask(boost::make_shared<matrix_t>(ones<value_t>(1, rbm->getWeightMatrix()->size()[0])));
 
   dlog(Severity::Message) << "Mean: " << (*rbm->getMean())[seq(0,0)] << " Sd: " << (*rbm->getStddev())[seq(0,0)];
 

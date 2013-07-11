@@ -33,12 +33,15 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
   InitReflectableClass(Trainer)
 
   Property(TrainingSet, boost::shared_ptr<std::vector<data_t> >)
+  Property(Mask, data_t)
+  Property(AutoCreateMask, bool)
   Property(HiddenCount, int)
   Property(SampleHiddens, bool)
   Property(EpochCount, int)
   Property(BatchSize, int)
   Property(LearningRate, value_t)
   Property(InitialWeights, value_t)
+  Property(InitialVisible, value_t)
   Property(InitialHidden, value_t)
   Property(SparsityTarget, value_t)
   Property(SparsityWeight, value_t)
@@ -49,6 +52,8 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
 
   Property(Model, boost::shared_ptr<Model>)
   Property(Weights, boost::shared_ptr<host_matrix_t>)
+  Property(DebugMask, data_t)
+  Property(DebugMask2, data_t)
 
 public:
   Trainer();
@@ -60,6 +65,5 @@ protected:
 }
 
 }
-
 
 #endif /* GML_TRAINER_H_ */

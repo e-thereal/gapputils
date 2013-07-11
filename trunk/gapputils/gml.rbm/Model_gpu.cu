@@ -21,6 +21,7 @@ ModelChecker::ModelChecker() {
   CHECK_MEMORY_LAYOUT2(Stddev, test);
   CHECK_MEMORY_LAYOUT2(VisibleUnitType, test);
   CHECK_MEMORY_LAYOUT2(HiddenUnitType, test);
+  CHECK_MEMORY_LAYOUT2(VisibleMask, test);
 }
 
 }
