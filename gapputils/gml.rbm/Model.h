@@ -22,6 +22,9 @@ struct ModelChecker { ModelChecker(); };
 
 /**
  * \brief Contains bias terms and weight matrix of an RBM plus statistics for feature scaling
+ *
+ * The visible mask is used to mask out visible units that are not needed. Useful when receiving
+ * The hidden units of a masked convRBM as input.
  */
 class Model : public capputils::reflection::ReflectableClass {
 public:
@@ -36,10 +39,11 @@ public:
   Property(VisibleBiases, boost::shared_ptr<matrix_t>)
   Property(HiddenBiases, boost::shared_ptr<matrix_t>)
   Property(WeightMatrix, boost::shared_ptr<matrix_t>)
-  Property(Mean, boost::shared_ptr<matrix_t>)
-  Property(Stddev, boost::shared_ptr<matrix_t>)
+  Property(Mean, boost::shared_ptr<matrix_t>)         ///< A 1 x visibleCount matrix
+  Property(Stddev, boost::shared_ptr<matrix_t>)       ///< A 1 x visibleCount matrix
   Property(VisibleUnitType, UnitType)
   Property(HiddenUnitType, UnitType)
+  Property(VisibleMask, boost::shared_ptr<matrix_t>)  ///< A 1 x visibleCount matrix
 
 public:
   Model();

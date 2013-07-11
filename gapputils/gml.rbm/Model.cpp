@@ -24,6 +24,7 @@ BeginPropertyDefinitions(Model)
   DefineProperty(Stddev, Serialize<Type>())
   DefineProperty(VisibleUnitType, Serialize<Type>())
   DefineProperty(HiddenUnitType, Serialize<Type>())
+  DefineProperty(VisibleMask, Serialize<Type>())
 
 EndPropertyDefinitions
 

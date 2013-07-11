@@ -16,12 +16,15 @@ BeginPropertyDefinitions(Trainer)
   ReflectableBase(DefaultWorkflowElement<Trainer>)
 
   WorkflowProperty(TrainingSet, Input("Data"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(Mask, Input("Mask"))
+  WorkflowProperty(AutoCreateMask, Description("If true and no mask is given, then visible units that are always 0 are masked out."))
   WorkflowProperty(HiddenCount)
   WorkflowProperty(SampleHiddens)
   WorkflowProperty(EpochCount)
   WorkflowProperty(BatchSize)
   WorkflowProperty(LearningRate)
   WorkflowProperty(InitialWeights)
+  WorkflowProperty(InitialVisible)
   WorkflowProperty(InitialHidden)
   WorkflowProperty(SparsityTarget)
   WorkflowProperty(SparsityWeight)
@@ -32,12 +35,14 @@ BeginPropertyDefinitions(Trainer)
 
   WorkflowProperty(Model, Output("RBM"))
   WorkflowProperty(Weights, Output("W"))
+  WorkflowProperty(DebugMask, Output("M"))
+  WorkflowProperty(DebugMask2, Output("M2"))
 
 EndPropertyDefinitions
 
 Trainer::Trainer()
- : _HiddenCount(1), _SampleHiddens(true),
-   _EpochCount(1), _BatchSize(10), _LearningRate(0.01), _InitialWeights(0.01), _InitialHidden(0.0),
+ : _AutoCreateMask(false), _HiddenCount(1), _SampleHiddens(true),
+   _EpochCount(1), _BatchSize(10), _LearningRate(0.01), _InitialWeights(0.01), _InitialVisible(0.0), _InitialHidden(0.0),
    _SparsityTarget(0.1), _SparsityWeight(0.1), _ShowWeights(0), _ShowEvery(1)
 {
   setLabel("Trainer");
