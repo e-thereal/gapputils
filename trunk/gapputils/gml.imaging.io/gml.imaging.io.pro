@@ -1,6 +1,7 @@
 SOURCES = ImageReader.cpp \
           ImageWriter.cpp \
-          MnistReader.cpp
+          MnistReader.cpp \
+          OldMifReader.cpp
 		  
 HEADERS = 
           
