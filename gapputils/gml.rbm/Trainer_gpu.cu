@@ -47,6 +47,8 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(ShowEvery, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
   CHECK_MEMORY_LAYOUT2(Weights, test);
+  CHECK_MEMORY_LAYOUT2(DebugMask, test);
+  CHECK_MEMORY_LAYOUT2(DebugMask2, test);
 }
 
 //#define TIC timer.restart();
