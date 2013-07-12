@@ -137,13 +137,9 @@ checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags
   return checksum.checksum();
 }
 
-ChecksumUpdater::ChecksumUpdater(void)
-{
-}
+ChecksumUpdater::ChecksumUpdater(void) { }
 
-ChecksumUpdater::~ChecksumUpdater(void)
-{
-}
+ChecksumUpdater::~ChecksumUpdater(void) { }
 
 void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
   while(!nodesStack.empty())
