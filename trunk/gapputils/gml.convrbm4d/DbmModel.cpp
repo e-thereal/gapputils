@@ -17,7 +17,8 @@ namespace convrbm4d {
 
 BeginPropertyDefinitions(DbmModel)
   DefineProperty(Weights, Serialize<Type>())
-  DefineProperty(Biases, Serialize<Type>())
+  DefineProperty(VisibleBias, Serialize<Type>())
+  DefineProperty(HiddenBiases, Serialize<Type>())
   DefineProperty(Masks, Serialize<Type>())
   DefineProperty(Mean, Serialize<Type>())
   DefineProperty(Stddev, Serialize<Type>())

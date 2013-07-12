@@ -20,7 +20,7 @@ struct DbmModelChecker { DbmModelChecker(); };
  *
  *  In a DBM with n layers (1 visible layer and n-1 hidden layers) sizes are as follows:
  *  Weights.size() == n - 1
- *  Biases.size() == n
+ *  HiddenBiases.size() == n - 1
  *  Masks.size() == n - 1 (masks are applied the same way they are applied during layer-wise training)
  */
 class DbmModel : public capputils::reflection::ReflectableClass {
@@ -37,7 +37,8 @@ private:
   InitReflectableClass(DbmModel)
 
   Property(Weights, boost::shared_ptr<vv_tensor_t>)
-  Property(Biases, boost::shared_ptr<v_tensor_t>)
+  Property(VisibleBias, boost::shared_ptr<tensor_t>)
+  Property(HiddenBiases, boost::shared_ptr<vv_tensor_t>)
   Property(Masks, boost::shared_ptr<v_tensor_t>)
   Property(Mean, value_t)
   Property(Stddev, value_t)
