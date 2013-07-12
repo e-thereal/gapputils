@@ -511,6 +511,19 @@ void WorkbenchWindow::copySelectedNodesToClipboard() {
 void WorkbenchWindow::addNodesFromClipboard() {
   workflow::Workflow pasteWorkflow;
   const std::string clipboardText = QApplication::clipboard()->text().toUtf8().data();
+
+  // Needs to start with
+  // <?xml version="1.0" ?>
+  // <gapputils-workflow-Workflow>
+  std::stringstream text(clipboardText);
+  std::string line;
+
+  if (!std::getline(text, line) || line != "<?xml version=\"1.0\" ?>" ||
+      !std::getline(text, line) || line != "<gapputils-workflow-Workflow>")
+  {
+    return;
+  }
+
   Xmlizer::FromXmlString(pasteWorkflow, clipboardText);
   addNodes(pasteWorkflow);
 }
@@ -710,7 +723,6 @@ void WorkbenchWindow::createEdge(CableItem* cable, int position) {
   edge->setInputPosition(position);
   edge->setCableItem(cable);
 
-  // TODO: reorder edges
   std::vector<boost::shared_ptr<Edge> >& edges = *workflow->getEdges();
   edges.push_back(edge);
 
