@@ -66,6 +66,7 @@ void DbmReader::update(IProgressMonitor* monitor) const {
         filters.push_back(model->getWeights()->at(iLayer)->size());
       }
     }
+
     newState->setFilterWidth(widths);
     newState->setFilterHeight(heights);
     newState->setFilterDepth(depths);

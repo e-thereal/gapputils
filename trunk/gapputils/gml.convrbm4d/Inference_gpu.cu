@@ -12,6 +12,7 @@
 #include <tbblas/zeros.hpp>
 #include <tbblas/repeat.hpp>
 #include <tbblas/shift.hpp>
+#include <tbblas/rearrange.hpp>
 
 #include <omp.h>
 
@@ -26,9 +27,12 @@ InferenceChecker::InferenceChecker() {
   test.initializeClass();
   CHECK_MEMORY_LAYOUT2(Model, test);
   CHECK_MEMORY_LAYOUT2(Inputs, test);
+  CHECK_MEMORY_LAYOUT2(Direction, test);
   CHECK_MEMORY_LAYOUT2(GpuCount, test);
   CHECK_MEMORY_LAYOUT2(Outputs, test);
 }
+
+unsigned int upper_power_of_two(unsigned int v);
 
 void Inference::update(IProgressMonitor* monitor) const {
   // Perform a single up pass to initialize the values
@@ -62,11 +66,18 @@ void Inference::update(IProgressMonitor* monitor) const {
   size_t layerCount = dbm.getWeights()->size();
   assert(layerCount);
 
-  dim_t size[layerCount], layerSize[layerCount];
+  dim_t visSize[layerCount], hidSize[layerCount], layerSize[layerCount];
   for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
-    size[iLayer] = layerSize[iLayer] = dbm.getHiddenBiases()->at(iLayer)->at(0)->size();
-    size[iLayer] = dbm.getWeights()->at(iLayer)->at(0)->size()[dimCount - 1];
+    visSize[iLayer] = hidSize[iLayer] = layerSize[iLayer] = dbm.getHiddenBiases()->at(iLayer)->at(0)->size();
+    visSize[iLayer][dimCount - 1] = dbm.getWeights()->at(iLayer)->at(0)->size()[dimCount - 1];
+    hidSize[iLayer][dimCount - 1] = dbm.getWeights()->at(iLayer)->size();
   }
+
+  dim_t rearrangeBlock[layerCount];
+  rearrangeBlock[0] = getInputs()->at(0)->size() / visSize[0];
+  rearrangeBlock[0][dimCount - 1] = 1;
+  for (size_t iLayer = 1; iLayer < layerCount; ++iLayer)
+    rearrangeBlock[iLayer] = dbm.getHiddenBiases()->at(iLayer - 1)->at(0)->size() / dbm.getHiddenBiases()->at(iLayer)->at(0)->size();
 
   int deviceCount = 0;
   cudaGetDeviceCount(&deviceCount);
@@ -93,10 +104,10 @@ void Inference::update(IProgressMonitor* monitor) const {
     cF[iLayer].resize(filters[iLayer]->size());
     cc[iLayer].resize(filters[iLayer]->size());
   }
-  tensor_t output[layerCount], v_master[layerCount];
+  tensor_t input, output[layerCount], v_master[layerCount];
   ctensor_t cv_master[layerCount];
 
-  #pragma omp parallel
+//  #pragma omp parallel
   {
     /*** PREPARE GPU THREADS ***/
 
@@ -125,8 +136,8 @@ void Inference::update(IProgressMonitor* monitor) const {
         for (size_t k = tid; k < filters[iLayer]->size(); k += gpuCount) {
 
           kern = *filters[iLayer]->at(k);
-          dim_t topleft = size[iLayer] / 2 - kern.size() / 2;
-          pad = zeros<value_t>(size[iLayer]);
+          dim_t topleft = visSize[iLayer] / 2 - kern.size() / 2;
+          pad = zeros<value_t>(visSize[iLayer]);
           pad[topleft, kern.size()] = kern;
           f = ifftshift(pad, dimCount - 1);
           cf = fft(f, dimCount - 1, plan_v[iLayer]);
@@ -144,7 +155,84 @@ void Inference::update(IProgressMonitor* monitor) const {
 
     for (size_t i = 0; i < inputs.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
 
+      if (getDirection() == CodingDirection::Encode) {
 
+        /*** LOAD VISIBLE LAYER ***/
+
+        cudaStreamSynchronize(0);
+        #pragma omp barrier
+
+        #pragma omp master
+        {
+          input = *inputs[i];
+          v_master[0] = rearrange(input, rearrangeBlock[0]);
+          v_master[0] = (v_master[0] - dbm.getMean()) / dbm.getStddev();
+          v_master[0] = v_master[0] * repeat(hMask[0], visSize[0] / layerSize[0]);
+          cv_master[0] = fft(v_master[0], dimCount - 1, plan_v[0]);
+
+          for (size_t iLayer = 0; iLayer < layerCount; ++iLayer)
+            output[iLayer].resize(hidSize[iLayer], hidSize[iLayer]);
+          cudaStreamSynchronize(0);
+        }
+        #pragma omp barrier
+
+        cv[0] = cv_master[0];
+
+        bool validSize = true;
+        for (unsigned j = 0; j < dimCount - 1; ++j) {
+          if (v_master[0].size()[j] != upper_power_of_two(v_master[0].size()[j])) {
+            dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Skipping image!";
+            validSize = false;
+            break;
+          }
+        }
+        if (!validSize)
+          continue;
+
+        // Perform a single up pass to initialize the values
+        for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
+          for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
+            ch_full[iLayer] = conj(*cF[iLayer][k]) * cv[iLayer];
+            ch[iLayer] = sum(ch_full[iLayer], dimCount - 1);
+            ch[iLayer] = ch[iLayer] + *cc[iLayer][k];
+            h[iLayer] = ifft(ch[iLayer], dimCount - 1, iplan_h[iLayer]);
+            h[iLayer] = nrelu_mean(h[iLayer]);
+
+            output[iLayer][seq(0,0,0,(int)k), h[iLayer].size()] = h[iLayer] * hMask[iLayer];
+          }
+          cudaStreamSynchronize(0);
+          #pragma omp barrier
+
+          if (iLayer < layerCount - 1) {
+            // rearrange into master first and then let all threads read from master into v
+            #pragma omp master
+            {
+              v_master[iLayer + 1] = rearrange(output[iLayer], rearrangeBlock[iLayer + 1]);
+              cv_master[iLayer + 1] = fft(v_master[iLayer + 1], dimCount - 1, plan_v[iLayer + 1]);
+              cudaStreamSynchronize(0);
+            }
+            #pragma omp barrier
+            cv[iLayer + 1] = cv_master[iLayer + 1];
+          }
+        }
+        cudaStreamSynchronize(0);
+        #pragma omp barrier
+
+        // Perform multiple mean field updates
+
+        #pragma omp master
+        outputs->push_back(boost::make_shared<host_tensor_t>(output[layerCount - 1]));
+      } else {
+
+        // TODO: perform inference in the opposite direction
+
+        if (i == 0)
+          dlog(Severity::Warning) << "Decoding not yet implemented.";
+      }
+
+      #pragma omp master
+      if (monitor)
+        monitor->reportProgress(100. * i / inputs.size());
     }
 
     cudaStreamSynchronize(0);
@@ -165,6 +253,8 @@ void Inference::update(IProgressMonitor* monitor) const {
     }
 
   } /* end of parallel */
+
+  newState->setOutputs(outputs);
 }
 
 }

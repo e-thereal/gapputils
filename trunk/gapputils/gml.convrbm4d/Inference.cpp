@@ -17,6 +17,7 @@ BeginPropertyDefinitions(Inference)
 
   WorkflowProperty(Model, Input("DBM"), NotNull<Type>())
   WorkflowProperty(Inputs, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(Direction)
   WorkflowProperty(GpuCount)
   WorkflowProperty(Outputs, Output("Ts"))
 

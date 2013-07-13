@@ -12,6 +12,7 @@
 #include <gapputils/namespaces.h>
 
 #include "DbmModel.h"
+#include "CodingDirection.h"
 
 namespace gml {
 
@@ -32,6 +33,7 @@ class Inference : public DefaultWorkflowElement<Inference> {
 
   Property(Model, boost::shared_ptr<DbmModel>)
   Property(Inputs, boost::shared_ptr<v_host_tensor_t>)
+  Property(Direction, CodingDirection)
   Property(GpuCount, int)
   Property(Outputs, boost::shared_ptr<v_host_tensor_t>)
 
