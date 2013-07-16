@@ -1,45 +1,42 @@
 /*
- * Inference.h
+ * Sampler.h
  *
- *  Created on: Jul 12, 2013
+ *  Created on: Jul 15, 2013
  *      Author: tombr
  */
 
-#ifndef GML_INFERENCE_H_
-#define GML_INFERENCE_H_
+#ifndef GML_SAMPLER_H_
+#define GML_SAMPLER_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
 #include "DbmModel.h"
-#include "CodingDirection.h"
 
 namespace gml {
 
 namespace convrbm4d {
 
-struct InferenceChecker { InferenceChecker(); };
+struct SamplerChecker { SamplerChecker(); };
 
-class Inference : public DefaultWorkflowElement<Inference> {
+class Sampler : public DefaultWorkflowElement<Sampler> {
 
-  typedef DbmModel::value_t value_t;
   typedef DbmModel::tensor_t host_tensor_t;
   typedef DbmModel::v_tensor_t v_host_tensor_t;
   typedef DbmModel::vv_tensor_t vv_host_tensor_t;
 
-  friend class InferenceChecker;
+  friend class SamplerChecker;
 
-  InitReflectableClass(Inference)
+  InitReflectableClass(Sampler)
 
   Property(Model, boost::shared_ptr<DbmModel>)
-  Property(Inputs, boost::shared_ptr<v_host_tensor_t>)
-  Property(Direction, CodingDirection)
+  Property(SampleCount, int)
   Property(Iterations, int)
   Property(GpuCount, int)
-  Property(Outputs, boost::shared_ptr<v_host_tensor_t>)
+  Property(Samples, boost::shared_ptr<v_host_tensor_t>)
 
 public:
-  Inference();
+  Sampler();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
@@ -49,4 +46,4 @@ protected:
 
 } /* namespace gml */
 
-#endif /* GML_INFERENCE_H_ */
+#endif /* GML_SAMPLER_H_ */
