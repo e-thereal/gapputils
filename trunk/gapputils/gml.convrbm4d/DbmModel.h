@@ -30,6 +30,7 @@ public:
   typedef Model::tensor_t tensor_t;
   typedef Model::v_tensor_t v_tensor_t;
   typedef std::vector<boost::shared_ptr<v_tensor_t> > vv_tensor_t;
+  typedef tensor_t::dim_t dim_t;
 
   friend class DbmModelChecker;
 
@@ -40,6 +41,7 @@ private:
   Property(VisibleBias, boost::shared_ptr<tensor_t>)
   Property(HiddenBiases, boost::shared_ptr<vv_tensor_t>)
   Property(Masks, boost::shared_ptr<v_tensor_t>)
+  Property(VisibleBlockSize, dim_t)
   Property(Mean, value_t)
   Property(Stddev, value_t)
 

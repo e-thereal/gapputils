@@ -20,6 +20,7 @@ BeginPropertyDefinitions(DbmModel)
   DefineProperty(VisibleBias, Serialize<Type>())
   DefineProperty(HiddenBiases, Serialize<Type>())
   DefineProperty(Masks, Serialize<Type>())
+  DefineProperty(VisibleBlockSize, Serialize<Type>())
   DefineProperty(Mean, Serialize<Type>())
   DefineProperty(Stddev, Serialize<Type>())
 EndPropertyDefinitions

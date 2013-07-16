@@ -72,6 +72,10 @@ void CreateDbm::update(IProgressMonitor* monitor) const {
   model->setVisibleBias(boost::make_shared<host_tensor_t>(*crbms[0]->getVisibleBias()));
   model->setHiddenBiases(hiddenBiases);
   model->setMasks(masks);
+
+  dim_t visibleBlock = getDataset()->at(0)->size() / hiddenBiases->at(0)->at(0)->size();
+  visibleBlock[dimCount - 1] = 1;
+  model->setVisibleBlockSize(visibleBlock);
   model->setMean(crbms[0]->getMean());
   model->setStddev(crbms[0]->getStddev());
 

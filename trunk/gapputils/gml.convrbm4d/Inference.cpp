@@ -17,13 +17,14 @@ BeginPropertyDefinitions(Inference)
 
   WorkflowProperty(Model, Input("DBM"), NotNull<Type>())
   WorkflowProperty(Inputs, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
-  WorkflowProperty(Direction)
+  WorkflowProperty(Direction, Enumerator<Type>())
+  WorkflowProperty(Iterations)
   WorkflowProperty(GpuCount)
   WorkflowProperty(Outputs, Output("Ts"))
 
 EndPropertyDefinitions
 
-Inference::Inference() : _GpuCount(1) {
+Inference::Inference() : _Iterations(1), _GpuCount(1) {
   setLabel("Inference");
 }
 
