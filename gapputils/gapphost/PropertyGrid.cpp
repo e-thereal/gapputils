@@ -17,6 +17,7 @@
 #include <boost/units/detail/utility.hpp>
 #include <qmenu.h>
 #include <qmessagebox.h>
+#include <qsettings.h>
 
 #include <cstring>
 
@@ -42,6 +43,8 @@ namespace gapputils {
 
 namespace host {
 
+enum PropertyGridColumns {PropertyColumn, ValueColumn};
+
 PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent) {
   propertyGrid = new QTreeView();
   propertyGrid->setAllColumnsShowFocus(false);
@@ -56,6 +59,17 @@ PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent) {
   propertyGrid->setDragDropMode(QAbstractItemView::InternalMove);
   propertyGrid->setDropIndicatorShown(true);
   propertyGrid->setDragDropOverwriteMode(false);
+
+  QStandardItemModel* model = new QStandardItemModel(0, 2);
+  model->setHorizontalHeaderItem(0, new QStandardItem("Property"));
+  model->setHorizontalHeaderItem(1, new QStandardItem("Value"));
+  propertyGrid->setModel(model);
+
+  QSettings settings;
+  if (settings.contains("propertygrid/PropertyWidth"))
+    propertyGrid->setColumnWidth(PropertyColumn, settings.value("propertygrid/PropertyWidth").toInt());
+  if (settings.contains("propertygrid/ValueWidth"))
+    propertyGrid->setColumnWidth(ValueColumn, settings.value("propertygrid/ValueWidth").toInt());
 
   // Context Menu
   makeGlobal = new QAction("Make Global", propertyGrid);
@@ -85,6 +99,9 @@ PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent) {
 }
 
 PropertyGrid::~PropertyGrid() {
+  QSettings settings;
+  settings.setValue("propertygrid/PropertyWidth", propertyGrid->columnWidth(PropertyColumn));
+  settings.setValue("propertygrid/ValueWidth", propertyGrid->columnWidth(ValueColumn));
 }
 
 void PropertyGrid::setEnabled(bool enabled) {
