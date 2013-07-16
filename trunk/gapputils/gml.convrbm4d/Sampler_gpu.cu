@@ -162,7 +162,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
 
       #pragma omp master
       {
-        V_master[0] = V_noise * repeat(hMask[0], visSize[0] / layerSize[0]);
+        V_master[0] = 0.0 * V_noise * repeat(hMask[0], visSize[0] / layerSize[0]);
         cV_master[0] = fft(V_master[0], dimCount - 1, plan_v[0]);
 
         for (size_t iLayer = 0; iLayer < layerCount; ++iLayer)
@@ -323,7 +323,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
       #pragma omp master
       if (monitor)
         monitor->reportProgress(100. * (iSample + 1) / getSampleCount());
-    }
+    } /* end of samples */
 
     cudaStreamSynchronize(0);
     #pragma omp barrier
