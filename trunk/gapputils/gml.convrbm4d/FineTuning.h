@@ -35,6 +35,8 @@ class FineTuning : public DefaultWorkflowElement<FineTuning> {
   Property(GpuCount, int)
   Property(EpochCount, int)
   Property(BatchSize, int)
+  int dummy;
+  Property(LearningRate, double)
   Property(MeanFieldIterations, int)
   Property(GibbsIterations, int)
   Property(SampleCount, int)

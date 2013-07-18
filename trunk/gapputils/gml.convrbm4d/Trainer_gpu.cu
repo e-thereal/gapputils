@@ -603,7 +603,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
             //binc = binc + epsilonvb * sum(v);
             cbinc = cbinc + epsilonvb * mask<complex_t>(cv.size(), cv.fullsize(), vbMaskSize) * cv;
 
-            /*** END OF NEGATIVE PHASE ***/
+            /*** BEGIN OF NEGATIVE PHASE ***/
 
             *cvneg_master = *cvneg_master + cb;
 
