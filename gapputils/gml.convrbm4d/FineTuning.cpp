@@ -20,6 +20,7 @@ BeginPropertyDefinitions(FineTuning)
   WorkflowProperty(GpuCount)
   WorkflowProperty(EpochCount)
   WorkflowProperty(BatchSize)
+  WorkflowProperty(LearningRate)
   WorkflowProperty(MeanFieldIterations)
   WorkflowProperty(GibbsIterations)
   WorkflowProperty(SampleCount)
@@ -28,7 +29,7 @@ BeginPropertyDefinitions(FineTuning)
 EndPropertyDefinitions
 
 FineTuning::FineTuning()
- : _GpuCount(1), _EpochCount(1), _BatchSize(20),
+ : _GpuCount(1), _EpochCount(1), _BatchSize(20), _LearningRate(1e-5),
    _MeanFieldIterations(5), _GibbsIterations(5), _SampleCount(20)
 {
   setLabel("FineTuning");
