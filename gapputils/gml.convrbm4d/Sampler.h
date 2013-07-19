@@ -30,9 +30,10 @@ class Sampler : public DefaultWorkflowElement<Sampler> {
   InitReflectableClass(Sampler)
 
   Property(Model, boost::shared_ptr<DbmModel>)
+  Property(GpuCount, int)
   Property(SampleCount, int)
   Property(Iterations, int)
-  Property(GpuCount, int)
+  Property(Damped, bool)
   Property(Samples, boost::shared_ptr<v_host_tensor_t>)
 
 public:

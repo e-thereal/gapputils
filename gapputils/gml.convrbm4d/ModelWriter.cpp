@@ -29,7 +29,7 @@ BeginPropertyDefinitions(ModelWriter)
 
   WorkflowProperty(Model, Input("CRBM"), NotNull<Type>(), Dummy(modelId = Id))
   WorkflowProperty(Filename, Filename("Compressed CRBM (*.crbm.gz)"), NotEmpty<Type>())
-  WorkflowProperty(AutoSave, Description("If 1, the model is saved automatically when a change is detected."))
+  WorkflowProperty(AutoSave, Flag(), Description("If checked, the model is saved automatically when a change is detected."))
   WorkflowProperty(OutputName, Output("File"))
 EndPropertyDefinitions
 

@@ -27,9 +27,10 @@ SamplerChecker::SamplerChecker() {
   Sampler test;
   test.initializeClass();
   CHECK_MEMORY_LAYOUT2(Model, test);
+  CHECK_MEMORY_LAYOUT2(GpuCount, test);
   CHECK_MEMORY_LAYOUT2(SampleCount, test);
   CHECK_MEMORY_LAYOUT2(Iterations, test);
-  CHECK_MEMORY_LAYOUT2(GpuCount, test);
+  CHECK_MEMORY_LAYOUT2(Damped, test);
   CHECK_MEMORY_LAYOUT2(Samples, test);
 }
 
@@ -276,8 +277,17 @@ void Sampler::update(IProgressMonitor* monitor) const {
           #pragma omp master
           {
             V_master[iLayer] = ifft(cV_master[iLayer], dimCount - 1, iplan_v[iLayer]);
-            if (iLayer == 0)
+            if (iLayer == 0) {
               V_master[0] = (V_master[0] + b) * repeat(hMask[0], visSize[0] / layerSize[0]);
+
+              if (getDamped()) {
+                value_t count = sum(hMask[0]) / visSize[0][dimCount - 1];
+                value_t mean = sum(V_master[0]) / count;
+                V_master[0] = (V_master[0] - mean) * repeat(hMask[0], visSize[0] / layerSize[0]);
+                value_t sd = sqrt(sum(V_master[0] * V_master[0]) / count);
+                V_master[0] = V_master[0] / sd;
+              }
+            }
 
             v_master[iLayer] = rearrange_r(V_master[iLayer], rearrangeBlock[iLayer]);
           }

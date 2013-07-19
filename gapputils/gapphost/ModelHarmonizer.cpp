@@ -10,6 +10,7 @@
 #include <capputils/DescriptionAttribute.h>
 #include <capputils/AbstractEnumerator.h>
 #include <capputils/IReflectableAttribute.h>
+#include <capputils/FlagAttribute.h>
 #include <capputils/ScalarAttribute.h>
 #include <capputils/HideAttribute.h>
 #include <iostream>
@@ -113,6 +114,14 @@ void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, int gridP
     } else {
       // TODO: report problem
     }
+  } else if (property->getAttribute<FlagAttribute>()) {
+    value->setEditable(false);
+    value->setCheckable(true);
+    ClassProperty<bool>* boolProperty = dynamic_cast<ClassProperty<bool>* >(property);
+    if (boolProperty->getValue(*ref.getObject()))
+      value->setCheckState(Qt::Checked);
+    else
+      value->setCheckState(Qt::Unchecked);
   } else {
     value->setText(property->getStringValue(*ref.getObject()).c_str());
   }
@@ -192,7 +201,13 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node
       } else {
         value->setText(properties[i]->getStringValue(object).c_str());
       }
-    } else {
+    } else if (properties[i]->getAttribute<FlagAttribute>()) {
+      ClassProperty<bool>* boolProperty = dynamic_cast<ClassProperty<bool>* >(properties[i]);
+      if (boolProperty->getValue(object))
+        value->setCheckState(Qt::Checked);
+      else
+        value->setCheckState(Qt::Unchecked);
+    } else{
       value->setText(properties[i]->getStringValue(object).c_str());
     }
     ++gridPos;
@@ -288,7 +303,11 @@ void ModelHarmonizer::itemChanged(QStandardItem* item) {
     IClassProperty* prop = reference.getProperty();
     QString qstr = item->text();
     std::string str(qstr.toUtf8().data());
-    if (prop->getStringValue(*object).compare(str)) {
+    if (prop->getAttribute<FlagAttribute>()) {
+      if ((prop->getStringValue(*object) != "0") != (item->checkState() == Qt::Checked)) {
+        prop->setStringValue(*object, (item->checkState() == Qt::Checked ? "1" : "0"));
+      }
+    } else if (prop->getStringValue(*object).compare(str)) {
       IReflectableAttribute* reflectable = prop->getAttribute<IReflectableAttribute>();
       if (reflectable) {
         ReflectableClass* subObject = reflectable->getValuePtr(*object, prop);

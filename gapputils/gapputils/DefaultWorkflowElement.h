@@ -27,6 +27,7 @@
 #include <capputils/OutputAttribute.h>
 #include <capputils/FilenameAttribute.h>
 #include <capputils/FileExistsAttribute.h>
+#include <capputils/FlagAttribute.h>
 
 #include <capputils/EnumerableAttribute.h>
 #include <capputils/FromEnumerableAttribute.h>
