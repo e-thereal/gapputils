@@ -118,6 +118,9 @@ void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, int gridP
     value->setEditable(false);
     value->setCheckable(true);
     ClassProperty<bool>* boolProperty = dynamic_cast<ClassProperty<bool>* >(property);
+
+    // properties tagged as Flag() must be of type bool
+    assert(boolProperty);
     if (boolProperty->getValue(*ref.getObject()))
       value->setCheckState(Qt::Checked);
     else
@@ -203,6 +206,8 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node
       }
     } else if (properties[i]->getAttribute<FlagAttribute>()) {
       ClassProperty<bool>* boolProperty = dynamic_cast<ClassProperty<bool>* >(properties[i]);
+      // properties tagged as Flag() must be of type bool
+      assert(boolProperty);
       if (boolProperty->getValue(object))
         value->setCheckState(Qt::Checked);
       else
