@@ -18,7 +18,7 @@ BeginPropertyDefinitions(Encoder)
   WorkflowProperty(Model, Input("RBM"), NotNull<Type>())
   WorkflowProperty(Inputs, Input("In"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Direction, Enumerator<Type>())
-  WorkflowProperty(OnlyFilters)
+  WorkflowProperty(OnlyFilters, Flag())
   WorkflowProperty(Outputs, Output("Out"))
 
 EndPropertyDefinitions

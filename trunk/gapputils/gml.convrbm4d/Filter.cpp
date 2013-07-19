@@ -18,8 +18,8 @@ BeginPropertyDefinitions(Filter)
   WorkflowProperty(Inputs, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Direction, Enumerator<Type>())
   WorkflowProperty(GpuCount)
-  WorkflowProperty(DoubleWeights)
-  WorkflowProperty(OnlyFilters)
+  WorkflowProperty(DoubleWeights, Flag())
+  WorkflowProperty(OnlyFilters, Flag())
   WorkflowProperty(Outputs, Output("Ts"))
 EndPropertyDefinitions
 

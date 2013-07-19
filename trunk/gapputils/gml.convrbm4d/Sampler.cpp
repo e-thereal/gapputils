@@ -7,6 +7,8 @@
 
 #include "Sampler.h"
 
+#include <capputils/FlagAttribute.h>
+
 namespace gml {
 
 namespace convrbm4d {
@@ -16,14 +18,15 @@ BeginPropertyDefinitions(Sampler)
   ReflectableBase(DefaultWorkflowElement<Sampler>)
 
   WorkflowProperty(Model, Input("DBM"), NotNull<Type>())
+  WorkflowProperty(GpuCount)
   WorkflowProperty(SampleCount)
   WorkflowProperty(Iterations)
-  WorkflowProperty(GpuCount)
+  WorkflowProperty(Damped, Flag())
   WorkflowProperty(Samples, Output("Ts"))
 
 EndPropertyDefinitions
 
-Sampler::Sampler() : _SampleCount(1), _Iterations(1), _GpuCount(1) {
+Sampler::Sampler() : _GpuCount(1), _SampleCount(1), _Iterations(1), _Damped(false) {
   setLabel("Sample");
 }
 
