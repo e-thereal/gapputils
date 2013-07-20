@@ -103,6 +103,7 @@ protected:
   double progress;
   ItemStyle itemStyle;
   QGraphicsDropShadowEffect *effect;
+  bool doubleClicked;
 
 public:
   ToolItem(const std::string& label, Workbench* bench = 0);

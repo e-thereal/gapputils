@@ -20,6 +20,7 @@
 #include <capputils/ToEnumerableAttribute.h>
 #include <capputils/Verifier.h>
 #include <capputils/Logbook.h>
+#include <capputils/FlagAttribute.h>
 
 using namespace capputils::attributes;
 using namespace std;
@@ -32,7 +33,7 @@ BeginAbstractPropertyDefinitions(CollectionElement)
 
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
-  DefineProperty(CalculateCombinations, Observe(Id))
+  DefineProperty(CalculateCombinations, Flag(), Observe(Id))
 
 EndPropertyDefinitions
 

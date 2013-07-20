@@ -19,6 +19,7 @@
 #include "LogbookModel.h"
 #include <capputils/Logbook.h>
 #include <gapputils/SubWorkflow.h>
+#include <qmessagebox.h>
 
 #include "HeadlessApp.h"
 
@@ -193,6 +194,8 @@ void listWorkflowParameters(Workflow& workflow) {
 
 int main(int argc, char *argv[])
 {
+  QCoreApplication* qapp = 0;
+
   Logbook dlog(&LogbookModel::GetInstance());
   dlog.setModule("host");
 
@@ -208,10 +211,22 @@ int main(int argc, char *argv[])
   int ret = 0;
   DataModel& model = DataModel::getInstance();
   ArgumentsParser::Parse(model, argc, argv);      // need to be here to read the configuration filename
+
+  if (model.getHeadless()) {
+    qapp = new QCoreApplication(argc, argv);
+  } else {
+    qapp = new QApplication(argc, argv);
+  }
+
   try {
     Xmlizer::FromXml(model, DataModel::getConfigurationDirectory() + "/config.xml");
     Xmlizer::FromXml(model, "gapphost.conf.xml"); // compatibility to old versions
-    Xmlizer::FromXml(model, model.getConfiguration());
+
+    if (boost::filesystem::exists(DataModel::AutoSaveName) && !model.getHeadless() && QMessageBox::question(0, "Crash detected.", "It seems grapevine didn't exit properly. Do you want to load the last automatically saved configuration?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+      Xmlizer::FromXml(model, DataModel::AutoSaveName);
+    } else {
+      Xmlizer::FromXml(model, model.getConfiguration());
+    }
   } catch (capputils::exceptions::FactoryException ex) {
     cout << ex.what() << endl;
     return 1;
@@ -244,11 +259,9 @@ int main(int argc, char *argv[])
     return 0;
   }
 
-  QCoreApplication* qapp = 0;
 
   try {
     if (!model.getHeadless()) {
-      qapp = new QApplication(argc, argv);
       MainWindow w;
       w.show();
       w.resume();
@@ -263,7 +276,6 @@ int main(int argc, char *argv[])
       }
       ret = qapp->exec();
     } else {
-      qapp = new QCoreApplication(argc, argv);
       model.setSaveConfiguration(false);
       if (model.getUpdate().size() == 0)
         model.setUpdateAll(true);
@@ -280,6 +292,7 @@ int main(int argc, char *argv[])
     }
   } catch (char const* error) {
     cout << error << endl;
+    model.save(DataModel::AutoSaveName);
     return 1;
   }
 

@@ -30,6 +30,7 @@ using namespace workflow;
 namespace host {
 
 int DataModel::WorkflowMapId = -1;
+const char* DataModel::AutoSaveName = ".grapevine-autosave.xml";
 
 #if defined(_RELEASE)
   #define GRAPEVINE_LIBRARY_PATH "GRAPEVINE_LIBRARY_PATH"
@@ -120,6 +121,7 @@ DataModel& DataModel::getInstance() {
 
 void DataModel::save() const {
   save(getConfiguration());
+  boost::filesystem::remove(DataModel::AutoSaveName);
 }
 
 void DataModel::save(const std::string& filename) const {

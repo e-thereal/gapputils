@@ -18,6 +18,7 @@
 #include <QFontMetrics>
 #include <qstylepainter.h>
 #include "Workbench.h"
+#include <qtimer.h>
 
 #include <qpicture.h>
 #include "CableItem.h"
@@ -281,7 +282,8 @@ int MultiConnection::getHeight() const {
 
 ToolItem::ToolItem(const std::string& label, Workbench* bench)
  : QObject(), label(label), bench(bench), width(190), height(90), adjust(3 + 10), connectionDistance(16), inputsWidth(0),
-   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), progress(Neutral), itemStyle(Normal)
+   labelWidth(35), outputsWidth(0), labelFont(QApplication::font()), progress(Neutral), itemStyle(Normal),
+   doubleClicked(false)
 {
   setFlag(ItemIsMovable);
   setFlag(ItemIsSelectable);
@@ -503,12 +505,14 @@ void ToolItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
 }
 
 void ToolItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
+  if (doubleClicked)
+    Q_EMIT showDialogRequested(this);
+  doubleClicked = false;
   QGraphicsItem::mouseReleaseEvent(event);
 }
 
 void ToolItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) {
-  Q_EMIT showDialogRequested(this);
-
+  doubleClicked = true;
   QGraphicsItem::mouseDoubleClickEvent(event);
 }
 

@@ -565,10 +565,10 @@ void WorkbenchWindow::addNodesFromSnippet(int x, int y, const std::string& filen
 void WorkbenchWindow::closeEvent(QCloseEvent *event) {
   if (closable) {
     event->accept();
+    QMdiSubWindow::closeEvent(event);
   } else {
     event->ignore();
   }
-  QMdiSubWindow::closeEvent(event);
 }
 
 void WorkbenchWindow::setUiEnabled(bool enabled) {
@@ -581,6 +581,10 @@ void WorkbenchWindow::resumeViewport() {
   std::vector<double> pos = workflow->getViewportPosition();
   workbench->setViewScale(workflow->getViewportScale());
   workbench->centerOn(pos[0], pos[1]);
+
+  // Centering is always a little bit off so I estimate the difference first and compensate for it.
+  QPointF cnt = workbench->mapToScene(workbench->viewport()->rect().center());
+  workbench->centerOn(2.0 * pos[0] - cnt.x(), 2.0 * pos[1] - cnt.y());
   handleViewportChanged();
 }
 
