@@ -53,7 +53,11 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   model.setMainWindow(this);
 
+#ifdef _RELEASE
   setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
+#else
+  setWindowTitle(QString("grapevine (debug mode) - ") + model.getConfiguration().c_str());
+#endif
   setWindowIcon(QIcon(":/icons/application.png"));
 
   area = new QMdiArea();
@@ -90,11 +94,13 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   windowMenu = menuBar()->addMenu("&Window");
 
-//  connect(&reloadTimer, SIGNAL(timeout()), this, SLOT(checkLibraryUpdates()));
+  connect(&autoSaveTimer, SIGNAL(timeout()), this, SLOT(autoSave()));
 
 //  if (DataModel::getInstance().getAutoReload()) {
-//    reloadTimer.setInterval(1000);
-//    reloadTimer.start();
+  if (model.getSaveConfiguration()) {
+    autoSaveTimer.setInterval(60000);
+    autoSaveTimer.start();
+  }
 //  }
 
   statusBar()->showMessage("Ready.");
@@ -185,6 +191,9 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   connect(logbook, SIGNAL(selectModuleRequested(const QString&)),
       this, SLOT(selectModule(const QString&)));
 
+  windowMenu->addAction("Tile Windows", area, SLOT(tileSubWindows()));
+  windowMenu->insertSeparator(windowMenu->actions().last());
+
   editMenu->addAction("Reset Inputs", this, SLOT(resetInputs()), QKeySequence(Qt::Key_Home));
   editMenu->insertSeparator(editMenu->actions().last());
   editMenu->addAction("Increment Inputs", this, SLOT(incrementInputs()), QKeySequence(Qt::Key_PageDown));
@@ -193,8 +202,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   //setDockNestingEnabled(true);
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
   delete fileMenu;
   delete runMenu;
   delete editMenu;
@@ -209,11 +217,14 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   model.setWindowHeight(height());
 
   saveWorkflowList();
+
   //std::cout << "Save: " << x() << ", " << y() << ", " << width() << ", " << height() << std::endl;
 
   QSettings settings;
   settings.setValue("windowState", saveState());
   QMainWindow::closeEvent(event);
+
+  autoSaveTimer.stop();
 }
 
 void MainWindow::resume() {
@@ -283,6 +294,7 @@ void MainWindow::saveWorkflowList() {
     }
   }
   model.setOpenWorkflows(workflows);
+  model.setCurrentWorkflow(static_cast<WorkbenchWindow*>(area->currentSubWindow())->getWorkflow()->getUuid());
 }
 
 WorkbenchWindow* MainWindow::getCurrentWorkbenchWindow() {
@@ -318,7 +330,11 @@ void MainWindow::loadWorkflow() {
     model.getOpenWorkflows()->clear();
     model.setConfiguration(filename.toAscii().data());
 
+#ifdef _RELEASE
     setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
+#else
+    setWindowTitle(QString("grapevine (debug mode) - ") + model.getConfiguration().c_str());
+#endif
     Xmlizer::FromXml(model, model.getConfiguration());
     resume();
     toolBox->update();
@@ -396,6 +412,12 @@ void MainWindow::reload() {
 //  libsChanged = false;
 //}
 
+void MainWindow::autoSave() {
+  statusBar()->showMessage("Saving configuration ...");
+  DataModel::getInstance().save(DataModel::AutoSaveName);
+  statusBar()->showMessage("Ready.");
+}
+
 void MainWindow::setGuiEnabled(bool enabled) {
   fileMenu->setEnabled(enabled);
   editMenu->setEnabled(enabled);
@@ -470,7 +492,11 @@ void MainWindow::saveAs() {
     DataModel& model = DataModel::getInstance();
     model.setConfiguration(filename.toUtf8().data());
     model.save();
+#ifdef _RELEASE
     setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
+#else
+    setWindowTitle(QString("grapevine (debug mode) - ") + model.getConfiguration().c_str());
+#endif
   }
 }
 
@@ -492,7 +518,6 @@ void MainWindow::subWindowActivated(QMdiSubWindow* w) {
   boost::shared_ptr<Workflow> workflow = window->getWorkflow();
   if (!workflow)
     return;
-  DataModel::getInstance().setCurrentWorkflow(workflow->getUuid());
   propertyGrid->setNode(window->getCurrentNode());
   globalPropertiesView->setWorkflow(workflow);
 }

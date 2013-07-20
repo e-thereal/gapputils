@@ -17,10 +17,14 @@ namespace gapputils {
 class WorkflowItem : public ToolItem {
   Q_OBJECT
 
+protected:
+  bool doubleClicked;
+
 public:
   WorkflowItem(const std::string& label, Workbench *bench = 0);
   virtual ~WorkflowItem();
 
+  virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
   virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
 
 Q_SIGNALS:

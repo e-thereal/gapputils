@@ -38,9 +38,9 @@ private:
   GlobalPropertiesView* globalPropertiesView;
   QMdiArea* area;
 
-//  QTimer reloadTimer;
+  QTimer autoSaveTimer;
 //  bool libsChanged;
-  bool autoQuit;  ///< quits the problem when the workflow has been updated.
+  bool autoQuit;  ///< quits the program when the workflow has been updated.
   WorkbenchWindow* workingWindow;
 
   boost::shared_ptr<workflow::Workflow> grandpa;
@@ -65,7 +65,8 @@ public Q_SLOTS:
   void saveAs();
   void loadLibrary();
   void reload();
-//  void checkLibraryUpdates();
+
+  void autoSave();
   void copy();
   void paste();
   void createSnippet();

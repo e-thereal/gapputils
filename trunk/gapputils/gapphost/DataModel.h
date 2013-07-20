@@ -55,6 +55,7 @@ class DataModel : public capputils::reflection::ReflectableClass,
 
 public:
   static int WorkflowMapId;
+  static const char* AutoSaveName;
 
 private:
   static DataModel* instance;
