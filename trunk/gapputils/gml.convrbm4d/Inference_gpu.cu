@@ -111,7 +111,7 @@ void Inference::update(IProgressMonitor* monitor) const {
   tensor_t v_master[layerCount + 1], V_master[layerCount];
   ctensor_t cV_master[layerCount];
 
-//  #pragma omp parallel
+  #pragma omp parallel
   {
     /*** PREPARE GPU THREADS ***/
 
@@ -133,7 +133,7 @@ void Inference::update(IProgressMonitor* monitor) const {
     for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
       hMask[iLayer] = *dbm.getMasks()->at(iLayer);
 
-      // Copy filters to the device and pre-calculate the FFT
+      // TODO: Copy filters to the device and pre-calculate the FFT
       {
         tensor_t f, h, kern, pad;
         ctensor_t cf, ch;
@@ -156,6 +156,8 @@ void Inference::update(IProgressMonitor* monitor) const {
 
     tensor_t h[layerCount];
     ctensor_t cV[layerCount], ch_full[layerCount], ch[layerCount];
+    tensor_t f[layerCount], kern[layerCount], pad[layerCount];
+    ctensor_t cf[layerCount];
 
     for (size_t i = 0; i < inputs.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
 

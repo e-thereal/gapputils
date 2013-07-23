@@ -227,12 +227,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
       cx = fft(x, dimCount - 1, plan_v);
       cX.push_back(boost::shared_ptr<host_ctensor_t>(new host_ctensor_t(cx)));
 
-      if (getAtomicWorkflow() && tensors.use_count() == 2)
+      if (getAtomicWorkflow() && tensors.use_count() == 2) {
         tensors->at(i) = boost::shared_ptr<host_tensor_t>();
+      }
     }
 
     // Prepare an early memory clean up of the training set
-    // The trainer holds to pointers to the training set, hence if the use_count is 2
+    // The trainer holds two pointers to the training set, hence if the use_count is 2
     // no other modules have any business with the training set any more
     if (getAtomicWorkflow() && tensors.use_count() == 2)
       tensors->clear();
@@ -401,7 +402,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         }
       }
 
-      // Momentum is read by all threads therefore wait here until the master has done its work
+      // Momentum is read by all threads therefore wait here until the master has done his work
       #pragma omp barrier
 
       // Make the dropout decision
