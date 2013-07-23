@@ -26,6 +26,8 @@ class Inference : public DefaultWorkflowElement<Inference> {
   typedef Model::tensor_t host_tensor_t;
   typedef Model::v_tensor_t v_host_tensor_t;
   typedef Model::vv_tensor_t vv_host_tensor_t;
+  typedef Model::matrix_t host_matrix_t;
+  typedef Model::v_matrix_t v_host_matrix_t;
 
   friend class InferenceChecker;
 

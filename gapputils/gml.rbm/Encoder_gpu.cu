@@ -24,6 +24,7 @@ EncoderChecker::EncoderChecker() {
   CHECK_MEMORY_LAYOUT2(Model, test);
   CHECK_MEMORY_LAYOUT2(Inputs, test);
   CHECK_MEMORY_LAYOUT2(Direction, test);
+  CHECK_MEMORY_LAYOUT2(DoubleWeights, test);
   CHECK_MEMORY_LAYOUT2(OnlyFilters, test);
   CHECK_MEMORY_LAYOUT2(Outputs, test);
 }
@@ -66,8 +67,14 @@ void Encoder::update(IProgressMonitor* monitor) const {
 
     // Calculate p(h | X, W) = sigm(XW + C)
     H = prod(X, W);
-    if (!getOnlyFilters())
+    if (getDoubleWeights()) {
+      if (!getOnlyFilters())
+        H = 2.0 * H + repeat(c, H.size() / c.size());
+      else
+        H = 2.0 * H;
+    } else if (!getOnlyFilters()) {
       H = H + repeat(c, H.size() / c.size());
+    }
 
     switch(hiddenUnitType) {
       case UnitType::Bernoulli: H = sigm(H);    break;
@@ -92,8 +99,15 @@ void Encoder::update(IProgressMonitor* monitor) const {
     // Calculate p(x | H, W) = sigm(HW' + B)
     matrix_t V;
     V = prod(X, tbblas::trans(W));
-    if (!getOnlyFilters())
+
+    if (getDoubleWeights()) {
+      if (!getOnlyFilters())
+        V = 2.0 * V + repeat(b, V.size() / b.size());
+      else
+        V = 2.0 * V;
+    } else if (!getOnlyFilters()) {
       V = V + repeat(b, V.size() / b.size());
+    }
 
     switch (visibleUnitType) {
       case UnitType::Bernoulli: V = sigm(V); break;

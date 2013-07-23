@@ -310,7 +310,9 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 {
                   V_master[iLayer + 1] = ifft(cV_master[iLayer + 1], dimCount - 1, iplan_v[iLayer + 1]);
                   v_master[iLayer + 1] = rearrange_r(V_master[iLayer + 1], rearrangeBlock[iLayer + 1]);
+                  cudaStreamSynchronize(0);
                 }
+                #pragma omp barrier
               }
 
               // bottom-up signal
@@ -442,7 +444,9 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 {
                   V_master[iLayer + 1] = ifft(cV_master[iLayer + 1], dimCount - 1, iplan_v[iLayer + 1]);
                   v_master[iLayer + 1] = rearrange_r(V_master[iLayer + 1], rearrangeBlock[iLayer + 1]);
+                  cudaStreamSynchronize(0);
                 }
+                #pragma omp barrier
               }
 
               // bottom-up signal
@@ -525,7 +529,9 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 }
 
                 v_master[iLayer] = rearrange_r(V_master[iLayer], rearrangeBlock[iLayer]);
+                cudaStreamSynchronize(0);
               }
+              #pragma omp barrier
 
               // bottom-up signal
               if (iLayer > 0) {
@@ -574,7 +580,9 @@ void FineTuning::update(IProgressMonitor* monitor) const {
               v_particles[iSample][iLayer] = v_master[iLayer];
               v_diff[iLayer] = v_diff[iLayer] - v_master[iLayer];
             }
+            cudaStreamSynchronize(0);
           }
+          #pragma omp barrier
 
         } /* end of samples */
 
