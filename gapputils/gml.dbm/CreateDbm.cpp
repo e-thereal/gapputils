@@ -8,18 +8,18 @@
 #include "CreateDbm.h"
 
 #include <capputils/MergeAttribute.h>
-#include <capputils/DeprecatedAttribute.h>
 
 namespace gml {
 
-namespace convrbm4d {
+namespace dbm {
 
-BeginPropertyDefinitions(CreateDbm, Deprecated("Use gml.dbm.CreateDbm instead."))
+BeginPropertyDefinitions(CreateDbm)
 
   ReflectableBase(DefaultWorkflowElement<CreateDbm>)
 
   WorkflowProperty(Dataset, Input("D"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(CrbmModels, Input("Crbm"), NotNull<Type>(), NotEmpty<Type>(), Merge<Type>())
+  WorkflowProperty(RbmModels, Input("Rbm"), NotNull<Type>(), NotEmpty<Type>(), Merge<Type>())
   WorkflowProperty(DbmModel, Output("Dbm"))
 
 EndPropertyDefinitions
@@ -30,6 +30,6 @@ CreateDbm::CreateDbm() {
 
 CreateDbmChecker createDbmChecker;
 
-} /* namespace convrbm4d */
+} /* namespace dbm */
 
 } /* namespace gml */

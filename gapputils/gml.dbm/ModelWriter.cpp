@@ -1,16 +1,15 @@
 /*
- * DbmWriter.cpp
+ * ModelWriter.cpp
  *
  *  Created on: Nov 23, 2012
  *      Author: tombr
  */
 
-#include "DbmWriter.h"
+#include "ModelWriter.h"
 
 #include <capputils/DummyAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/Serializer.h>
-#include <capputils/DeprecatedAttribute.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
@@ -21,12 +20,13 @@ namespace bio = boost::iostreams;
 namespace fs = boost::filesystem;
 
 namespace gml {
-namespace convrbm4d {
 
-int DbmWriter::modelId;
+namespace dbm {
 
-BeginPropertyDefinitions(DbmWriter, Deprecated("Use gml.dbm.ModelWriter instead."))
-  ReflectableBase(DefaultWorkflowElement<DbmWriter>)
+int ModelWriter::modelId;
+
+BeginPropertyDefinitions(ModelWriter)
+  ReflectableBase(DefaultWorkflowElement<ModelWriter>)
 
   WorkflowProperty(Model, Input("DBM"), NotNull<Type>(), Dummy(modelId = Id))
   WorkflowProperty(Filename, Filename("Compressed DBM (*.dbm.gz)"), NotEmpty<Type>())
@@ -34,19 +34,19 @@ BeginPropertyDefinitions(DbmWriter, Deprecated("Use gml.dbm.ModelWriter instead.
   WorkflowProperty(OutputName, Output("File"))
 EndPropertyDefinitions
 
-DbmWriter::DbmWriter() : _AutoSave(false) {
+ModelWriter::ModelWriter() : _AutoSave(false) {
   setLabel("Writer");
-  Changed.connect(EventHandler<DbmWriter>(this, &DbmWriter::changedHandler));
+  Changed.connect(EventHandler<ModelWriter>(this, &ModelWriter::changedHandler));
 }
 
-void DbmWriter::changedHandler(ObservableClass* sender, int eventId) {
+void ModelWriter::changedHandler(ObservableClass* sender, int eventId) {
   if (eventId == modelId && getAutoSave()) {
     this->execute(0);
     this->writeResults();
   }
 }
 
-void DbmWriter::update(IProgressMonitor* monitor) const {
+void ModelWriter::update(IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
 
   fs::path path(getFilename());
@@ -66,6 +66,6 @@ void DbmWriter::update(IProgressMonitor* monitor) const {
   newState->setOutputName(getFilename());
 }
 
-} /* namespace convrbm4d */
+} /* namespace dbm */
 
 } /* namespace gml */

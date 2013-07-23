@@ -6,13 +6,12 @@
  */
 
 #include "Inference.h"
-#include <capputils/DeprecatedAttribute.h>
 
 namespace gml {
 
-namespace convrbm4d {
+namespace dbm {
 
-BeginPropertyDefinitions(Inference, Deprecated("Use gml.dbm.Inference instead."))
+BeginPropertyDefinitions(Inference)
 
   ReflectableBase(DefaultWorkflowElement<Inference>)
 
@@ -31,6 +30,6 @@ Inference::Inference() : _Iterations(1), _GpuCount(1) {
 
 InferenceChecker inferenceChecker;
 
-} /* namespace convrbm4d */
+} /* namespace dbm */
 
 } /* namespace gml */

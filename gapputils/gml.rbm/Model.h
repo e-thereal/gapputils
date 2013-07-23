@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef GML_MODEL_H_
-#define GML_MODEL_H_
+#ifndef GML_RBM_MODEL_H_
+#define GML_RBM_MODEL_H_
 
 #include <capputils/ReflectableClass.h>
 
@@ -53,4 +53,4 @@ public:
 
 }
 
-#endif /* GML_MODEL_H_ */
+#endif /* GML_RBM_MODEL_H_ */

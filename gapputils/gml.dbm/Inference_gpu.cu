@@ -20,7 +20,7 @@
 
 namespace gml {
 
-namespace convrbm4d {
+namespace dbm {
 
 InferenceChecker::InferenceChecker() {
   Inference test;
@@ -59,7 +59,7 @@ void Inference::update(IProgressMonitor* monitor) const {
       new std::vector<boost::shared_ptr<host_tensor_t> >());
 
   // Load model into device memory
-  DbmModel& dbm = *getModel();
+  Model& dbm = *getModel();
 
   // A DBM with 1 visible layer and n hidden layers has n layers for the sake of writing this code
   size_t layerCount = dbm.getWeights()->size();
@@ -133,7 +133,7 @@ void Inference::update(IProgressMonitor* monitor) const {
     for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
       hMask[iLayer] = *dbm.getMasks()->at(iLayer);
 
-      // Copy filters to the device and pre-calculate the FFT
+      // TODO: Copy filters to the device and pre-calculate the FFT
       {
         tensor_t f, h, kern, pad;
         ctensor_t cf, ch;

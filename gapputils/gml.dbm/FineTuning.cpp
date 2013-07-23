@@ -7,13 +7,11 @@
 
 #include "FineTuning.h"
 
-#include <capputils/DeprecatedAttribute.h>
-
 namespace gml {
 
-namespace convrbm4d {
+namespace dbm {
 
-BeginPropertyDefinitions(FineTuning, Deprecated("Use gml.dbm.FineTuning instead."))
+BeginPropertyDefinitions(FineTuning)
 
   ReflectableBase(DefaultWorkflowElement<FineTuning>)
 
@@ -40,6 +38,6 @@ FineTuning::FineTuning()
 
 FineTuningChecker fineTuningChecker;
 
-} /* namespace convrbm4d */
+} /* namespace dbm */
 
 } /* namespace gml */

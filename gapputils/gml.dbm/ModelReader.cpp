@@ -1,14 +1,13 @@
 /*
- * DbmReader.cpp
+ * ModelReader.cpp
  *
  *  Created on: Nov 23, 2012
  *      Author: tombr
  */
 
-#include "DbmReader.h"
+#include "ModelReader.h"
 
 #include <capputils/Serializer.h>
-#include <capputils/DeprecatedAttribute.h>
 
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
@@ -18,11 +17,11 @@ namespace bio = boost::iostreams;
 
 namespace gml {
 
-namespace convrbm4d {
+namespace dbm {
 
-BeginPropertyDefinitions(DbmReader, Deprecated("Use gml.dbm.ModelReader instead."))
+BeginPropertyDefinitions(ModelReader)
 
-  ReflectableBase(DefaultWorkflowElement<DbmReader>)
+  ReflectableBase(DefaultWorkflowElement<ModelReader>)
 
   WorkflowProperty(Filename, Input("File"), Filename("Compressed DBM (*.dbm.gz)"), FileExists())
   WorkflowProperty(Model, Output("DBM"))
@@ -34,11 +33,11 @@ BeginPropertyDefinitions(DbmReader, Deprecated("Use gml.dbm.ModelReader instead.
 
 EndPropertyDefinitions
 
-DbmReader::DbmReader() {
+ModelReader::ModelReader() {
   setLabel("Reader");
 }
 
-void DbmReader::update(IProgressMonitor* monitor) const {
+void ModelReader::update(IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
 
   bio::filtering_istream file;
@@ -50,7 +49,7 @@ void DbmReader::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  boost::shared_ptr<DbmModel> model(new DbmModel());
+  boost::shared_ptr<Model> model(new Model());
   Serializer::ReadFromFile(*model, file);
 
   newState->setModel(model);
@@ -76,6 +75,6 @@ void DbmReader::update(IProgressMonitor* monitor) const {
   }
 }
 
-} /* namespace convrbm4d */
+} /* namespace dbm */
 
 } /* namespace gml */

@@ -8,13 +8,12 @@
 #include "Sampler.h"
 
 #include <capputils/FlagAttribute.h>
-#include <capputils/DeprecatedAttribute.h>
 
 namespace gml {
 
-namespace convrbm4d {
+namespace dbm {
 
-BeginPropertyDefinitions(Sampler, Deprecated("Use gml.dbm.Sampler instead."))
+BeginPropertyDefinitions(Sampler)
 
   ReflectableBase(DefaultWorkflowElement<Sampler>)
 
@@ -33,6 +32,6 @@ Sampler::Sampler() : _GpuCount(1), _SampleCount(1), _Iterations(1), _Damped(fals
 
 SamplerChecker samplerChecker;
 
-} /* namespace convrbm4d */
+} /* namespace dbm */
 
 } /* namespace gml */
