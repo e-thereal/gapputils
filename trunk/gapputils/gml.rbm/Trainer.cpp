@@ -16,6 +16,7 @@ BeginPropertyDefinitions(Trainer)
   ReflectableBase(DefaultWorkflowElement<Trainer>)
 
   WorkflowProperty(TrainingSet, Input("Data"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(DbmLayer, Enumerator<Type>())
   WorkflowProperty(Mask, Input("Mask"))
   WorkflowProperty(AutoCreateMask, Flag(), Description("If checked and no mask is given, then visible units that are always 0 are masked out."))
   WorkflowProperty(HiddenCount)

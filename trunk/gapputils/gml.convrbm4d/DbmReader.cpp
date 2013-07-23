@@ -8,6 +8,7 @@
 #include "DbmReader.h"
 
 #include <capputils/Serializer.h>
+#include <capputils/DeprecatedAttribute.h>
 
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
@@ -19,7 +20,7 @@ namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(DbmReader)
+BeginPropertyDefinitions(DbmReader, Deprecated("Use gml.dbm.ModelReader instead."))
 
   ReflectableBase(DefaultWorkflowElement<DbmReader>)
 

@@ -29,6 +29,7 @@ TrainerChecker::TrainerChecker() {
   Trainer test;
   test.initializeClass();
   CHECK_MEMORY_LAYOUT2(TrainingSet, test);
+  CHECK_MEMORY_LAYOUT2(DbmLayer, test);
   CHECK_MEMORY_LAYOUT2(Mask, test);
   CHECK_MEMORY_LAYOUT2(AutoCreateMask, test);
   CHECK_MEMORY_LAYOUT2(HiddenCount, test);
@@ -209,7 +210,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
       // Calculate p(h | X, W) = sigm(XW + C)
       poshidx = prod(batch, W);
-      poshidx = poshidx + repeat(c, poshidx.size() / c.size());
+      if (getDbmLayer() == DbmLayer::VisibleLayer)
+        poshidx = 2.0 * poshidx + repeat(c, poshidx.size() / c.size());
+      else
+        poshidx = poshidx + repeat(c, poshidx.size() / c.size());
 
       switch(hiddenUnitType) {
         case UnitType::Bernoulli: poshidprobs = sigm(poshidx);    break;
@@ -259,7 +263,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
       // Calculate p(x | H, W) = sigm(HW' + B) (bernoulli case)
       negdata = prod(poshidstates, trans(W));
-      negdata = negdata + repeat(b, negdata.size() / b.size());
+      if (getDbmLayer() == DbmLayer::TopLayer)
+        negdata = 2.0 * negdata + repeat(b, negdata.size() / b.size());
+      else
+        negdata = negdata + repeat(b, negdata.size() / b.size());
 
       switch(visibleUnitType) {
         case UnitType::Gaussian:  break;
@@ -284,7 +291,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
       // Calculate p(h | Xneg, W) = sigm(XnegW + C)
       neghidprobs = prod(negdata, W);
-      neghidprobs = neghidprobs + repeat(c, neghidprobs.size() / c.size());
+      if (getDbmLayer() == DbmLayer::VisibleLayer)
+        neghidprobs = 2.0 * neghidprobs + repeat(c, neghidprobs.size() / c.size());
+      else
+        neghidprobs = neghidprobs + repeat(c, neghidprobs.size() / c.size());
 
       switch(hiddenUnitType) {
         case UnitType::Bernoulli: neghidprobs = sigm(neghidprobs);    break;
@@ -347,13 +357,18 @@ void Trainer::update(IProgressMonitor* monitor) const {
         << hours << " h " << minutes << " min " << sec << " s";
 
     if (monitor && getShowWeights() && (iEpoch % getShowEvery() == 0)) {
-      newState->setWeights(boost::make_shared<host_matrix_t>(W));
+      newState->setWeights(boost::make_shared<host_matrix_t>(0.5 * W));
       monitor->reportProgress(100 * (iEpoch + 1) / epochCount, true);
     }
   }
 
-  newState->setWeights(boost::make_shared<host_matrix_t>(W));
-  rbm->setWeightMatrix(boost::make_shared<host_matrix_t>(W));
+  if (getDbmLayer() == DbmLayer::IntermediateLayer) {
+    newState->setWeights(boost::make_shared<host_matrix_t>(0.5 * W));
+    rbm->setWeightMatrix(boost::make_shared<host_matrix_t>(0.5 * W));
+  } else {
+    newState->setWeights(boost::make_shared<host_matrix_t>(W));
+    rbm->setWeightMatrix(boost::make_shared<host_matrix_t>(W));
+  }
   rbm->setVisibleBiases(boost::make_shared<host_matrix_t>(b));
   rbm->setHiddenBiases(boost::make_shared<host_matrix_t>(c));
   newState->setModel(rbm);

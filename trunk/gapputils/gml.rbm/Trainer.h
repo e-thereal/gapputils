@@ -10,12 +10,15 @@
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
+#include <capputils/Enumerators.h>
 
 #include "Model.h"
 
 namespace gml {
 
 namespace rbm {
+
+CapputilsEnumerator(DbmLayer, RBM, VisibleLayer, IntermediateLayer, TopLayer);
 
 struct TrainerChecker { TrainerChecker(); };
 
@@ -33,6 +36,7 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
   InitReflectableClass(Trainer)
 
   Property(TrainingSet, boost::shared_ptr<std::vector<data_t> >)
+  Property(DbmLayer, DbmLayer)
   Property(Mask, data_t)
   Property(AutoCreateMask, bool)
   Property(HiddenCount, int)

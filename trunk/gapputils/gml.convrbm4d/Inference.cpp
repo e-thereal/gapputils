@@ -6,12 +6,13 @@
  */
 
 #include "Inference.h"
+#include <capputils/DeprecatedAttribute.h>
 
 namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(Inference)
+BeginPropertyDefinitions(Inference, Deprecated("Use gml.dbm.Inference instead."))
 
   ReflectableBase(DefaultWorkflowElement<Inference>)
 

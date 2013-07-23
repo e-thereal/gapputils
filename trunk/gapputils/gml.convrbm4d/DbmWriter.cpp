@@ -10,6 +10,7 @@
 #include <capputils/DummyAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/Serializer.h>
+#include <capputils/DeprecatedAttribute.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
@@ -24,7 +25,7 @@ namespace convrbm4d {
 
 int DbmWriter::modelId;
 
-BeginPropertyDefinitions(DbmWriter)
+BeginPropertyDefinitions(DbmWriter, Deprecated("Use gml.dbm.ModelWriter instead."))
   ReflectableBase(DefaultWorkflowElement<DbmWriter>)
 
   WorkflowProperty(Model, Input("DBM"), NotNull<Type>(), Dummy(modelId = Id))

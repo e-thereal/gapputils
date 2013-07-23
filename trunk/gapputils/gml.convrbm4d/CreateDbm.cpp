@@ -8,12 +8,13 @@
 #include "CreateDbm.h"
 
 #include <capputils/MergeAttribute.h>
+#include <capputils/DeprecatedAttribute.h>
 
 namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(CreateDbm)
+BeginPropertyDefinitions(CreateDbm, Deprecated("Use gml.dbm.CreateDbm instead."))
 
   ReflectableBase(DefaultWorkflowElement<CreateDbm>)
 
