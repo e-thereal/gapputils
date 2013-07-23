@@ -105,7 +105,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
   tensor_t v_master[layerCount + 1], V_master[layerCount];
   ctensor_t cV_master[layerCount];
 
-//  #pragma omp parallel
+  #pragma omp parallel
   {
     /*** PREPARE GPU THREADS ***/
 

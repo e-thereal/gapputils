@@ -37,6 +37,7 @@ class FineTuning : public DefaultWorkflowElement<FineTuning> {
   Property(BatchSize, int)
   int dummy;
   Property(LearningRate, double)
+  Property(LearningDecay, int)
   Property(MeanFieldIterations, int)
   Property(GibbsIterations, int)
   Property(SampleCount, int)

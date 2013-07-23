@@ -35,6 +35,7 @@ FineTuningChecker::FineTuningChecker() {
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(LearningRate, test);
+  CHECK_MEMORY_LAYOUT2(LearningDecay, test);
   CHECK_MEMORY_LAYOUT2(MeanFieldIterations, test);
   CHECK_MEMORY_LAYOUT2(GibbsIterations, test);
   CHECK_MEMORY_LAYOUT2(SampleCount, test);
@@ -91,11 +92,12 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
   // Initialize constants
   value_t epsilonw[layerCount], epsilonhb[layerCount], epsilonvb;
+  value_t epsBatch;
   for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
-    epsilonw[iLayer] = getLearningRate() / batchSize / sum(*dbm.getMasks()->at(iLayer)) / visSize[iLayer][dimCount - 1];
-    epsilonhb[iLayer] = getLearningRate() / batchSize / hidSize[iLayer][dimCount - 1];
+    epsilonw[iLayer] = 1.0 / batchSize / sum(*dbm.getMasks()->at(iLayer)) / visSize[iLayer][dimCount - 1];
+    epsilonhb[iLayer] = 1.0 / batchSize / hidSize[iLayer][dimCount - 1];
   }
-  epsilonvb = getLearningRate() / batchSize / visSize[0][dimCount - 1];
+  epsilonvb = 1.0 / batchSize / visSize[0][dimCount - 1];
 
   value_t initialmomentum = 0.5;
   value_t finalmomentum = 0.9;
@@ -153,7 +155,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
   // Used to save the entire state of the particles used to estimate the data-independent statistics
   host_tensor_t v_particles[getSampleCount()][layerCount + 1];
 
-  //  #pragma omp parallel
+  #pragma omp parallel
   {
     /*** PREPARE GPU THREADS ***/
 
@@ -206,6 +208,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
     tensor_t h[layerCount], f[layerCount];
     ctensor_t cV[layerCount], ch_full[layerCount], ch[layerCount];
 
+    #pragma omp master
     dlog(Severity::Message) << "Initialization completed. Starting training ...";
 
     for (size_t iEpoch = 0; iEpoch < getEpochCount() && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
@@ -224,6 +227,11 @@ void FineTuning::update(IProgressMonitor* monitor) const {
       #pragma omp barrier
 
       for (size_t iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
+
+        #pragma omp master
+        epsBatch = getLearningRate() * getLearningDecay() * batchCount / (value_t)(getLearningDecay() * batchCount + iBatch + iEpoch * batchCount);
+        // Learning rate modifier is read by all threads
+        #pragma omp barrier
 
         for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
           for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
@@ -257,7 +265,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
             V_master[0] = V_master[0] * repeat(hMask[0], visSize[0] / layerSize[0]);
             cV_master[0] = fft(V_master[0], dimCount - 1, plan_v[0]);
 
-            binc = binc + epsilonvb * V_master[0];
+            binc = binc + epsBatch * epsilonvb * V_master[0];
 
             for (size_t iLayer = 0; iLayer < layerCount; ++iLayer)
               v_master[iLayer + 1] = zeros<value_t>(hidSize[iLayer]);
@@ -321,8 +329,8 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 if (iMeanField == getMeanFieldIterations() - 1) {
                   // dF_k = ~h * v
                   ch[iLayer] = fft(h[iLayer], dimCount - 1, plan_h[iLayer]);
-                  *cFinc[iLayer][k] = *cFinc[iLayer][k] + epsilonw[iLayer] * repeat(conj(ch[iLayer]), cV[iLayer].size() / ch[iLayer].size()) * cV[iLayer];
-                  *ccinc[iLayer][k] = *ccinc[iLayer][k] + epsilonhb[iLayer] * ch[iLayer];
+                  *cFinc[iLayer][k] = *cFinc[iLayer][k] + epsBatch * epsilonw[iLayer] * repeat(conj(ch[iLayer]), cV[iLayer].size() / ch[iLayer].size()) * cV[iLayer];
+                  *ccinc[iLayer][k] = *ccinc[iLayer][k] + epsBatch * epsilonhb[iLayer] * ch[iLayer];
                 }
 
                 v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]] = h[iLayer] * hMask[iLayer];
@@ -454,8 +462,8 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 if (iGibbs == getGibbsIterations() - 1 && iLayer == layerCount - 1) {
                   // dF_k = ~h * v
                   ch[iLayer] = fft(h[iLayer], dimCount - 1, plan_h[iLayer]);
-                  *cFinc[iLayer][k] = *cFinc[iLayer][k] - epsilonw[iLayer] * repeat(conj(ch[iLayer]), cV[iLayer].size() / ch[iLayer].size()) * cV[iLayer];
-                  *ccinc[iLayer][k] = *ccinc[iLayer][k] - epsilonhb[iLayer] * ch[iLayer];
+                  *cFinc[iLayer][k] = *cFinc[iLayer][k] - epsBatch * epsilonw[iLayer] * repeat(conj(ch[iLayer]), cV[iLayer].size() / ch[iLayer].size()) * cV[iLayer];
+                  *ccinc[iLayer][k] = *ccinc[iLayer][k] - epsBatch * epsilonhb[iLayer] * ch[iLayer];
                 }
 
                 v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]] = h[iLayer] * hMask[iLayer];
@@ -512,7 +520,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                   V_master[0] = (V_master[0] + b) * repeat(hMask[0], visSize[0] / layerSize[0]);
 
                   if (iGibbs == getGibbsIterations() - 1) {
-                    binc = binc -  epsilonvb * V_master[0];
+                    binc = binc -  epsBatch * epsilonvb * V_master[0];
                   }
                 }
 
@@ -532,8 +540,8 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                   if (iGibbs == getGibbsIterations() - 1) {
                     // dF_k = ~h * v
                     ch[iLayer - 1] = fft(h[iLayer - 1], dimCount - 1, plan_h[iLayer - 1]);
-                    *cFinc[iLayer - 1][k] = *cFinc[iLayer - 1][k] - epsilonw[iLayer] * repeat(conj(ch[iLayer - 1]), cV[iLayer - 1].size() / ch[iLayer - 1].size()) * cV[iLayer - 1];
-                    *ccinc[iLayer - 1][k] = *ccinc[iLayer - 1][k] - epsilonhb[iLayer] * ch[iLayer - 1];
+                    *cFinc[iLayer - 1][k] = *cFinc[iLayer - 1][k] - epsBatch * epsilonw[iLayer] * repeat(conj(ch[iLayer - 1]), cV[iLayer - 1].size() / ch[iLayer - 1].size()) * cV[iLayer - 1];
+                    *ccinc[iLayer - 1][k] = *ccinc[iLayer - 1][k] - epsBatch * epsilonhb[iLayer] * ch[iLayer - 1];
                   }
 
                   v_master[iLayer][seq(0,0,0,(int)k), layerSize[iLayer - 1]] = h[iLayer - 1] * hMask[iLayer - 1];
@@ -593,7 +601,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
           for (int iLayer = 0; iLayer < layerCount + 1; ++iLayer)
             errors << sum(abs(v_diff[iLayer])) / v_diff[iLayer].count() / batchSize << " ";
-          dlog(Severity::Message) << "Error at epoch " << iEpoch + 1 << " batch " << iBatch + 1 << ": " << errors.str();
+          dlog(Severity::Message) << "Error at epoch " << iEpoch + 1 << " batch " << iBatch + 1 << ": " << errors.str() << "(eps = " << epsBatch << ")";
 
           if (monitor)
             monitor->reportProgress(100. * (iEpoch * batchCount + iBatch + 1) / (getEpochCount() * batchCount));

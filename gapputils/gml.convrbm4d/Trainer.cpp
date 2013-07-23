@@ -15,7 +15,7 @@ BeginPropertyDefinitions(Trainer)
 
   ReflectableBase(DefaultWorkflowElement<Trainer>)
 
-  WorkflowProperty(InitialModel, Input("CRBM"), NotNull<Type>())
+  WorkflowProperty(InitialModel, Input("CRBM")/*, NotNull<Type>()*/)
   WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(DbmLayer, Enumerator<Type>())
 
