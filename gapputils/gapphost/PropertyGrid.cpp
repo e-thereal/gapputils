@@ -68,8 +68,8 @@ PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent) {
   QSettings settings;
   if (settings.contains("propertygrid/PropertyWidth"))
     propertyGrid->setColumnWidth(PropertyColumn, settings.value("propertygrid/PropertyWidth").toInt());
-  if (settings.contains("propertygrid/ValueWidth"))
-    propertyGrid->setColumnWidth(ValueColumn, settings.value("propertygrid/ValueWidth").toInt());
+//  if (settings.contains("propertygrid/ValueWidth"))
+//    propertyGrid->setColumnWidth(ValueColumn, settings.value("propertygrid/ValueWidth").toInt());
 
   // Context Menu
   makeGlobal = new QAction("Make Global", propertyGrid);

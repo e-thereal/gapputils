@@ -122,8 +122,8 @@ LogbookWidget::LogbookWidget(QWidget* parent)
     logbookWidget->setColumnWidth(MessageColumn, settings.value("logbook/MessageWidth").toInt());
   if (settings.contains("logbook/ModuleWidth"))
     logbookWidget->setColumnWidth(ModuleColumn, settings.value("logbook/ModuleWidth").toInt());
-  if (settings.contains("logbook/UuidWidth"))
-    logbookWidget->setColumnWidth(UuidColumn, settings.value("logbook/UuidWidth").toInt());
+//  if (settings.contains("logbook/UuidWidth"))
+//    logbookWidget->setColumnWidth(UuidColumn, settings.value("logbook/UuidWidth").toInt());
 }
 
 LogbookWidget::~LogbookWidget() {
