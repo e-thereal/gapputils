@@ -13,6 +13,7 @@
 #include <tbblas/repeat.hpp>
 #include <tbblas/shift.hpp>
 #include <tbblas/rearrange.hpp>
+#include <tbblas/linalg.hpp>
 
 #include <omp.h>
 
@@ -120,7 +121,7 @@ void Inference::update(IProgressMonitor* monitor) const {
 
   tensor_t v_master[cLayerCount + 1], V_master[cLayerCount];
   ctensor_t cV_master[cLayerCount];
-  matrix_t v_flat[rLayerCount + 1];
+  matrix_t v_flat[rLayerCount + 1], h_flat[rLayerCount];
 
   #pragma omp parallel
   {
@@ -200,6 +201,8 @@ void Inference::update(IProgressMonitor* monitor) const {
 
         // Perform multiple mean field updates (first update initialize the model)
         for (size_t iMeanField = 0; iMeanField < getIterations(); ++iMeanField) {
+
+          // Go through convolutional layers first
           for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
 
             // If not the top-most layer, calculate top-down signal from convolutional layer
@@ -247,7 +250,7 @@ void Inference::update(IProgressMonitor* monitor) const {
 
             // bottom-up signal
             for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
-              if (iMeanField == 0 && iLayer < cLayerCount - 1)  // double weights because I'm getting zero input from the upper layer
+              if (iMeanField == 0)  // double weights because I'm getting zero input from the upper layer
                 ch_full[iLayer] = conj(*cF[iLayer][k]) * cV[iLayer] * 2.0;
               else
                 ch_full[iLayer] = conj(*cF[iLayer][k]) * cV[iLayer];
@@ -273,17 +276,41 @@ void Inference::update(IProgressMonitor* monitor) const {
               cV[iLayer + 1] = cV_master[iLayer + 1];
             } else {
               #pragma omp master
-              {
-
-              }
+              thrust::copy(v_master[iLayer + 1].begin(), v_master[iLayer + 1].end(), v_flat[0].begin());
             }
             cudaStreamSynchronize(0);
             #pragma omp barrier
           }
+
+          // Then go through RBM layer
+          #pragma omp master
+          {
+            for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
+
+              // bottom-up signal
+              h_flat[iLayer] = prod(v_flat[iLayer], W[iLayer]);
+
+              if (iLayer < rLayerCount - 1) {  // add top-down signal and bias
+                v_flat[iLayer + 1] = prod(v_flat[iLayer + 2], tbblas::trans(W[iLayer + 1]));
+                if (iMeanField == 0)
+                  v_flat[iLayer + 1] = nrelu_mean(v_flat[iLayer + 1] + 2.0 * h_flat[iLayer] + c_flat[iLayer]);
+                else
+                  v_flat[iLayer + 1] = nrelu_mean(v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer]);
+              } else {                         // add bias only
+                v_flat[iLayer + 1] = nrelu_mean(h_flat[iLayer] + c_flat[iLayer]);
+              }
+            }
+            cudaStreamSynchronize(0);
+          }
+          #pragma omp barrier
         }
 
         #pragma omp master
-        outputs->push_back(boost::make_shared<host_tensor_t>(v_master[cLayerCount]));
+        {
+          boost::shared_ptr<host_tensor_t> output(new host_tensor_t(1, 1, 1, v_flat[rLayerCount].count()));
+          thrust::copy(v_flat[rLayerCount].begin(), v_flat[rLayerCount].end(), output->begin());
+          outputs->push_back(output);
+        }
       } else { /*** DECODING ***/
 
         /*** LOAD HIDDEN LAYER ***/
@@ -293,7 +320,12 @@ void Inference::update(IProgressMonitor* monitor) const {
 
         #pragma omp master
         {
-          v_master[cLayerCount] = *inputs[i];
+          v_flat[0] = zeros<value_t>(seq(1, (int)hidSize[cLayerCount - 1].count()));
+          for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
+            v_flat[iLayer + 1] = zeros<value_t>(c_flat[iLayer].size());
+          thrust::copy(inputs[i]->begin(), inputs[i]->end(), v_flat[rLayerCount].begin());
+
+          v_master[cLayerCount] = zeros<value_t>(hidSize[cLayerCount - 1]);
           for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
             cV_master[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
           }
@@ -304,43 +336,77 @@ void Inference::update(IProgressMonitor* monitor) const {
         // Perform multiple mean field updates (first update initialize the model)
         for (size_t iMeanField = 0; iMeanField < getIterations(); ++iMeanField) {
 
-          for (int iLayer = cLayerCount - 1; iLayer >= 0; --iLayer) {
+          // Update RBM layers first
+          // this will also update v_master[cLayerCount]
+          // Then go through RBM layer
+          #pragma omp master
+          {
+            for (int iLayer = rLayerCount - 2; iLayer >= 0; --iLayer) {
 
-            // If not the top-most layer, calculate top-down signal
-            cV[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
+              // bottom-up signal
+              h_flat[iLayer] = prod(v_flat[iLayer], W[iLayer]);
 
-            #pragma omp master
-            {
-              cV_master[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
-              cudaStreamSynchronize(0);
-            }
-            #pragma omp barrier
-
-            for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
-              h[iLayer] = v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]];
-              ch[iLayer] = fft(h[iLayer], dimCount - 1, plan_h[iLayer]);
-
-              if (iMeanField == 0 && iLayer > 0)
-                cV[iLayer] = cV[iLayer] + *cF[iLayer][k] * repeat(ch[iLayer], cF[iLayer][k]->size() / ch[iLayer].size()) * 2.0;
+              v_flat[iLayer + 1] = prod(v_flat[iLayer + 2], tbblas::trans(W[iLayer + 1]));
+              if (iMeanField == 0)
+                v_flat[iLayer + 1] = nrelu_mean(2.0 * v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer]);
               else
-                cV[iLayer] = cV[iLayer] + *cF[iLayer][k] * repeat(ch[iLayer], cF[iLayer][k]->size() / ch[iLayer].size());
+                v_flat[iLayer + 1] = nrelu_mean(v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer]);
             }
+            cudaStreamSynchronize(0);
+          }
+          #pragma omp barrier
 
-            #pragma omp critical
-            {
-              cV_master[iLayer] = cV_master[iLayer] + cV[iLayer];
-              cudaStreamSynchronize(0);
+          for (int iLayer = cLayerCount; iLayer >= 0; --iLayer) {
+
+            // If not the top-most layer, calculate convolutional top-down signal
+            if (iLayer < cLayerCount) {
+              cV[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
+
+              #pragma omp master
+              {
+                cV_master[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
+                cudaStreamSynchronize(0);
+              }
+              #pragma omp barrier
+
+              for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
+                h[iLayer] = v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]];
+                ch[iLayer] = fft(h[iLayer], dimCount - 1, plan_h[iLayer]);
+
+                if (iMeanField == 0 && iLayer > 0)
+                  cV[iLayer] = cV[iLayer] + *cF[iLayer][k] * repeat(ch[iLayer], cF[iLayer][k]->size() / ch[iLayer].size()) * 2.0;
+                else
+                  cV[iLayer] = cV[iLayer] + *cF[iLayer][k] * repeat(ch[iLayer], cF[iLayer][k]->size() / ch[iLayer].size());
+              }
+
+              #pragma omp critical
+              {
+                cV_master[iLayer] = cV_master[iLayer] + cV[iLayer];
+                cudaStreamSynchronize(0);
+              }
+              #pragma omp barrier
+
+              #pragma omp master
+              {
+                V_master[iLayer] = ifft(cV_master[iLayer], dimCount - 1, iplan_v[iLayer]);
+                if (iLayer == 0)
+                  V_master[0] = (V_master[0] + b) * repeat(hMask[0], visSize[0] / layerSize[0]);
+
+                v_master[iLayer] = rearrange_r(V_master[iLayer], rearrangeBlock[iLayer]);
+                cudaStreamSynchronize(0);
+              }
+            } else {  // calculate top-down signal from first RBM
+              #pragma omp master
+              {
+                v_flat[0] = prod(v_flat[1], tbblas::trans(W[0]));
+                assert(v_flat[0].count() == v_master[iLayer].count());
+                if (iMeanField == 0)
+                  v_flat[0] = 2.0 * v_flat[0];
+                thrust::copy(v_flat[0].begin(), v_flat[0].end(), v_master[iLayer].begin());
+                cudaStreamSynchronize(0);
+              }
             }
             #pragma omp barrier
-
-            #pragma omp master
-            {
-              V_master[iLayer] = ifft(cV_master[iLayer], dimCount - 1, iplan_v[iLayer]);
-              if (iLayer == 0)
-                V_master[0] = (V_master[0] + b) * repeat(hMask[0], visSize[0] / layerSize[0]);
-
-              v_master[iLayer] = rearrange_r(V_master[iLayer], rearrangeBlock[iLayer]);
-            }
 
             // bottom-up signal
             if (iLayer > 0) {
@@ -357,16 +423,21 @@ void Inference::update(IProgressMonitor* monitor) const {
               #pragma omp barrier
             }
 
-            // rearrange into master first and then let all threads read from master into cV
-            #pragma omp master
-            {
-              V_master[iLayer] = rearrange(v_master[iLayer], rearrangeBlock[iLayer]);
-              cV_master[iLayer] = fft(V_master[iLayer], dimCount - 1, plan_v[iLayer]);
-              cudaStreamSynchronize(0);
-            }
-            #pragma omp barrier
-            cV[iLayer] = cV_master[iLayer];
+            if (iLayer < cLayerCount) {
+              // rearrange into master first and then let all threads read from master into cV
+              #pragma omp master
+              {
+                V_master[iLayer] = rearrange(v_master[iLayer], rearrangeBlock[iLayer]);
+                cV_master[iLayer] = fft(V_master[iLayer], dimCount - 1, plan_v[iLayer]);
+                cudaStreamSynchronize(0);
+              }
+              #pragma omp barrier
+              cV[iLayer] = cV_master[iLayer];
 
+            } else {
+              #pragma omp master
+              thrust::copy(v_master[iLayer].begin(), v_master[iLayer].end(), v_flat[0].begin());
+            }
             cudaStreamSynchronize(0);
             #pragma omp barrier
           }
