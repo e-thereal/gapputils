@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
     Xmlizer::FromXml(model, DataModel::getConfigurationDirectory() + "/config.xml");
     Xmlizer::FromXml(model, "gapphost.conf.xml"); // compatibility to old versions
 
-    if (boost::filesystem::exists(DataModel::AutoSaveName) && !model.getHeadless() && QMessageBox::question(0, "Crash detected.", "It seems grapevine didn't exit properly. Do you want to load the last automatically saved configuration?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+    if (boost::filesystem::exists(DataModel::AutoSaveName) && !model.getHeadless() && QMessageBox::question(0, "Crash detected.", "It seems grapevine didn't exit properly or is still running. Do you want to load the last automatically saved configuration?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
       Xmlizer::FromXml(model, DataModel::AutoSaveName);
     } else {
       Xmlizer::FromXml(model, model.getConfiguration());
