@@ -67,7 +67,7 @@ void Inference::update(IProgressMonitor* monitor) const {
   // A DBM with 1 visible layer and n hidden layers has n layers for the sake of writing this code
   size_t cLayerCount = dbm.getWeights()->size();
   size_t rLayerCount = dbm.getWeightMatrices()->size();
-  assert(cLayerCount);
+  assert(cLayerCount && rLayerCount);
 
   dim_t visSize[cLayerCount], hidSize[cLayerCount], layerSize[cLayerCount];
   for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
@@ -199,7 +199,7 @@ void Inference::update(IProgressMonitor* monitor) const {
 
         cV[0] = cV_master[0];
 
-        // Perform multiple mean field updates (first update initialize the model)
+        // Perform multiple mean field updates (first update initializes the model)
         for (size_t iMeanField = 0; iMeanField < getIterations(); ++iMeanField) {
 
           // Go through convolutional layers first
@@ -338,7 +338,6 @@ void Inference::update(IProgressMonitor* monitor) const {
 
           // Update RBM layers first
           // this will also update v_master[cLayerCount]
-          // Then go through RBM layer
           #pragma omp master
           {
             for (int iLayer = rLayerCount - 2; iLayer >= 0; --iLayer) {
