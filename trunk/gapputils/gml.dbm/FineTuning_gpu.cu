@@ -16,6 +16,7 @@
 #include <tbblas/random.hpp>
 #include <tbblas/mask.hpp>
 #include <tbblas/io.hpp>
+#include <tbblas/linalg.hpp>
 
 #include <omp.h>
 
@@ -63,6 +64,8 @@ void FineTuning::update(IProgressMonitor* monitor) const {
   typedef std::vector<boost::shared_ptr<v_ctensor_t> > vv_ctensor_t;
   typedef tensor_t::dim_t dim_t;
 
+  typedef tensor<value_t, 2, true> matrix_t;
+
   // Get inputs
   std::vector<boost::shared_ptr<host_tensor_t> >& inputs = *getDataset();
 
@@ -70,30 +73,31 @@ void FineTuning::update(IProgressMonitor* monitor) const {
   Model& dbm = *getInitialModel();
 
   // A DBM with 1 visible layer and n hidden layers has n layers for the sake of writing this code
-  size_t layerCount = dbm.getWeights()->size();
-  assert(layerCount);
+  size_t cLayerCount = dbm.getWeights()->size();
+  size_t rLayerCount = dbm.getWeightMatrices()->size();
+  assert(cLayerCount && rLayerCount);
 
-  dim_t visSize[layerCount], hidSize[layerCount], layerSize[layerCount];
-  for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
+  dim_t visSize[cLayerCount], hidSize[cLayerCount], layerSize[cLayerCount];
+  for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
     visSize[iLayer] = hidSize[iLayer] = layerSize[iLayer] = dbm.getHiddenBiases()->at(iLayer)->at(0)->size();
     visSize[iLayer][dimCount - 1] = dbm.getWeights()->at(iLayer)->at(0)->size()[dimCount - 1];
     hidSize[iLayer][dimCount - 1] = dbm.getWeights()->at(iLayer)->size();
   }
 
-  dim_t rearrangeBlock[layerCount];
+  dim_t rearrangeBlock[cLayerCount];
   rearrangeBlock[0] = inputs[0]->size() / visSize[0];
   rearrangeBlock[0][dimCount - 1] = 1;
   assert(rearrangeBlock[0] == dbm.getVisibleBlockSize());
-  for (size_t iLayer = 1; iLayer < layerCount; ++iLayer)
+  for (size_t iLayer = 1; iLayer < cLayerCount; ++iLayer)
     rearrangeBlock[iLayer] = dbm.getHiddenBiases()->at(iLayer - 1)->at(0)->size() / dbm.getHiddenBiases()->at(iLayer)->at(0)->size();
 
   const size_t batchSize = getBatchSize();
   const size_t batchCount = inputs.size() / batchSize;
 
   // Initialize constants
-  value_t epsilonw[layerCount], epsilonhb[layerCount], epsilonvb;
+  value_t epsilonw[cLayerCount], epsilonhb[cLayerCount], epsilonvb;
   value_t epsBatch;
-  for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
+  for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
     epsilonw[iLayer] = 1.0 / batchSize / sum(*dbm.getMasks()->at(iLayer)) / visSize[iLayer][dimCount - 1];
     epsilonhb[iLayer] = 1.0 / batchSize / hidSize[iLayer][dimCount - 1];
   }
@@ -121,16 +125,18 @@ void FineTuning::update(IProgressMonitor* monitor) const {
   omp_set_num_threads(gpuCount);
 
   boost::shared_ptr<Model> outDbm(new Model());
-  boost::shared_ptr<vv_host_tensor_t> outFilters(new vv_host_tensor_t(layerCount));
-  boost::shared_ptr<vv_host_tensor_t> outC(new vv_host_tensor_t(layerCount));
-  boost::shared_ptr<v_host_tensor_t> outMasks(new v_host_tensor_t(layerCount));
+  boost::shared_ptr<vv_host_tensor_t> outFilters(new vv_host_tensor_t(cLayerCount));
+  boost::shared_ptr<vv_host_tensor_t> outC(new vv_host_tensor_t(cLayerCount));
+  boost::shared_ptr<v_host_tensor_t> outMasks(new v_host_tensor_t(cLayerCount));
+  boost::shared_ptr<v_host_matrix_t> outMatrices(new v_host_matrix_t(rLayerCount));
+  boost::shared_ptr<v_host_matrix_t> outFlatBiases(new v_host_matrix_t(rLayerCount));
 
   vv_host_tensor_t& filters = *dbm.getWeights();
   vv_host_tensor_t& c = *dbm.getHiddenBiases();
   tensor_t b = *dbm.getVisibleBias(), binc = zeros<value_t>(b.size());
 
-  v_ctensor_t cF[layerCount], cFinc[layerCount], cc[layerCount], ccinc[layerCount];
-  for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
+  v_ctensor_t cF[cLayerCount], cFinc[cLayerCount], cc[cLayerCount], ccinc[cLayerCount];
+  for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
     cF[iLayer].resize(filters[iLayer]->size());
     cFinc[iLayer].resize(filters[iLayer]->size());
     cc[iLayer].resize(c[iLayer]->size());
@@ -141,19 +147,35 @@ void FineTuning::update(IProgressMonitor* monitor) const {
     outMasks->at(iLayer) = boost::make_shared<host_tensor_t>(*dbm.getMasks()->at(iLayer));
   }
 
+  matrix_t W[rLayerCount], Winc[rLayerCount], c_flat[rLayerCount], cinc_flat[rLayerCount];
+  for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
+    W[iLayer] = *dbm.getWeightMatrices()->at(iLayer);
+    Winc[iLayer] = zeros<value_t>(W[iLayer].size());
+    c_flat[iLayer] = *dbm.getFlatBiases()->at(iLayer);
+    cinc_flat[iLayer] = zeros<value_t>(c_flat[iLayer].size());
+  }
+
+  random_tensor<value_t, 2, true, normal<value_t> > flat_noise[rLayerCount];
+  for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
+    flat_noise[iLayer].resize(c_flat[iLayer].size());
+
   outDbm->setWeights(outFilters);
   outDbm->setHiddenBiases(outC);
   outDbm->setMasks(outMasks);
   outDbm->setVisibleBlockSize(dbm.getVisibleBlockSize());
   outDbm->setMean(dbm.getMean());
   outDbm->setStddev(dbm.getStddev());
+  outDbm->setWeightMatrices(outMatrices);
+  outDbm->setFlatBiases(outFlatBiases);
 
   // These variables will be used in both, the positive and negative phase
-  tensor_t v_master[layerCount + 1], V_master[layerCount], v_diff[layerCount + 1];
-  ctensor_t cV_master[layerCount];
+  tensor_t v_master[cLayerCount + 1], V_master[cLayerCount], v_diff[cLayerCount + 1];
+  ctensor_t cV_master[cLayerCount];
+  matrix_t v_flat[rLayerCount + 1], h_flat[rLayerCount], flat_diff[rLayerCount];
 
   // Used to save the entire state of the particles used to estimate the data-independent statistics
-  host_tensor_t v_particles[getSampleCount()][layerCount + 1];
+  host_tensor_t v_particles[getSampleCount()][cLayerCount + 1];
+  host_matrix_t flat_particles[getSampleCount()][rLayerCount + 1];
 
   #pragma omp parallel
   {
@@ -171,15 +193,15 @@ void FineTuning::update(IProgressMonitor* monitor) const {
     }
     #pragma omp barrier
 
-    plan_t plan_v[layerCount], iplan_v[layerCount], plan_h[layerCount], iplan_h[layerCount];
-    tensor_t hMask[layerCount];
+    plan_t plan_v[cLayerCount], iplan_v[cLayerCount], plan_h[cLayerCount], iplan_h[cLayerCount];
+    tensor_t hMask[cLayerCount];
 
-    random_tensor<value_t, dimCount, true, normal<value_t> > h_noise[layerCount];
-    for (size_t i = 0; i < layerCount; ++i)
+    random_tensor<value_t, dimCount, true, normal<value_t> > h_noise[cLayerCount];
+    for (size_t i = 0; i < cLayerCount; ++i)
       h_noise[i].resize(layerSize[i], tid);
     random_tensor<value_t, dimCount, true, normal<value_t> > V_noise(visSize[0], tid);
 
-    for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
+    for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
       hMask[iLayer] = *dbm.getMasks()->at(iLayer);
 
       // Copy filters to the device and pre-calculate the FFT
@@ -205,8 +227,8 @@ void FineTuning::update(IProgressMonitor* monitor) const {
       }
     }
 
-    tensor_t h[layerCount], f[layerCount];
-    ctensor_t cV[layerCount], ch_full[layerCount], ch[layerCount];
+    tensor_t h[cLayerCount], f[cLayerCount];
+    ctensor_t cV[cLayerCount], ch_full[cLayerCount], ch[cLayerCount];
 
     #pragma omp master
     dlog(Severity::Message) << "Initialization completed. Starting training ...";
@@ -233,19 +255,26 @@ void FineTuning::update(IProgressMonitor* monitor) const {
         // Learning rate modifier is read by all threads
         #pragma omp barrier
 
-        for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
+        for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
           for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
             *cFinc[iLayer][k] = momentum * *cFinc[iLayer][k]; // - weightcost * *cF[k];
             *ccinc[iLayer][k] = momentum * *ccinc[iLayer][k];
           }
         }
 
+
         #pragma omp master
         {
           binc = momentum * binc;
-          for (size_t iLayer = 1; iLayer < layerCount + 1; ++iLayer)
+          for (size_t iLayer = 1; iLayer < cLayerCount + 1; ++iLayer)
             v_diff[iLayer] = zeros<value_t>(hidSize[iLayer - 1]);
           v_diff[0] = zeros<value_t>(inputs[0]->size());
+
+          for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
+            Winc[iLayer] = momentum * Winc[iLayer];
+            cinc_flat[iLayer] = momentum * cinc_flat[iLayer];
+            flat_diff[iLayer] = zeros<value_t>(c_flat[iLayer].size());
+          }
         }
 
         /*** POSITIVE PHASE ***/
@@ -267,8 +296,12 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
             binc = binc + epsBatch * epsilonvb * V_master[0];
 
-            for (size_t iLayer = 0; iLayer < layerCount; ++iLayer)
+            for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer)
               v_master[iLayer + 1] = zeros<value_t>(hidSize[iLayer]);
+
+            v_flat[0] = zeros<value_t>(seq(1, (int)v_master[cLayerCount].count()));
+            for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
+              v_flat[iLayer + 1] = zeros<value_t>(c_flat[iLayer].size());
 
             cudaStreamSynchronize(0);
           }
@@ -278,10 +311,12 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
           // Perform multiple mean field updates (first update initialize the model)
           for (size_t iMeanField = 0; iMeanField < getMeanFieldIterations(); ++iMeanField) {
-            for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
 
-              // If not the top-most layer, calculate top-down signal
-              if (iLayer < layerCount - 1) {
+            // Go through convolutional layers first
+            for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
+
+              // If not the top-most layer, calculate top-down signal from convolutional layer
+              if (iLayer < cLayerCount - 1) {
 
                 cV[iLayer + 1] = zeros<complex_t>(cF[iLayer + 1][0]->size(), cF[iLayer + 1][0]->fullsize());
 
@@ -312,20 +347,27 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                   v_master[iLayer + 1] = rearrange_r(V_master[iLayer + 1], rearrangeBlock[iLayer + 1]);
                   cudaStreamSynchronize(0);
                 }
-                #pragma omp barrier
+              } else {  // calculate top-down signal from first RBM
+                #pragma omp master
+                {
+                  v_flat[0] = prod(v_flat[1], tbblas::trans(W[0]));
+                  assert(v_flat[0].count() == v_master[iLayer + 1].count());
+                  thrust::copy(v_flat[0].begin(), v_flat[0].end(), v_master[iLayer + 1].begin());
+                  cudaStreamSynchronize(0);
+                }
               }
+              #pragma omp barrier
 
               // bottom-up signal
               for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
-                if (iMeanField == 0 && iLayer < layerCount - 1)  // double weights because I'm getting zero input from the upper layer
+                if (iMeanField == 0)  // double weights because I'm getting zero input from the upper layer
                   ch_full[iLayer] = conj(*cF[iLayer][k]) * cV[iLayer] * 2.0;
                 else
                   ch_full[iLayer] = conj(*cF[iLayer][k]) * cV[iLayer];
                 ch[iLayer] = sum(ch_full[iLayer], dimCount - 1);
                 ch[iLayer] = ch[iLayer] + *cc[iLayer][k];
                 h[iLayer] = ifft(ch[iLayer], dimCount - 1, iplan_h[iLayer]);
-                if (iLayer < layerCount - 1)
-                  h[iLayer] = h[iLayer] + v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]];
+                h[iLayer] = h[iLayer] + v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]];
                 h[iLayer] = nrelu_mean(h[iLayer]);
 
                 if (iMeanField == getMeanFieldIterations() - 1) {
@@ -340,7 +382,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
               cudaStreamSynchronize(0);
               #pragma omp barrier
 
-              if (iLayer < layerCount - 1) {
+              if (iLayer < cLayerCount - 1) {
                 // rearrange into master first and then let all threads read from master into cV
                 #pragma omp master
                 {
@@ -350,16 +392,48 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 }
                 #pragma omp barrier
                 cV[iLayer + 1] = cV_master[iLayer + 1];
+              } else {
+                #pragma omp master
+                thrust::copy(v_master[iLayer + 1].begin(), v_master[iLayer + 1].end(), v_flat[0].begin());
               }
               cudaStreamSynchronize(0);
               #pragma omp barrier
             }
+
+            // Then go through RBM layer
+            #pragma omp master
+            {
+              for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
+
+                // bottom-up signal
+                h_flat[iLayer] = prod(v_flat[iLayer], W[iLayer]);
+
+                if (iLayer < rLayerCount - 1) {  // add top-down signal and bias
+                  v_flat[iLayer + 1] = prod(v_flat[iLayer + 2], tbblas::trans(W[iLayer + 1]));
+                  if (iMeanField == 0)
+                    v_flat[iLayer + 1] = nrelu_mean(v_flat[iLayer + 1] + 2.0 * h_flat[iLayer] + c_flat[iLayer]);
+                  else
+                    v_flat[iLayer + 1] = nrelu_mean(v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer]);
+                } else {                         // add bias only
+                  v_flat[iLayer + 1] = nrelu_mean(h_flat[iLayer] + c_flat[iLayer]);
+                }
+
+                if (iMeanField == getMeanFieldIterations() - 1) {
+                  // TODO: update weights and biases
+                }
+              }
+              cudaStreamSynchronize(0);
+            }
+            #pragma omp barrier
           }
 
           #pragma omp master
           {
-            for (size_t iLayer = 0; iLayer < layerCount + 1; ++iLayer)
+            for (size_t iLayer = 0; iLayer < cLayerCount + 1; ++iLayer)
               v_diff[iLayer] = v_diff[iLayer] + v_master[iLayer];
+
+            for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
+              flat_diff[iLayer] = flat_diff[iLayer] + v_flat[iLayer + 1];
             cudaStreamSynchronize(0);
           }
           #pragma omp barrier
@@ -381,8 +455,13 @@ void FineTuning::update(IProgressMonitor* monitor) const {
               V_master[0] = V_noise * repeat(hMask[0], visSize[0] / layerSize[0]);
               cV_master[0] = fft(V_master[0], dimCount - 1, plan_v[0]);
 
-              for (size_t iLayer = 0; iLayer < layerCount; ++iLayer)
+              for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer)
                 v_master[iLayer + 1] = zeros<value_t>(hidSize[iLayer]);
+
+              v_flat[0] = zeros<value_t>(seq(1, (int)v_master[cLayerCount].count()));
+              for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
+                v_flat[iLayer + 1] = zeros<value_t>(c_flat[iLayer].size());
+
               cudaStreamSynchronize(0);
             }
             #pragma omp barrier
@@ -392,18 +471,23 @@ void FineTuning::update(IProgressMonitor* monitor) const {
           } else {
             #pragma omp master
             {
-              for (size_t iLayer = 0; iLayer < layerCount + 1; ++iLayer) {
+              for (size_t iLayer = 0; iLayer < cLayerCount + 1; ++iLayer) {
                 v_master[iLayer] = v_particles[iSample][iLayer];
-                if (iLayer < layerCount) {
+                if (iLayer < cLayerCount) {
                   V_master[iLayer] = rearrange(v_master[iLayer], rearrangeBlock[iLayer]);
                   cV_master[iLayer] = fft(V_master[iLayer], dimCount - 1, plan_v[iLayer]);
+                } else {
+                  thrust::copy(v_master[iLayer].begin(), v_master[iLayer].end(), v_flat[0].begin());
                 }
               }
+
+              for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
+                v_flat[iLayer + 1] = flat_particles[iSample][iLayer];
               cudaStreamSynchronize(0);
             }
             #pragma omp barrier
 
-            for (size_t iLayer = 0; iLayer < layerCount; ++iLayer)
+            for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer)
               cV[iLayer] = cV_master[iLayer];
           }
 
@@ -412,10 +496,10 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
             /*** Follow bottom-up Gibbs chain ***/
 
-            for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
+            for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
 
-              // If not the top-most layer, calculate top-down signal
-              if (iLayer < layerCount - 1) {
+              // If not the top-most layer, calculate top-down signal from convolutional layers
+              if (iLayer < cLayerCount - 1) {
 
                 cV[iLayer + 1] = zeros<complex_t>(cF[iLayer + 1][0]->size(), cF[iLayer + 1][0]->fullsize());
 
@@ -446,36 +530,35 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                   v_master[iLayer + 1] = rearrange_r(V_master[iLayer + 1], rearrangeBlock[iLayer + 1]);
                   cudaStreamSynchronize(0);
                 }
-                #pragma omp barrier
+              } else { // calculate top-down signal from first RBM
+                #pragma omp master
+                {
+                  v_flat[0] = prod(v_flat[1], tbblas::trans(W[0]));
+                  assert(v_flat[0].count() == v_master[iLayer + 1].count());
+                  thrust::copy(v_flat[0].begin(), v_flat[0].end(), v_master[iLayer + 1].begin());
+                  cudaStreamSynchronize(0);
+                }
               }
+              #pragma omp barrier
 
               // bottom-up signal
               for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
-                if (iEpoch == 0 && iBatch == 0 && iGibbs == 0 && iLayer < layerCount - 1)  // double weights because I'm getting zero input from the upper layer
+                if (iEpoch == 0 && iBatch == 0 && iGibbs == 0)  // double weights because I'm getting zero input from the upper layer
                   ch_full[iLayer] = conj(*cF[iLayer][k]) * cV[iLayer] * 2.0;
                 else
                   ch_full[iLayer] = conj(*cF[iLayer][k]) * cV[iLayer];
                 ch[iLayer] = sum(ch_full[iLayer], dimCount - 1);
                 ch[iLayer] = ch[iLayer] + *cc[iLayer][k];
                 h[iLayer] = ifft(ch[iLayer], dimCount - 1, iplan_h[iLayer]);
-                if (iLayer < layerCount - 1)
-                  h[iLayer] = h[iLayer] + v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]];
+                h[iLayer] = h[iLayer] + v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]];
 
                 h[iLayer] = max(0.0, h[iLayer] + sqrt(sigm(h[iLayer])) * h_noise[iLayer]);
-
-                if (iGibbs == getGibbsIterations() - 1 && iLayer == layerCount - 1) {
-                  // dF_k = ~h * v
-                  ch[iLayer] = fft(h[iLayer], dimCount - 1, plan_h[iLayer]);
-                  *cFinc[iLayer][k] = *cFinc[iLayer][k] - epsBatch * epsilonw[iLayer] * repeat(conj(ch[iLayer]), cV[iLayer].size() / ch[iLayer].size()) * cV[iLayer];
-                  *ccinc[iLayer][k] = *ccinc[iLayer][k] - epsBatch * epsilonhb[iLayer] * ch[iLayer];
-                }
-
                 v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]] = h[iLayer] * hMask[iLayer];
               }
               cudaStreamSynchronize(0);
               #pragma omp barrier
 
-              if (iLayer < layerCount - 1) {
+              if (iLayer < cLayerCount - 1) {
                 // rearrange into master first and then let all threads read from master into cV
                 #pragma omp master
                 {
@@ -485,51 +568,115 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 }
                 #pragma omp barrier
                 cV[iLayer + 1] = cV_master[iLayer + 1];
+              } else {
+                #pragma omp master
+                thrust::copy(v_master[iLayer + 1].begin(), v_master[iLayer + 1].end(), v_flat[0].begin());
               }
               cudaStreamSynchronize(0);
               #pragma omp barrier
             } /* end of bottom-up pass */
 
+            // Then go through RBM layer
+            #pragma omp master
+            {
+              for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
+
+                // bottom-up signal
+                h_flat[iLayer] = prod(v_flat[iLayer], W[iLayer]);
+
+                if (iLayer < rLayerCount - 1) {  // add top-down signal and bias
+                  v_flat[iLayer + 1] = prod(v_flat[iLayer + 2], tbblas::trans(W[iLayer + 1]));
+                  if (iGibbs == 0)
+                    v_flat[iLayer + 1] = v_flat[iLayer + 1] + 2.0 * h_flat[iLayer] + c_flat[iLayer];
+                  else
+                    v_flat[iLayer + 1] = v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
+                } else {                         // add bias only
+                  v_flat[iLayer + 1] = h_flat[iLayer] + c_flat[iLayer];
+                }
+                v_flat[iLayer + 1] = max(0.0, v_flat[iLayer + 1] + sqrt(sigm(v_flat[iLayer + 1])) * flat_noise[iLayer]);
+
+                if (iLayer == rLayerCount - 1 && iGibbs == getGibbsIterations() - 1) {
+                  // TODO: update weights and bias terms
+                }
+              }
+              cudaStreamSynchronize(0);
+            }
+            #pragma omp barrier
+
             /*** Follow top-down Gibbs chain ***/
 
-            for (int iLayer = layerCount - 1; iLayer >= 0; --iLayer) {
+            // Update RBM layers first
+            #pragma omp master
+            {
+              for (int iLayer = rLayerCount - 2; iLayer >= 0; --iLayer) {
 
-              // Calculate top-down signal
-              cV[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
+                // bottom-up signal
+                h_flat[iLayer] = prod(v_flat[iLayer], W[iLayer]);
 
-              #pragma omp master
-              {
-                cV_master[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
-                cudaStreamSynchronize(0);
+                v_flat[iLayer + 1] = prod(v_flat[iLayer + 2], tbblas::trans(W[iLayer + 1]));
+                if (iGibbs == 0)
+                  v_flat[iLayer + 1] = 2.0 * v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
+                else
+                  v_flat[iLayer + 1] = v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
+
+                v_flat[iLayer + 1] = max(0.0, v_flat[iLayer + 1] + sqrt(sigm(v_flat[iLayer + 1])) * flat_noise[iLayer]);
+
+                if (iGibbs == getGibbsIterations() - 1 && iLayer + 1 < rLayerCount - 1) {
+                  // TODO: update weights and bias terms of W[iLayer + 1]
+                }
               }
-              #pragma omp barrier
+              cudaStreamSynchronize(0);
+            }
+            #pragma omp barrier
 
-              for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
-                h[iLayer] = v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]];
-                ch[iLayer] = fft(h[iLayer], dimCount - 1, plan_h[iLayer]);
-                cV[iLayer] = cV[iLayer] + *cF[iLayer][k] * repeat(ch[iLayer], cF[iLayer][k]->size() / ch[iLayer].size());
-              }
+            for (int iLayer = cLayerCount; iLayer >= 0; --iLayer) {
 
-              #pragma omp critical
-              {
-                cV_master[iLayer] = cV_master[iLayer] + cV[iLayer];
-                cudaStreamSynchronize(0);
-              }
-              #pragma omp barrier
+              // if not top-most layer, calculate top-down signal from convolutional layers
+              if (iLayer < cLayerCount) {
+                cV[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
 
-              #pragma omp master
-              {
-                V_master[iLayer] = ifft(cV_master[iLayer], dimCount - 1, iplan_v[iLayer]);
-                if (iLayer == 0) {
-                  V_master[0] = (V_master[0] + b) * repeat(hMask[0], visSize[0] / layerSize[0]);
+                #pragma omp master
+                {
+                  cV_master[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
+                  cudaStreamSynchronize(0);
+                }
+                #pragma omp barrier
 
-                  if (iGibbs == getGibbsIterations() - 1) {
-                    binc = binc -  epsBatch * epsilonvb * V_master[0];
-                  }
+                for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
+                  h[iLayer] = v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]];
+                  ch[iLayer] = fft(h[iLayer], dimCount - 1, plan_h[iLayer]);
+                  cV[iLayer] = cV[iLayer] + *cF[iLayer][k] * repeat(ch[iLayer], cF[iLayer][k]->size() / ch[iLayer].size());
                 }
 
-                v_master[iLayer] = rearrange_r(V_master[iLayer], rearrangeBlock[iLayer]);
-                cudaStreamSynchronize(0);
+                #pragma omp critical
+                {
+                  cV_master[iLayer] = cV_master[iLayer] + cV[iLayer];
+                  cudaStreamSynchronize(0);
+                }
+                #pragma omp barrier
+
+                #pragma omp master
+                {
+                  V_master[iLayer] = ifft(cV_master[iLayer], dimCount - 1, iplan_v[iLayer]);
+                  if (iLayer == 0) {
+                    V_master[0] = (V_master[0] + b) * repeat(hMask[0], visSize[0] / layerSize[0]);
+
+                    if (iGibbs == getGibbsIterations() - 1) {
+                      binc = binc -  epsBatch * epsilonvb * V_master[0];
+                    }
+                  }
+
+                  v_master[iLayer] = rearrange_r(V_master[iLayer], rearrangeBlock[iLayer]);
+                  cudaStreamSynchronize(0);
+                }
+              } else { // calculate top-down signal from first RBM
+                #pragma omp master
+                {
+                  v_flat[0] = prod(v_flat[1], tbblas::trans(W[0]));
+                  assert(v_flat[0].count() == v_master[iLayer].count());
+                  thrust::copy(v_flat[0].begin(), v_flat[0].end(), v_master[iLayer].begin());
+                  cudaStreamSynchronize(0);
+                }
               }
               #pragma omp barrier
 
@@ -556,15 +703,24 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 #pragma omp barrier
               }
 
-              // rearrange into master first and then let all threads read from master into cV
-              #pragma omp master
-              {
-                V_master[iLayer] = rearrange(v_master[iLayer], rearrangeBlock[iLayer]);
-                cV_master[iLayer] = fft(V_master[iLayer], dimCount - 1, plan_v[iLayer]);
-                cudaStreamSynchronize(0);
+              if (iLayer < cLayerCount) {
+                // rearrange into master first and then let all threads read from master into cV
+                #pragma omp master
+                {
+                  V_master[iLayer] = rearrange(v_master[iLayer], rearrangeBlock[iLayer]);
+                  cV_master[iLayer] = fft(V_master[iLayer], dimCount - 1, plan_v[iLayer]);
+                  cudaStreamSynchronize(0);
+                }
+                #pragma omp barrier
+                cV[iLayer] = cV_master[iLayer];
+              } else {
+                #pragma omp master
+                thrust::copy(v_master[iLayer].begin(), v_master[iLayer].end(), v_flat[0].begin());
+
+                if (iGibbs == getGibbsIterations() - 1) {
+                  // TODO: update weights and bias terms of W[0]
+                }
               }
-              #pragma omp barrier
-              cV[iLayer] = cV_master[iLayer];
 
               cudaStreamSynchronize(0);
               #pragma omp barrier
@@ -574,11 +730,15 @@ void FineTuning::update(IProgressMonitor* monitor) const {
           // Save state of the sample
           #pragma omp master
           {
-            for (size_t iLayer = 0; iLayer < layerCount + 1; ++iLayer) {
-              if (iLayer < layerCount)
+            for (size_t iLayer = 0; iLayer < cLayerCount + 1; ++iLayer) {
+              if (iLayer < cLayerCount)
                 v_master[iLayer] = rearrange_r(V_master[iLayer], rearrangeBlock[iLayer]);
               v_particles[iSample][iLayer] = v_master[iLayer];
               v_diff[iLayer] = v_diff[iLayer] - v_master[iLayer];
+            }
+            for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
+              flat_particles[iSample][iLayer] = v_flat[iLayer + 1];
+              flat_diff[iLayer] = flat_diff[iLayer] - v_flat[iLayer + 1];
             }
             cudaStreamSynchronize(0);
           }
@@ -588,7 +748,8 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
           /*** END OF NEGATIVE PHASE ***/
 
-        for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
+        // Apply gradient
+        for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
           for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
             f[iLayer] = ifft(*cFinc[iLayer][k], dimCount - 1, iplan_v[iLayer]);
             f[iLayer] = f[iLayer] * mask<value_t>(f[iLayer].size(), filters[iLayer]->at(0)->size());
@@ -598,7 +759,14 @@ void FineTuning::update(IProgressMonitor* monitor) const {
           }
         }
         #pragma omp master
-        b = b + binc;
+        {
+          b = b + binc;
+
+          for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
+            W[iLayer] = W[iLayer] + Winc[iLayer];
+            c_flat[iLayer] = c_flat[iLayer] + cinc_flat[iLayer];
+          }
+        }
 
         cudaStreamSynchronize(0);
         #pragma omp barrier
@@ -607,8 +775,12 @@ void FineTuning::update(IProgressMonitor* monitor) const {
         {
           std::stringstream errors;
 
-          for (int iLayer = 0; iLayer < layerCount + 1; ++iLayer)
+          for (size_t iLayer = 0; iLayer < cLayerCount + 1; ++iLayer)
             errors << sum(abs(v_diff[iLayer])) / v_diff[iLayer].count() / batchSize << " ";
+
+          for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
+            errors << sum(abs(flat_diff[iLayer])) / flat_diff[iLayer].count() / batchSize << " ";
+
           dlog(Severity::Message) << "Error at epoch " << iEpoch + 1 << " batch " << iBatch + 1 << ": " << errors.str() << "(eps = " << epsBatch << ")";
 
           if (monitor)
@@ -620,13 +792,14 @@ void FineTuning::update(IProgressMonitor* monitor) const {
     } /* end of epochs */
 
     // Free up memory
-    for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
+    for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
       for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
         cFinc[iLayer][k] = ccinc[iLayer][k] = boost::shared_ptr<ctensor_t>();
       }
     }
 
-    for (size_t iLayer = 0; iLayer < layerCount; ++iLayer) {
+    // Save model
+    for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
       tensor_t hb, p, k;
       for (size_t i = tid; i < cF[iLayer].size(); i += gpuCount) {
         dim_t topleft = visSize[iLayer] / 2 - filters[iLayer]->at(0)->size() / 2;
@@ -645,7 +818,14 @@ void FineTuning::update(IProgressMonitor* monitor) const {
     }
 
     #pragma omp master
-    outDbm->setVisibleBias(boost::make_shared<host_tensor_t>(b));
+    {
+      outDbm->setVisibleBias(boost::make_shared<host_tensor_t>(b));
+
+      for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
+        outMatrices->at(iLayer) = boost::make_shared<host_matrix_t>(W[iLayer]);
+        outFlatBiases->at(iLayer) = boost::make_shared<host_matrix_t>(c_flat[iLayer]);
+      }
+    }
 
     if (tid == 0) {
       for (int i = 1; i < gpuCount; ++i)
