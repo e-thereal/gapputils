@@ -12,11 +12,18 @@
 #include <gapputils/namespaces.h>
 
 #include "Model.h"
-#include "CodingDirection.h"
+//#include "CodingDirection.h"
 
 namespace gml {
 
 namespace dbm {
+
+/**
+ * There are different inference modes for different use cases which come with different assumptions
+ * - BottomUp: ObservedLayer < QueryLayer, inference is performed from the observed layer to the top-most layer
+ * - TopDown:  ObservedLayer > QueryLayer, inference is performed from the observed layer down to the bottom-most layer
+ */
+CapputilsEnumerator(InferenceMode, BottomUp, TopDown);
 
 struct InferenceChecker { InferenceChecker(); };
 
@@ -35,7 +42,9 @@ class Inference : public DefaultWorkflowElement<Inference> {
 
   Property(Model, boost::shared_ptr<Model>)
   Property(Inputs, boost::shared_ptr<v_host_tensor_t>)
-  Property(Direction, CodingDirection)
+  Property(Mode, InferenceMode)
+  Property(ObservedLayer, int)
+  Property(QueryLayer, int)
   Property(Iterations, int)
   Property(GpuCount, int)
   Property(Outputs, boost::shared_ptr<v_host_tensor_t>)

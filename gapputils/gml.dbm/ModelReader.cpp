@@ -30,6 +30,7 @@ BeginPropertyDefinitions(ModelReader)
   WorkflowProperty(FilterDepth, NoParameter())
   WorkflowProperty(ChannelCount, NoParameter())
   WorkflowProperty(FilterCount, NoParameter())
+  WorkflowProperty(HiddenCount, NoParameter())
 
 EndPropertyDefinitions
 
@@ -55,7 +56,7 @@ void ModelReader::update(IProgressMonitor* monitor) const {
   newState->setModel(model);
 
   if (model->getWeights()) {
-    std::vector<int> widths, heights, depths, channels, filters;
+    std::vector<int> widths, heights, depths, channels, filters, hiddens;
     for (size_t iLayer = 0; iLayer < model->getWeights()->size(); ++iLayer) {
 
       if (model->getWeights()->at(iLayer) && model->getWeights()->at(iLayer)->size()) {
@@ -67,11 +68,15 @@ void ModelReader::update(IProgressMonitor* monitor) const {
       }
     }
 
+    for (size_t iLayer = 0; iLayer < model->getFlatBiases()->size(); ++iLayer)
+      hiddens.push_back(model->getFlatBiases()->at(iLayer)->size()[1]);
+
     newState->setFilterWidth(widths);
     newState->setFilterHeight(heights);
     newState->setFilterDepth(depths);
     newState->setChannelCount(channels);
     newState->setFilterCount(filters);
+    newState->setHiddenCount(hiddens);
   }
 }
 

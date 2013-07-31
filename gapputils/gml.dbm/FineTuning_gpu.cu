@@ -35,9 +35,11 @@ FineTuningChecker::FineTuningChecker() {
   CHECK_MEMORY_LAYOUT2(GpuCount, test);
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
-  CHECK_MEMORY_LAYOUT2(LearningRate, test);
+  CHECK_MEMORY_LAYOUT2(LearningRateCL, test);
+  CHECK_MEMORY_LAYOUT2(LearningRateRL, test);
   CHECK_MEMORY_LAYOUT2(LearningDecay, test);
   CHECK_MEMORY_LAYOUT2(MeanFieldIterations, test);
+  CHECK_MEMORY_LAYOUT2(InitialGibbsIterations, test);
   CHECK_MEMORY_LAYOUT2(GibbsIterations, test);
   CHECK_MEMORY_LAYOUT2(SampleCount, test);
   CHECK_MEMORY_LAYOUT2(OutputModel, test);
@@ -93,10 +95,11 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
   const size_t batchSize = getBatchSize();
   const size_t batchCount = inputs.size() / batchSize;
+  int gibbsIterations = getInitialGibbsIterations();
 
   // Initialize constants
   value_t epsilonw[cLayerCount], epsilonhb[cLayerCount], epsilonvb;
-  value_t epsBatch;
+  value_t epsBatchCL, epsBatchRL;
   for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
     epsilonw[iLayer] = 1.0 / batchSize / sum(*dbm.getMasks()->at(iLayer)) / visSize[iLayer][dimCount - 1];
     epsilonhb[iLayer] = 1.0 / batchSize / hidSize[iLayer][dimCount - 1];
@@ -147,7 +150,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
     outMasks->at(iLayer) = boost::make_shared<host_tensor_t>(*dbm.getMasks()->at(iLayer));
   }
 
-  matrix_t W[rLayerCount], Winc[rLayerCount], c_flat[rLayerCount], cinc_flat[rLayerCount];
+  matrix_t W[rLayerCount], Winc[rLayerCount], c_flat[rLayerCount], cinc_flat[rLayerCount], prods[rLayerCount], hidact[rLayerCount];
   for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
     W[iLayer] = *dbm.getWeightMatrices()->at(iLayer);
     Winc[iLayer] = zeros<value_t>(W[iLayer].size());
@@ -172,6 +175,9 @@ void FineTuning::update(IProgressMonitor* monitor) const {
   tensor_t v_master[cLayerCount + 1], V_master[cLayerCount], v_diff[cLayerCount + 1];
   ctensor_t cV_master[cLayerCount];
   matrix_t v_flat[rLayerCount + 1], h_flat[rLayerCount], flat_diff[rLayerCount];
+
+  // Monitoring effort
+  value_t pos_avg[cLayerCount + rLayerCount + 1], neg_avg[cLayerCount + rLayerCount + 1];
 
   // Used to save the entire state of the particles used to estimate the data-independent statistics
   host_tensor_t v_particles[getSampleCount()][cLayerCount + 1];
@@ -251,7 +257,11 @@ void FineTuning::update(IProgressMonitor* monitor) const {
       for (size_t iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
         #pragma omp master
-        epsBatch = getLearningRate() * getLearningDecay() * batchCount / (value_t)(getLearningDecay() * batchCount + iBatch + iEpoch * batchCount);
+        {
+          epsBatchCL = getLearningRateCL() * getLearningDecay() * batchCount / (value_t)(getLearningDecay() * batchCount + iBatch + iEpoch * batchCount);
+          epsBatchRL = getLearningRateRL() * getLearningDecay() * batchCount / (value_t)(getLearningDecay() * batchCount + iBatch + iEpoch * batchCount);
+          gibbsIterations = (iEpoch == 0 && iBatch == 0 ? getInitialGibbsIterations() : getGibbsIterations());
+        }
         // Learning rate modifier is read by all threads
         #pragma omp barrier
 
@@ -261,7 +271,6 @@ void FineTuning::update(IProgressMonitor* monitor) const {
             *ccinc[iLayer][k] = momentum * *ccinc[iLayer][k];
           }
         }
-
 
         #pragma omp master
         {
@@ -275,6 +284,9 @@ void FineTuning::update(IProgressMonitor* monitor) const {
             cinc_flat[iLayer] = momentum * cinc_flat[iLayer];
             flat_diff[iLayer] = zeros<value_t>(c_flat[iLayer].size());
           }
+
+          for (size_t iLayer = 0; iLayer < cLayerCount + rLayerCount + 1; ++iLayer)
+            pos_avg[iLayer] = neg_avg[iLayer] = 0;
         }
 
         /*** POSITIVE PHASE ***/
@@ -294,7 +306,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
             V_master[0] = V_master[0] * repeat(hMask[0], visSize[0] / layerSize[0]);
             cV_master[0] = fft(V_master[0], dimCount - 1, plan_v[0]);
 
-            binc = binc + epsBatch * epsilonvb * V_master[0];
+            binc = binc + epsBatchCL * epsilonvb * V_master[0];
 
             for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer)
               v_master[iLayer + 1] = zeros<value_t>(hidSize[iLayer]);
@@ -308,6 +320,8 @@ void FineTuning::update(IProgressMonitor* monitor) const {
           #pragma omp barrier
 
           cV[0] = cV_master[0];
+          cudaStreamSynchronize(0);
+          #pragma omp barrier
 
           // Perform multiple mean field updates (first update initialize the model)
           for (size_t iMeanField = 0; iMeanField < getMeanFieldIterations(); ++iMeanField) {
@@ -373,8 +387,8 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 if (iMeanField == getMeanFieldIterations() - 1) {
                   // dF_k = ~h * v
                   ch[iLayer] = fft(h[iLayer], dimCount - 1, plan_h[iLayer]);
-                  *cFinc[iLayer][k] = *cFinc[iLayer][k] + epsBatch * epsilonw[iLayer] * repeat(conj(ch[iLayer]), cV[iLayer].size() / ch[iLayer].size()) * cV[iLayer];
-                  *ccinc[iLayer][k] = *ccinc[iLayer][k] + epsBatch * epsilonhb[iLayer] * ch[iLayer];
+                  *cFinc[iLayer][k] = *cFinc[iLayer][k] + epsBatchCL * epsilonw[iLayer] * repeat(conj(ch[iLayer]), cV[iLayer].size() / ch[iLayer].size()) * cV[iLayer];
+                  *ccinc[iLayer][k] = *ccinc[iLayer][k] + epsBatchCL * epsilonhb[iLayer] * ch[iLayer];
                 }
 
                 v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]] = h[iLayer] * hMask[iLayer];
@@ -419,7 +433,15 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 }
 
                 if (iMeanField == getMeanFieldIterations() - 1) {
-                  // TODO: update weights and biases
+
+                  // Update weights and biases
+                  // (x_n)(mu_n)'
+                  prods[iLayer] = prod(trans(v_flat[iLayer]), v_flat[iLayer + 1]);
+                  Winc[iLayer] = Winc[iLayer] + epsBatchRL * prods[iLayer] / batchSize;
+
+                  // Calculate the total activation of the hidden and visible units
+                  hidact[iLayer] = sum(v_flat[iLayer + 1], 0);
+                  cinc_flat[iLayer] = cinc_flat[iLayer] + epsBatchRL * hidact[iLayer] / batchSize;
                 }
               }
               cudaStreamSynchronize(0);
@@ -429,11 +451,15 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
           #pragma omp master
           {
-            for (size_t iLayer = 0; iLayer < cLayerCount + 1; ++iLayer)
+            for (size_t iLayer = 0; iLayer < cLayerCount + 1; ++iLayer) {
               v_diff[iLayer] = v_diff[iLayer] + v_master[iLayer];
+              pos_avg[iLayer] += sum(v_master[iLayer]) / v_master[iLayer].count() / batchSize;
+            }
 
-            for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
+            for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
               flat_diff[iLayer] = flat_diff[iLayer] + v_flat[iLayer + 1];
+              pos_avg[iLayer + cLayerCount + 1] += sum(v_flat[iLayer + 1]) / v_flat[iLayer + 1].count() / batchSize;
+            }
             cudaStreamSynchronize(0);
           }
           #pragma omp barrier
@@ -490,9 +516,11 @@ void FineTuning::update(IProgressMonitor* monitor) const {
             for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer)
               cV[iLayer] = cV_master[iLayer];
           }
+          cudaStreamSynchronize(0);
+          #pragma omp barrier
 
           // Perform multiple Gibbs updates (first update initialize the model)
-          for (size_t iGibbs = 0; iGibbs < getGibbsIterations(); ++iGibbs) {
+          for (size_t iGibbs = 0; iGibbs < gibbsIterations; ++iGibbs) {
 
             /*** Follow bottom-up Gibbs chain ***/
 
@@ -586,7 +614,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
                 if (iLayer < rLayerCount - 1) {  // add top-down signal and bias
                   v_flat[iLayer + 1] = prod(v_flat[iLayer + 2], tbblas::trans(W[iLayer + 1]));
-                  if (iGibbs == 0)
+                  if (iGibbs == 0 && iEpoch == 0 && iBatch == 0)
                     v_flat[iLayer + 1] = v_flat[iLayer + 1] + 2.0 * h_flat[iLayer] + c_flat[iLayer];
                   else
                     v_flat[iLayer + 1] = v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
@@ -595,8 +623,15 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 }
                 v_flat[iLayer + 1] = max(0.0, v_flat[iLayer + 1] + sqrt(sigm(v_flat[iLayer + 1])) * flat_noise[iLayer]);
 
-                if (iLayer == rLayerCount - 1 && iGibbs == getGibbsIterations() - 1) {
-                  // TODO: update weights and bias terms
+                if (iLayer == rLayerCount - 1 && iGibbs == gibbsIterations - 1) {
+
+                  // (x_n)(mu_n)'
+                  prods[iLayer] = prod(trans(v_flat[iLayer]), v_flat[iLayer + 1]);
+                  Winc[iLayer] = Winc[iLayer] - epsBatchRL * prods[iLayer] / batchSize;
+
+                  // Calculate the total activation of the hidden and visible units
+                  hidact[iLayer] = sum(v_flat[iLayer + 1], 0);
+                  cinc_flat[iLayer] = cinc_flat[iLayer] - epsBatchRL * hidact[iLayer] / batchSize;
                 }
               }
               cudaStreamSynchronize(0);
@@ -614,15 +649,18 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 h_flat[iLayer] = prod(v_flat[iLayer], W[iLayer]);
 
                 v_flat[iLayer + 1] = prod(v_flat[iLayer + 2], tbblas::trans(W[iLayer + 1]));
-                if (iGibbs == 0)
-                  v_flat[iLayer + 1] = 2.0 * v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
-                else
-                  v_flat[iLayer + 1] = v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
-
+                v_flat[iLayer + 1] = v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
                 v_flat[iLayer + 1] = max(0.0, v_flat[iLayer + 1] + sqrt(sigm(v_flat[iLayer + 1])) * flat_noise[iLayer]);
 
-                if (iGibbs == getGibbsIterations() - 1 && iLayer + 1 < rLayerCount - 1) {
-                  // TODO: update weights and bias terms of W[iLayer + 1]
+                if (iGibbs == gibbsIterations - 1 && iLayer + 1 < rLayerCount - 1) {
+
+                  // (x_n)(mu_n)'
+                  prods[iLayer + 1] = prod(trans(v_flat[iLayer + 1]), v_flat[iLayer + 2]);
+                  Winc[iLayer + 1] = Winc[iLayer + 1] - epsBatchRL * prods[iLayer + 1] / batchSize;
+
+                  // Calculate the total activation of the hidden and visible units
+                  hidact[iLayer + 1] = sum(v_flat[iLayer + 2], 0);
+                  cinc_flat[iLayer + 1] = cinc_flat[iLayer + 1] - epsBatchRL * hidact[iLayer + 1] / batchSize;
                 }
               }
               cudaStreamSynchronize(0);
@@ -661,8 +699,8 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                   if (iLayer == 0) {
                     V_master[0] = (V_master[0] + b) * repeat(hMask[0], visSize[0] / layerSize[0]);
 
-                    if (iGibbs == getGibbsIterations() - 1) {
-                      binc = binc -  epsBatch * epsilonvb * V_master[0];
+                    if (iGibbs == gibbsIterations - 1) {
+                      binc = binc -  epsBatchCL * epsilonvb * V_master[0];
                     }
                   }
 
@@ -690,11 +728,11 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                   h[iLayer - 1] = h[iLayer - 1] + v_master[iLayer][seq(0,0,0,(int)k), layerSize[iLayer - 1]];
                   h[iLayer - 1] = max(0.0, h[iLayer - 1] + sqrt(sigm(h[iLayer - 1])) * h_noise[iLayer - 1]);
 
-                  if (iGibbs == getGibbsIterations() - 1) {
+                  if (iGibbs == gibbsIterations - 1) {
                     // dF_k = ~h * v
                     ch[iLayer - 1] = fft(h[iLayer - 1], dimCount - 1, plan_h[iLayer - 1]);
-                    *cFinc[iLayer - 1][k] = *cFinc[iLayer - 1][k] - epsBatch * epsilonw[iLayer] * repeat(conj(ch[iLayer - 1]), cV[iLayer - 1].size() / ch[iLayer - 1].size()) * cV[iLayer - 1];
-                    *ccinc[iLayer - 1][k] = *ccinc[iLayer - 1][k] - epsBatch * epsilonhb[iLayer] * ch[iLayer - 1];
+                    *cFinc[iLayer - 1][k] = *cFinc[iLayer - 1][k] - epsBatchCL * epsilonw[iLayer - 1] * repeat(conj(ch[iLayer - 1]), cV[iLayer - 1].size() / ch[iLayer - 1].size()) * cV[iLayer - 1];
+                    *ccinc[iLayer - 1][k] = *ccinc[iLayer - 1][k] - epsBatchCL * epsilonhb[iLayer - 1] * ch[iLayer - 1];
                   }
 
                   v_master[iLayer][seq(0,0,0,(int)k), layerSize[iLayer - 1]] = h[iLayer - 1] * hMask[iLayer - 1];
@@ -717,8 +755,15 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 #pragma omp master
                 thrust::copy(v_master[iLayer].begin(), v_master[iLayer].end(), v_flat[0].begin());
 
-                if (iGibbs == getGibbsIterations() - 1) {
-                  // TODO: update weights and bias terms of W[0]
+                if (iGibbs == gibbsIterations - 1) {
+                  // Update weights and bias terms of W[0]
+                  // (x_n)(mu_n)'
+                  prods[0] = prod(trans(v_flat[0]), v_flat[1]);
+                  Winc[0] = Winc[0] - epsBatchRL * prods[0] / batchSize;
+
+                  // Calculate the total activation of the hidden and visible units
+                  hidact[0] = sum(v_flat[1], 0);
+                  cinc_flat[0] = cinc_flat[0] - epsBatchRL * hidact[0] / batchSize;
                 }
               }
 
@@ -735,12 +780,17 @@ void FineTuning::update(IProgressMonitor* monitor) const {
                 v_master[iLayer] = rearrange_r(V_master[iLayer], rearrangeBlock[iLayer]);
               v_particles[iSample][iLayer] = v_master[iLayer];
               v_diff[iLayer] = v_diff[iLayer] - v_master[iLayer];
+              neg_avg[iLayer] += sum(v_master[iLayer]) / v_master[iLayer].count() / batchSize;
             }
             for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
               flat_particles[iSample][iLayer] = v_flat[iLayer + 1];
               flat_diff[iLayer] = flat_diff[iLayer] - v_flat[iLayer + 1];
+              neg_avg[iLayer + cLayerCount + 1] += sum(v_flat[iLayer + 1]) / v_flat[iLayer + 1].count() / batchSize;
             }
             cudaStreamSynchronize(0);
+            
+            if (iEpoch == 0 && iBatch == 0)
+              dlog(Severity::Trace) << "Gibbs chain " << iSample + 1 << " initialized.";
           }
           #pragma omp barrier
 
@@ -750,19 +800,50 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
         // Apply gradient
         for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
+          complex_t avg_f = 0, avg_c = 0;
           for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
+
+            avg_f = avg_f + sum(*cFinc[iLayer][k]);
+            avg_c = avg_c + sum(*ccinc[iLayer][k]);
+
             f[iLayer] = ifft(*cFinc[iLayer][k], dimCount - 1, iplan_v[iLayer]);
             f[iLayer] = f[iLayer] * mask<value_t>(f[iLayer].size(), filters[iLayer]->at(0)->size());
             *cFinc[iLayer][k] = fft(f[iLayer], dimCount - 1, plan_v[iLayer]);
             *cF[iLayer][k] = *cF[iLayer][k] + *cFinc[iLayer][k];
             *cc[iLayer][k] = *cc[iLayer][k] + *ccinc[iLayer][k];
           }
+          #pragma omp master
+          std::cout << "Filters:";
+          #pragma omp barrier
+
+          #pragma omp critical
+          std::cout << " " << avg_f;
+          #pragma omp barrier
+
+          #pragma omp master
+          std::cout << std::endl;
+          #pragma omp barrier
+
+          #pragma omp master
+          std::cout << "Biases:";
+          #pragma omp barrier
+
+          #pragma omp critical
+          std::cout << " " << avg_c;
+          #pragma omp barrier
+
+          #pragma omp master
+          std::cout << std::endl;
+          #pragma omp barrier
         }
         #pragma omp master
         {
           b = b + binc;
+          std::cout << "VB: " << sum(binc) << std::endl;
 
           for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
+            std::cout << "W: " << sum(Winc[iLayer]) << std::endl;
+            std::cout << "c: " << sum(cinc_flat[iLayer]) << std::endl;
             W[iLayer] = W[iLayer] + Winc[iLayer];
             c_flat[iLayer] = c_flat[iLayer] + cinc_flat[iLayer];
           }
@@ -781,7 +862,10 @@ void FineTuning::update(IProgressMonitor* monitor) const {
           for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
             errors << sum(abs(flat_diff[iLayer])) / flat_diff[iLayer].count() / batchSize << " ";
 
-          dlog(Severity::Message) << "Error at epoch " << iEpoch + 1 << " batch " << iBatch + 1 << ": " << errors.str() << "(eps = " << epsBatch << ")";
+          dlog(Severity::Message) << "Error at epoch " << iEpoch + 1 << " batch " << iBatch + 1 << ": " << errors.str();
+
+          for (size_t iLayer = 0; iLayer < cLayerCount + rLayerCount + 1; ++iLayer)
+            std::cout << "Layer " << iLayer + 1 << ": " << pos_avg[iLayer] << " : " << neg_avg[iLayer] << std::endl;
 
           if (monitor)
             monitor->reportProgress(100. * (iEpoch * batchCount + iBatch + 1) / (getEpochCount() * batchCount));
