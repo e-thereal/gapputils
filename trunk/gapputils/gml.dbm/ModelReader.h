@@ -27,6 +27,7 @@ class ModelReader : public DefaultWorkflowElement<ModelReader> {
   Property(FilterDepth, std::vector<int>)
   Property(ChannelCount, std::vector<int>)
   Property(FilterCount, std::vector<int>)
+  Property(HiddenCount, std::vector<int>)
 
 public:
   ModelReader();

@@ -179,7 +179,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
 
       #pragma omp master
       {
-        V_master[0] = 1.0 * V_noise * repeat(hMask[0], visSize[0] / layerSize[0]);
+        V_master[0] = 0.0 * V_noise * repeat(hMask[0], visSize[0] / layerSize[0]);
         cV_master[0] = fft(V_master[0], dimCount - 1, plan_v[0]);
 
         for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer)
@@ -248,7 +248,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
           // bottom-up signal
           for (size_t k = tid; k < cF[iLayer].size(); k += gpuCount) {
             if (iGibbs == 0)  // double weights because I'm getting zero input from the upper layer
-              ch_full[iLayer] = conj(*cF[iLayer][k]) * cV[iLayer] * 2.0;
+              ch_full[iLayer] = conj(*cF[iLayer][k]) * cV[iLayer] * 1.0;
             else
               ch_full[iLayer] = conj(*cF[iLayer][k]) * cV[iLayer];
             ch[iLayer] = sum(ch_full[iLayer], dimCount - 1);
@@ -291,7 +291,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
             if (iLayer < rLayerCount - 1) {  // add top-down signal and bias
               v_flat[iLayer + 1] = prod(v_flat[iLayer + 2], tbblas::trans(W[iLayer + 1]));
               if (iGibbs == 0)
-                v_flat[iLayer + 1] = v_flat[iLayer + 1] + 2.0 * h_flat[iLayer] + c_flat[iLayer];
+                v_flat[iLayer + 1] = v_flat[iLayer + 1] + 1.0 * h_flat[iLayer] + c_flat[iLayer];
               else
                 v_flat[iLayer + 1] = v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
             } else {                         // add bias only
@@ -314,10 +314,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
             h_flat[iLayer] = prod(v_flat[iLayer], W[iLayer]);
 
             v_flat[iLayer + 1] = prod(v_flat[iLayer + 2], tbblas::trans(W[iLayer + 1]));
-            if (iGibbs == 0)
-              v_flat[iLayer + 1] = 2.0 * v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
-            else
-              v_flat[iLayer + 1] = v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
+            v_flat[iLayer + 1] = v_flat[iLayer + 1] + h_flat[iLayer] + c_flat[iLayer];
 
             v_flat[iLayer + 1] = max(0.0, v_flat[iLayer + 1] + sqrt(sigm(v_flat[iLayer + 1])) * flat_noise[iLayer]);
           }

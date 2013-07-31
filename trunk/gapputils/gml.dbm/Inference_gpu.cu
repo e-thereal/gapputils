@@ -28,7 +28,9 @@ InferenceChecker::InferenceChecker() {
   test.initializeClass();
   CHECK_MEMORY_LAYOUT2(Model, test);
   CHECK_MEMORY_LAYOUT2(Inputs, test);
-  CHECK_MEMORY_LAYOUT2(Direction, test);
+  CHECK_MEMORY_LAYOUT2(Mode, test);
+  CHECK_MEMORY_LAYOUT2(ObservedLayer, test);
+  CHECK_MEMORY_LAYOUT2(QueryLayer, test);
   CHECK_MEMORY_LAYOUT2(Iterations, test);
   CHECK_MEMORY_LAYOUT2(GpuCount, test);
   CHECK_MEMORY_LAYOUT2(Outputs, test);
@@ -77,13 +79,7 @@ void Inference::update(IProgressMonitor* monitor) const {
   }
 
   dim_t rearrangeBlock[cLayerCount];
-  if (getDirection() == CodingDirection::Encode) {
-    rearrangeBlock[0] = getInputs()->at(0)->size() / visSize[0];
-    rearrangeBlock[0][dimCount - 1] = 1;
-    assert(rearrangeBlock[0] == dbm.getVisibleBlockSize());
-  } else {
-    rearrangeBlock[0] = dbm.getVisibleBlockSize();
-  }
+  rearrangeBlock[0] = dbm.getVisibleBlockSize();
   for (size_t iLayer = 1; iLayer < cLayerCount; ++iLayer)
     rearrangeBlock[iLayer] = dbm.getHiddenBiases()->at(iLayer - 1)->at(0)->size() / dbm.getHiddenBiases()->at(iLayer)->at(0)->size();
 
@@ -92,9 +88,43 @@ void Inference::update(IProgressMonitor* monitor) const {
 
   const int gpuCount = getGpuCount();
 
+  // Setting defaults
+
+  int observedLayer, queryLayer;
+
+  switch (getMode()) {
+  case InferenceMode::BottomUp:
+    observedLayer = (getObservedLayer() < 0 ? 0 : getObservedLayer());
+    queryLayer = (getQueryLayer() < 0 ? cLayerCount + rLayerCount : getQueryLayer());
+    break;
+
+  case InferenceMode::TopDown:
+    observedLayer = (getObservedLayer() < 0 ? cLayerCount + rLayerCount : getObservedLayer());
+    queryLayer = (getQueryLayer() < 0 ? 0 : getQueryLayer());
+    break;
+  }
+
+  // Perform sanity checks
+
   if (deviceCount < gpuCount) {
     dlog(Severity::Warning) << "Only " << deviceCount << " CUDA-enabled devices found, where " << gpuCount << " are required according to GpuCount. Aborting!";
     return;
+  }
+
+  switch (getMode()) {
+  case InferenceMode::BottomUp:
+    if (observedLayer >= queryLayer) {
+      dlog(Severity::Warning) << "The observed layer must be below the query layer for bottom-up inference. Aborting!";
+      return;
+    }
+    break;
+
+  case InferenceMode::TopDown:
+    if (observedLayer <= queryLayer) {
+      dlog(Severity::Warning) << "The observed layer must be above the query layer for top-down inference. Aborting!";
+      return;
+    }
+    break;
   }
 
   assert(omp_get_num_threads() == 1);
@@ -171,7 +201,7 @@ void Inference::update(IProgressMonitor* monitor) const {
 
     for (size_t i = 0; i < inputs.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
 
-      if (getDirection() == CodingDirection::Encode) {
+      if (getMode() == InferenceMode::BottomUp) {
 
         /*** LOAD VISIBLE LAYER ***/
 
@@ -180,30 +210,40 @@ void Inference::update(IProgressMonitor* monitor) const {
 
         #pragma omp master
         {
-          v_master[0] = *inputs[i];
-          V_master[0] = rearrange(v_master[0], rearrangeBlock[0]);
-          V_master[0] = (V_master[0] - dbm.getMean()) / dbm.getStddev();
-          V_master[0] = V_master[0] * repeat(hMask[0], visSize[0] / layerSize[0]);
-          cV_master[0] = fft(V_master[0], dimCount - 1, plan_v[0]);
+          // Initialize the flat layer first because this also reserves space in case the flat layer is observed
+          for (size_t iLayer = max(0, observedLayer - (int)cLayerCount); iLayer < rLayerCount + 1; ++iLayer) {
+            if (iLayer == 0)
+              v_flat[iLayer] = zeros<value_t>(seq(1, (int)hidSize[cLayerCount - 1].count()));
+            else
+              v_flat[iLayer] = zeros<value_t>(c_flat[iLayer - 1].size());
+          }
 
-          for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer)
-            v_master[iLayer + 1] = zeros<value_t>(hidSize[iLayer]);
+          if (observedLayer < cLayerCount) {
+            v_master[observedLayer] = *inputs[i];
+            V_master[observedLayer] = rearrange(v_master[observedLayer], rearrangeBlock[observedLayer]);
+            if (observedLayer == 0)
+              V_master[observedLayer] = (V_master[observedLayer] - dbm.getMean()) / dbm.getStddev();
+            V_master[observedLayer] = V_master[observedLayer] * repeat(hMask[observedLayer], visSize[observedLayer] / layerSize[observedLayer]);
+            cV_master[observedLayer] = fft(V_master[observedLayer], dimCount - 1, plan_v[observedLayer]);
 
-          v_flat[0] = zeros<value_t>(seq(1, (int)v_master[cLayerCount].count()));
-          for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
-            v_flat[iLayer + 1] = zeros<value_t>(c_flat[iLayer].size());
+            for (size_t iLayer = observedLayer; iLayer < cLayerCount; ++iLayer)
+              v_master[iLayer + 1] = zeros<value_t>(hidSize[iLayer]);
+          } else {
+            thrust::copy(inputs[i]->begin(), inputs[i]->end(), v_flat[observedLayer - cLayerCount].begin());
+          }
 
           cudaStreamSynchronize(0);
         }
         #pragma omp barrier
 
-        cV[0] = cV_master[0];
+        if (observedLayer < cLayerCount)
+          cV[observedLayer] = cV_master[observedLayer];
 
         // Perform multiple mean field updates (first update initializes the model)
         for (size_t iMeanField = 0; iMeanField < getIterations(); ++iMeanField) {
 
           // Go through convolutional layers first
-          for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
+          for (size_t iLayer = observedLayer; iLayer < cLayerCount; ++iLayer) {
 
             // If not the top-most layer, calculate top-down signal from convolutional layer
             if (iLayer < cLayerCount - 1) {
@@ -285,7 +325,7 @@ void Inference::update(IProgressMonitor* monitor) const {
           // Then go through RBM layer
           #pragma omp master
           {
-            for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer) {
+            for (size_t iLayer = std::max(0, observedLayer - (int)cLayerCount); iLayer < rLayerCount; ++iLayer) {
 
               // bottom-up signal
               h_flat[iLayer] = prod(v_flat[iLayer], W[iLayer]);
@@ -307,26 +347,41 @@ void Inference::update(IProgressMonitor* monitor) const {
 
         #pragma omp master
         {
-          boost::shared_ptr<host_tensor_t> output(new host_tensor_t(1, 1, 1, v_flat[rLayerCount].count()));
-          thrust::copy(v_flat[rLayerCount].begin(), v_flat[rLayerCount].end(), output->begin());
-          outputs->push_back(output);
+          if (queryLayer <= cLayerCount) {
+            outputs->push_back(boost::make_shared<host_tensor_t>(v_master[queryLayer]));
+          } else {
+            boost::shared_ptr<host_tensor_t> output(new host_tensor_t(1, 1, 1, v_flat[queryLayer - cLayerCount].count()));
+            thrust::copy(v_flat[queryLayer - cLayerCount].begin(), v_flat[queryLayer - cLayerCount].end(), output->begin());
+            outputs->push_back(output);
+          }
         }
-      } else { /*** DECODING ***/
+      } else if (getMode() == InferenceMode::TopDown) { /*** Top-down case ***/
 
         /*** LOAD HIDDEN LAYER ***/
 
-        for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer)
+        for (size_t iLayer = 0; iLayer < min(observedLayer - 1, (int)cLayerCount); ++iLayer)
           cV[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
 
         #pragma omp master
         {
-          v_flat[0] = zeros<value_t>(seq(1, (int)hidSize[cLayerCount - 1].count()));
-          for (size_t iLayer = 0; iLayer < rLayerCount; ++iLayer)
-            v_flat[iLayer + 1] = zeros<value_t>(c_flat[iLayer].size());
-          thrust::copy(inputs[i]->begin(), inputs[i]->end(), v_flat[rLayerCount].begin());
 
-          v_master[cLayerCount] = zeros<value_t>(hidSize[cLayerCount - 1]);
-          for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
+          for (int iLayer = 0; iLayer < observedLayer - (int)cLayerCount + 1; ++iLayer) {
+            if (iLayer == 0)
+              v_flat[iLayer] = zeros<value_t>(seq(1, (int)hidSize[cLayerCount - 1].count()));
+            else
+              v_flat[iLayer] = zeros<value_t>(c_flat[iLayer - 1].size());
+          }
+
+          if (observedLayer > cLayerCount) {
+            thrust::copy(inputs[i]->begin(), inputs[i]->end(), v_flat[observedLayer - cLayerCount].begin());
+          } else {
+            v_master[observedLayer] = *inputs[i];
+          }
+
+          if (observedLayer > cLayerCount)
+            v_master[cLayerCount] = zeros<value_t>(hidSize[cLayerCount - 1]);
+
+          for (size_t iLayer = 0; iLayer < min(observedLayer - 1, (int)cLayerCount); ++iLayer) {
             cV_master[iLayer] = zeros<complex_t>(cF[iLayer][0]->size(), cF[iLayer][0]->fullsize());
           }
           cudaStreamSynchronize(0);
@@ -340,7 +395,7 @@ void Inference::update(IProgressMonitor* monitor) const {
           // this will also update v_master[cLayerCount]
           #pragma omp master
           {
-            for (int iLayer = rLayerCount - 2; iLayer >= 0; --iLayer) {
+            for (int iLayer = observedLayer - cLayerCount - 2; iLayer >= 0; --iLayer) {
 
               // bottom-up signal
               h_flat[iLayer] = prod(v_flat[iLayer], W[iLayer]);
@@ -355,7 +410,7 @@ void Inference::update(IProgressMonitor* monitor) const {
           }
           #pragma omp barrier
 
-          for (int iLayer = cLayerCount; iLayer >= 0; --iLayer) {
+          for (int iLayer = min(observedLayer - 1, (int)cLayerCount); iLayer >= 0; --iLayer) {
 
             // If not the top-most layer, calculate convolutional top-down signal
             if (iLayer < cLayerCount) {
@@ -444,9 +499,17 @@ void Inference::update(IProgressMonitor* monitor) const {
 
         #pragma omp master
         {
-          V_master[0] = (V_master[0] * dbm.getStddev() + dbm.getMean()) * repeat(hMask[0], visSize[0] / layerSize[0]);
-          v_master[0] = rearrange_r(V_master[0], rearrangeBlock[0]);
-          outputs->push_back(boost::make_shared<host_tensor_t>(v_master[0]));
+          if (queryLayer <= cLayerCount) {
+            if (queryLayer == 0) {
+              V_master[0] = (V_master[0] * dbm.getStddev() + dbm.getMean()) * repeat(hMask[0], visSize[0] / layerSize[0]);
+              v_master[0] = rearrange_r(V_master[0], rearrangeBlock[0]);
+            }
+            outputs->push_back(boost::make_shared<host_tensor_t>(v_master[queryLayer]));
+          } else {
+            boost::shared_ptr<host_tensor_t> output(new host_tensor_t(1, 1, 1, v_flat[queryLayer - cLayerCount].count()));
+            thrust::copy(v_flat[queryLayer - cLayerCount].begin(), v_flat[queryLayer - cLayerCount].end(), output->begin());
+            outputs->push_back(output);
+          }
         }
       }
 

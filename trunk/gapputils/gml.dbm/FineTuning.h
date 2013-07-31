@@ -39,9 +39,11 @@ class FineTuning : public DefaultWorkflowElement<FineTuning> {
   Property(EpochCount, int)
   Property(BatchSize, int)
   int dummy;
-  Property(LearningRate, double)
+  Property(LearningRateCL, double)
+  Property(LearningRateRL, double)
   Property(LearningDecay, int)
   Property(MeanFieldIterations, int)
+  Property(InitialGibbsIterations, int)
   Property(GibbsIterations, int)
   Property(SampleCount, int)
   Property(OutputModel, boost::shared_ptr<Model>)
