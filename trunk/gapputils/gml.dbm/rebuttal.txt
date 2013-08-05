@@ -1,0 +1,61 @@
+R1:
+
+- Doubtful of the statement that npcDBN can sacrifice translational invariance when images are well registered for 2 reasons: did not justify experimentally, also registration might not be possible for many datasets.
+
+- Didn't show that this is a good generative model: no comparison to convDBNs, no quantitative evaluation such as the log-likelihood. Scatter plot, reconstruction, generative sample are not enough to proof its quality.
+
+- Unclear if it is also fast with max pooling
+
+Will be as max pooling is only done during the transition of one layer to the next and not part of the training. Speed improvement depends on number of channels. Channels are either increased with larger strides (speed improvement shown) or by increased number of filter of the previous layer. Will be very beneficial for subsequent layers. Argue with numbers.
+
+- Unclear if the proposed model beat the state-of-art in speed or performance
+
+- Without discriminative task, difficult to evaluate usefulness of the method
+
+- Novelty of convolutions: not just convolutions, also reduce number of FFTs by performing training in frequency domain.
+
+R2:
+
+- Dimensionality reduction not novel. Same as Tiled Convolution, but recast as a normal non-tiled convolution does appear novel and crucial.
+
+- Method short of good qualitative results on a discriminative task. No comparison to baseline. No classification scores given.
+
+Proof of concept. Pipeline not tuned to a particular task. Preprocessing like non-rigid registration for spatial normalization usually done.
+
+- Image and filter size not investigated.
+
+- Use of standard benchmarks like CIFAR-10, STL-10 or ImageNet.
+
+These are all 2D sets. Method designed with 3D images in mind.
+
+- Comparison to Alex Krizhevsky's (well-optimized) GPU kernels for convolutions.
+
+* His implementation is strictly for 2D.
+
+- Pooling step not obsolete. Two reasons to do pooling, computational and invariance. Only computational part is addressed here. We will make that clear in the final version.
+
+- Line 178 expectation w.r.t. model distribution.
+
+- Equ. 15 bias terms. Using shared bias terms. Adding the bias term is like adding a homogeneous image. In frequency domain, the value at (0,0) would be #pixels * pixel value while all other coordinates would be zero. This is expressed in the equation.
+
+- Why Table 1 if we have Figure 3? Give numbers for typical cases. Agree it is somewhat redundant and might be replaced by a figure showing reconstruction errors.
+
+- Clarify language (reconstruction instead of top-down inference)
+
+R3: 
+
+- Doing a stride 1 convolution first, followed by pooling provides a much more accurate depiction of the input image while requiring less trainable filters. Don't need shifted versions. Strided is not equivalent to max pooling.
+
+Agree and will be rephrased in the final version. Model didn't learn shifted versions of the filters. Instead, filter have less high frequency components.
+
+- Direct comparison of convDBN with max pooling and npcDBN on a specific task to evaluate if max pooling makes a difference.
+
+Reversibility is important here. Stack together to form a convolutional deep Boltzmann machine, and for segmentation by modeling the joint distribution of images and segmentations. Could be achieved with probabilistic max-pooling in case of binary hidden units but more difficult with rectified linear units. (need to think about this more carefully).
+
+R4:
+
+- Not true that striding is equivalent to pooling. No invariance. Not as powerful as max or L-P pooling.
+
+- Striding idea has been used for very long time. (microsoft convnet papers, Krizhevsi's 2012 paper on image-net)
+
+Will be properly reference in the final paper. Even though the intend is different.

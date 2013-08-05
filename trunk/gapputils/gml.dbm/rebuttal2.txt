@@ -1,0 +1,48 @@
+Reviewer 4 and 6 pointed out that strided convolutions are a known concept in the context of convolutional neural networks:
+
+We are thankful for pointing us to the relevant literature and we will properly reference the related work. However, our intent of using strided convolutions in the context of deep belief networks is different. "Tiled Convolutions" were used to learn invarianced beyond invariance to translations and still require a pooling layer, where strided convolutions in other neural networks were used to merely simplify the model (no subsampling or average pooling layer), or to speed up the learning of the first layer (Alex's ImageNet paper). In contrast, we use strided convolutions to make inference reversible, which is important for a generative model. Like convDBNs, we transfer a concept known for neural networks to deep belief networks and present an efficient CD learning implementation for the modified energy function.
+
+All reviewers pointed out that striding is not as powerful as pooling since it doesn't provide invariance to small translations. In addition, Reviewer 5 pointed out that doing a stride 1 convolutional first, followed by pooling provides a much more accurate depiction of the input image, while requiring less trainable weights.
+
+We agree with the reviewer comments and we will make clear that the modified energy function only addresses the dimensionalty reduction property of pooling operations. Translational invariance and an accurate dipiction of the input image is sacrificed for reversability and reduced training time, which is currently the barrier for applying deep learning to high-resolution 3D images. Reversibility allows the model to be used for image segmentation and inpainting in addition to classification, which makes this model particularly attractive for the medical image processing community. Image segmentation can be performed by training a joint model of images and corresponding semgentations. The segmentation of a new image is then calculated as the reconstruction of the segmentation units given the image units. Similarly, inpainting of structures effected by lesions can help to better align images in logitudinal brain studies.
+
+Evaluation as a good generative model (R1, R2):
+
+Measure reconstruction error of training and test set (generalization) and error of generated images (specificity error).
+
+Evaluation as a discriminative model (R1, R2):
+
+Pipeline not tuned to a particular application. Previous work has shown that classification depends greatly on the preprocessing pipeline. Evaluate the capabilities of the model without added confound of non-rigid registration parameters. Proof-of-concept to be of potential use. See MICCAI rebuttal.
+
+Can it be used to speed-up model using max-pooling (R1):
+
+Yes, as far as layer-wise pretraining is concerned since max pooling needs to be done only at the transition from one layer to the next and not during the training process. We haven't considered fine-tuning of any form.
+
+Unclear if it beats the state of art in terms of speed (R1, R2):
+
+We consider Alex's GPU implemenation as the state-of-art in terms of speed. Unfortunately, his implementation is optimized for 2D images only, while our algorithm was designed with application to 3D medical images in mind. A direct comparison with Alex's method is therefore not possible.
+
+Novelty of convolutions in frequency domain (R1)
+
+Not just convolutions in frequency domain, we do perform CD learning in frequency domain plus reordering trick that maps strided convolutions to stide 1 convolutions which is crucial for the implementation in frequency domain.
+
+Effect of image size on runtime not investigated (R2)
+
+Not optimized versions too slow to be feasible on large (256x256x256) images. Intermediate image sizes likely not representative as GPU algorithms generally perform better when images are padded to a power of 2 sizes.
+
+Results on standard benchmarks (R2)
+
+Benchmark datasets are 2D, while our method was specifically designed for 3D images (runtime on 3D images too long to be feasible, filter kernels in 3D much larger than 2D filter kernels).
+
+Equation 15, bias terms only for x,y == 0 (R2)
+
+For the sake of writing this paper, we assume the visible bias terms to be shared amount all voxels of an image. Adding a fixed bias term to all pixels of an image equals to adding an image with a completely plain-colored image. Because this addition is done in the frequency domain, the plain-color image needs to be transformed to the frequency domain. The transform of a plain-color image is 0 everywhere except for the origin, at which it has the value "bias term" x "number of voxels of the image".
+
+Direct comparison of convDBN with max pooling and npcDBN on a specific task (R3)
+
+Currently, we wanted to show potential for medical image analysis without tuning it to any particular task. We are planning to apply it to the classification of AD and normal subjects and to the prediction of clinical scores. In these scenarios, where reversibility is not needed, we will investigate the effect of different pooling methods including max and Lp pooling. It is planned as future work.
+
+---
+Not addressed:
+
+Why Table 1 when Figure 3, reconstruction instead of top-down inference
