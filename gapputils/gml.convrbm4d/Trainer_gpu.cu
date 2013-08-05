@@ -95,7 +95,7 @@ unsigned int upper_power_of_two(unsigned int v) {
   return v;
 }
 
-#define MONITOR_TRAINING
+//#define MONITOR_TRAINING
 
 void Trainer::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
@@ -363,9 +363,30 @@ void Trainer::update(IProgressMonitor* monitor) const {
       cvneg_master = &cvneg;
     }
 
-    random_tensor<value_t, dimCount, true, uniform<value_t> > h_rand(layerSize, tid);
-    random_tensor<value_t, dimCount, true, normal<value_t> > h_noise(layerSize, tid);
-    random_tensor<value_t, dimCount, true, normal<value_t> > v_noise(size, tid);
+    random_tensor<value_t, dimCount, true, uniform<value_t> > h_rand;
+    random_tensor<value_t, dimCount, true, normal<value_t> > h_noise;
+    random_tensor<value_t, dimCount, true, normal<value_t> > v_noise;
+
+    if (getDropoutMethod() != DropoutMethod::NoDrop || crbm->getHiddenUnitType() == UnitType::Bernoulli)
+      h_rand.resize(layerSize, tid);
+
+    if (crbm->getHiddenUnitType() == UnitType::MyReLU ||
+        crbm->getHiddenUnitType() == UnitType::ReLU ||
+        crbm->getHiddenUnitType() == UnitType::ReLU1 ||
+        crbm->getHiddenUnitType() == UnitType::ReLU2 ||
+        crbm->getHiddenUnitType() == UnitType::ReLU4)
+    {
+      h_noise.resize(layerSize, tid);
+    }
+
+    if (crbm->getVisibleUnitType() == UnitType::MyReLU ||
+        crbm->getVisibleUnitType() == UnitType::ReLU ||
+        crbm->getVisibleUnitType() == UnitType::ReLU1 ||
+        crbm->getVisibleUnitType() == UnitType::ReLU2 ||
+        crbm->getVisibleUnitType() == UnitType::ReLU4)
+    {
+      v_noise.resize(size, tid);
+    }
 
     hMask = *crbm->getMask();
 
@@ -406,7 +427,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
       #pragma omp barrier
 
       // Make the dropout decision
-      if (getDropoutStage() == DropoutStage::Epoch) {
+      if (getDropoutMethod() != DropoutMethod::NoDrop && getDropoutStage() == DropoutStage::Epoch) {
 
         // Decide which units and filters to drop
         #pragma omp master
@@ -440,7 +461,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         cbinc = momentum * cbinc;
 
         // Make the dropout decision
-        if (getDropoutStage() == DropoutStage::Batch) {
+        if (getDropoutMethod() != DropoutMethod::NoDrop && getDropoutStage() == DropoutStage::Batch) {
 
           // Decide which units and filters to drop
           #pragma omp master
@@ -484,7 +505,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
           cvneg = zeros<complex_t>(cv.size(), cv.fullsize());
 
           // Make the dropout decision
-          if (getDropoutStage() == DropoutStage::Sample) {
+          if (getDropoutMethod() != DropoutMethod::NoDrop && getDropoutStage() == DropoutStage::Sample) {
 
             // Decide which units and filters to drop
             #pragma omp master
@@ -535,7 +556,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
                 default:
                   dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
               }
-              h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+              if (getDropoutMethod() != DropoutMethod::NoDrop)
+                h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+              else
+                h = h * hMask;
 
               // dF_k = ~h * v
               ch = fft(h, dimCount - 1, plan_h);
@@ -571,7 +595,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
                 default:
                   dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
               }
-              h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+              if (getDropoutMethod() != DropoutMethod::NoDrop)
+                h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+              else
+                h = h * hMask;
 
               ch = fft(h, dimCount - 1, plan_h);
 
@@ -664,7 +691,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
                 default:
                   dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getHiddenUnitType();
               }
-              h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+              if (getDropoutMethod() != DropoutMethod::NoDrop)
+                h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+              else
+                h = h * hMask;
 
               // dF_k = ~h * v
               ch = fft(h, dimCount - 1, plan_h);
