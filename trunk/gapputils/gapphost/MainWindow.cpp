@@ -99,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 //  if (DataModel::getInstance().getAutoReload()) {
   if (model.getSaveConfiguration()) {
     autoSaveTimer.setInterval(60000);
-    autoSaveTimer.start();
+//    autoSaveTimer.start();
   }
 //  }
 
