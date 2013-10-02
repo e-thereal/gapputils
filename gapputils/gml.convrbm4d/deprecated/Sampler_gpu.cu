@@ -17,7 +17,7 @@
 
 #include <omp.h>
 
-#include "math.hpp"
+#include "../math.hpp"
 
 namespace gml {
 

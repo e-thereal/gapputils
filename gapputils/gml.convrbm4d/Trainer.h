@@ -51,6 +51,7 @@ public:
   Property(SparsityWeight, double)
 
   // Learning algorithm parameters
+  Property(CdIterations, int)
   Property(LearningRate, double)
   Property(LearningDecay, double)
   Property(InitialMomentum, double)

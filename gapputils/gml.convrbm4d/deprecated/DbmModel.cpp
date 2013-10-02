@@ -7,7 +7,7 @@
 
 #include "DbmModel.h"
 
-#include "tbblas_serialize.hpp"
+#include "../tbblas_serialize.hpp"
 
 using namespace capputils::attributes;
 
