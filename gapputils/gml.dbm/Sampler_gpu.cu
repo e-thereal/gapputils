@@ -67,7 +67,8 @@ void Sampler::update(IProgressMonitor* monitor) const {
   // A DBM with 1 visible layer and n hidden layers has n layers for the sake of writing this code
   size_t cLayerCount = dbm.getWeights()->size();
   size_t rLayerCount = dbm.getWeightMatrices()->size();
-  assert(cLayerCount && rLayerCount);
+//  assert(cLayerCount && rLayerCount);
+  assert(cLayerCount);
 
   dim_t visSize[cLayerCount], hidSize[cLayerCount], layerSize[cLayerCount];
   for (size_t iLayer = 0; iLayer < cLayerCount; ++iLayer) {
@@ -234,7 +235,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
               v_master[iLayer + 1] = rearrange_r(V_master[iLayer + 1], rearrangeBlock[iLayer + 1]);
               cudaStreamSynchronize(0);
             }
-          } else { // calculate top-down signal from first RBM
+          } else if (rLayerCount) { // calculate top-down signal from first RBM (if there are RBMs)
             #pragma omp master
             {
               v_flat[0] = prod(v_flat[1], tbblas::trans(W[0]));
@@ -254,7 +255,9 @@ void Sampler::update(IProgressMonitor* monitor) const {
             ch[iLayer] = sum(ch_full[iLayer], dimCount - 1);
             ch[iLayer] = ch[iLayer] + *cc[iLayer][k];
             h[iLayer] = ifft(ch[iLayer], dimCount - 1, iplan_h[iLayer]);
-            h[iLayer] = h[iLayer] + v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]];
+
+            if (rLayerCount)
+              h[iLayer] = h[iLayer] + v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]];
 
             h[iLayer] = max(0.0, h[iLayer] + sqrt(sigm(h[iLayer])) * h_noise[iLayer]);
             v_master[iLayer + 1][seq(0,0,0,(int)k), layerSize[iLayer]] = h[iLayer] * hMask[iLayer];
@@ -272,7 +275,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
             }
             #pragma omp barrier
             cV[iLayer + 1] = cV_master[iLayer + 1];
-          } else {
+          } else if (rLayerCount) {
             #pragma omp master
             thrust::copy(v_master[iLayer + 1].begin(), v_master[iLayer + 1].end(), v_flat[0].begin());
           }
@@ -366,7 +369,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
               v_master[iLayer] = rearrange_r(V_master[iLayer], rearrangeBlock[iLayer]);
               cudaStreamSynchronize(0);
             }
-          } else { // calculate top-down signal from first RBM
+          } else if (rLayerCount) { // calculate top-down signal from first RBM
             #pragma omp master
             {
               v_flat[0] = prod(v_flat[1], tbblas::trans(W[0]));
@@ -384,7 +387,8 @@ void Sampler::update(IProgressMonitor* monitor) const {
               ch[iLayer - 1] = sum(ch_full[iLayer - 1], dimCount - 1);
               ch[iLayer - 1] = ch[iLayer - 1] + *cc[iLayer - 1][k];
               h[iLayer - 1] = ifft(ch[iLayer - 1], dimCount - 1, iplan_h[iLayer - 1]);
-              h[iLayer - 1] = h[iLayer - 1] + v_master[iLayer][seq(0,0,0,(int)k), layerSize[iLayer - 1]];
+              if (rLayerCount)
+                h[iLayer - 1] = h[iLayer - 1] + v_master[iLayer][seq(0,0,0,(int)k), layerSize[iLayer - 1]];
               h[iLayer - 1] = max(0.0, h[iLayer - 1] + sqrt(sigm(h[iLayer - 1])) * h_noise[iLayer - 1]);
               v_master[iLayer][seq(0,0,0,(int)k), layerSize[iLayer - 1]] = h[iLayer - 1] * hMask[iLayer - 1];
             }
@@ -402,7 +406,7 @@ void Sampler::update(IProgressMonitor* monitor) const {
             }
             #pragma omp barrier
             cV[iLayer] = cV_master[iLayer];
-          } else {
+          } else if (rLayerCount) {
             #pragma omp master
             thrust::copy(v_master[iLayer].begin(), v_master[iLayer].end(), v_flat[0].begin());
           }

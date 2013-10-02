@@ -42,7 +42,6 @@ void CreateDbm::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<v_host_matrix_t> flatBiases(new v_host_matrix_t());
 
   std::vector<boost::shared_ptr<gml::convrbm4d::Model> >& crbms = *getCrbmModels();
-  std::vector<boost::shared_ptr<gml::rbm::Model> >& rbms = *getRbmModels();
 
   for (size_t iLayer = 0; iLayer < crbms.size(); ++iLayer) {
 
@@ -65,7 +64,8 @@ void CreateDbm::update(IProgressMonitor* monitor) const {
             vbias.size()[dimCount - 1] / oldBiases[0]->size()[dimCount - 1] / oldFilters.size();
         blockSize[dimCount - 1] = 1;
         *bias = (*bias + rearrange_r(vbias[offset * iFilter, sliceDim], blockSize)) / 2.0;
-      } else {
+      } else if (getRbmModels()) {
+        std::vector<boost::shared_ptr<gml::rbm::Model> >& rbms = *getRbmModels();
         host_tensor_t vbias(bias->size());
         assert(rbms[0]->getVisibleBiases()->count() == vbias.count() * oldFilters.size());
         thrust::copy(rbms[0]->getVisibleBiases()->begin() + iFilter * vbias.count(),
@@ -80,13 +80,16 @@ void CreateDbm::update(IProgressMonitor* monitor) const {
     masks->push_back(boost::make_shared<host_tensor_t>(*crbms[iLayer]->getMask()));
   }
 
-  for (size_t iLayer = 0; iLayer < rbms.size(); ++iLayer) {
-    boost::shared_ptr<host_matrix_t> bias(new host_matrix_t(*rbms[iLayer]->getHiddenBiases()));
-    if (iLayer < rbms.size() - 1) {
-      *bias = (*bias + *rbms[iLayer + 1]->getVisibleBiases()) / 2.0;
+  if (getRbmModels()) {
+    std::vector<boost::shared_ptr<gml::rbm::Model> >& rbms = *getRbmModels();
+    for (size_t iLayer = 0; iLayer < rbms.size(); ++iLayer) {
+      boost::shared_ptr<host_matrix_t> bias(new host_matrix_t(*rbms[iLayer]->getHiddenBiases()));
+      if (iLayer < rbms.size() - 1) {
+        *bias = (*bias + *rbms[iLayer + 1]->getVisibleBiases()) / 2.0;
+      }
+      flatBiases->push_back(bias);
+      matrices->push_back(boost::make_shared<host_matrix_t>(*rbms[iLayer]->getWeightMatrix()));
     }
-    flatBiases->push_back(bias);
-    matrices->push_back(boost::make_shared<host_matrix_t>(*rbms[iLayer]->getWeightMatrix()));
   }
 
   model->setWeights(weights);
