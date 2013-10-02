@@ -12,7 +12,7 @@
 #include <gapputils/namespaces.h>
 
 #include "DbmModel.h"
-#include "CodingDirection.h"
+#include "../CodingDirection.h"
 
 namespace gml {
 

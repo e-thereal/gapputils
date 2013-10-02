@@ -47,6 +47,7 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(SparsityTarget, trainer);
   CHECK_MEMORY_LAYOUT2(SparsityWeight, trainer);
 
+  CHECK_MEMORY_LAYOUT2(CdIterations, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRate, trainer);
   CHECK_MEMORY_LAYOUT2(LearningDecay, trainer);
   CHECK_MEMORY_LAYOUT2(InitialMomentum, trainer);
@@ -485,25 +486,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
         for (size_t iSample = 0; iSample < batchSize; ++iSample) {
 
-          cudaStreamSynchronize(0);
-          #pragma omp barrier
-
-          // get v
-          #pragma omp master
-          {
-            if (getRandomizeTraining())
-              *cv_master = *cX[rand() % cX.size()];
-            else
-              *cv_master = *cX[iSample + iBatch * batchSize];
-            *cvneg_master = zeros<complex_t>(cv_master->size(), cv_master->fullsize());
-            cudaStreamSynchronize(0);
-          }
-          #pragma omp barrier
-
-          if (tid != 0)
-            cv = *cv_master;
-          cvneg = zeros<complex_t>(cv.size(), cv.fullsize());
-
           // Make the dropout decision
           if (getDropoutMethod() != DropoutMethod::NoDrop && getDropoutStage() == DropoutStage::Sample) {
 
@@ -527,141 +509,200 @@ void Trainer::update(IProgressMonitor* monitor) const {
             #pragma omp barrier
           }
 
-          for (size_t k = tid; k < cF.size(); k += gpuCount) {
+          // Prepare CD iterations
 
-            // There appears to be a problem with the GCC implementation of OpenMP
-            // that causes a syntax error when the continue statement is used.
-
-            if (!dropFilter[k]) {
-
-              /*** BEGIN OF POSITIVE PHASE ***/
-
-              // h_k = sigm(~F_k * v + c)
-              if (getDbmLayer() == DbmLayer::VisibleLayer)
-                ch_full = 2 * conj(*cF[k]) * cv;
-              else
-                ch_full = conj(*cF[k]) * cv;
-              ch = sum(ch_full, dimCount - 1);
-              ch = ch + *cc[k];
-              h2 = ifft(ch, dimCount - 1, iplan_h);
-
-              switch (crbm->getHiddenUnitType()) {
-                case UnitType::Bernoulli: h = sigm(h2); break;
-                case UnitType::ReLU:      h = max(0.0, h2);  break;
-                case UnitType::MyReLU:    h = nrelu_mean(h2); break;
-                case UnitType::ReLU1:     h = min(1.0, max(0.0, h2));  break;
-                case UnitType::ReLU2:     h = min(2.0, max(0.0, h2));  break;
-                case UnitType::ReLU4:     h = min(4.0, max(0.0, h2));  break;
-                case UnitType::ReLU8:     h = min(8.0, max(0.0, h2));  break;
-                default:
-                  dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
-              }
-              if (getDropoutMethod() != DropoutMethod::NoDrop)
-                h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
-              else
-                h = h * hMask;
-
-              // dF_k = ~h * v
-              ch = fft(h, dimCount - 1, plan_h);
-              *cFinc[k] = *cFinc[k] + epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
-              *ccinc[k] = *ccinc[k] + epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
-
-              switch(getSparsityMethod()) {
-              case SparsityMethod::WeightsAndBias:
-                chdiff = getSparsityTarget() * h.count() * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) - ch;
-                *cFinc[k] = *cFinc[k] + epsilonsw * repeat(conj(chdiff), cv.size() / ch.size()) * cv;
-                *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * chdiff;
-                break;
-
-              case SparsityMethod::OnlyBias:
-                chdiff = getSparsityTarget() * h.count() * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) - ch;
-                *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * chdiff;
-                break;
-
-              case SparsityMethod::OnlySharedBias:
-                *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) * (getSparsityTarget() * h.count() + -ch);
-                break;
-              }
-
-              // Sample hidden states
-              switch (crbm->getHiddenUnitType()) {
-                case UnitType::Bernoulli: h = h > h_rand; break;
-                case UnitType::MyReLU:
-                case UnitType::ReLU:      h = max(0.0, h2 + sqrt(sigm(h2)) * h_noise); break;
-                case UnitType::ReLU1:     h = min(1.0, max(0.0, h2 + (h2 > 0) * (h2 < 1.0) * h_noise)); break;
-                case UnitType::ReLU2:     h = min(2.0, max(0.0, h2 + (h2 > 0) * (h2 < 2.0) * h_noise)); break;
-                case UnitType::ReLU4:     h = min(4.0, max(0.0, h2 + (h2 > 0) * (h2 < 4.0) * h_noise)); break;
-                case UnitType::ReLU8:     h = min(8.0, max(0.0, h2 + (h2 > 0) * (h2 < 8.0) * h_noise)); break;
-                default:
-                  dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
-              }
-              if (getDropoutMethod() != DropoutMethod::NoDrop)
-                h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
-              else
-                h = h * hMask;
-
-              ch = fft(h, dimCount - 1, plan_h);
-
-              /*** BEGIN OF NEGATIVE PHASE ***/
-
-              // dvneg = F * h
-              if (getDbmLayer() == DbmLayer::TopLayer)
-                cvneg = cvneg + 2 * *cF[k] * repeat(ch, cF[k]->size() / ch.size());
-              else
-                cvneg = cvneg + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
-            }
-          }
-
-          // Add up local copies
-          #pragma omp critical
-          {
-            if (tid != 0)
-              *cvneg_master = *cvneg_master + cvneg;
-            cudaStreamSynchronize(0);
-          }
+          cudaStreamSynchronize(0);
           #pragma omp barrier
 
-          /*** END OF POSITIVE PHASE ***/
-
+          // get v
           #pragma omp master
           {
-            if (getCalculateError())
-              v = ifft(cv, dimCount - 1, iplan_v);
-
-            //binc = binc + epsilonvb * sum(v);
-            cbinc = cbinc + epsilonvb * mask<complex_t>(cv.size(), cv.fullsize(), vbMaskSize) * cv;
-
-            /*** BEGIN OF NEGATIVE PHASE ***/
-
-            *cvneg_master = *cvneg_master + cb;
-
-            vneg = ifft(*cvneg_master, dimCount - 1, iplan_v);
-
-            switch (crbm->getVisibleUnitType()) {
-              case UnitType::Gaussian: break;
-//              case UnitType::Bernoulli: vneg = sigm(vneg); break;
-              case UnitType::MyReLU:
-              case UnitType::ReLU:      vneg = max(0.0, vneg + sqrt(sigm(vneg)) * v_noise); break;
-              case UnitType::ReLU1:     vneg = min(1.0, max(0.0, vneg + (vneg > 0) * (vneg < 1.0) * v_noise)); break;
-              case UnitType::ReLU2:     vneg = min(2.0, max(0.0, vneg + (vneg > 0) * (vneg < 2.0) * v_noise)); break;
-              case UnitType::ReLU4:     vneg = min(4.0, max(0.0, vneg + (vneg > 0) * (vneg < 4.0) * v_noise)); break;
-              case UnitType::ReLU8:     vneg = min(8.0, max(0.0, vneg + (vneg > 0) * (vneg < 8.0) * v_noise)); break;
-
-              default:
-                dlog(Severity::Warning) << "Unsupported visible unit type: " << crbm->getVisibleUnitType();
-            }
-            vneg = vneg * repeat(hMask, size / layerSize);
-            *cvneg_master = fft(vneg, dimCount - 1, plan_v);
-
-            if (getCalculateError()) {
-              batchError += sqrt(dot((vneg - v) * repeat(hMask, size / layerSize), (vneg - v) * repeat(hMask, size / layerSize)) / voxelCount);
-            }
+            if (getRandomizeTraining())
+              *cvneg_master = *cX[rand() % cX.size()];
+            else
+              *cvneg_master = *cX[iSample + iBatch * batchSize];
             cudaStreamSynchronize(0);
           }
-
-          // Wait until master is done and copy result of cvneg_master to local thread copies
           #pragma omp barrier
 
+
+          for (size_t iCd = 0; iCd <= getCdIterations(); ++iCd) {
+            #pragma omp master
+            {
+              *cv_master = *cvneg_master;
+              *cvneg_master = zeros<complex_t>(cv_master->size(), cv_master->fullsize());
+              cudaStreamSynchronize(0);
+            }
+            #pragma omp barrier
+
+            if (tid != 0)
+              cv = *cv_master;
+            cvneg = zeros<complex_t>(cv.size(), cv.fullsize());
+
+
+            for (size_t k = tid; k < cF.size(); k += gpuCount) {
+
+              // There appears to be a problem with the GCC implementation of OpenMP
+              // that causes a syntax error when the continue statement is used.
+
+              if (!dropFilter[k]) {
+
+                /*** BEGIN OF POSITIVE PHASE ***/
+
+                // h_k = sigm(~F_k * v + c)
+                if (getDbmLayer() == DbmLayer::VisibleLayer)
+                  ch_full = 2 * conj(*cF[k]) * cv;
+                else
+                  ch_full = conj(*cF[k]) * cv;
+                ch = sum(ch_full, dimCount - 1);
+                ch = ch + *cc[k];
+                h2 = ifft(ch, dimCount - 1, iplan_h);
+
+                switch (crbm->getHiddenUnitType()) {
+                  case UnitType::Bernoulli: h = sigm(h2); break;
+                  case UnitType::ReLU:      h = max(0.0, h2);  break;
+                  case UnitType::MyReLU:    h = nrelu_mean(h2); break;
+                  case UnitType::ReLU1:     h = min(1.0, max(0.0, h2));  break;
+                  case UnitType::ReLU2:     h = min(2.0, max(0.0, h2));  break;
+                  case UnitType::ReLU4:     h = min(4.0, max(0.0, h2));  break;
+                  case UnitType::ReLU8:     h = min(8.0, max(0.0, h2));  break;
+                  default:
+                    dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
+                }
+                if (getDropoutMethod() != DropoutMethod::NoDrop)
+                  h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+                else
+                  h = h * hMask;
+
+                // dF_k = ~h * v
+                ch = fft(h, dimCount - 1, plan_h);
+
+                if (iCd == 0) {
+
+                  /* POSITIVE PHASE */
+
+                  *cFinc[k] = *cFinc[k] + epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
+                  *ccinc[k] = *ccinc[k] + epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
+                  switch(getSparsityMethod()) {
+                  case SparsityMethod::WeightsAndBias:
+                    chdiff = getSparsityTarget() * h.count() * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) - ch;
+                    *cFinc[k] = *cFinc[k] + epsilonsw * repeat(conj(chdiff), cv.size() / ch.size()) * cv;
+                    *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * chdiff;
+                    break;
+
+                  case SparsityMethod::OnlyBias:
+                    chdiff = getSparsityTarget() * h.count() * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) - ch;
+                    *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * chdiff;
+                    break;
+
+                  case SparsityMethod::OnlySharedBias:
+                    *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) * (getSparsityTarget() * h.count() + -ch);
+                    break;
+                  }
+                } else if (iCd == getCdIterations()) {
+
+                  /* NEGATIVE PHASE */
+
+                  *cFinc[k] = *cFinc[k] - epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
+                  *ccinc[k] = *ccinc[k] - epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
+                }
+
+
+                // Sample hidden states
+                switch (crbm->getHiddenUnitType()) {
+                  case UnitType::Bernoulli: h = h > h_rand; break;
+                  case UnitType::MyReLU:
+                  case UnitType::ReLU:      h = max(0.0, h2 + sqrt(sigm(h2)) * h_noise); break;
+                  case UnitType::ReLU1:     h = min(1.0, max(0.0, h2 + (h2 > 0) * (h2 < 1.0) * h_noise)); break;
+                  case UnitType::ReLU2:     h = min(2.0, max(0.0, h2 + (h2 > 0) * (h2 < 2.0) * h_noise)); break;
+                  case UnitType::ReLU4:     h = min(4.0, max(0.0, h2 + (h2 > 0) * (h2 < 4.0) * h_noise)); break;
+                  case UnitType::ReLU8:     h = min(8.0, max(0.0, h2 + (h2 > 0) * (h2 < 8.0) * h_noise)); break;
+                  default:
+                    dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
+                }
+                if (getDropoutMethod() != DropoutMethod::NoDrop)
+                  h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+                else
+                  h = h * hMask;
+
+                ch = fft(h, dimCount - 1, plan_h);
+
+                /*** BEGIN OF NEGATIVE PHASE ***/
+
+                if (iCd < getCdIterations()) {
+
+                  // dvneg = F * h
+                  if (getDbmLayer() == DbmLayer::TopLayer)
+                    cvneg = cvneg + 2 * *cF[k] * repeat(ch, cF[k]->size() / ch.size());
+                  else
+                    cvneg = cvneg + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
+                }
+              }
+            }
+
+            #pragma omp master
+            {
+              //binc = binc + epsilonvb * sum(v);
+              if (iCd == 0)
+                cbinc = cbinc + epsilonvb * mask<complex_t>(cv.size(), cv.fullsize(), vbMaskSize) * cv;
+              else if (iCd == getCdIterations())
+                cbinc = cbinc - epsilonvb * mask<complex_t>(cv.size(), cv.fullsize(), vbMaskSize) * cv;
+              cudaStreamSynchronize(0);
+            }
+            #pragma omp barrier
+
+            if (iCd < getCdIterations()) {
+
+              // Add up local copies
+              #pragma omp critical
+              {
+                if (tid != 0)
+                  *cvneg_master = *cvneg_master + cvneg;
+                cudaStreamSynchronize(0);
+              }
+              #pragma omp barrier
+
+              /*** END OF POSITIVE PHASE ***/
+
+              #pragma omp master
+              {
+                if (getCalculateError() && iCd == 0)
+                  v = ifft(cv, dimCount - 1, iplan_v);
+
+                /*** BEGIN OF NEGATIVE PHASE ***/
+
+                *cvneg_master = *cvneg_master + cb;
+
+                vneg = ifft(*cvneg_master, dimCount - 1, iplan_v);
+
+                switch (crbm->getVisibleUnitType()) {
+                  case UnitType::Gaussian: break;
+    //              case UnitType::Bernoulli: vneg = sigm(vneg); break;
+                  case UnitType::MyReLU:
+                  case UnitType::ReLU:      vneg = max(0.0, vneg + sqrt(sigm(vneg)) * v_noise); break;
+                  case UnitType::ReLU1:     vneg = min(1.0, max(0.0, vneg + (vneg > 0) * (vneg < 1.0) * v_noise)); break;
+                  case UnitType::ReLU2:     vneg = min(2.0, max(0.0, vneg + (vneg > 0) * (vneg < 2.0) * v_noise)); break;
+                  case UnitType::ReLU4:     vneg = min(4.0, max(0.0, vneg + (vneg > 0) * (vneg < 4.0) * v_noise)); break;
+                  case UnitType::ReLU8:     vneg = min(8.0, max(0.0, vneg + (vneg > 0) * (vneg < 8.0) * v_noise)); break;
+
+                  default:
+                    dlog(Severity::Warning) << "Unsupported visible unit type: " << crbm->getVisibleUnitType();
+                }
+                vneg = vneg * repeat(hMask, size / layerSize);
+                *cvneg_master = fft(vneg, dimCount - 1, plan_v);
+
+                if (getCalculateError() && iCd == getCdIterations() - 1) {
+                  batchError += sqrt(dot((vneg - v) * repeat(hMask, size / layerSize), (vneg - v) * repeat(hMask, size / layerSize)) / voxelCount);
+                }
+                cudaStreamSynchronize(0);
+              }
+
+              // Wait until master is done and copy result of cvneg_master to local thread copies
+              #pragma omp barrier
+            }
+          }
+
+#ifdef NEGATIVE_PHASE
           if (tid != 0)
             cvneg = *cvneg_master;
 
@@ -706,6 +747,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
           //binc = binc - epsilonvb * sum(vneg);
           #pragma omp master
           cbinc = cbinc -  epsilonvb * mask<complex_t>(cvneg.size(), cvneg.fullsize(), vbMaskSize) * cvneg;
+#endif
+
         } /* end of sample */
 
         for (size_t k = tid; k < cF.size(); k += gpuCount) {

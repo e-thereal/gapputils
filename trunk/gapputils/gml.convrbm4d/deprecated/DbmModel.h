@@ -8,7 +8,7 @@
 #ifndef GML_DBMMODEL_H_
 #define GML_DBMMODEL_H_
 
-#include "Model.h"
+#include "../Model.h"
 
 namespace gml {
 
