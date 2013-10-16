@@ -11,11 +11,16 @@
 
 #include <capputils/ReflectableClassFactory.h>
 #include <capputils/DeprecatedAttribute.h>
+#include <capputils/DescriptionAttribute.h>
+#include <capputils/InputAttribute.h>
+#include <capputils/OutputAttribute.h>
+#include <capputils/NoParameterAttribute.h>
 
 #include <boost/typeof/std/utility.hpp>
 
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/WorkflowInterface.h>
+#include <sstream>
 
 #define ONLY_WORKFLOWELEMENTS
 
@@ -45,10 +50,41 @@ QTreeWidgetItem* newCategory(const string& name) {
   return item;
 }
 
-QTreeWidgetItem* newTool(const string& name, const string& classname) {
+QTreeWidgetItem* newTool(const string& name, const string& classname, reflection::ReflectableClass* object) {
+  std::stringstream toolTip, inputs, outputs, parameters;
+
+  attributes::DescriptionAttribute* description;
+  std::vector<reflection::IClassProperty*>& properties = object->getProperties();
+
+  for (size_t i = 0; i < properties.size(); ++i) {
+    if (properties[i]->getAttribute<InputAttribute>()) {
+      inputs << "<tr><td style=\"padding:0 8px 0 8px;\">" << properties[i]->getName() << "</td>";
+      if ((description = properties[i]->getAttribute<DescriptionAttribute>()))
+        inputs << "<td style=\"padding:0 8px 0 8px;\">" << description->getDescription() << "</td>";
+      inputs << "</tr>";
+    } else if (properties[i]->getAttribute<OutputAttribute>()) {
+      outputs << "<tr><td style=\"padding:0 8px 0 8px;\">" << properties[i]->getName() << "</td>";
+      if ((description = properties[i]->getAttribute<DescriptionAttribute>()))
+        outputs << "<td style=\"padding:0 8px 0 8px;\">" << description->getDescription() << "</td>";
+      outputs << "</tr>";
+    }
+  }
+
+  toolTip << "<html>";
+  toolTip << "<h3>" << name << "</h3>";
+  if ((description = object->getAttribute<DescriptionAttribute>()))
+    toolTip << description->getDescription();
+  if (inputs.str().length())
+    toolTip << "<h4>Input</h4><p><table>" << inputs.str() << "</table></p>";
+  if (inputs.str().length())
+    toolTip << "<h4>Output</h4><p><table>" << outputs.str() << "</table></p>";
+  toolTip << "</html>";
+
   QTreeWidgetItem* item = new QTreeWidgetItem();
   item->setText(0, name.c_str());
   item->setData(0, Qt::UserRole, QVariant::fromValue(QString(classname.c_str())));
+
+  item->setToolTip(0, toolTip.str().c_str());
 
   return item;
 }
@@ -88,7 +124,7 @@ void updateToolBox(QTreeWidget* toolBox, std::map<QTreeWidgetItem*, boost::share
       delete object;
       continue;
     }
-    delete object;
+
 //#endif
 
     int pos = name.find_last_of(":");
@@ -101,6 +137,7 @@ void updateToolBox(QTreeWidget* toolBox, std::map<QTreeWidgetItem*, boost::share
     if (!currentGroupString.compare("gapputils::host::internal") ||
         !currentGroupString.compare("gapputils::workflow"))
     {
+      delete object;
       continue;
     }
 
@@ -189,12 +226,13 @@ void updateToolBox(QTreeWidget* toolBox, std::map<QTreeWidgetItem*, boost::share
 #endif
 
     if (item) {
-      QTreeWidgetItem* toolItem = newTool(name.substr(pos+1), name);
+      QTreeWidgetItem* toolItem = newTool(name.substr(pos+1), name, object);
       toolBoxItems[item]->push_back(toolItem);
       item->addChild(toolItem);
     } else {
-      toolBox->addTopLevelItem(newTool(name.substr(pos+1), name));
+      toolBox->addTopLevelItem(newTool(name.substr(pos+1), name, object));
     }
+    delete object;
   }
   //toolBox->expandAll();
 }
