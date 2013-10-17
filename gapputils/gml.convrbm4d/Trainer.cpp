@@ -11,12 +11,12 @@ namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(Trainer)
+BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using CD-n learning. Can also be used for layer-wise pretraining of DBMs (see the DbmLayer parameter)."))
 
   ReflectableBase(DefaultWorkflowElement<Trainer>)
 
-  WorkflowProperty(InitialModel, Input("CRBM")/*, NotNull<Type>()*/)
-  WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(InitialModel, Input("CRBM"), NotNull<Type>(), Description("Required initial model. The initial model can be a previously trained model, are a new model initialized using Initialize"))
+  WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>(), Description("The training set."))
   WorkflowProperty(DbmLayer, Enumerator<Type>())
 
   WorkflowProperty(EpochCount, Description("Number of sweeps through the entire training set."))
@@ -47,7 +47,7 @@ BeginPropertyDefinitions(Trainer)
   WorkflowProperty(UpdateModel, Description("If greater than 0, the model is updated every <UpdateModel> epochs."))
 
   WorkflowProperty(CurrentEpoch, NoParameter())
-  WorkflowProperty(Model, Output("CRBM"))
+  WorkflowProperty(Model, Output("CRBM"), Description("The trained model."))
   WorkflowProperty(ModelIncrement, Output("Inc"))
   WorkflowProperty(AverageEpochTime, Output("T"))
   WorkflowProperty(ReconstructionError, NoParameter())

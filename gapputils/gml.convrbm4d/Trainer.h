@@ -52,6 +52,7 @@ public:
 
   // Learning algorithm parameters
   Property(CdIterations, int)
+  int dummy4;
   Property(LearningRate, double)
   Property(LearningDecay, double)
   Property(InitialMomentum, double)
