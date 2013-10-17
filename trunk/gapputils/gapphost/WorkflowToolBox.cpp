@@ -76,7 +76,7 @@ QTreeWidgetItem* newTool(const string& name, const string& classname, reflection
     toolTip << description->getDescription();
   if (inputs.str().length())
     toolTip << "<h4>Input</h4><p><table>" << inputs.str() << "</table></p>";
-  if (inputs.str().length())
+  if (outputs.str().length())
     toolTip << "<h4>Output</h4><p><table>" << outputs.str() << "</table></p>";
   toolTip << "</html>";
 
