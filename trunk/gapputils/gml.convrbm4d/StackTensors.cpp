@@ -13,12 +13,12 @@ namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(StackTensors)
+BeginPropertyDefinitions(StackTensors, Description("Stacks multiple tensors into one multi-channel tensor."))
 
   ReflectableBase(DefaultWorkflowElement<StackTensors>)
 
-  WorkflowProperty(InputTensors, Input(""), NotNull<Type>(), NotEmpty<Type>(), Merge<Type>())
-  WorkflowProperty(OutputTensor, Output(""))
+  WorkflowProperty(InputTensors, Input(""), NotNull<Type>(), NotEmpty<Type>(), Merge<Type>(), Description("Input tensors with possible more than 1 channel."))
+  WorkflowProperty(OutputTensor, Output(""), Description("Multi-channels output tensor"))
 
 EndPropertyDefinitions
 
