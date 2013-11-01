@@ -26,6 +26,9 @@
 #include <fstream>
 #include <omp.h>
 
+#include <convnet/nvmatrix.cuh>
+#include <convnet/cudaconv2.cuh>
+
 #include "math.hpp"
 
 // All monitoring code is enclosed by #ifdef MONITOR_TRAINING blocks
@@ -44,6 +47,7 @@ Trainer2Checker::Trainer2Checker() {
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(GpuCount, trainer);
   CHECK_MEMORY_LAYOUT2(FilterMethod, trainer);
+  CHECK_MEMORY_LAYOUT2(Stride, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRateW, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRateVB, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRateHB, trainer);
@@ -104,6 +108,11 @@ void Trainer2::update(IProgressMonitor* monitor) const {
     dlog(Severity::Warning) << "Only '" << SparsityMethod::OnlySharedBias << "' is supported as a sparsity method. Sparsity method will be treated as 'OnlySharedBias'.";
   }
 
+  if (getFilterMethod() == FilterMethod::ConvNet && (getTensors()->at(0)->size()[0] / getStride() > 128 || getTensors()->at(0)->size()[1] / getStride() > 128 || getTensors()->at(0)->size()[2] > 1)) {
+    dlog(Severity::Warning) << "Invalid input dimension. Only 2D images with a maximum resolution of 128 x 128 are supported. Aborting!";
+    return;
+  }
+
 //  if (deviceCount < gpuCount) {
 //    dlog(Severity::Warning) << "Only " << deviceCount << " CUDA-enabled devices found, where " << gpuCount << " are required according to GpuCount. Aborting!";
 //    return;
@@ -140,6 +149,7 @@ void Trainer2::update(IProgressMonitor* monitor) const {
   const size_t batchSize = getBatchSize();
   const size_t batchCount = tensors.size() / batchSize;
   const size_t epochCount = getEpochCount();
+  const int stride = getStride();
 
   std::vector<boost::shared_ptr<host_tensor_t> > X;
 
@@ -363,6 +373,12 @@ void Trainer2::update(IProgressMonitor* monitor) const {
     }
   #endif
 
+    NVMatrix nvVisibles, nvWeights, nvHiddens;
+    if (getFilterMethod() == FilterMethod::ConvNet) {
+      nvVisibles.resize(b.count(), batchSize);
+      nvWeights.resize(F[0]->count(), F.size());
+    }
+
     START
     for (size_t iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
       #pragma omp master
@@ -381,6 +397,7 @@ void Trainer2::update(IProgressMonitor* monitor) const {
 
       for (size_t iBatch = 0; iBatch < batchCount; ++iBatch) {
         #pragma omp master
+
         batchError = 0;
 
   #ifdef MONITOR_TRAINING
@@ -395,6 +412,46 @@ void Trainer2::update(IProgressMonitor* monitor) const {
 
         #pragma omp master
         binc = momentum * binc;
+
+        if (getFilterMethod() == FilterMethod::ConvNet) {
+          /**
+           * void convFilterActs(NVMatrix& images, NVMatrix& filters, NVMatrix& targets,
+                         int imgSizeY, int numModulesY, int numModulesX,
+                         int paddingStart, int moduleStride, int numImgColors, int numGroups);
+
+             void convWeightActs(NVMatrix& images, NVMatrix& hidActs, NVMatrix& targets,
+                         int imgSizeY, int numModulesY, int numModulesX, int filterSize,
+                         int paddingStart, int moduleStride, int numImgColors, int numGroups, int partialSum);
+
+             void convImgActs(NVMatrix& hidActs, NVMatrix& filters, NVMatrix& targets,
+                         int imgSizeY, int imgSizeX, int numModulesY,
+                         int paddingStart, int moduleStride, int numImgColors, int numGroups);
+           */
+
+          // Positive Phase
+
+          convFilterActs(nvVisibles, nvWeights, nvHiddens,
+              b.size()[1] * stride, c[0]->size()[1], c[0]->size()[0],
+              -(F[0]->size()[1] * stride - 1) / 2, stride, b.size()[3] / (stride * stride), 1);
+
+          convWeightActs(nvVisibles, nvHiddens, nvWeights,
+              b.size()[1] * stride, c[0]->size()[1], c[0]->size()[0], F[0]->size()[0] * stride,
+              -(F[0]->size()[1] * stride - 1) / 2, stride, b.size()[3] / (stride * stride), 1, false);
+
+          // Negative Phase
+
+          convImgActs(nvHiddens, nvWeights, nvVisibles,
+              b.size()[1] * stride, b.size()[0] * stride, c[0]->size()[1],
+              -(F[0]->size()[1] * stride - 1) / 2, stride, b.size()[3] / (stride * stride), 1);
+
+          convFilterActs(nvVisibles, nvWeights, nvHiddens,
+              b.size()[1] * stride, c[0]->size()[1], c[0]->size()[0],
+              -(F[0]->size()[1] * stride - 1) / 2, stride, b.size()[3] / (stride * stride), 1);
+
+          convWeightActs(nvVisibles, nvHiddens, nvWeights,
+              b.size()[1] * stride, c[0]->size()[1], c[0]->size()[0], F[0]->size()[0] * stride,
+              -(F[0]->size()[1] * stride - 1) / 2, stride, b.size()[3] / (stride * stride), 1, false);
+        }
 
         for (size_t iSample = 0; iSample < batchSize; ++iSample) {
 
@@ -444,9 +501,17 @@ void Trainer2::update(IProgressMonitor* monitor) const {
             case FilterMethod::OptimizedConvolution:
               h_full = filter3d(v, *F[k], optimized());
               break;
+
+            case FilterMethod::ConvNet:
+            case FilterMethod::NoConv:
+              h_full.resize(v.size(), v.fullsize());
+              break;
             }
 
-            h = sum(h_full, dimCount - 1);
+            if (getFilterMethod() != FilterMethod::ConvNet && getFilterMethod() != FilterMethod::NoConv)
+              h = sum(h_full, dimCount - 1);
+            else
+              h.resize(layerSize, layerSize);
             h2 = h + *c[k];
 
             switch (crbm->getHiddenUnitType()) {
@@ -462,19 +527,23 @@ void Trainer2::update(IProgressMonitor* monitor) const {
             }
 
             // dF_k = ~h * v
-            if (iEpoch == 0 && iBatch == 0 && iSample == 0)
+            if (iEpoch == 0 && iBatch == 0 && iSample == 0) {
               f = filter(v, repeat(flip(h), v.size() / h.size()), F[k]->size(), dimCount - 1);
-
-            switch (getFilterMethod()) {
-            case FilterMethod::FFT:
-              f = filter(v, repeat(flip(h), v.size() / h.size()), F[k]->size(), dimCount - 1);
-              break;
-            case FilterMethod::NaiveConvolution:
-              h_full = filter3d(v, *F[k], naive());
-              break;
-            case FilterMethod::OptimizedConvolution:
-              h_full = filter3d(v, *F[k], optimized());
-              break;
+            } else {
+              switch (getFilterMethod()) {
+              case FilterMethod::FFT:
+                f = filter(v, repeat(flip(h), v.size() / h.size()), F[k]->size(), dimCount - 1);
+                break;
+              case FilterMethod::NaiveConvolution:
+                h_full = filter3d(v, *F[k], naive());
+                break;
+              case FilterMethod::OptimizedConvolution:
+                h_full = filter3d(v, *F[k], optimized());
+                break;
+              case FilterMethod::ConvNet:
+              case FilterMethod::NoConv:
+                break;
+              }
             }
             *Finc[k] = *Finc[k] + epsilonw * f;
             *cinc[k] = *cinc[k] + epsilonhb * h;
@@ -519,17 +588,21 @@ void Trainer2::update(IProgressMonitor* monitor) const {
             /*** BEGIN OF NEGATIVE PHASE ***/
 
             // dvneg = F * h
-            if (iEpoch == 0 && iBatch == 0 && iSample == 0)
-              v2 = filter(repeat(h, v.size() / h.size()), *F[k], dimCount - 1);
             switch (getFilterMethod()) {
             case FilterMethod::FFT:
               v2 = filter(repeat(h, v.size() / h.size()), *F[k], dimCount - 1);
               break;
             case FilterMethod::NaiveConvolution:
               h_full = filter3d(v, *F[k], naive());
+              v2.resize(v.size(), v.fullsize());
               break;
             case FilterMethod::OptimizedConvolution:
               h_full = filter3d(v, *F[k], optimized());
+              v2.resize(v.size(), v.fullsize());
+              break;
+            case FilterMethod::ConvNet:
+            case FilterMethod::NoConv:
+              v2.resize(v.size(), v.fullsize());
               break;
             }
             vneg = vneg + v2;
@@ -616,8 +689,14 @@ void Trainer2::update(IProgressMonitor* monitor) const {
             case FilterMethod::OptimizedConvolution:
               h_full = filter3d(vneg, *F[k], optimized());
               break;
+            case FilterMethod::ConvNet:
+            case FilterMethod::NoConv:
+              break;
             }
-            h = sum(h_full, dimCount - 1);
+            if (getFilterMethod() != FilterMethod::ConvNet && getFilterMethod() != FilterMethod::NoConv)
+              h = sum(h_full, dimCount - 1);
+            else
+              h.resize(layerSize, layerSize);
             h2 = h + *c[k];
 
             switch (crbm->getHiddenUnitType()) {
@@ -642,6 +721,9 @@ void Trainer2::update(IProgressMonitor* monitor) const {
               break;
             case FilterMethod::OptimizedConvolution:
               h_full = filter3d(vneg, *F[k], optimized());
+              break;
+            case FilterMethod::ConvNet:
+            case FilterMethod::NoConv:
               break;
             }
             *Finc[k] = *Finc[k] - epsilonw * f;

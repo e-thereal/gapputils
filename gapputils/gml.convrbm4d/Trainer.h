@@ -42,8 +42,8 @@ public:
   // Data set size dependent parameters
   Property(EpochCount, int)
   Property(BatchSize, int)
+  Property(FilterBatchSize, int)
   Property(GpuCount, int)
-  int dummy;
 
   // Sparsity parameters
   Property(SparsityMethod, SparsityMethod)
