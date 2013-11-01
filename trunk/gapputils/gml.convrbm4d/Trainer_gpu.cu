@@ -5,6 +5,9 @@
  *      Author: tombr
  */
 
+//#define TBBLAS_INTERRUPT_ALLOC_ENABLED
+//#define TBBLAS_ALLOC_WARNING_ENABLED
+
 #include "Trainer.h"
 
 #include <tbblas/math.hpp>
@@ -25,6 +28,9 @@
 #include <omp.h>
 
 #include "math.hpp"
+#include "mult_sum.hpp"
+#include "repeat_mult.hpp"
+#include "repeat_mult_sum.hpp"
 
 #include "TensorWriter.h"
 
@@ -41,6 +47,7 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(DbmLayer, trainer);
   CHECK_MEMORY_LAYOUT2(EpochCount, trainer);
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
+  CHECK_MEMORY_LAYOUT2(FilterBatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(GpuCount, trainer);
 
   CHECK_MEMORY_LAYOUT2(SparsityMethod, trainer);
@@ -134,13 +141,23 @@ void Trainer::update(IProgressMonitor* monitor) const {
   /*** SETUP TRAINING PARAMETERS ***/
 
   const size_t batchSize = getBatchSize();
+  const size_t filterBatchLength = getFilterBatchSize();
   const size_t batchCount = getTensors()->size() / batchSize;
   const size_t epochCount = getEpochCount();
 
+  if (filterBatchLength > getInitialModel()->getFilters()->size() ||
+      getInitialModel()->getFilters()->size() % filterBatchLength != 0)
+  {
+    dlog(Severity::Warning) << "Invalid FilterBatchSize. Aborting!";
+    return;
+  }
+
   // Prepare sizes
   dim_t size = getTensors()->at(0)->size();
-  dim_t layerSize = size;
+  dim_t layerSize = size, layerBatchSize = size, filterBatchSize = size;
   layerSize[dimCount - 1] = 1;
+  filterBatchSize[dimCount - 1] = size[dimCount - 1] * filterBatchLength;
+  layerBatchSize[dimCount - 1] = filterBatchLength;
 
   size_t layerVoxelCount = 1;
   size_t voxelCount = sum(*getInitialModel()->getMask()) * size[dimCount - 1];
@@ -178,7 +195,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     crbm->setMask(boost::make_shared<host_tensor_t>(*oldCrbm->getMask()));
 
     // Prepare an early memory clean up of the old model
-    // The trainer holds to pointers to the model, hence if the use_count is 2
+    // The trainer holds two pointers to the model, hence if the use_count is 2
     // no other modules have any business with the old model any more
     if (getAtomicWorkflow() && oldCrbm.use_count() == 2) {
       oldCrbm->setFilters(boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >());
@@ -241,9 +258,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
   }
   dlog() << "FFTs precalculated.";
 
-  std::vector<boost::shared_ptr<ctensor_t> > cF(filters->size()), cFinc(filters->size());
-  std::vector<boost::shared_ptr<tensor_t> > drops(filters->size());
+  std::vector<boost::shared_ptr<ctensor_t> > cF(filters->size() / filterBatchLength), cFinc(cF.size());
+#ifdef DROPOUT
+  std::vector<boost::shared_ptr<tensor_t> > drops(cF.size());
   std::vector<bool> dropFilter(filters->size());
+#endif
 
   // Copy visible bias to the device
   ctensor_t cb, cbinc;
@@ -259,13 +278,15 @@ void Trainer::update(IProgressMonitor* monitor) const {
   }
   b.reset();
 
-  std::vector<boost::shared_ptr<ctensor_t> > cc(c->size()), ccinc(c->size());
+  std::vector<boost::shared_ptr<ctensor_t> > cc(c->size() / filterBatchLength), ccinc(cc.size());
 
   // Declare variables used for training
   tensor_t v, vneg;           // to monitor training (calculate the error)
   ctensor_t* cv_master;      // Read from the master thread and then each other thread reads from the master device
   ctensor_t* cvneg_master;   // All threads add their version to the master threads version (needs to be synchronized)
+#ifdef DROPOUT
   tensor_t drop_master;
+#endif
   v.set_name("v");
   vneg.set_name("vneg");
 
@@ -302,17 +323,21 @@ void Trainer::update(IProgressMonitor* monitor) const {
     assert(tid == 0);   // Check the assumption that the first thread is the master thread
 
     // FFT plans
-    plan_t plan_h, iplan_h, plan_v, iplan_v;
+    plan_t plan_h, iplan_h, plan_v, iplan_v;  // h is always a batch of hs
 
     // Copy filters to the device and pre-calculate the FFT
     {
       tensor_t f, k, p;   // filter, kernel, padded kernel
       ctensor_t cf;
-      for (size_t i = tid; i < filters->size(); i += gpuCount) {
-        k = *filters->at(i);
-        dim_t topleft = size / 2 - k.size() / 2;
-        p = zeros<value_t>(size);
-        p[topleft, k.size()] = k;
+      for (size_t i = tid; i < cF.size(); i += gpuCount) {
+
+        p = zeros<value_t>(filterBatchSize);
+        for (size_t j = 0; j < filterBatchLength; ++j) {
+          k = *filters->at(i * filterBatchLength + j);
+          dim_t topleft = size / 2 - k.size() / 2;
+          topleft[dimCount - 1] = j * size[dimCount - 1];
+          p[topleft, k.size()] = k;
+        }
         f = ifftshift(p, dimCount - 1);
 
 //        f = *filters->at(i);
@@ -330,17 +355,22 @@ void Trainer::update(IProgressMonitor* monitor) const {
       }
     }
     {
-      tensor_t h;
+      tensor_t h, hBatch(layerBatchSize);
       ctensor_t ch;
-      for (size_t i = tid; i < c->size(); i += gpuCount) {
-        h = *c->at(i);
-        if (getShareBiasTerms())
-          h = ones<value_t>(h.size()) * sum(h) / h.count();
-        ch = fft(h, dimCount - 1, plan_h);
+      for (size_t i = tid; i < cc.size(); i += gpuCount) {
+        for (int j = 0; j < filterBatchLength; ++j) {
+          h = *c->at(i);
+          if (getShareBiasTerms())
+            h = ones<value_t>(h.size()) * sum(h) / h.count();
+          hBatch[seq(0,0,0,j),layerSize] = h;
+        }
+        ch = fft(hBatch, dimCount - 1, plan_h);
         cc[i] = boost::make_shared<ctensor_t>(ch);
         ch = zeros<complex_t>(ch.size(), ch.fullsize());
         ccinc[i] = boost::make_shared<ctensor_t>(ch);
+#ifdef DROPOUT
         drops[i] = boost::make_shared<tensor_t>();
+#endif
       }
       cudaStreamSynchronize(0);
       #pragma omp barrier
@@ -369,7 +399,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     random_tensor<value_t, dimCount, true, normal<value_t> > v_noise;
 
     if (getDropoutMethod() != DropoutMethod::NoDrop || crbm->getHiddenUnitType() == UnitType::Bernoulli)
-      h_rand.resize(layerSize, tid);
+      h_rand.resize(layerBatchSize, tid);
 
     if (crbm->getHiddenUnitType() == UnitType::MyReLU ||
         crbm->getHiddenUnitType() == UnitType::ReLU ||
@@ -377,7 +407,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         crbm->getHiddenUnitType() == UnitType::ReLU2 ||
         crbm->getHiddenUnitType() == UnitType::ReLU4)
     {
-      h_noise.resize(layerSize, tid);
+      h_noise.resize(layerBatchSize, tid);
     }
 
     if (crbm->getVisibleUnitType() == UnitType::MyReLU ||
@@ -428,6 +458,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
       #pragma omp barrier
 
       // Make the dropout decision
+#ifdef DROPOUT
       if (getDropoutMethod() != DropoutMethod::NoDrop && getDropoutStage() == DropoutStage::Epoch) {
 
         // Decide which units and filters to drop
@@ -448,6 +479,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         }
         #pragma omp barrier
       }
+#endif
 
       for (size_t iBatch = 0; iBatch < batchCount; ++iBatch) {
         #pragma omp master
@@ -462,6 +494,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         cbinc = momentum * cbinc;
 
         // Make the dropout decision
+#ifdef DROPOUT
         if (getDropoutMethod() != DropoutMethod::NoDrop && getDropoutStage() == DropoutStage::Batch) {
 
           // Decide which units and filters to drop
@@ -483,10 +516,12 @@ void Trainer::update(IProgressMonitor* monitor) const {
           }
           #pragma omp barrier
         }
+#endif
 
         for (size_t iSample = 0; iSample < batchSize; ++iSample) {
 
           // Make the dropout decision
+#ifdef DROPOUT
           if (getDropoutMethod() != DropoutMethod::NoDrop && getDropoutStage() == DropoutStage::Sample) {
 
             // Decide which units and filters to drop
@@ -508,6 +543,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
             }
             #pragma omp barrier
           }
+#endif
 
           // Prepare CD iterations
 
@@ -539,22 +575,28 @@ void Trainer::update(IProgressMonitor* monitor) const {
               cv = *cv_master;
             cvneg = zeros<complex_t>(cv.size(), cv.fullsize());
 
-
             for (size_t k = tid; k < cF.size(); k += gpuCount) {
 
               // There appears to be a problem with the GCC implementation of OpenMP
               // that causes a syntax error when the continue statement is used.
-
-              if (!dropFilter[k]) {
+#ifdef DROPOUT
+              if (!dropFilter[k])
+#endif
+              {
 
                 /*** BEGIN OF POSITIVE PHASE ***/
 
                 // h_k = sigm(~F_k * v + c)
+//                if (getDbmLayer() == DbmLayer::VisibleLayer)
+//                  ch_full = 2 * conj(*cF[k]) * cv;
+//                else
+//                  ch_full = conj(*cF[k]) * cv;
+//                ch = sum(ch_full, dimCount - 1);
+
+                ch = conj_mult_sum(cv, *cF[k]);
                 if (getDbmLayer() == DbmLayer::VisibleLayer)
-                  ch_full = 2 * conj(*cF[k]) * cv;
-                else
-                  ch_full = conj(*cF[k]) * cv;
-                ch = sum(ch_full, dimCount - 1);
+                  ch = 2 * ch;
+
                 ch = ch + *cc[k];
                 h2 = ifft(ch, dimCount - 1, iplan_h);
 
@@ -569,10 +611,12 @@ void Trainer::update(IProgressMonitor* monitor) const {
                   default:
                     dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
                 }
+#ifdef DROPOUT
                 if (getDropoutMethod() != DropoutMethod::NoDrop)
                   h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
                 else
-                  h = h * hMask;
+#endif
+                  h = h * repeat(hMask, h.size() / hMask.size());
 
                 // dF_k = ~h * v
                 ch = fft(h, dimCount - 1, plan_h);
@@ -581,7 +625,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
                   /* POSITIVE PHASE */
 
-                  *cFinc[k] = *cFinc[k] + epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
+                  // TODO: Rework sparsity methods for batched hidden units
+
+//                  *cFinc[k] = *cFinc[k] + epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
+                  *cFinc[k] += conj_repeat_mult(cv, ch, epsilonw);
                   *ccinc[k] = *ccinc[k] + epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
                   switch(getSparsityMethod()) {
                   case SparsityMethod::WeightsAndBias:
@@ -603,39 +650,41 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
                   /* NEGATIVE PHASE */
 
-                  *cFinc[k] = *cFinc[k] - epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
+//                  *cFinc[k] = *cFinc[k] - epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
+                  *cFinc[k] += conj_repeat_mult(cv, ch, -epsilonw);
                   *ccinc[k] = *ccinc[k] - epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
                 }
 
-
-                // Sample hidden states
-                switch (crbm->getHiddenUnitType()) {
-                  case UnitType::Bernoulli: h = h > h_rand; break;
-                  case UnitType::MyReLU:
-                  case UnitType::ReLU:      h = max(0.0, h2 + sqrt(sigm(h2)) * h_noise); break;
-                  case UnitType::ReLU1:     h = min(1.0, max(0.0, h2 + (h2 > 0) * (h2 < 1.0) * h_noise)); break;
-                  case UnitType::ReLU2:     h = min(2.0, max(0.0, h2 + (h2 > 0) * (h2 < 2.0) * h_noise)); break;
-                  case UnitType::ReLU4:     h = min(4.0, max(0.0, h2 + (h2 > 0) * (h2 < 4.0) * h_noise)); break;
-                  case UnitType::ReLU8:     h = min(8.0, max(0.0, h2 + (h2 > 0) * (h2 < 8.0) * h_noise)); break;
-                  default:
-                    dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
-                }
-                if (getDropoutMethod() != DropoutMethod::NoDrop)
-                  h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
-                else
-                  h = h * hMask;
-
-                ch = fft(h, dimCount - 1, plan_h);
-
-                /*** BEGIN OF NEGATIVE PHASE ***/
+                /*** RECONSTRUCT FROM SAMPLES ***/
 
                 if (iCd < getCdIterations()) {
+                  // Sample hidden states
+                  switch (crbm->getHiddenUnitType()) {
+                    case UnitType::Bernoulli: h = h > h_rand; break;
+                    case UnitType::MyReLU:
+                    case UnitType::ReLU:      h = max(0.0, h2 + sqrt(sigm(h2)) * h_noise); break;
+                    case UnitType::ReLU1:     h = min(1.0, max(0.0, h2 + (h2 > 0) * (h2 < 1.0) * h_noise)); break;
+                    case UnitType::ReLU2:     h = min(2.0, max(0.0, h2 + (h2 > 0) * (h2 < 2.0) * h_noise)); break;
+                    case UnitType::ReLU4:     h = min(4.0, max(0.0, h2 + (h2 > 0) * (h2 < 4.0) * h_noise)); break;
+                    case UnitType::ReLU8:     h = min(8.0, max(0.0, h2 + (h2 > 0) * (h2 < 8.0) * h_noise)); break;
+                    default:
+                      dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm->getVisibleUnitType();
+                  }
+#ifdef DROPOUT
+                  if (getDropoutMethod() != DropoutMethod::NoDrop)
+                    h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+                  else
+#endif
+                    h = h * repeat(hMask, h.size() / hMask.size());
+
+                  ch = fft(h, dimCount - 1, plan_h);
 
                   // dvneg = F * h
-                  if (getDbmLayer() == DbmLayer::TopLayer)
-                    cvneg = cvneg + 2 * *cF[k] * repeat(ch, cF[k]->size() / ch.size());
-                  else
-                    cvneg = cvneg + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
+//                  if (getDbmLayer() == DbmLayer::TopLayer)
+//                    cvneg = cvneg + 2 * *cF[k] * repeat(ch, cF[k]->size() / ch.size());
+//                  else
+//                    cvneg = cvneg + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
+                  cvneg += repeat_mult_sum(ch, *cF[k]);
                 }
               }
             }
@@ -671,12 +720,16 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
                 /*** BEGIN OF NEGATIVE PHASE ***/
 
-                *cvneg_master = *cvneg_master + cb;
+                if (getDbmLayer() == DbmLayer::TopLayer)
+                  *cvneg_master = 2 * *cvneg_master + cb;
+                else
+                  *cvneg_master = *cvneg_master + cb;
 
                 vneg = ifft(*cvneg_master, dimCount - 1, iplan_v);
 
                 switch (crbm->getVisibleUnitType()) {
                   case UnitType::Gaussian: break;
+                  // TODO: implement binary visible units
     //              case UnitType::Bernoulli: vneg = sigm(vneg); break;
                   case UnitType::MyReLU:
                   case UnitType::ReLU:      vneg = max(0.0, vneg + sqrt(sigm(vneg)) * v_noise); break;
@@ -752,9 +805,15 @@ void Trainer::update(IProgressMonitor* monitor) const {
         } /* end of sample */
 
         for (size_t k = tid; k < cF.size(); k += gpuCount) {
-          f = ifft(*cFinc[k], dimCount - 1, iplan_v);
-          f = f * mask<value_t>(f.size(), crbm->getFilterKernelSize());
-          *cFinc[k] = fft(f, dimCount - 1, plan_v);
+          // Mask filters
+          for (int j = 0; j < filterBatchLength; ++j) {
+            cv = (*cFinc[k])[seq(0,0,0,j*cv.size()[3]), cv.size()];
+            cv.set_fullsize(cX[0]->fullsize());
+            f = ifft(cv, dimCount - 1, iplan_v);
+            f = f * mask<value_t>(f.size(), crbm->getFilterKernelSize());
+            cv = fft(f, dimCount - 1, plan_v);
+            (*cFinc[k])[seq(0,0,0,j*cv.size()[3]), cv.size()] = cv;
+          }
           *cF[k] = *cF[k] + *cFinc[k];
           *cc[k] = *cc[k] + *ccinc[k];
         }
@@ -854,26 +913,38 @@ void Trainer::update(IProgressMonitor* monitor) const {
     // Free up memory
     for (size_t k = tid; k < cF.size(); k += gpuCount) {
       cFinc[k] = ccinc[k] = boost::shared_ptr<ctensor_t>();
+#ifdef DROPOUT
       drops[k] = boost::shared_ptr<tensor_t>();
+#endif
     }
 
     {
       tensor_t hb, p, k;
       for (size_t i = tid; i < cF.size(); i += gpuCount) {
-        dim_t topleft = size / 2 - crbm->getFilterKernelSize() / 2;
 
-        f = ifft(*cF[i], dimCount - 1, iplan_v);
-        p = fftshift(f, dimCount - 1);
-        k = p[topleft, crbm->getFilterKernelSize()];
 
-        if (getDbmLayer() == DbmLayer::IntermediateLayer)
-          filters->at(i) = boost::make_shared<host_tensor_t>(0.5 * k);
-        else
-          filters->at(i) = boost::make_shared<host_tensor_t>(k);
+        for (int j = 0; j < filterBatchLength; ++j) {
+          dim_t topleft = size / 2 - crbm->getFilterKernelSize() / 2, fullsize = cv.fullsize();
+          cv = (*cF[i])[seq(0,0,0,j*cv.size()[3]), cv.size()];
+          cv.set_fullsize(fullsize);
+          f = ifft(cv, dimCount - 1, iplan_v);
+          p = fftshift(f, dimCount - 1);
+          k = p[topleft, crbm->getFilterKernelSize()];
 
-        hb = ifft(*cc[i], dimCount - 1, iplan_h);
-        hb = hb * (abs(hb) > 1e-16);
-        c->at(i) = boost::make_shared<host_tensor_t>(hb);
+          if (getDbmLayer() == DbmLayer::IntermediateLayer)
+            filters->at(i * filterBatchLength + j) = boost::make_shared<host_tensor_t>(0.5 * k);
+          else
+            filters->at(i * filterBatchLength + j) = boost::make_shared<host_tensor_t>(k);
+        }
+
+
+        h = ifft(*cc[i], dimCount - 1, iplan_h);
+        h = h * (abs(h) > 1e-16);
+
+        for (int j = 0; j < filterBatchLength; ++j) {
+          hb = h[seq(0,0,0,j),layerSize];
+          c->at(i) = boost::make_shared<host_tensor_t>(hb);
+        }
 
         cF[i] = cc[i] = boost::shared_ptr<ctensor_t>();
       }

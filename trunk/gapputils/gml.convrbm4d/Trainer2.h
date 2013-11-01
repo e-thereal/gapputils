@@ -20,7 +20,7 @@ namespace convrbm4d {
 
 struct Trainer2Checker { Trainer2Checker(); };
 
-CapputilsEnumerator(FilterMethod, FFT, NaiveConvolution, OptimizedConvolution);
+CapputilsEnumerator(FilterMethod, FFT, NaiveConvolution, OptimizedConvolution, ConvNet, NoConv);
 
 class Trainer2 : public DefaultWorkflowElement<Trainer2> {
 public:
@@ -39,6 +39,7 @@ public:
   Property(BatchSize, int)
   Property(GpuCount, int)
   Property(FilterMethod, FilterMethod)
+  Property(Stride, int)
   Property(LearningRateW, double)
   Property(LearningRateVB, double)
   Property(LearningRateHB, double)
