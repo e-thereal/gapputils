@@ -8,13 +8,16 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <vector>
 #include <stack>
+#include <set>
 
 namespace gapputils {
 
 namespace workflow {
 
 class Node;
+class CollectionElement;
 
 }
 
@@ -29,12 +32,18 @@ private:
   boost::shared_ptr<workflow::Node> currentNode;
   WorkflowUpdater* rootThread;
   bool abortRequested;
+  bool needsUpdate;
+  bool lastIteration;
+
+  std::vector<boost::weak_ptr<workflow::Node> > interfaceNodes;
+  std::vector<boost::shared_ptr<workflow::CollectionElement> > collectionElements;
+  std::set<boost::shared_ptr<workflow::CollectionElement> > inputElements;
 
   std::stack<boost::weak_ptr<workflow::Node> > nodesStack;
   boost::shared_ptr<WorkflowUpdater> updater;
 
 public:
-  WorkflowUpdater(WorkflowUpdater* rootThread = 0);
+  WorkflowUpdater(WorkflowUpdater* rootThread = NULL);
   virtual ~WorkflowUpdater(void);
 
   void update(boost::shared_ptr<workflow::Node> node);
@@ -48,6 +57,10 @@ public:
   void abort();
 
 private:
+  void initializeCollectionLoop();
+  void resetCollectionFlag();
+  void advanceCollectionLoop();
+
   void buildStack(boost::shared_ptr<workflow::Node> node);
   void updateNodes();
   void resetNode(boost::shared_ptr<workflow::Node> node);
@@ -63,6 +76,10 @@ public Q_SLOTS:
   // Simply delegate the events
   void delegateUpdateFinished();
 
+  void initializeCollectionLoop(WorkflowUpdater* updater);
+  void resetCollectionFlag(WorkflowUpdater* updater);
+  void advanceCollectionLoop(WorkflowUpdater* updater);
+
 Q_SIGNALS:
   void progressed(boost::shared_ptr<workflow::Node> node, double progress);
 
@@ -70,6 +87,10 @@ Q_SIGNALS:
   void progressed(boost::shared_ptr<workflow::Node> node, double progress, bool updateNode);
   void nodeUpdateFinished(boost::shared_ptr<workflow::Node> node);
   void updateFinished();
+
+  void initializeCollectionLoopRequested(WorkflowUpdater* updater);
+  void resetCollectionFlagRequested(WorkflowUpdater* updater);
+  void advanceCollectionLoopRequested(WorkflowUpdater* updater);
 };
 
 }

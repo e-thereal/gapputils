@@ -20,11 +20,12 @@ class CollectionElement : public WorkflowElement {
   InitAbstractReflectableClass(CollectionElement)
 
   Property(CalculateCombinations, bool)
+  Property(CurrentIteration, int)
+  Property(IterationCount, int)
 
 private:
   std::vector<boost::shared_ptr<capputils::reflection::IPropertyIterator> > inputIterators, outputIterators;
   std::vector<capputils::reflection::IClassProperty*> inputProperties, outputProperties;
-  int iterationCount, currentIteration;
 
 public:
   CollectionElement();
@@ -49,9 +50,6 @@ public:
   void regressCombinations();
 
   double getProgress() const;
-
-  int getIterationCount() const { return iterationCount; }
-  int getCurrentIteration() const { return currentIteration; }
 
   virtual void execute(gapputils::workflow::IProgressMonitor*) const { }
   virtual void writeResults() { }

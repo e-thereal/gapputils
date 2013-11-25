@@ -30,9 +30,12 @@ BeginAbstractPropertyDefinitions(CombinerInterface)
 
   ReflectableBase(gapputils::workflow::WorkflowInterface)
 
+  DefineProperty(CurrentIteration, Observe(Id))
+  DefineProperty(IterationCount, Observe(Id))
+
 EndPropertyDefinitions
 
-CombinerInterface::CombinerInterface() {
+CombinerInterface::CombinerInterface() : _CurrentIteration(0), _IterationCount(0) {
   setLabel("CombinerInterface");
 }
 
@@ -89,6 +92,10 @@ bool CombinerInterface::resetCombinations() {
       }
     }
   }
+
+  setCurrentIteration(currentIteration);
+  setIterationCount(maxIterations);
+
   return true;
 }
 
@@ -112,6 +119,8 @@ bool CombinerInterface::advanceCombinations() {
     }
     inputProperties[i]->setValue(*this, *this, inputIterators[i].get());
   }
+
+  setCurrentIteration(currentIteration);
 
   return true;
 }
