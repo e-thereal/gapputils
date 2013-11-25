@@ -858,7 +858,7 @@ void WorkbenchWindow::showProgress(boost::shared_ptr<Node> node, double progress
 
   if (node != progressNode.lock()) {           // new progress
     etaRegression.clear();
-    startTime = time(0);
+    startTime = time(NULL);
   }
 
   if (progress > 0) {
@@ -876,14 +876,16 @@ void WorkbenchWindow::showProgress(boost::shared_ptr<Node> node, double progress
       strftime(buffer, 256, "%b %d %Y %H:%M:%S", timeinfo);
 
       host::DataModel& model = host::DataModel::getInstance();
-      if (model.getPassedLabel())
-        model.getPassedLabel()->setText(formatTime(passedSeconds).c_str());
-      if (model.getRemainingLabel())
-        model.getRemainingLabel()->setText(formatTime(remainingSeconds).c_str());
-      if (model.getTotalLabel())
-        model.getTotalLabel()->setText(formatTime(totalSeconds).c_str());
-      if (model.getFinishedLabel())
-        model.getFinishedLabel()->setText(buffer);
+//      if (this->mdiArea()->currentSubWindow() == this) {
+        if (model.getPassedLabel())
+          model.getPassedLabel()->setText(formatTime(passedSeconds).c_str());
+        if (model.getRemainingLabel())
+          model.getRemainingLabel()->setText(formatTime(remainingSeconds).c_str());
+        if (model.getTotalLabel())
+          model.getTotalLabel()->setText(formatTime(totalSeconds).c_str());
+        if (model.getFinishedLabel())
+          model.getFinishedLabel()->setText(buffer);
+//      }
     }
   }
   progressNode = node;

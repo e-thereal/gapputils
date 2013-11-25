@@ -22,7 +22,10 @@
 #include <capputils/Logbook.h>
 #include <capputils/FlagAttribute.h>
 
+#include <gapputils/ReadOnlyAttribute.h>
+
 using namespace capputils::attributes;
+using namespace gapputils::attributes;
 using namespace std;
 
 namespace gapputils {
@@ -34,10 +37,12 @@ BeginAbstractPropertyDefinitions(CollectionElement)
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
   DefineProperty(CalculateCombinations, Flag(), Observe(Id))
+  DefineProperty(CurrentIteration, Observe(Id), ReadOnly())
+  DefineProperty(IterationCount, Observe(Id), ReadOnly())
 
 EndPropertyDefinitions
 
-CollectionElement::CollectionElement() : _CalculateCombinations(true) {
+CollectionElement::CollectionElement() : _CalculateCombinations(true), _CurrentIteration(0), _IterationCount(0) {
   setLabel("CollectionElement");
 }
 
@@ -62,8 +67,8 @@ bool CollectionElement::resetCombinations() {
   inputIterators.clear();
   outputIterators.clear();
 
-  iterationCount = -1;
-  currentIteration = 0;
+  int iterationCount = -1;
+  int currentIteration = 0;
   int count = 0;
 
   vector<IClassProperty*>& properties = getProperties();
@@ -112,6 +117,10 @@ bool CollectionElement::resetCombinations() {
       }
     }
   }
+
+  setCurrentIteration(currentIteration);
+  setIterationCount(iterationCount);
+
   return true;
 }
 
@@ -137,10 +146,10 @@ bool CollectionElement::advanceCombinations() {
 //  }
 
   //cout << "Advance combinations" << endl;
-  if (currentIteration >= iterationCount)
+  if (_CurrentIteration >= _IterationCount)
     return false;
 
-  ++currentIteration;
+  setCurrentIteration(_CurrentIteration + 1);
 
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
     inputIterators[i]->next();
@@ -161,8 +170,8 @@ void CollectionElement::regressCombinations() {
 //    return;
 //  }
 
-  if (currentIteration)
-    --currentIteration;
+  if (getCurrentIteration() > 0)
+    setCurrentIteration(getCurrentIteration() - 1);
   else
     return;
 
@@ -174,9 +183,9 @@ void CollectionElement::regressCombinations() {
 }
 
 double CollectionElement::getProgress() const {
-  if (iterationCount < 1)
+  if (getIterationCount() < 1)
     return -2;
-  return 100. * currentIteration / iterationCount;
+  return 100. * getCurrentIteration() / getIterationCount();
 }
 
 }

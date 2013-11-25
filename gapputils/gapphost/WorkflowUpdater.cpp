@@ -35,9 +35,13 @@ WorkflowUpdater::WorkflowUpdater(WorkflowUpdater* rootThread)
     // this instance can be used to synchronize the root thread with the updater threads
     // Therefore, some signals send from the updater threads are delegated by the root thread instance
     // Others are handled by the root thread directly
-    connect(updater.get(), SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double, bool)), this, SLOT(handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node>, double, bool)), Qt::BlockingQueuedConnection);
-    connect(updater.get(), SIGNAL(nodeUpdateFinished(boost::shared_ptr<workflow::Node>)), this, SLOT(handleNodeUpdateFinished(boost::shared_ptr<workflow::Node>)), Qt::BlockingQueuedConnection);
     connect(updater.get(), SIGNAL(finished()), this, SLOT(delegateUpdateFinished()));
+  } else {
+    connect(this, SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double, bool)), rootThread, SLOT(handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node>, double, bool)), Qt::BlockingQueuedConnection);
+    connect(this, SIGNAL(nodeUpdateFinished(boost::shared_ptr<workflow::Node>)), rootThread, SLOT(handleNodeUpdateFinished(boost::shared_ptr<workflow::Node>)), Qt::BlockingQueuedConnection);
+    connect(this, SIGNAL(initializeCollectionLoopRequested(WorkflowUpdater*)), rootThread, SLOT(initializeCollectionLoop(WorkflowUpdater*)), Qt::BlockingQueuedConnection);
+    connect(this, SIGNAL(resetCollectionFlagRequested(WorkflowUpdater*)), rootThread, SLOT(resetCollectionFlag(WorkflowUpdater*)), Qt::BlockingQueuedConnection);
+    connect(this, SIGNAL(advanceCollectionLoopRequested(WorkflowUpdater*)), rootThread, SLOT(advanceCollectionLoop(WorkflowUpdater*)), Qt::BlockingQueuedConnection);
   }
 }
 
@@ -62,6 +66,8 @@ void WorkflowUpdater::run() {
   //       2. Workflow case: workflow
   //       3. Single node case: else
 
+  assert(rootThread);
+
   capputils::Logbook dlog(&LogbookModel::GetInstance());
   dlog.setModule("gapputils::host::WorkflowUpdater");
   dlog.setSeverity(capputils::Severity::Trace);
@@ -82,53 +88,35 @@ void WorkflowUpdater::run() {
       // and update nodes
       // append results at the end
 
-      std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
-      std::vector<boost::shared_ptr<workflow::CollectionElement> > collectionElements;
-      std::set<boost::shared_ptr<workflow::CollectionElement> > inputElements;
+      interfaceNodes = workflow->getInterfaceNodes();
+      collectionElements.clear();
+      inputElements.clear();
 
-      bool needsUpdate = true;
-      bool lastIteration = false;
+      needsUpdate = true;
+      lastIteration = false;
 
-      // TODO: don't do this anymore
-//      checksumUpdater.update(node.lock());
-//      for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-//        if (!workflow->isOutputNode(interfaceNodes[i].lock()))
-//          buildStack(interfaceNodes[i].lock());
-//      }
-//      updateNodes();
-
-      for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-        boost::shared_ptr<workflow::CollectionElement> collection = boost::dynamic_pointer_cast<workflow::CollectionElement>(interfaceNodes[i].lock()->getModule());
-        if (collection && collection->getCalculateCombinations()) {
-          if (!collection->resetCombinations()) {
-            dlog(capputils::Severity::Warning) << "Can't update workflow. Empty or null input collection detected.";
-            needsUpdate = false;
-          }
-          collectionElements.push_back(collection);
-          collection->setCalculateCombinations(false);
-          if (!workflow->isOutputNode(interfaceNodes[i].lock())) {
-            inputElements.insert(collection);
-            if (collection->getCurrentIteration() + 1 == collection->getIterationCount()) {
-              lastIteration = true;
-              dlog() << "Last iteration";
-            }
-          }
-        }
-      }
+      Q_EMIT initializeCollectionLoopRequested(this);
 
       dlog() << "#Elements: " << collectionElements.size();
       dlog() << "#Inputs: " << inputElements.size();
 
-      while (needsUpdate) {
+      int iterationCount = (*inputElements.begin())->getIterationCount();
+      for (std::set<boost::shared_ptr<workflow::CollectionElement> >::iterator i = inputElements.begin(); i != inputElements.end(); ++i)
+        iterationCount = std::min(iterationCount, (*i)->getIterationCount());
+
+      while (needsUpdate && !abortRequested) {
         
+        reportProgress(node.lock(), 100.0 * (*inputElements.begin())->getCurrentIteration() / iterationCount);
+
         if (lastIteration) {
           dlog() << "Resetting combiner flag";
-          for (unsigned i = 0; i < collectionElements.size(); ++i)
-            collectionElements[i]->setCalculateCombinations(true);
+          Q_EMIT resetCollectionFlagRequested(this);
         }
 
         // build stacks
         checksumUpdater.update(node.lock());
+        while (!nodesStack.empty())
+          nodesStack.pop();
         for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
           if (workflow->isOutputNode(interfaceNodes[i].lock()))
             buildStack(interfaceNodes[i].lock());
@@ -137,26 +125,12 @@ void WorkflowUpdater::run() {
         // update
         updateNodes();
 
-        // write all results first before advance collection in order to avoid side-effects due to
-        // automatic updates triggered by the advance step
-        for (unsigned i = 0; i < collectionElements.size(); ++i)
-          collectionElements[i]->appendResults();
-
-        // advance collections
-        for (unsigned i = 0; i < collectionElements.size(); ++i) {
-          const bool isInput = inputElements.find(collectionElements[i]) != inputElements.end();
-          if (!collectionElements[i]->advanceCombinations() && isInput)
-            needsUpdate = false;
-
-          if (isInput && collectionElements[i]->getCurrentIteration() + 1 == collectionElements[i]->getIterationCount())
-            lastIteration = true;
-        }
+        Q_EMIT advanceCollectionLoopRequested(this);
       }
 
       // The combiner flag should be reset in all cases.
       // Resetting is necessary if not a single update cycle was performed
-      for (unsigned i = 0; i < collectionElements.size(); ++i)
-        collectionElements[i]->setCalculateCombinations(true);
+      Q_EMIT resetCollectionFlagRequested(this);
 
     } else {
 
@@ -165,6 +139,8 @@ void WorkflowUpdater::run() {
       dlog() << "Workflow case";
 
       checksumUpdater.update(node.lock());
+      while (!nodesStack.empty())
+        nodesStack.pop();
       std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
       for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
         if (workflow->isOutputNode(interfaceNodes[i].lock()))
@@ -177,21 +153,76 @@ void WorkflowUpdater::run() {
     /*** Single update case ***/
 
     checksumUpdater.update(node.lock());
+    while (!nodesStack.empty())
+      nodesStack.pop();
     buildStack(node.lock());
     updateNodes();
   }
 }
 
+void WorkflowUpdater::initializeCollectionLoop() {
+  capputils::Logbook dlog(&LogbookModel::GetInstance());
+  dlog.setModule("gapputils::host::WorkflowUpdater");
+  dlog.setSeverity(capputils::Severity::Trace);
+
+  boost::shared_ptr<workflow::Workflow> workflow = boost::dynamic_pointer_cast<workflow::Workflow>(node.lock());
+  assert(workflow);
+
+  for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+    boost::shared_ptr<workflow::CollectionElement> collection = boost::dynamic_pointer_cast<workflow::CollectionElement>(interfaceNodes[i].lock()->getModule());
+    if (collection && collection->getCalculateCombinations()) {
+      if (!collection->resetCombinations()) {
+        dlog(capputils::Severity::Warning) << "Can't update workflow. Empty or null input collection detected.";
+        needsUpdate = false;
+      }
+      collectionElements.push_back(collection);
+      collection->setCalculateCombinations(false);
+      if (!workflow->isOutputNode(interfaceNodes[i].lock())) {
+        inputElements.insert(collection);
+        if (collection->getCurrentIteration() + 1 == collection->getIterationCount()) {
+          lastIteration = true;
+          dlog() << "Last iteration";
+        }
+      }
+    }
+  }
+}
+
+void WorkflowUpdater::resetCollectionFlag() {
+  for (unsigned i = 0; i < collectionElements.size(); ++i)
+    collectionElements[i]->setCalculateCombinations(true);
+}
+
+void WorkflowUpdater::advanceCollectionLoop() {
+  // write all results first before advance collection in order to avoid side-effects due to
+  // automatic updates triggered by the advance step
+  for (unsigned i = 0; i < collectionElements.size(); ++i)
+    collectionElements[i]->appendResults();
+
+  // advance collections
+  for (unsigned i = 0; i < collectionElements.size(); ++i) {
+    const bool isInput = inputElements.find(collectionElements[i]) != inputElements.end();
+    if (!collectionElements[i]->advanceCombinations() && isInput)
+      needsUpdate = false;
+
+    if (isInput && collectionElements[i]->getCurrentIteration() + 1 == collectionElements[i]->getIterationCount())
+      lastIteration = true;
+  }
+}
+
 void WorkflowUpdater::reportProgress(double progress, bool updateNode) {
+  assert(rootThread);
   if (currentNode)
     reportProgress(currentNode, progress, updateNode);
 }
 
 void WorkflowUpdater::reportProgress(boost::shared_ptr<workflow::Node> node, double progress, bool updateNode) {
+  assert(rootThread);
   Q_EMIT progressed(node, progress, updateNode);
 }
 
 void WorkflowUpdater::reportNodeUpdateFinished(boost::shared_ptr<workflow::Node> node) {
+  assert(rootThread);
   Q_EMIT nodeUpdateFinished(node);
 }
 
@@ -202,10 +233,13 @@ bool WorkflowUpdater::getAbortRequested() const {
 }
 
 void WorkflowUpdater::abort() {
+  assert(!rootThread);
   abortRequested = true;
 }
 
 void WorkflowUpdater::buildStack(boost::shared_ptr<workflow::Node> node) {
+  assert(rootThread);
+
   capputils::Logbook dlog(&LogbookModel::GetInstance());
 
   // Rebuild the stack without node, thus guaranteeing that node appears only once
@@ -238,6 +272,8 @@ void WorkflowUpdater::buildStack(boost::shared_ptr<workflow::Node> node) {
 }
 
 void WorkflowUpdater::updateNodes() {
+  assert(rootThread);
+
   capputils::Logbook dlog(&LogbookModel::GetInstance());
   
   // Go through the stack and update all nodes
@@ -257,9 +293,6 @@ void WorkflowUpdater::updateNodes() {
         WorkflowUpdater updater(rootThread);
 
         // Just sit and watch if he is doing a good job
-        connect(&updater, SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double, bool)), rootThread, SLOT(handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node>, double, bool)), Qt::BlockingQueuedConnection);
-        connect(&updater, SIGNAL(nodeUpdateFinished(boost::shared_ptr<workflow::Node>)), rootThread, SLOT(handleNodeUpdateFinished(boost::shared_ptr<workflow::Node>)), Qt::BlockingQueuedConnection);
-
         dlog.setModule(currentNode->getModule()->getClassName());
         dlog.setUuid(currentNode->getUuid());
         dlog(capputils::Severity::Trace) << "Starting update. (" << currentNode->getInputChecksum() << ", " << currentNode->getOutputChecksum() << ")";
@@ -295,6 +328,8 @@ void WorkflowUpdater::updateNodes() {
 }
 
 void WorkflowUpdater::resetNode(boost::shared_ptr<workflow::Node> node) {
+  assert(!rootThread);
+
   // Iterate through properties. If a property is dependent on another module
   // or an output property, reset the property
 
@@ -325,6 +360,8 @@ void WorkflowUpdater::resetNode(boost::shared_ptr<workflow::Node> node) {
 
 // The root thread handles node updates by invoking the writeResults method
 void WorkflowUpdater::handleNodeUpdateFinished(boost::shared_ptr<workflow::Node> node) {
+  assert(!rootThread);
+
   boost::shared_ptr<workflow::Workflow> workflow = node->getWorkflow().lock();
   boost::shared_ptr<interfaces::SubWorkflow> subworkflow = boost::dynamic_pointer_cast<interfaces::SubWorkflow>(workflow->getModule());
 
@@ -337,11 +374,13 @@ void WorkflowUpdater::handleNodeUpdateFinished(boost::shared_ptr<workflow::Node>
     resetNode(node);
 
   // TODO: Avoid update if state was read from cache
-  NodeCache::Update(node);
+//  NodeCache::Update(node);
 }
 
 // The root thread does not only delegate the event, it also in charge of calling writeResults if requested
 void WorkflowUpdater::handleAndDelegateProgressedEvent(boost::shared_ptr<workflow::Node> node, double progress, bool updateNode) {
+  assert(!rootThread);
+
   if (updateNode) {
     boost::shared_ptr<workflow::WorkflowElement> element = boost::dynamic_pointer_cast<workflow::WorkflowElement>(node->getModule());
     if (element) {
@@ -352,10 +391,27 @@ void WorkflowUpdater::handleAndDelegateProgressedEvent(boost::shared_ptr<workflo
 }
 
 void WorkflowUpdater::delegateUpdateFinished() {
+  assert(!rootThread);
+
   capputils::Logbook dlog(&LogbookModel::GetInstance());
   dlog.setModule("gapputils::host::WorkflowUpdater");
   dlog() << "Workflow update finished.";
   Q_EMIT updateFinished();
+}
+
+void WorkflowUpdater::initializeCollectionLoop(WorkflowUpdater* updater) {
+  assert(!rootThread);
+  updater->initializeCollectionLoop();
+}
+
+void WorkflowUpdater::resetCollectionFlag(WorkflowUpdater* updater) {
+  assert(!rootThread);
+  updater->resetCollectionFlag();
+}
+
+void WorkflowUpdater::advanceCollectionLoop(WorkflowUpdater* updater) {
+  assert(!rootThread);
+  updater->advanceCollectionLoop();
 }
 
 }
