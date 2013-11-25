@@ -17,8 +17,8 @@ BeginPropertyDefinitions(ModelWriter)
 
   ReflectableBase(DefaultWorkflowElement<ModelWriter>)
 
-  WorkflowProperty(Model, Input("RBM"))
-  WorkflowProperty(Filename, Filename("RBM Model (*.rbm)"))
+  WorkflowProperty(Model, Input("RBM"), NotNull<Type>())
+  WorkflowProperty(Filename, Filename("RBM Model (*.rbm)"), NotEmpty<Type>())
   WorkflowProperty(OutputName, Output("File"))
 
 EndPropertyDefinitions

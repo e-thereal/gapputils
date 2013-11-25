@@ -1,7 +1,10 @@
 SOURCES = ImageViewer.cpp \
-          ImageViewerDialog.cpp
+          ImageViewerDialog.cpp \
+          TensorViewer.cpp \
+          TensorViewerDialog.cpp \
 		  
-HEADERS = ImageViewerDialog.h
+HEADERS = ImageViewerDialog.h \
+          TensorViewerDialog.h
           
 TEMPLATE = lib
 TARGET = gml.imaging.ui
@@ -33,6 +36,8 @@ QMAKE_CXXFLAGS += -std=c++0x
 
 INCLUDEPATH += ".."
 INCLUDEPATH += ${RESPROG_INC_PATH}
+INCLUDEPATH += ${CUDA_INC_PATH}
+INCLUDEPATH += ${CUDASDK_INC_PATH}
 
 LIBS += -Wl,-E -pg
 LIBS += -L${RESPROG_LIB_PATH}

@@ -28,6 +28,7 @@ EndPropertyDefinitions
 ImageAggregator::ImageAggregator() {
   setLabel("ImageAggregator");
 }
+
 void ImageAggregator::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 

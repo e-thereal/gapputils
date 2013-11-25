@@ -40,10 +40,12 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(InitialWeights, test);
   CHECK_MEMORY_LAYOUT2(InitialVisible, test);
   CHECK_MEMORY_LAYOUT2(InitialHidden, test);
+  CHECK_MEMORY_LAYOUT2(HiddenDropout, test)
   CHECK_MEMORY_LAYOUT2(SparsityTarget, test);
   CHECK_MEMORY_LAYOUT2(SparsityWeight, test);
   CHECK_MEMORY_LAYOUT2(VisibleUnitType, test);
   CHECK_MEMORY_LAYOUT2(HiddenUnitType, test);
+  CHECK_MEMORY_LAYOUT2(NormalizeIndividualUnits, test);
   CHECK_MEMORY_LAYOUT2(ShowWeights, test);
   CHECK_MEMORY_LAYOUT2(ShowEvery, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
@@ -122,15 +124,23 @@ void Trainer::update(IProgressMonitor* monitor) const {
   rbm->setVisibleMask(boost::make_shared<host_matrix_t>(mask));
 
   if (visibleUnitType == UnitType::Gaussian) {
-//    matrix_t means = sum(X, 0);
-//    means = means / X.size()[0];
-    matrix_t means = ones<value_t>(visibleMeans->size()) * sum(X) / X.count();
+    matrix_t means;
+    if (getNormalizeIndividualUnits()) {
+      means = sum(X, 0);
+      means = means / X.size()[0];
+    } else {
+      means = ones<value_t>(visibleMeans->size()) * sum(X) / X.count();
+    }
     X = X - repeat(means, X.size() / means.size());
 
-//    matrix_t temp = X * X;
-//    matrix_t stddev = sum(X, 0);
-//    stddev = sqrt(stddev / X.size()[0]) + (stddev == 0);  // If stddev == 0 set stddev to 1
-    matrix_t stddev = ones<value_t>(visibleStds->size()) * sqrt(dot(X, X) / X.count());
+    matrix_t stddev;
+    if (getNormalizeIndividualUnits()) {
+      matrix_t temp = X * X;
+      stddev = sum(temp, 0);
+      stddev = sqrt(stddev / X.size()[0]) + (stddev == 0);  // If stddev == 0 set stddev to 1
+    } else {
+      stddev = ones<value_t>(visibleStds->size()) * sqrt(dot(X, X) / X.count());
+    }
     X = X / repeat(stddev, X.size() / stddev.size()) * repeat(mask, X.size() / mask.size());
 
     *visibleMeans = means;
@@ -181,7 +191,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
   matrix_t batch(batchSize, visibleCount), poshidprobs, poshidx, poshidstates, posprods,
       negdata, neghidprobs, negprods,
       posvisact, poshidact, negvisact, neghidact,
-      posdiffprobs, possparsityact, possparsityprod;
+      posdiffprobs, possparsityact, possparsityprod,
+      hiddrop;
 
   matrix_t dW = zeros<value_t>(W.size());
   matrix_t db = zeros<value_t>(b.size());
@@ -208,6 +219,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
       // Get current batch
       batch = X[seq(iBatch * batchSize, 0), batch.size()];
 
+      hiddrop = hidrand > getHiddenDropout();
+
       // Calculate p(h | X, W) = sigm(XW + C)
       poshidx = prod(batch, W);
       if (getDbmLayer() == DbmLayer::VisibleLayer)
@@ -227,6 +240,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
           dlog(Severity::Error) << "Hidden unit type '" << hiddenUnitType << "' has not yet been implemented.";
       }
 
+      poshidprobs = poshidprobs * hiddrop / (1. - getHiddenDropout());
+
       // (x_n)(mu_n)'
       posprods = tbblas::prod(trans(batch), poshidprobs);
 
@@ -245,7 +260,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
       // Sample the hidden states
       if (getSampleHiddens()) {
         switch(hiddenUnitType) {
-          case UnitType::Bernoulli: poshidstates = poshidprobs > hidrand; break;
+          case UnitType::Bernoulli: poshidstates = sigm(poshidx) > hidrand; break;
           case UnitType::MyReLU:
           case UnitType::ReLU:      poshidstates = max(0.0, poshidx + sqrt(sigm(poshidx)) * hidnoise); break;
           case UnitType::ReLU1:     poshidstates = min(1.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 1.0) * hidnoise)); break;
@@ -255,6 +270,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
           default:
             dlog(Severity::Error) << "Hidden unit type '" << hiddenUnitType << "' has not yet been implemented.";
         }
+        poshidprobs = poshidprobs * hiddrop / (1. - getHiddenDropout());
       } else {
         poshidstates = poshidprobs;
       }
@@ -307,6 +323,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         default:
           dlog(Severity::Error) << "Hidden unit type '" << hiddenUnitType << "' has not yet been implemented.";
       }
+      neghidprobs = neghidprobs * hiddrop / (1. - getHiddenDropout());
 
       // (xneg)(mu_neg)'
       negprods = prod(trans(negdata), neghidprobs);
@@ -332,13 +349,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
         dc = momentum * dc + (epsilonhb / batchSize) * (poshidact - neghidact);
       }
 
-      if (iBatch == 0) {
-        std::cout << "Data:    " << sum(X) / X.count() << " : " << sum(negdata) / negdata.count() << std::endl;
-        std::cout << "Hiddens: " << sum(poshidprobs) / poshidprobs.count() << " : " << sum(neghidprobs) / neghidprobs.count() << std::endl;
-        std::cout << "Weights: " << sum(W) / W.count() << " + " << sum(abs(dW)) / dW.count() << std::endl;
-        std::cout << "VB:      " << sum(b) / b.count() << " + " << sum(abs(db)) / db.count() << std::endl;
-        std::cout << "HB:      " << sum(c) / c.count() << " + " << sum(abs(dc)) / dc.count() << std::endl << std::endl;
-      }
+//      if (iBatch == 0) {
+//        std::cout << "Data:    " << sum(X) / X.count() << " : " << sum(negdata) / negdata.count() << std::endl;
+//        std::cout << "Hiddens: " << sum(poshidprobs) / poshidprobs.count() << " : " << sum(neghidprobs) / neghidprobs.count() << std::endl;
+//        std::cout << "Weights: " << sum(W) / W.count() << " + " << sum(abs(dW)) / dW.count() << std::endl;
+//        std::cout << "VB:      " << sum(b) / b.count() << " + " << sum(abs(db)) / db.count() << std::endl;
+//        std::cout << "HB:      " << sum(c) / c.count() << " + " << sum(abs(dc)) / dc.count() << std::endl << std::endl;
+//      }
 
       W = W + dW;
       b = b + db;

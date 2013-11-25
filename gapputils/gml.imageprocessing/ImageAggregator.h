@@ -12,8 +12,6 @@
 #include <gapputils/Image.h>
 #include <gapputils/namespaces.h>
 
-#include <capputils/Enumerators.h>
-
 #include "AggregatorFunction.h"
 
 namespace gml {
