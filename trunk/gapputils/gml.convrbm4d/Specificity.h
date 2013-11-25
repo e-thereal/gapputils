@@ -11,10 +11,15 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
+#include <capputils/Enumerators.h>
+
 #include "Model.h"
 
 namespace gml {
+
 namespace convrbm4d {
+
+CapputilsEnumerator(SpecificityErrorMeasure, RMSE, CC);
 
 class Specificity : public DefaultWorkflowElement<Specificity> {
   typedef Model::tensor_t tensor_t;
@@ -23,9 +28,10 @@ class Specificity : public DefaultWorkflowElement<Specificity> {
 
   Property(GeneratedTensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
   Property(Dataset, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(ErrorMeasure, SpecificityErrorMeasure);
   Property(Minimum, double)
   Property(Maximum, double)
-  Property(AverageRmse, double)
+  Property(AverageError, double)
 
 public:
   Specificity();

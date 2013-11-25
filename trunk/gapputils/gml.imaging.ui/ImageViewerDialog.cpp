@@ -61,6 +61,14 @@ ImageViewerWidget::ImageViewerWidget(ImageViewer* viewer, ImageViewerDialog* dia
       images.push_back(viewer->getImages()->at(i));
   }
 
+  tensors.clear();
+  if (viewer->getTensor())
+    tensors.push_back(viewer->getTensor());
+  if (viewer->getTensors()) {
+    for (size_t i = 0; i < viewer->getTensors()->size(); ++i)
+      tensors.push_back(viewer->getTensors()->at(i));
+  }
+
   viewer->setCurrentImage(viewer->getCurrentImage());
 }
 
@@ -115,6 +123,8 @@ void getHeatMap2Color(float value, float *red, float *green, float *blue) {
 }
 
 void ImageViewerWidget::updateView() {
+  using namespace tbblas;
+
   // D65 reference white
   const float Xr = 0.95047f, Yr = 1.00000f, Zr = 1.08883f;
   const float eps = 0.008856f, kappa = 903.3f;
@@ -142,6 +152,30 @@ void ImageViewerWidget::updateView() {
     title << "0/0";
   title << ")";
   dialog->setWindowTitle(title.str().c_str());
+
+  if (tensors.size() > viewer->getCurrentImage() && tensors[viewer->getCurrentImage()]->size()[2] > viewer->getCurrentSlice()) {
+    tensor_t& tensor = *tensors[viewer->getCurrentImage()];
+    QGraphicsScene* scene = new QGraphicsScene();
+    scene->setSceneRect(0, 0, tensor.size()[0], tensor.size()[1]);
+    scene->addRect(0, 0, tensor.size()[0], tensor.size()[1]);
+
+    const int width = tensor.size()[0];
+    const int height = tensor.size()[1];
+
+    float w = 0.05, h = 0.05;
+
+    for (int i = 0, y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x, ++i) {
+        float dx = (tensor[seq(x,y,viewer->getCurrentSlice(),0)] - viewer->getMinimumLength()) / (viewer->getMaximumLength() - viewer->getMinimumLength()) * viewer->getVisibleLength();
+        float dy = (tensor[seq(x,y,viewer->getCurrentSlice(),1)] - viewer->getMinimumLength()) / (viewer->getMaximumLength() - viewer->getMinimumLength()) * viewer->getVisibleLength();
+        scene->addLine(x + 0.5, y + 0.5, x + dx + 0.5, y + dy + 0.5, QPen(Qt::red));
+        scene->addEllipse(x - w + 0.5, y - h + 0.5, 2 * w, 2 * h, QPen(Qt::red), QBrush(Qt::red));
+      }
+    }
+    QGraphicsScene* oldScene = this->scene();
+    setScene(scene);
+    delete oldScene;
+  }
 
   if (images.size() && images[viewer->getCurrentImage()]->getSize()[2] / channelsPerImage) {
     image_t& image = *images[viewer->getCurrentImage()];
@@ -351,9 +385,48 @@ void ImageViewerWidget::mousePressEvent(QMouseEvent* event) {
 }
 
 void ImageViewerWidget::mouseReleaseEvent(QMouseEvent* event) {
+  using namespace tbblas;
 
   if (event->button() == Qt::RightButton) {
     QPointF dragEnd = mapToScene(event->pos());
+
+    if (tensors.size() > viewer->getCurrentImage()) {
+      tensor_t& tensor = *tensors[viewer->getCurrentImage()];
+
+      const int width = tensor.size()[0], height = tensor.size()[1], depth = tensor.size()[2], count = width * height;
+
+      const int rx = std::max(0, std::min(width - 1, (int)std::min(dragStart.x(), dragEnd.x())));
+      const int ry = std::max(0, std::min(height - 1, (int)std::min(dragStart.y(), dragEnd.y())));
+      const int rwidth = std::max(0, std::min(width - rx, (int)std::max(dragStart.x(), dragEnd.x()) - rx));
+      const int rheight = std::max(0, std::min(height - ry, (int)std::max(dragStart.y(), dragEnd.y()) - ry));
+
+      float minimum, maximum, length, dx, dy;
+
+      if (event->modifiers() == Qt::ControlModifier) {
+        minimum = viewer->getMinimumLength();
+        maximum = viewer->getMaximumLength();
+      } else {
+        dx = tensor[seq(0,0,viewer->getCurrentSlice(),0)];
+        dy = tensor[seq(0,0,viewer->getCurrentSlice(),1)];
+        minimum = maximum = length = sqrt(dx * dx + dy * dy);
+      }
+
+      for (int y = ry; y < ry + rheight; ++y) {
+        for (int x = rx; x < rx + rwidth; ++x) {
+          dx = tensor[seq(x,y,viewer->getCurrentSlice(),0)];
+          dy = tensor[seq(x,y,viewer->getCurrentSlice(),1)];
+          length = sqrt(dx * dx + dy * dy);
+
+          minimum = std::min(minimum, length);
+          maximum = std::max(maximum, length);
+        }
+      }
+
+      // TODO: Make the update somewhat atomic
+      viewer->setMinimumLength(minimum);
+      viewer->setMaximumLength(maximum);
+    }
+
     if (images.size()) {
       image_t& image = *images[viewer->getCurrentImage()];
 

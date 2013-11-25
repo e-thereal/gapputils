@@ -54,6 +54,7 @@ class Encoder : public DefaultWorkflowElement<Encoder> {
   Property(Direction, CodingDirection)
   Property(DoubleWeights, bool)
   Property(OnlyFilters, bool)
+  Property(NormalizeOnly, bool)
   Property(Outputs, boost::shared_ptr<std::vector<data_t> >)
 
 public:

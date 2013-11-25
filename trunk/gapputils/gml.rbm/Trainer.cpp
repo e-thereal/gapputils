@@ -27,10 +27,12 @@ BeginPropertyDefinitions(Trainer)
   WorkflowProperty(InitialWeights)
   WorkflowProperty(InitialVisible)
   WorkflowProperty(InitialHidden)
+  WorkflowProperty(HiddenDropout)
   WorkflowProperty(SparsityTarget)
   WorkflowProperty(SparsityWeight)
   WorkflowProperty(VisibleUnitType, Enumerator<Type>())
   WorkflowProperty(HiddenUnitType, Enumerator<Type>())
+  WorkflowProperty(NormalizeIndividualUnits, Flag(), Description("If checked, the mean and standard deviation is calculated per unit and not for all units during the normalization of Gaussian visible units."))
   WorkflowProperty(ShowWeights, Description("Only the first ShowWeights features are shown."))
   WorkflowProperty(ShowEvery, Description("Debug output is shown only every ShowEvery epochs."))
 
@@ -43,8 +45,8 @@ EndPropertyDefinitions
 
 Trainer::Trainer()
  : _AutoCreateMask(false), _HiddenCount(1), _SampleHiddens(true),
-   _EpochCount(1), _BatchSize(10), _LearningRate(0.01), _InitialWeights(0.01), _InitialVisible(0.0), _InitialHidden(0.0),
-   _SparsityTarget(0.1), _SparsityWeight(0.1), _ShowWeights(0), _ShowEvery(1)
+   _EpochCount(1), _BatchSize(10), _LearningRate(0.01), _InitialWeights(0.01), _InitialVisible(0.0), _InitialHidden(0.0), _HiddenDropout(0),
+   _SparsityTarget(0.1), _SparsityWeight(0.1), _NormalizeIndividualUnits(true), _ShowWeights(0), _ShowEvery(1)
 {
   setLabel("Trainer");
 }

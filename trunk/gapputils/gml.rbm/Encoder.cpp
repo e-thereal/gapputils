@@ -20,11 +20,12 @@ BeginPropertyDefinitions(Encoder)
   WorkflowProperty(Direction, Enumerator<Type>())
   WorkflowProperty(DoubleWeights, Flag())
   WorkflowProperty(OnlyFilters, Flag())
+  WorkflowProperty(NormalizeOnly, Flag())
   WorkflowProperty(Outputs, Output("Out"))
 
 EndPropertyDefinitions
 
-Encoder::Encoder() : _DoubleWeights(false), _OnlyFilters(false) {
+Encoder::Encoder() : _DoubleWeights(false), _OnlyFilters(false), _NormalizeOnly(false) {
   setLabel("Encoder");
 }
 

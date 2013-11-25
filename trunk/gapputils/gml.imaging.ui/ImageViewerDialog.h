@@ -20,6 +20,7 @@
 
 #include <capputils/Enumerators.h>
 #include <capputils/ObservableClass.h>
+#include <tbblas/tensor.hpp>
 
 namespace gml {
 
@@ -33,12 +34,16 @@ class ImageViewerDialog;
 class ImageViewerWidget : public QGraphicsView {
   Q_OBJECT
 
+  typedef tbblas::tensor<float, 4> tensor_t;
+  typedef std::vector<boost::shared_ptr<tensor_t> > v_tensor_t;
+
 private:
   ImageViewer* viewer;
   ImageViewerDialog* dialog;
   qreal viewScale;
   boost::shared_ptr<QTimer> timer;
   std::vector<boost::shared_ptr<gapputils::image_t> > images;
+  v_tensor_t tensors;
   QPointF dragStart;
   boost::shared_ptr<QImage> qimage;
 

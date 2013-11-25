@@ -26,6 +26,7 @@ EncoderChecker::EncoderChecker() {
   CHECK_MEMORY_LAYOUT2(Direction, test);
   CHECK_MEMORY_LAYOUT2(DoubleWeights, test);
   CHECK_MEMORY_LAYOUT2(OnlyFilters, test);
+  CHECK_MEMORY_LAYOUT2(NormalizeOnly, test);
   CHECK_MEMORY_LAYOUT2(Outputs, test);
 }
 
@@ -63,6 +64,18 @@ void Encoder::update(IProgressMonitor* monitor) const {
         X = (X - repeat(mean, X.size() / mean.size())) / repeat(stddev, X.size() / stddev.size());
         break;
     }
+
+    if (getNormalizeOnly()) {
+      boost::shared_ptr<std::vector<data_t> > outputs(new std::vector<data_t>());
+      for (size_t i = 0; i < sampleCount; ++i) {
+        data_t output(new std::vector<double>(visibleCount));
+        thrust::copy(row(X, i).begin(), row(X, i).end(), output->begin());
+        outputs->push_back(output);
+      }
+      newState->setOutputs(outputs);
+      return;
+    }
+
     matrix_t H;
 
     // Calculate p(h | X, W) = sigm(XW + C)
@@ -122,7 +135,8 @@ void Encoder::update(IProgressMonitor* monitor) const {
         dlog(Severity::Error) << "Visible unit type '" << visibleUnitType << "' has not yet been implemented.";
     }
 
-    V = V * repeat(stddev, V.size() / stddev.size()) + repeat(mean, V.size() / mean.size());
+    if (!getOnlyFilters())
+      V = V * repeat(stddev, V.size() / stddev.size()) + repeat(mean, V.size() / mean.size());
     boost::shared_ptr<std::vector<data_t> > outputs(new std::vector<data_t>());
     for (size_t i = 0; i < sampleCount; ++i) {
       data_t output(new std::vector<double>(visibleCount));
