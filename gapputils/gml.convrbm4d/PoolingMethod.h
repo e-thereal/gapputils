@@ -14,7 +14,7 @@ namespace gml {
 
 namespace convrbm4d {
 
-CapputilsEnumerator(PoolingMethod, StackPooling, Rearrange);
+CapputilsEnumerator(PoolingMethod, StackPooling, Rearrange, MaxPooling);
 
 }
 
