@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include <tbblas/rearrange.hpp>
+#include <thrust/reduce.h>
 
 namespace gml {
 
@@ -45,6 +46,8 @@ void Pooling::update(IProgressMonitor* monitor) const {
 
   typedef tensor_t::dim_t dim_t;
 
+  Logbook& dlog = getLogbook();
+
   boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > inputs = getInputs();
   const bool cleanup = getAtomicWorkflow() && inputs.use_count() == 2;
 
@@ -54,11 +57,31 @@ void Pooling::update(IProgressMonitor* monitor) const {
   dim_t inSize = inputs->at(0)->size(), inBlock, outBlock;
 
   if (getDirection() == CodingDirection::Encode) {
-    inBlock = seq(getBlockWidth(), getBlockHeight(), getBlockDepth(), 1);
-    outBlock = seq(1, 1, 1, count(inBlock));
+    switch (getMethod()) {
+    case PoolingMethod::StackPooling:
+    case PoolingMethod::Rearrange:
+      inBlock = seq(getBlockWidth(), getBlockHeight(), getBlockDepth(), 1);
+      outBlock = seq(1, 1, 1, count(inBlock));
+      break;
+
+    case PoolingMethod::MaxPooling:
+      inBlock = seq(getBlockWidth(), getBlockHeight(), getBlockDepth(), 1);
+      outBlock = seq(1, 1, 1, 1);
+      break;
+    }
   } else {
-    outBlock = seq(getBlockWidth(), getBlockHeight(), getBlockDepth(), 1);
-    inBlock = seq(1, 1, 1, count(outBlock));
+    switch (getMethod()) {
+    case PoolingMethod::StackPooling:
+    case PoolingMethod::Rearrange:
+      outBlock = seq(getBlockWidth(), getBlockHeight(), getBlockDepth(), 1);
+      inBlock = seq(1, 1, 1, count(outBlock));
+      break;
+
+    case PoolingMethod::MaxPooling:
+      dlog(Severity::Warning) << "MaxPooling doesn't support reverse pooling. Aborting!";
+      return;
+      break;
+    }
   }
 
   dim_t outSize = inSize / inBlock * outBlock;
@@ -69,7 +92,8 @@ void Pooling::update(IProgressMonitor* monitor) const {
     if (cleanup)
       inputs->at(i) = boost::shared_ptr<tensor_t>();
 
-    if (getMethod() == PoolingMethod::StackPooling) {
+    switch (getMethod()) {
+    case PoolingMethod::StackPooling:
       for (int ik = 0, ok = 0; ik < inSize[3]; ik += inBlock[3], ok += outBlock[3]) {
         for (int iz = 0, oz = 0; iz < inSize[2]; iz += inBlock[2], oz += outBlock[2]) {
           for (int iy = 0, oy = 0; iy < inSize[1]; iy += inBlock[1], oy += outBlock[1]) {
@@ -80,11 +104,27 @@ void Pooling::update(IProgressMonitor* monitor) const {
           }
         }
       }
-    } else {
+      break;
+
+    case PoolingMethod::Rearrange:
       if (getDirection() == CodingDirection::Encode)
         *output = rearrange(*input, inBlock);
       else
         *output = rearrange_r(*input, outBlock);
+      break;
+
+    case PoolingMethod::MaxPooling:
+      for (int ik = 0, ok = 0; ik < inSize[3]; ik += inBlock[3], ok += outBlock[3]) {
+        for (int iz = 0, oz = 0; iz < inSize[2]; iz += inBlock[2], oz += outBlock[2]) {
+          for (int iy = 0, oy = 0; iy < inSize[1]; iy += inBlock[1], oy += outBlock[1]) {
+            for (int ix = 0, ox = 0; ix < inSize[0]; ix += inBlock[0], ox += outBlock[0]) {
+              (*output)[seq(ox, oy, oz, ok)] =  thrust::reduce((*input)[seq(ix, iy, iz, ik), inBlock].begin(),
+                  (*input)[seq(ix, iy, iz, ik), inBlock].end(), (*input)[seq(ix, iy, iz, ik)], thrust::maximum<tensor_t::value_t>());
+            }
+          }
+        }
+      }
+      break;
     }
 
     outputs->push_back(output);
