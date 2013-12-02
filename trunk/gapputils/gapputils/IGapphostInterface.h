@@ -12,6 +12,16 @@
 
 #include <string>
 
+namespace capputils {
+
+namespace reflection {
+
+class ReflectableClass;
+
+}
+
+}
+
 namespace gapputils {
 
 class AbstractLogbook;
@@ -21,6 +31,13 @@ public:
   virtual ~IGapphostInterface() {}
 
   virtual void saveDataModel(const std::string& filename) const = 0;
+  virtual void resetInputs() const = 0;
+  virtual void incrementInputs() const = 0;
+  virtual void decrementInputs() const = 0;
+
+  virtual void updateCurrentModule() const = 0;
+  virtual void updateModule(const capputils::reflection::ReflectableClass* object) const = 0;
+  virtual void updateWorkflow() const = 0;
 };
 
 }

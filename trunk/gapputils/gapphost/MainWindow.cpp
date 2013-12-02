@@ -467,6 +467,15 @@ void MainWindow::updateMainWorkflowNode(const std::string& nodeLabel) {
   abortAction->setEnabled(true);
 }
 
+void MainWindow::updateCurrentWorkflowNode(const capputils::reflection::ReflectableClass* object) {
+  setGuiEnabled(false);
+
+  workingWindow = static_cast<WorkbenchWindow*>(area->currentSubWindow());
+  connect(workingWindow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+  workingWindow->updateNode(object);
+  abortAction->setEnabled(true);
+}
+
 void MainWindow::terminateUpdate() {
   workingWindow->abortUpdate();
 }

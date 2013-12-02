@@ -49,13 +49,14 @@ std::string Expression::evaluate() const {
   std::stringstream output;
 
   char ch;
-  input >> ch;
-  for(input >> ch; !input.eof(); input >> ch) {
+  input.read(&ch, 1);
+//  input >> ch;
+  for(input.read(&ch, 1); !input.eof(); input.read(&ch, 1)) {
     if (ch == '$') {
-      input >> ch;
+      input.read(&ch, 1);
       if (ch == '(') {
         std::stringstream propertyName;
-        for (input >> ch; !input.eof() && ch != ')'; input >> ch)
+        for (input.read(&ch, 1); !input.eof() && ch != ')'; input.read(&ch, 1))
           propertyName << ch;
         boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(propertyName.str());
         if (gprop) {

@@ -30,6 +30,14 @@ public:
 
   static boost::shared_ptr<HostInterface> GetPointer();
   virtual void saveDataModel(const std::string& filename) const;
+
+  virtual void resetInputs() const;
+  virtual void incrementInputs() const;
+  virtual void decrementInputs() const;
+
+  virtual void updateCurrentModule() const;
+  virtual void updateModule(const capputils::reflection::ReflectableClass* object) const;
+  virtual void updateWorkflow() const;
 };
 
 }

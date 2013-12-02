@@ -644,6 +644,19 @@ void WorkbenchWindow::updateNodeByLabel(const std::string& label) {
   workflowUpdater->update(node);
 }
 
+void WorkbenchWindow::updateNode(const capputils::reflection::ReflectableClass* object) {
+  boost::shared_ptr<Workflow> workflow = this->workflow.lock();
+  Logbook& dlog = *workflow->getLogbook();
+
+  boost::shared_ptr<Node> node = workflow->getNode(object);
+  if(!node) {
+    dlog(Severity::Warning) << "Could not find node. Won't update workflow.";
+    return;
+  }
+
+  workflowUpdater->update(node);
+}
+
 void WorkbenchWindow::abortUpdate() {
   workflowUpdater->abort();
 }
