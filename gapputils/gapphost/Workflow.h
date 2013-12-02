@@ -100,6 +100,8 @@ public:
 
   boost::shared_ptr<Node> getNode(ToolItem* item);
   boost::shared_ptr<Node> getNode(ToolItem* item, unsigned& pos);
+  boost::shared_ptr<Node> getNode(const capputils::reflection::ReflectableClass* object);
+  boost::shared_ptr<Node> getNode(const capputils::reflection::ReflectableClass* object, unsigned& pos);
   boost::shared_ptr<Node> getNode(boost::shared_ptr<capputils::reflection::ReflectableClass> object);
   boost::shared_ptr<Node> getNode(boost::shared_ptr<capputils::reflection::ReflectableClass> object, unsigned& pos);
   boost::shared_ptr<Node> getNode(const std::string& uuid) const;

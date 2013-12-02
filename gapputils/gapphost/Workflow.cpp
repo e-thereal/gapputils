@@ -810,15 +810,23 @@ boost::shared_ptr<Node> Workflow::getNode(ToolItem* item, unsigned& pos) {
 }
 
 boost::shared_ptr<Node> Workflow::getNode(boost::shared_ptr<capputils::reflection::ReflectableClass> object) {
+  return getNode(object.get());
+}
+
+boost::shared_ptr<Node> Workflow::getNode(boost::shared_ptr<capputils::reflection::ReflectableClass> object, unsigned& pos) {
+  return getNode(object.get(), pos);
+}
+
+boost::shared_ptr<Node> Workflow::getNode(const capputils::reflection::ReflectableClass* object) {
   unsigned pos;
   return getNode(object, pos);
 }
 
-boost::shared_ptr<Node> Workflow::getNode(boost::shared_ptr<capputils::reflection::ReflectableClass> object, unsigned& pos) {
+boost::shared_ptr<Node> Workflow::getNode(const capputils::reflection::ReflectableClass* object, unsigned& pos) {
   boost::shared_ptr<Node> node;
   for(pos = 0; pos < _Nodes->size(); ++pos) {
     node = _Nodes->at(pos);
-    if (node->getModule() == object) {
+    if (node->getModule().get() == object) {
       return node;
     }
   }

@@ -12,6 +12,16 @@
 #include <map>
 #include <qmdiarea.h>
 
+namespace capputils {
+
+namespace reflection {
+
+class ReflectableClass;
+
+}
+
+}
+
 namespace gapputils {
 
 namespace host {
@@ -78,6 +88,7 @@ public Q_SLOTS:
   void updateWorkflow();
   void updateMainWorkflow();
   void updateMainWorkflowNode(const std::string& nodeLabel);
+  void updateCurrentWorkflowNode(const capputils::reflection::ReflectableClass* object);
   void terminateUpdate();
   void updateFinished();
   

@@ -14,6 +14,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include <capputils/EventHandler.h>
+#include <capputils/ReflectableClass.h>
 
 #include <ctime>
 #include <set>
@@ -80,6 +81,7 @@ public:
   void updateInputs();
   void updateOutputs();
   void updateNodeByLabel(const std::string& label);
+  void updateNode(const capputils::reflection::ReflectableClass* object);
   void abortUpdate();
 
   void changedHandler(capputils::ObservableClass* sender, int eventId);
