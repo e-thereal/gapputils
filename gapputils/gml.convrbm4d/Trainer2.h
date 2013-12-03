@@ -40,6 +40,7 @@ public:
   Property(GpuCount, int)
   Property(FilterMethod, FilterMethod)
   Property(Stride, int)
+  int dummy2;
   Property(LearningRateW, double)
   Property(LearningRateVB, double)
   Property(LearningRateHB, double)
@@ -50,7 +51,7 @@ public:
   Property(CalculateError, bool)
   Property(ShareBiasTerms, bool)
 //  Property(Logfile, std::string)
-  int dummy2;
+  int dummy3;
 
   Property(Model, boost::shared_ptr<Model>)
   Property(AverageEpochTime, double)

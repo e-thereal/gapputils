@@ -8,6 +8,7 @@
 #include "PadTensors.h"
 
 #include <tbblas/zeros.hpp>
+#include <tbblas/io.hpp>
 
 namespace gml {
 
@@ -18,6 +19,7 @@ BeginPropertyDefinitions(PadTensors)
   ReflectableBase(DefaultWorkflowElement<PadTensors>)
 
   WorkflowProperty(InputTensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(Direction, Enumerator<Type>())
   WorkflowProperty(Width)
   WorkflowProperty(Height)
   WorkflowProperty(Depth)
@@ -47,14 +49,31 @@ void PadTensors::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > outputs(
       new std::vector<boost::shared_ptr<tensor_t> >());
 
-  dim_t size = seq(getWidth(), getHeight(), getDepth(), 0);
-  for (size_t i = 0; i < inputs.size(); ++i) {
-    tensor_t& kern = *inputs[i];
-    size[dimCount - 1] = kern.size()[dimCount - 1];
-    dim_t topleft = size / 2 - kern.size() / 2;
-    boost::shared_ptr<tensor_t> pad(new tensor_t(zeros<value_t>(size)));
-    (*pad)[topleft, kern.size()] = kern;
-    outputs->push_back(pad);
+  if (getDirection() == CodingDirection::Encode) {
+    dim_t padSize = seq(getWidth(), getHeight(), getDepth(), 0);
+    for (size_t i = 0; i < inputs.size(); ++i) {
+      tensor_t& kern = *inputs[i];
+      padSize[dimCount - 1] = kern.size()[dimCount - 1];
+      dim_t topleft = padSize / 2 - kern.size() / 2;
+      boost::shared_ptr<tensor_t> pad(new tensor_t(zeros<value_t>(padSize)));
+      (*pad)[topleft, kern.size()] = kern;
+      outputs->push_back(pad);
+    }
+  } else {
+    dim_t kernSize = seq(getWidth(), getHeight(), getDepth(), 0);
+    for (size_t i = 0; i < inputs.size(); ++i) {
+      tensor_t& pad = *inputs[i];
+      kernSize[dimCount - 1] = pad.size()[dimCount - 1];
+      dim_t topleft = pad.size() / 2 - kernSize / 2;
+      boost::shared_ptr<tensor_t> kern(new tensor_t(zeros<value_t>(kernSize)));
+      tbblas_print(i);
+      tbblas_print(pad.size());
+      tbblas_print(kern->size());
+      tbblas_print(kernSize);
+      tbblas_print(topleft);
+      *kern = pad[topleft, kernSize];
+      outputs->push_back(kern);
+    }
   }
 
   newState->setOutputTensors(outputs);

@@ -543,6 +543,9 @@ void ImageViewerWidget::wheelEvent(QWheelEvent *event) {
 }
 
 void ImageViewerWidget::keyPressEvent(QKeyEvent *event) {
+
+  boost::shared_ptr<IGapphostInterface> host = viewer->getHostInterface();
+
   if (event->key() == Qt::Key_S && event->modifiers() == Qt::CTRL) {
     if (qimage) {
       QString filename = QFileDialog::getSaveFileName(this, "Save current image as ...");
@@ -591,6 +594,38 @@ void ImageViewerWidget::keyPressEvent(QKeyEvent *event) {
   case Qt::Key_Down:
   case Qt::Key_D:
     viewer->setCurrentSlice(viewer->getCurrentSlice() - 1);
+    return;
+
+  case Qt::Key_F5:
+    host->updateModule(viewer);
+    return;
+
+  case Qt::Key_F9:
+    host->updateWorkflow();
+    return;
+
+  case Qt::Key_Home:
+    host->resetInputs();
+    if (viewer->getAutoUpdateCurrentModule())
+      host->updateModule(viewer);
+    if (viewer->getAutoUpdateWorkflow())
+      host->updateWorkflow();
+    return;
+
+  case Qt::Key_PageDown:
+    host->incrementInputs();
+    if (viewer->getAutoUpdateCurrentModule())
+      host->updateModule(viewer);
+    if (viewer->getAutoUpdateWorkflow())
+      host->updateWorkflow();
+    return;
+
+  case Qt::Key_PageUp:
+    host->decrementInputs();
+    if (viewer->getAutoUpdateCurrentModule())
+      host->updateModule(viewer);
+    if (viewer->getAutoUpdateWorkflow())
+      host->updateWorkflow();
     return;
   }
   QGraphicsView::keyPressEvent(event);
@@ -683,6 +718,9 @@ ImageViewerDialog::ImageViewerDialog(ImageViewer* viewer) : QDialog(),
       "<b>D, arrow down:</b> Show previous slice<br>\n"
       "<b>W:</b> Resize window to match the image size<br>\n"
       "<b>R:</b> Fit the image into the window<br>\n"
+      "<b>Home:</b> Reset collections<br>\n"
+      "<b>Page Down:</b> Increment collections<br>\n"
+      "<b>Page Up:</b> Decrement collections<br>\n"
       "<b>Q, Esc:</b> Close the viewer<br>\n"
       "<b>Ctrl+S:</b> Save the current image<br>\n"
       "<h3>Mouse Actions</h3>\n"
@@ -694,10 +732,11 @@ ImageViewerDialog::ImageViewerDialog(ImageViewer* viewer) : QDialog(),
 }
 
 void ImageViewerDialog::keyPressEvent(QKeyEvent *event) {
-  if (event->key() == Qt::Key_Space || event->key() == Qt::Key_H || event->key() == Qt::Key_F1) {
-//    if (!helpLabel->isVisible()) {
-      helpLabel->setVisible(!helpLabel->isVisible());
-//    }
+  switch (event->key()) {
+  case Qt::Key_Space:
+  case Qt::Key_H:
+  case Qt::Key_F1:
+    helpLabel->setVisible(!helpLabel->isVisible());
     return;
   }
   QDialog::keyPressEvent(event);

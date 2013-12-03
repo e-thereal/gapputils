@@ -36,6 +36,8 @@ FilterChecker::FilterChecker() {
 
 unsigned int upper_power_of_two(unsigned int v);
 
+//#define TRACE std::cout << __LINE__ << std::endl;
+
 void Filter::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
