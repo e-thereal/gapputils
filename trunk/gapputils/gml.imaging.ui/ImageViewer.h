@@ -39,6 +39,8 @@ class ImageViewer : public DefaultWorkflowElement<ImageViewer> {
   Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(Tensor, boost::shared_ptr<tensor_t>)
   Property(Tensors, boost::shared_ptr<v_tensor_t>)
+  Property(AutoUpdateCurrentModule, bool)
+  Property(AutoUpdateWorkflow, bool)
   Property(CurrentImage, int)
   Property(CurrentSlice, int)
   Property(MinimumIntensity, double)

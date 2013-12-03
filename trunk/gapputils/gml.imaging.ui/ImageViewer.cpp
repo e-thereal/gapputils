@@ -37,6 +37,8 @@ BeginPropertyDefinitions(ImageViewer)
   WorkflowProperty(Images, Input("Is"), Dummy(imagesId = Id))
   WorkflowProperty(Tensor, Input("T"), Dummy(tensorId = Id))
   WorkflowProperty(Tensors, Input("Ts"), Dummy(tensorsId = Id))
+  WorkflowProperty(AutoUpdateCurrentModule, Flag(), Description("If checked, the current module is updated on increment or decrement."))
+  WorkflowProperty(AutoUpdateWorkflow, Flag(), Description("If checked, the current workflow is updated on increment or decrement."))
   WorkflowProperty(CurrentImage, Dummy(currentImageId = Id))
   WorkflowProperty(CurrentSlice, Dummy(currentSliceId = Id))
   WorkflowProperty(MinimumIntensity, Dummy(minimumIntensityId = Id))
@@ -51,7 +53,9 @@ BeginPropertyDefinitions(ImageViewer)
 EndPropertyDefinitions
 
 ImageViewer::ImageViewer()
- : _CurrentImage(0), _CurrentSlice(0), _MinimumIntensity(0.0), _MaximumIntensity(1.0), _Contrast(1.0),  _MinimumLength(0.0), _MaximumLength(1.0), _VisibleLength(1.0)//, _WobbleDelay(100)
+ : _AutoUpdateCurrentModule(true), _AutoUpdateWorkflow(false), _CurrentImage(0), _CurrentSlice(0),
+   _MinimumIntensity(0.0), _MaximumIntensity(1.0), _Contrast(1.0),
+   _MinimumLength(0.0), _MaximumLength(1.0), _VisibleLength(1.0)//, _WobbleDelay(100)
 {
   setLabel("Viewer");
 }

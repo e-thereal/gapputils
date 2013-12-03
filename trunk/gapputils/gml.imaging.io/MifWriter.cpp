@@ -106,7 +106,7 @@ void MifWriter::update(IProgressMonitor* monitor) const {
     for (int z = 1, i = 0; z <= mif.getSliceCount(); ++z) {
       for (int y = 0; y < mif.getRowCount(); ++y) {
         for (int x = 0; x < mif.getColumnCount(); ++x, ++i) {
-          pixels[z][y][x] = std::min(2048.0, std::max(0.0, (features[i] - minV) * maxIntens / (maxV - minV)));
+          pixels[z][y][x] = std::min(4096.0, std::max(0.0, (features[i] - minV) * maxIntens / (maxV - minV)));
         }
       }
       if (monitor) {

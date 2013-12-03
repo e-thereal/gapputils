@@ -62,6 +62,8 @@ void TensorReader::update(gapputils::workflow::IProgressMonitor* monitor) const 
 
   if (getMaxCount() > 0)
     count = std::min((int)count - first, getMaxCount());
+  else
+    count -= first;
 
   boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > tensors(
       new std::vector<boost::shared_ptr<tensor_t> >());

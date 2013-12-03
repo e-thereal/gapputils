@@ -13,12 +13,14 @@ namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(StackTensors, Description("Stacks multiple tensors into one multi-channel tensor."))
+BeginPropertyDefinitions(StackTensors, Description("Stacks multiple tensors into one multi-channel tensor or into a vector of tensors."))
 
   ReflectableBase(DefaultWorkflowElement<StackTensors>)
 
-  WorkflowProperty(InputTensors, Input(""), NotNull<Type>(), NotEmpty<Type>(), Merge<Type>(), Description("Input tensors with possible more than 1 channel."))
-  WorkflowProperty(OutputTensor, Output(""), Description("Multi-channels output tensor"))
+  WorkflowProperty(InputTensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>(), Merge<Type>(), Description("Input tensors with possible more than 1 channel."))
+  WorkflowProperty(Mode, Enumerator<Type>(), Description("SingleTensor: One output tensor is created; TensorVector: A vector of tensors is created."))
+  WorkflowProperty(OutputTensor, Output("T"), Description("Multi-channels output tensor"))
+  WorkflowProperty(OutputTensors, Output("Ts"), Description("Vector of tensors"))
 
 EndPropertyDefinitions
 
@@ -46,15 +48,31 @@ void StackTensors::update(IProgressMonitor* monitor) const {
     }
   }
 
-  dim_t outSize = size, offset(0);
-  outSize[dimCount - 1] = channels;
+  switch (getMode()) {
+  case StackMode::SingleTensor:
+    {
+      dim_t outSize = size, offset(0);
+      outSize[dimCount - 1] = channels;
 
-  boost::shared_ptr<tensor_t> output(new tensor_t(outSize));
-  for (size_t i = 0; i < tensors.size(); ++i) {
-    (*output)[offset, size] = *tensors[i];
-    offset[dimCount - 1] += tensors[i]->size()[dimCount - 1];
+      boost::shared_ptr<tensor_t> output(new tensor_t(outSize));
+      for (size_t i = 0; i < tensors.size(); ++i) {
+        (*output)[offset, size] = *tensors[i];
+        offset[dimCount - 1] += tensors[i]->size()[dimCount - 1];
+      }
+      newState->setOutputTensor(output);
+    }
+    break;
+
+  case StackMode::TensorVector:
+    {
+      boost::shared_ptr<v_tensor_t> outputs(new v_tensor_t());
+      for (size_t i = 0; i < tensors.size(); ++i) {
+        outputs->push_back(boost::make_shared<tensor_t>(*tensors[i]));
+      }
+      newState->setOutputTensors(outputs);
+    }
+    break;
   }
-  newState->setOutputTensor(output);
 }
 
 } /* namespace convrbm4d */

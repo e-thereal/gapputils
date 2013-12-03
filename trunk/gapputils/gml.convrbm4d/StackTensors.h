@@ -11,11 +11,15 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
+#include <capputils/Enumerators.h>
+
 #include "Model.h"
 
 namespace gml {
 
 namespace convrbm4d {
+
+CapputilsEnumerator(StackMode, SingleTensor, TensorVector);
 
 /**
  * Creates a multi-channel tensor by stacking two tensors together
@@ -23,11 +27,14 @@ namespace convrbm4d {
 class StackTensors : public DefaultWorkflowElement<StackTensors> {
 
   typedef Model::tensor_t tensor_t;
+  typedef std::vector<boost::shared_ptr<tensor_t> > v_tensor_t;
 
   InitReflectableClass(StackTensors)
 
   Property(InputTensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(Mode, StackMode)
   Property(OutputTensor, boost::shared_ptr<tensor_t>)
+  Property(OutputTensors, boost::shared_ptr<v_tensor_t>)
 
 public:
   StackTensors();

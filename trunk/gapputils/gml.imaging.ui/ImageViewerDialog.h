@@ -17,6 +17,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include <gapputils/Image.h>
+#include <gapputils/IGapphostInterface.h>
 
 #include <capputils/Enumerators.h>
 #include <capputils/ObservableClass.h>

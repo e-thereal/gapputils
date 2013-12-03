@@ -11,6 +11,8 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
+#include "CodingDirection.h"
+
 #include "Model.h"
 
 namespace gml {
@@ -24,6 +26,7 @@ class PadTensors : public DefaultWorkflowElement<PadTensors> {
   InitReflectableClass(PadTensors)
 
   Property(InputTensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(Direction, CodingDirection)
   Property(Width, int)
   Property(Height, int)
   Property(Depth, int)
