@@ -426,6 +426,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     }
 
     random_tensor<value_t, dimCount, true, uniform<value_t> > h_rand;
+    random_tensor<value_t, dimCount, true, uniform<value_t> > v_rand;
     random_tensor<value_t, dimCount, true, normal<value_t> > h_noise;
     random_tensor<value_t, dimCount, true, normal<value_t> > v_noise;
 
@@ -448,6 +449,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
         crbm->getVisibleUnitType() == UnitType::ReLU4)
     {
       v_noise.resize(size, tid);
+    }
+
+    if (crbm->getVisibleUnitType() == UnitType::Bernoulli) {
+      v_rand.resize(size, tid);
     }
 
     hMask = *crbm->getMask();
@@ -810,9 +815,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
 #endif
 
                 switch (crbm->getVisibleUnitType()) {
-                  case UnitType::Gaussian: break;
-                  // TODO: implement binary visible units
-    //              case UnitType::Bernoulli: vneg = sigm(vneg); break;
+                  case UnitType::Gaussian:  break;
+                  case UnitType::Bernoulli: vneg = sigm(vneg) > v_rand; break;
                   case UnitType::MyReLU:
                   case UnitType::ReLU:      vneg = max(0.0, vneg + sqrt(sigm(vneg)) * v_noise); break;
                   case UnitType::ReLU1:     vneg = min(1.0, max(0.0, vneg + (vneg > 0) * (vneg < 1.0) * v_noise)); break;
