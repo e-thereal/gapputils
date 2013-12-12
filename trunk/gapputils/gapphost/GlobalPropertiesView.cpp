@@ -27,8 +27,8 @@ GlobalPropertiesView::GlobalPropertiesView(QWidget* parent) :QWidget(parent) {
   propertiesWidget = new QTreeWidget();
 //  propertiesWidget->setAlternatingRowColors(true);
 //  propertiesWidget->setSelectionBehavior(QAbstractItemView::SelectItems);
-  propertiesWidget->setEditTriggers(QAbstractItemView::DoubleClicked);
-  propertiesWidget->setHeaderLabels(QStringList() << "Property" << "Type" << "Label" << "Module" << "Node UUID");
+  propertiesWidget->setEditTriggers(QAbstractItemView::SelectedClicked);
+  propertiesWidget->setHeaderLabels(QStringList() << "Property (Module Property)" << "Type" << "Label" << "Module" << "Node UUID");
 
   QVBoxLayout* mainLayout = new QVBoxLayout();
   mainLayout->addWidget(propertiesWidget);
@@ -48,7 +48,7 @@ void GlobalPropertiesView::setWorkflow(boost::shared_ptr<Workflow> workflow) {
   this->workflow = workflow;
 
   propertiesWidget->clear();
-  propertiesWidget->setHeaderLabels(QStringList() << "Property" << "Type"  << "Label" << "Module" << "Node UUID");
+  propertiesWidget->setHeaderLabels(QStringList() << "Property (Module Property)" << "Type"  << "Label" << "Module" << "Node UUID");
 
   std::vector<boost::shared_ptr<GlobalProperty> >& globals = *workflow->getGlobalProperties();
   for (size_t iProp = 0; iProp < globals.size(); ++iProp) {

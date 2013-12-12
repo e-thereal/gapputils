@@ -23,6 +23,7 @@
 #include <capputils/FlagAttribute.h>
 
 #include <gapputils/ReadOnlyAttribute.h>
+#include <capputils/NoParameterAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -37,8 +38,8 @@ BeginAbstractPropertyDefinitions(CollectionElement)
   ReflectableBase(gapputils::workflow::WorkflowElement)
 
   DefineProperty(CalculateCombinations, Flag(), Observe(Id))
-  DefineProperty(CurrentIteration, Observe(Id), ReadOnly())
-  DefineProperty(IterationCount, Observe(Id), ReadOnly())
+  DefineProperty(CurrentIteration, Observe(Id), ReadOnly(), NoParameter())
+  DefineProperty(IterationCount, Observe(Id), ReadOnly(), NoParameter())
 
 EndPropertyDefinitions
 
