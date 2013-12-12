@@ -23,6 +23,7 @@ ModelChecker::ModelChecker() {
   CHECK_MEMORY_LAYOUT2(VisibleUnitType, model);
   CHECK_MEMORY_LAYOUT2(HiddenUnitType, model);
   CHECK_MEMORY_LAYOUT2(Mask, model);
+  CHECK_MEMORY_LAYOUT2(ConvolutionType, model);
 }
 
 }

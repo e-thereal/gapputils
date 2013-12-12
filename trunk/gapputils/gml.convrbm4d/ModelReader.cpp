@@ -24,6 +24,9 @@ BeginPropertyDefinitions(ModelReader)
 
   WorkflowProperty(Filename, Input("File"), Filename("Compressed CRBM (*.crbm.gz)"), FileExists())
   WorkflowProperty(Model, Output("CRBM"))
+  WorkflowProperty(TensorWidth, NoParameter())
+  WorkflowProperty(TensorHeight, NoParameter())
+  WorkflowProperty(TensorDepth, NoParameter())
   WorkflowProperty(FilterWidth, NoParameter())
   WorkflowProperty(FilterHeight, NoParameter())
   WorkflowProperty(FilterDepth, NoParameter())
@@ -31,11 +34,14 @@ BeginPropertyDefinitions(ModelReader)
   WorkflowProperty(FilterCount, NoParameter())
   WorkflowProperty(VisibleUnitType, NoParameter())
   WorkflowProperty(HiddenUnitType, NoParameter())
+  WorkflowProperty(ConvolutionType, NoParameter())
+  WorkflowProperty(Mean, NoParameter())
+  WorkflowProperty(Stddev, NoParameter())
 
 EndPropertyDefinitions
 
 ModelReader::ModelReader()
- : _FilterWidth(0), _FilterHeight(0), _FilterDepth(0), _ChannelCount(0), _FilterCount(0)
+ : _TensorWidth(0), _TensorHeight(0), _TensorDepth(0), _FilterWidth(0), _FilterHeight(0), _FilterDepth(0), _ChannelCount(0), _FilterCount(0)
 {
   setLabel("Reader");
 }
@@ -56,6 +62,11 @@ void ModelReader::update(IProgressMonitor* monitor) const {
   Serializer::ReadFromFile(*model, file);
 
   newState->setModel(model);
+  if (model->getVisibleBias()) {
+    newState->setTensorWidth(model->getVisibleBias()->size()[0]);
+    newState->setTensorHeight(model->getVisibleBias()->size()[1]);
+    newState->setTensorDepth(model->getVisibleBias()->size()[2]);
+  }
   if (model->getFilters() && model->getFilters()->size()) {
     newState->setFilterWidth(model->getFilters()->at(0)->size()[0]);
     newState->setFilterHeight(model->getFilters()->at(0)->size()[1]);
@@ -65,6 +76,9 @@ void ModelReader::update(IProgressMonitor* monitor) const {
   }
   newState->setVisibleUnitType(model->getVisibleUnitType());
   newState->setHiddenUnitType(model->getHiddenUnitType());
+  newState->setConvolutionType(model->getConvolutionType());
+  newState->setMean(model->getMean());
+  newState->setStddev(model->getStddev());
 }
 
 } /* namespace convrbm4d */

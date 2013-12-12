@@ -21,6 +21,9 @@ class ModelReader : public DefaultWorkflowElement<ModelReader> {
 
   Property(Filename, std::string)
   Property(Model, boost::shared_ptr<Model>)
+  Property(TensorWidth, int)
+  Property(TensorHeight, int)
+  Property(TensorDepth, int)
   Property(FilterWidth, int)
   Property(FilterHeight, int)
   Property(FilterDepth, int)
@@ -28,6 +31,9 @@ class ModelReader : public DefaultWorkflowElement<ModelReader> {
   Property(FilterCount, int)
   Property(VisibleUnitType, UnitType)
   Property(HiddenUnitType, UnitType)
+  Property(ConvolutionType, ConvolutionType)
+  Property(Mean, double)
+  Property(Stddev, double)
 
 public:
   ModelReader();

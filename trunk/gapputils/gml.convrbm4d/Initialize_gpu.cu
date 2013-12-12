@@ -32,6 +32,7 @@ InitializeChecker::InitializeChecker() {
   CHECK_MEMORY_LAYOUT2(WeightStddev, test);
   CHECK_MEMORY_LAYOUT2(VisibleUnitType, test);
   CHECK_MEMORY_LAYOUT2(HiddenUnitType, test);
+  CHECK_MEMORY_LAYOUT2(ConvolutionType, test);
 
   CHECK_MEMORY_LAYOUT2(Model, test);
 }
@@ -50,6 +51,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   boost::shared_ptr<Model> crbm(new Model());
   crbm->setVisibleUnitType(getVisibleUnitType());
   crbm->setHiddenUnitType(getHiddenUnitType());
+  crbm->setConvolutionType(getConvolutionType());
 
   std::vector<boost::shared_ptr<tensor_t> >& tensors = *getTensors();
   tensor_t::dim_t size = tensors[0]->size(), maskSize = size;

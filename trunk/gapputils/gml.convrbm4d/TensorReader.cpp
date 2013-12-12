@@ -29,12 +29,12 @@ BeginPropertyDefinitions(TensorReader)
   WorkflowProperty(Width, NoParameter())
   WorkflowProperty(Height, NoParameter())
   WorkflowProperty(Depth, NoParameter())
-  WorkflowProperty(FilterCount, NoParameter())
+  WorkflowProperty(Channels, NoParameter())
   WorkflowProperty(TensorCount, NoParameter())
 
 EndPropertyDefinitions
 
-TensorReader::TensorReader() : _FirstIndex(0), _MaxCount(-1), _Width(0), _Height(0), _Depth(0), _FilterCount(0), _TensorCount(0) {
+TensorReader::TensorReader() : _FirstIndex(0), _MaxCount(-1), _Width(0), _Height(0), _Depth(0), _Channels(0), _TensorCount(0) {
   setLabel("Reader");
 }
 
@@ -88,7 +88,7 @@ void TensorReader::update(gapputils::workflow::IProgressMonitor* monitor) const 
     newState->setWidth(tensors->at(0)->size()[0]);
     newState->setHeight(tensors->at(0)->size()[1]);
     newState->setDepth(tensors->at(0)->size()[2]);
-    newState->setFilterCount(tensors->at(0)->size()[3]);
+    newState->setChannels(tensors->at(0)->size()[3]);
     newState->setTensorCount(tensors->size());
   }
 }

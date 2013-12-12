@@ -70,6 +70,8 @@ public Q_SLOTS:
 class ImageViewerDialog : public QDialog {
   Q_OBJECT
 
+  friend class ImageViewer;
+
 private:
   boost::shared_ptr<ImageViewerWidget> widget;
   boost::shared_ptr<QLabel> helpLabel;

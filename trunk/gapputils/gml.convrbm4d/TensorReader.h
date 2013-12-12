@@ -30,7 +30,7 @@ class TensorReader : public DefaultWorkflowElement<TensorReader> {
   Property(Width, int)
   Property(Height, int)
   Property(Depth, int)
-  Property(FilterCount, int)
+  Property(Channels, int)
   Property(TensorCount, int)
 
 public:

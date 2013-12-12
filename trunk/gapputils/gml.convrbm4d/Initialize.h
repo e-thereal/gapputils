@@ -37,6 +37,7 @@ public:
   Property(WeightStddev, double)
   Property(VisibleUnitType, UnitType)
   Property(HiddenUnitType, UnitType)
+  Property(ConvolutionType, ConvolutionType)
 
   Property(Model, boost::shared_ptr<Model>)
 

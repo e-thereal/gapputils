@@ -13,6 +13,7 @@
 #include <tbblas/tensor.hpp>
 
 #include "UnitType.h"
+#include "ConvolutionType.h"
 
 namespace gml {
 
@@ -45,6 +46,7 @@ private:
   Property(VisibleUnitType, UnitType)
   Property(HiddenUnitType, UnitType)
   Property(Mask, boost::shared_ptr<tensor_t>) // The mask has always only one channel and must be extended if necessary
+  Property(ConvolutionType, ConvolutionType)
 
 public:
   Model();

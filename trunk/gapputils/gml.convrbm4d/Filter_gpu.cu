@@ -12,6 +12,9 @@
 #include <tbblas/zeros.hpp>
 #include <tbblas/repeat.hpp>
 #include <tbblas/shift.hpp>
+#include <tbblas/ones.hpp>
+#include <tbblas/zeros.hpp>
+#include <tbblas/io.hpp>
 
 #include <omp.h>
 
@@ -60,9 +63,16 @@ void Filter::update(IProgressMonitor* monitor) const {
 
   // Load model into device memory
   Model& crbm = *getModel();
-  dim_t size = inputs[0]->size(), layerSize = size;
-  size[dimCount - 1] = crbm.getFilterKernelSize()[dimCount - 1];
-  layerSize[dimCount - 1] = 1;
+  dim_t originalSize = crbm.getVisibleBias()->size(), originalLayerSize = originalSize;
+  originalLayerSize[dimCount - 1] = 1;
+
+  dim_t size = originalSize, layerSize = originalLayerSize;
+  if (crbm.getConvolutionType() == ConvolutionType::Valid) {
+    for (unsigned j = 0; j < dimCount - 1; ++j) {
+      size[j] = upper_power_of_two(originalSize[j]);
+      layerSize[j] = upper_power_of_two(originalLayerSize[j]);
+    }
+  }
 
   int deviceCount = 0;
   cudaGetDeviceCount(&deviceCount);
@@ -82,7 +92,8 @@ void Filter::update(IProgressMonitor* monitor) const {
 
   std::vector<boost::shared_ptr<host_tensor_t> >& filters = *crbm.getFilters();
   std::vector<boost::shared_ptr<host_tensor_t> >& c = *crbm.getHiddenBiases();
-  tensor_t b = *crbm.getVisibleBias();
+  tensor_t b = zeros<value_t>(size);
+  b[seq(0,0,0,0), originalSize]= *crbm.getVisibleBias();
 
   std::vector<boost::shared_ptr<ctensor_t> > cF(filters.size()), cc(filters.size());
   tensor_t output, v_master;
@@ -105,7 +116,17 @@ void Filter::update(IProgressMonitor* monitor) const {
     #pragma omp barrier
 
     plan_t plan_v, iplan_v, plan_h, iplan_h;
-    tensor_t hMask = *crbm.getMask();
+    tensor_t vMask = zeros<value_t>(layerSize);
+    vMask[seq(0,0,0,0), crbm.getMask()->size()] = *crbm.getMask();
+    tensor_t hMask = zeros<value_t>(layerSize);
+    if (crbm.getConvolutionType() == ConvolutionType::Valid) {
+      dim_t topleft = crbm.getFilterKernelSize() / 2;
+      topleft[dimCount - 1] = 0;
+      hMask[topleft, layerSize - 2 * topleft] = ones<value_t>(layerSize - 2 * topleft);
+      hMask = hMask * vMask;
+    } else {
+      hMask = vMask;
+    }
 
     // Copy filters to the device and pre-calculate the FFT
     {
@@ -125,7 +146,8 @@ void Filter::update(IProgressMonitor* monitor) const {
         cf = fft(f, dimCount - 1, plan_v);
         cF[k] = boost::make_shared<ctensor_t>(cf);
 
-        h = *c[k];
+        h = zeros<value_t>(layerSize);
+        h[seq(0,0,0,0), originalLayerSize] = *c[k];
         ch = fft(h, dimCount - 1, plan_h);
         cc[k] = boost::make_shared<ctensor_t>(ch);
       }
@@ -134,6 +156,11 @@ void Filter::update(IProgressMonitor* monitor) const {
     tensor_t v, h;
     ctensor_t cv, ch_full, ch;
 
+    dim_t topleft = crbm.getFilterKernelSize() / 2;
+    topleft[dimCount - 1] = 0;
+    if (crbm.getConvolutionType() == ConvolutionType::Circular)
+      topleft = seq(0,0,0,0);
+
     for (size_t i = 0; i < inputs.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
 
       if (getDirection() == CodingDirection::Encode) {
@@ -141,15 +168,20 @@ void Filter::update(IProgressMonitor* monitor) const {
         cudaStreamSynchronize(0);
         #pragma omp barrier
 
+        dim_t outSize = originalSize - 2 * topleft;
+        outSize[dimCount - 1] = cF.size();
+        dim_t outLayerSize = outSize;
+        outLayerSize[dimCount - 1] = 1;
+
         #pragma omp master
         {
-          v_master = *inputs[i];
+          v_master = zeros<value_t>(size);
+          v_master[seq(0,0,0,0), inputs[i]->size()] = *inputs[i];
           if (crbm.getVisibleUnitType() == UnitType::Gaussian)
             v_master = (v_master - crbm.getMean()) / crbm.getStddev();
-          v_master = v_master * repeat(hMask, size / layerSize);
+          v_master = v_master * repeat(vMask, size / layerSize);
           cv_master = fft(v_master, dimCount - 1, plan_v);
-          output.resize(seq(v_master.size()[0], v_master.size()[1], v_master.size()[2], (int)cF.size()),
-              seq(v_master.size()[0], v_master.size()[1], v_master.size()[2], (int)cF.size()));
+          output.resize(outSize, outSize);
           cudaStreamSynchronize(0);
         }
         #pragma omp barrier
@@ -184,7 +216,8 @@ void Filter::update(IProgressMonitor* monitor) const {
             default:
               dlog(Severity::Warning) << "Unsupported hidden unit type: " << crbm.getVisibleUnitType();
           }
-          output[seq(0,0,0,(int)k), h.size()] = h * hMask;
+          h = h * hMask;
+          output[seq(0,0,0,(int)k), outLayerSize] = h[topleft, outLayerSize];
         }
         cudaStreamSynchronize(0);
         #pragma omp barrier
@@ -192,6 +225,9 @@ void Filter::update(IProgressMonitor* monitor) const {
       } else {  /* getDirection() == Decoding */
 
         cv = zeros<complex_t>(cF[0]->size(), cF[0]->fullsize());
+
+        dim_t inSize = inputs[i]->size(), inLayerSize = inSize;
+        inLayerSize[dimCount - 1] = 1;
 
         #pragma omp master
         {
@@ -201,7 +237,8 @@ void Filter::update(IProgressMonitor* monitor) const {
         #pragma omp barrier
 
         for (size_t k = tid; k < cF.size(); k += gpuCount) {
-          h = (*inputs[i])[seq(0,0,0,(int)k), seq(inputs[i]->size()[0],inputs[i]->size()[1], inputs[i]->size()[2],1)];
+          h = zeros<value_t>(layerSize);
+          h[topleft, inLayerSize] = (*inputs[i])[seq(0,0,0,(int)k), inLayerSize];
           if (!getOnlyFilters())
             h = h * hMask;
           ch = fft(h, dimCount - 1, plan_h);
@@ -221,7 +258,7 @@ void Filter::update(IProgressMonitor* monitor) const {
           v = ifft(cv_master, dimCount - 1, iplan_v);
 
           if (getOnlyFilters()) {
-            output = v;
+            output = v[seq(0,0,0,0), originalSize];
           } else {
             switch(crbm.getVisibleUnitType()) {
               case UnitType::Bernoulli: v = sigm(v + b); break;
@@ -235,7 +272,8 @@ void Filter::update(IProgressMonitor* monitor) const {
               default:
                 dlog(Severity::Warning) << "Unsupported unit type: " << crbm.getVisibleUnitType();
             }
-            output = ((v * crbm.getStddev()) + crbm.getMean()) * repeat(hMask, size / layerSize);
+            v = ((v * crbm.getStddev()) + crbm.getMean()) * repeat(vMask, size / layerSize);
+            output = v[seq(0,0,0,0), originalSize];
           }
 
           cudaStreamSynchronize(0);

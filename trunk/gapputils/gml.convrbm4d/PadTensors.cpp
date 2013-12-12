@@ -66,11 +66,6 @@ void PadTensors::update(IProgressMonitor* monitor) const {
       kernSize[dimCount - 1] = pad.size()[dimCount - 1];
       dim_t topleft = pad.size() / 2 - kernSize / 2;
       boost::shared_ptr<tensor_t> kern(new tensor_t(zeros<value_t>(kernSize)));
-      tbblas_print(i);
-      tbblas_print(pad.size());
-      tbblas_print(kern->size());
-      tbblas_print(kernSize);
-      tbblas_print(topleft);
       *kern = pad[topleft, kernSize];
       outputs->push_back(kern);
     }
