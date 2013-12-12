@@ -77,6 +77,9 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(ModelIncrement, trainer);
   CHECK_MEMORY_LAYOUT2(AverageEpochTime, trainer);
   CHECK_MEMORY_LAYOUT2(ReconstructionError, trainer);
+  CHECK_MEMORY_LAYOUT2(Visibles, trainer);
+  CHECK_MEMORY_LAYOUT2(Hiddens, trainer);
+  CHECK_MEMORY_LAYOUT2(Reconstructions, trainer);
 }
 
 #define START size_t timerCycles = getEpochCount(); \
@@ -155,16 +158,23 @@ void Trainer::update(IProgressMonitor* monitor) const {
   }
 
   // Prepare sizes
-  dim_t size = getTensors()->at(0)->size();
-  dim_t layerSize = size, layerBatchSize = size, filterBatchSize = size;
-  layerSize[dimCount - 1] = 1;
+  dim_t originalSize = getTensors()->at(0)->size();
+  dim_t size = originalSize;
+  if (getInitialModel()->getConvolutionType() == ConvolutionType::Valid) {
+    for (unsigned j = 0; j < dimCount - 1; ++j) {
+      size[j] = upper_power_of_two(size[j]);
+    }
+  }
+
+  dim_t originalLayerSize = originalSize, layerSize = size, layerBatchSize = size, filterBatchSize = size;
+  originalLayerSize[dimCount - 1] = layerSize[dimCount - 1] = 1;
   filterBatchSize[dimCount - 1] = size[dimCount - 1] * filterBatchLength;
   layerBatchSize[dimCount - 1] = filterBatchLength;
 
-  size_t layerVoxelCount = 1;
+//  size_t layerVoxelCount = 1;
   size_t voxelCount = sum(*getInitialModel()->getMask()) * size[dimCount - 1];
-  for (size_t i = 0; i < dimCount - 1; ++i)
-    layerVoxelCount *= layerSize[i];
+//  for (size_t i = 0; i < dimCount - 1; ++i)
+//    layerVoxelCount *= layerSize[i];
 
   // Initialize constants
   value_t epsilonw =  getLearningRate() / batchSize / voxelCount; // Learning rate for weights
@@ -194,6 +204,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     crbm->setStddev(oldCrbm->getStddev());
     crbm->setVisibleUnitType(oldCrbm->getVisibleUnitType());
     crbm->setHiddenUnitType(oldCrbm->getHiddenUnitType());
+    crbm->setConvolutionType(oldCrbm->getConvolutionType());
     crbm->setMask(boost::make_shared<host_tensor_t>(*oldCrbm->getMask()));
 
     // Prepare an early memory clean up of the old model
@@ -223,27 +234,36 @@ void Trainer::update(IProgressMonitor* monitor) const {
 #endif
 
   // Normalize input and pre-calculate the FFT
+  // In case of valid convolutions: pad the input
   std::vector<boost::shared_ptr<host_ctensor_t> > cX;
   {
     boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > tensors = getTensors();
-    tensor_t x, hMask;
+    tensor_t x, vMask;
     ctensor_t cx;
     plan_t plan_v;
 
-    hMask = *crbm->getMask();
+    // Pad the mask
+    vMask = zeros<value_t>(layerSize);
+    vMask[seq(0,0,0,0), crbm->getMask()->size()] = *crbm->getMask();
 
     for (size_t i = 0; i < tensors->size(); ++i) {
-      x = *tensors->at(i);
+      x = zeros<value_t>(size);
+      x[seq(0,0,0,0), tensors->at(i)->size()] = *tensors->at(i);
 
       for (unsigned j = 0; j < dimCount - 1; ++j) {
         if (x.size()[j] != upper_power_of_two(x.size()[j])) {
           dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Aborting!";
           return;
         }
+        if (tensors->at(i)->size()[j] > size[j]) {
+          dlog(Severity::Warning) << "Input tensors must have the same size. Aborting!";
+          return;
+        }
       }
 
       if (crbm->getVisibleUnitType() == UnitType::Gaussian)
-        x = (x - crbm->getMean()) / crbm->getStddev() * repeat(hMask, size / layerSize);
+        x = (x - crbm->getMean()) / crbm->getStddev();
+      x = x * repeat(vMask, size / layerSize);
       cx = fft(x, dimCount - 1, plan_v);
       cX.push_back(boost::shared_ptr<host_ctensor_t>(new host_ctensor_t(cx)));
 
@@ -282,6 +302,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
 #endif
 
   value_t error = 0;
+
+  boost::shared_ptr<v_host_tensor_t> vs(new v_host_tensor_t());
+  boost::shared_ptr<v_host_tensor_t> hs(new v_host_tensor_t());
+  boost::shared_ptr<v_host_tensor_t> vnegs(new v_host_tensor_t());
 
   /*** START OF PARALLEL CODE ***/
 
@@ -323,7 +347,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
     #pragma omp master
 #endif
     {
-      tensor_t f = *b;
+      tensor_t f = zeros<value_t>(size);
+      f[seq(0,0,0,0), b->size()] = *b;
       plan_t plan_v;
       if (getShareBiasTerms())
         f = ones<value_t>(f.size()) * sum(f) / f.count();
@@ -387,7 +412,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
           h = *c->at(i * filterBatchLength + j);
           if (getShareBiasTerms())
             h = ones<value_t>(h.size()) * sum(h) / h.count();
-          hBatch[seq(0,0,0,j),layerSize] = h;
+          hBatch[seq(0,0,0,j), layerSize] = zeros<value_t>(layerSize);
+          hBatch[seq(0,0,0,j), h.size()] = h;
         }
         ch = fft(hBatch, dimCount - 1, plan_h);
         cc[i] = boost::make_shared<ctensor_t>(ch);
@@ -414,10 +440,14 @@ void Trainer::update(IProgressMonitor* monitor) const {
     }
 
     // Declare variables used for training
-    tensor_t h, h2, f, hMask;        // for sigm, sampling, filter masking and visible masking
+    tensor_t h, h2, f, vMask, hMask;        // for sigm, sampling, filter masking and visible masking
     ctensor_t ch, chdiff, ch_full;
     ctensor_t cv;                   // Read from the master thread and then each other thread reads from the master device
     ctensor_t cvneg;                // All threads add their version to the master threads version (needs to be synchronized)
+
+    dim_t hsize = originalSize;
+    hsize[dimCount - 1] = cF.size();
+    tensor_t H = zeros<value_t>(hsize); // TODO: remove H (debug)
 
     #pragma omp master
     {
@@ -455,7 +485,19 @@ void Trainer::update(IProgressMonitor* monitor) const {
       v_rand.resize(size, tid);
     }
 
-    hMask = *crbm->getMask();
+    vMask = zeros<value_t>(layerSize);
+    vMask[seq(0,0,0,0), crbm->getMask()->size()] = *crbm->getMask();
+
+    // pad h mask according to convolution shrinkage
+    if (crbm->getConvolutionType() == ConvolutionType::Valid){
+      dim_t topleft = crbm->getFilterKernelSize() / 2;
+      topleft[dimCount - 1] = 0;
+      hMask = zeros<value_t>(layerSize);
+      hMask[topleft, originalLayerSize - 2 * topleft] = ones<value_t>(originalLayerSize - 2 * topleft);
+      hMask = hMask * vMask;
+    } else {
+      hMask = vMask;
+    }
 
     #pragma omp master
     {
@@ -654,12 +696,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
                 /*** BEGIN OF POSITIVE PHASE ***/
 
                 // h_k = sigm(~F_k * v + c)
-//                if (getDbmLayer() == DbmLayer::VisibleLayer)
-//                  ch_full = 2 * conj(*cF[k]) * cv;
-//                else
-//                  ch_full = conj(*cF[k]) * cv;
-//                ch = sum(ch_full, dimCount - 1);
-
                 ch = conj_mult_sum(cv, *cF[k]);
                 if (getDbmLayer() == DbmLayer::VisibleLayer)
                   ch = 2 * ch;
@@ -744,7 +780,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
 #endif
                     h = h * repeat(hMask, h.size() / hMask.size());
 
+                  // TODO: calculate the FFT (I've only commented it for debugging purpose
                   ch = fft(h, dimCount - 1, plan_h);
+                  // TODO: remove debug code
+//                  H[seq(0,0,0,(int)k),originalLayerSize] = h[seq(0,0,0,0), originalLayerSize];
+
 
                   // dvneg = F * h
 //                  if (getDbmLayer() == DbmLayer::TopLayer)
@@ -827,7 +867,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
                   default:
                     dlog(Severity::Warning) << "Unsupported visible unit type: " << crbm->getVisibleUnitType();
                 }
-                vneg = vneg * repeat(hMask, size / layerSize);
+                vneg = vneg * repeat(vMask, size / layerSize);
 
 #ifdef SPREAD_IMAGES
                 cvneg = fft(vneg, dimCount - 1, plan_v);
@@ -837,7 +877,14 @@ void Trainer::update(IProgressMonitor* monitor) const {
 #else
                 *cvneg_master = fft(vneg, dimCount - 1, plan_v);
                 if (getCalculateError() && iCd == getCdIterations() - 1) {
-                  batchError += sqrt(dot((vneg - v) * repeat(hMask, size / layerSize), (vneg - v) * repeat(hMask, size / layerSize)) / voxelCount);
+                  batchError += sqrt(dot((vneg - v) * repeat(vMask, size / layerSize), (vneg - v) * repeat(vMask, size / layerSize)) / voxelCount);
+                  // TODO: remove debug code
+                  if (iEpoch + 1 == epochCount) {
+
+                    vs->push_back(boost::make_shared<host_tensor_t>(v[seq(0,0,0,0), originalSize]));
+//                    hs->push_back(boost::make_shared<host_tensor_t>(H));
+                    vnegs->push_back(boost::make_shared<host_tensor_t>(vneg[seq(0,0,0,0), originalSize]));
+                  }
                 }
                 cudaStreamSynchronize(0);
 #endif
@@ -1045,7 +1092,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
           h = h * (abs(h) > 1e-16);
 
           for (int j = 0; j < filterBatchLength; ++j) {
-            hb = h[seq(0,0,0,j),layerSize];
+            hb = h[seq(0,0,0,j),originalLayerSize];
             c->at(i * filterBatchLength + j) = boost::make_shared<host_tensor_t>(hb);
           }
         }
@@ -1060,7 +1107,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
       {
         f = ifft(cb, dimCount - 1, iplan_v);
         f = f * (abs(f) > 1e-16);
-        b = boost::make_shared<host_tensor_t>(f);
+        b = boost::make_shared<host_tensor_t>(f[seq(0,0,0,0), originalSize]);
         crbm->setVisibleBias(b);
       }
     }
@@ -1079,6 +1126,9 @@ void Trainer::update(IProgressMonitor* monitor) const {
   } /* end of parallel code */
 
   newState->setModel(crbm);
+  newState->setVisibles(vs);
+  newState->setHiddens(hs);
+  newState->setReconstructions(vnegs);
 }
 
 }

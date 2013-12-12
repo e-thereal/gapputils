@@ -16,6 +16,20 @@
           <IsCollection value="0" />
         </gapputils-Interface>
       </Item>
+            <Item>
+        <gapputils-Interface>
+          <Identifier value="ConvolutionType" />
+          <Type value="gml::convrbm4d::ConvolutionType" />
+          <Header value="ConvolutionType.h" />
+          <PropertyAttributes>
+            <Collection>
+              <Item value="Enumerator<Type>()" />
+            </Collection>
+          </PropertyAttributes>
+          <IsParameter value="1" />
+          <IsCollection value="0" />
+        </gapputils-Interface>
+      </Item>
       <Item>
         <gapputils-Interface>
           <Identifier value="SparsityMethod" />

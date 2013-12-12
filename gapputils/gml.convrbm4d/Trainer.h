@@ -29,6 +29,7 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
 public:
   typedef Model::value_t value_t;
   typedef Model::tensor_t host_tensor_t;
+  typedef std::vector<boost::shared_ptr<host_tensor_t> > v_host_tensor_t;
 
   friend class TrainerChecker;
 
@@ -36,7 +37,7 @@ public:
 
   // Primary inputs
   Property(InitialModel, boost::shared_ptr<Model>)
-  Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
+  Property(Tensors, boost::shared_ptr<v_host_tensor_t>)
   Property(DbmLayer, DbmLayer)
 
   // Data set size dependent parameters
@@ -79,6 +80,9 @@ public:
   Property(ModelIncrement, boost::shared_ptr<Model>)
   Property(AverageEpochTime, double)
   Property(ReconstructionError, double)
+  Property(Visibles, boost::shared_ptr<v_host_tensor_t>)
+  Property(Hiddens, boost::shared_ptr<v_host_tensor_t>)
+  Property(Reconstructions, boost::shared_ptr<v_host_tensor_t>)
 
 public:
   Trainer();

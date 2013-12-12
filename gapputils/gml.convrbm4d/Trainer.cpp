@@ -52,6 +52,9 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(ModelIncrement, Output("Inc"))
   WorkflowProperty(AverageEpochTime, Output("T"))
   WorkflowProperty(ReconstructionError, NoParameter())
+  WorkflowProperty(Visibles, Output("V"))
+  WorkflowProperty(Hiddens, Output("H"))
+  WorkflowProperty(Reconstructions, Output("Vneg"))
 
 EndPropertyDefinitions
 

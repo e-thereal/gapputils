@@ -67,7 +67,7 @@ BeginPropertyDefinitions(FunctionFilter)
 EndPropertyDefinitions
 
 FunctionFilter::FunctionFilter() : _Parameters(new NoParameters()) {
-  setLabel("Log");
+  setLabel("Func");
 
   Changed.connect(EventHandler<FunctionFilter>(this, &FunctionFilter::changedHandler));
 }
@@ -137,12 +137,12 @@ void FunctionFilter::update(IProgressMonitor* monitor) const {
   image_t& input = *getInputImage();
   boost::shared_ptr<image_t> output(new image_t(input.getSize(), input.getPixelSize()));
 
-  tensor<float, 3> img(input.getSize()[0], input.getSize()[1], input.getSize()[2]);
+  tensor<float, 3> img(input.getSize()[0], input.getSize()[1], input.getSize()[2]), img2;
   std::copy(input.begin(), input.end(), img.begin());
 
   switch(getFunction()) {
   case FilterFunction::Abs:
-    img = abs(img);
+    img = sqrt(img * img);
     break;
 
   case FilterFunction::Log:

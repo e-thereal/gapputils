@@ -26,6 +26,7 @@ BeginPropertyDefinitions(Initialize)
   WorkflowProperty(WeightStddev)
   WorkflowProperty(VisibleUnitType, Enumerator<Type>())
   WorkflowProperty(HiddenUnitType, Enumerator<Type>())
+  WorkflowProperty(ConvolutionType, Enumerator<Type>())
 
   WorkflowProperty(Model, Output("CRBM"))
 
