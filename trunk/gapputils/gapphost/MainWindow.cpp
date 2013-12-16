@@ -191,6 +191,9 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   connect(logbook, SIGNAL(selectModuleRequested(const QString&)),
       this, SLOT(selectModule(const QString&)));
 
+  connect(globalPropertiesView, SIGNAL(selectModuleRequested(const QString&)),
+      this, SLOT(selectModule(const QString&)));
+
   windowMenu->addAction("Tile Windows", area, SLOT(tileSubWindows()));
   windowMenu->insertSeparator(windowMenu->actions().last());
 
