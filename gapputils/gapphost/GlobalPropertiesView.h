@@ -12,7 +12,7 @@
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
-class QTreeWidget;
+#include <qtreewidget.h>
 
 namespace gapputils {
 
@@ -36,6 +36,12 @@ public:
   virtual ~GlobalPropertiesView();
 
   void setWorkflow(boost::shared_ptr<workflow::Workflow> workflow);
+
+public Q_SLOTS:
+  void handleItemDoubleClicked(QTreeWidgetItem* item, int column);
+
+Q_SIGNALS:
+  void selectModuleRequested(const QString& uuid);
 };
 
 } /* namespace host */
