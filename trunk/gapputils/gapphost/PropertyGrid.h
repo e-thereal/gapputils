@@ -19,11 +19,7 @@
 
 namespace gapputils {
 
-namespace workflow {
-
-class Node;
-
-}
+namespace workflow { class Node; }
 
 namespace host {
 

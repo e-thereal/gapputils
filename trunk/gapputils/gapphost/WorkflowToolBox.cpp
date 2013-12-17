@@ -253,6 +253,7 @@ WorkflowToolBox::WorkflowToolBox(QWidget * parent) : QWidget(parent) {
   setLayout(toolBoxLayout);
 
   connect(toolBox, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(itemClickedHandler(QTreeWidgetItem*, int)));
+  connect(toolBox, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this, SLOT(currentItemChangedHandler(QTreeWidgetItem*, QTreeWidgetItem*)));
   connect(toolBoxFilterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(filterToolBox(const QString&)));
 }
 
@@ -306,6 +307,12 @@ void WorkflowToolBox::filterToolBox(const QString& text) {
 void WorkflowToolBox::itemClickedHandler(QTreeWidgetItem *item, int) {
   if (item->childCount()) {
     item->setExpanded(!item->isExpanded());
+  }
+}
+
+void WorkflowToolBox::currentItemChangedHandler(QTreeWidgetItem* current, QTreeWidgetItem*) {
+  if (current->childCount() == 0) {
+    Q_EMIT itemSelected(current->data(0, Qt::UserRole).toString());
   }
 }
 

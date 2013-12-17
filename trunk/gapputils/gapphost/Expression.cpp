@@ -138,6 +138,9 @@ bool Expression::resume() {
     }
   }
 
+  // Trigger the global properties changed event
+  workflow->setGlobalProperties(workflow->getGlobalProperties());
+
   ReflectableClass* object = getNode().lock()->getModule().get();
   assert(object);
   if (!object->hasProperty(getPropertyName()))
@@ -154,8 +157,12 @@ void Expression::disconnect(boost::shared_ptr<GlobalProperty> gprop) {
 
   if (globalProperties.find(gprop) != globalProperties.end()) {
     for (unsigned i = 0; i < gprop->getExpressions()->size(); ++i) {
-      if (gprop->getExpressions()->at(i).lock().get() == this)
+      // If this function is called from the destructor, the expression pointer has already expired and a simple comparison with this would fail
+      // Hence, also delete expressions that have expired
+      if (gprop->getExpressions()->at(i).expired() || gprop->getExpressions()->at(i).lock().get() == this) {
         gprop->getExpressions()->erase(gprop->getExpressions()->begin() + i);
+        --i;
+      }
     }
 
     // If the node is about to be deleted, the weak pointer is already invalid so check for
@@ -175,6 +182,9 @@ void Expression::disconnect(boost::shared_ptr<GlobalProperty> gprop) {
         if (iPair != observedProperties.end())
           observedProperties.erase(iPair);
       }
+
+      // Trigger the global properties have changed event
+      workflow->setGlobalProperties(workflow->getGlobalProperties());
     }
     globalProperties.erase(gprop);
   }

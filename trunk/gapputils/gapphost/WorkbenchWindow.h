@@ -63,6 +63,7 @@ public:
 
   void createItem(boost::shared_ptr<workflow::Node> node);
   bool createCable(boost::shared_ptr<workflow::Edge> edge);
+  void removeSelectedItems();
 
   boost::shared_ptr<workflow::Workflow> copySelectedNodes();
   void addNodes(workflow::Workflow& pasteWorkflow);

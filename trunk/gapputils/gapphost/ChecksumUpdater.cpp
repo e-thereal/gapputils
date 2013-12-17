@@ -47,7 +47,6 @@ checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
     if (subobject)
       return getChecksum(subobject);
   } else if (enumerable) {
-//    boost::crc_32_type valueSum;
     boost::crc_optimal<32, 0x04C11DB7> valueSum;
     checksum_t checksum;
     boost::shared_ptr<IPropertyIterator> iterator = enumerable->getPropertyIterator(object, property);
@@ -61,7 +60,6 @@ checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
     }
     return valueSum.checksum();
   } else {
-//    boost::crc_32_type valueSum;
     boost::crc_optimal<32, 0x04C11DB7> valueSum;
     const std::string& str = property->getStringValue(object);
     valueSum.process_bytes(&str[0], str.size());
@@ -77,7 +75,6 @@ checksum_t getChecksum(const capputils::reflection::IClassProperty* property,
 }
 
 checksum_t getChecksum(ReflectableClass* object, workflow::Node* node, int flags) {
-//  boost::crc_32_type checksum;
   boost::crc_optimal<32, 0x04C11DB7> checksum;
   assert(object);
 
@@ -160,7 +157,6 @@ void ChecksumUpdater::update(boost::shared_ptr<workflow::Node> node) {
     nodesStack.pop();
 
     // Update checksum + checksum from dependent stuff
-//    boost::crc_32_type valueSum;
     boost::crc_optimal<32, 0x04C11DB7> valueSum;
 
     boost::shared_ptr<workflow::Workflow> subworkflow = boost::dynamic_pointer_cast<workflow::Workflow>(currentNode);

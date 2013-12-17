@@ -18,6 +18,7 @@ namespace gapputils {
 namespace workflow {
 
 class Expression;
+class GlobalEdge;
 
 class GlobalProperty : public capputils::reflection::ReflectableClass {
 
@@ -26,15 +27,17 @@ class GlobalProperty : public capputils::reflection::ReflectableClass {
   Property(Name, std::string)
   Property(ModuleUuid, std::string)
   Property(PropertyId, std::string)
-  Property(Edges, boost::shared_ptr<std::vector<boost::weak_ptr<Edge> > >)
+  Property(Edges, boost::shared_ptr<std::vector<boost::weak_ptr<GlobalEdge> > >)
   Property(Expressions, boost::shared_ptr<std::vector<boost::weak_ptr<Expression> > >)
 
 public:
   GlobalProperty();
   virtual ~GlobalProperty();
 
-  void addEdge(boost::shared_ptr<Edge> edge);
-  void removeEdge(boost::shared_ptr<Edge> edge);
+  void addEdge(boost::shared_ptr<GlobalEdge> edge);
+  void removeEdge(boost::shared_ptr<GlobalEdge> edge);
+
+  void rename(const std::string& name);
 };
 
 }

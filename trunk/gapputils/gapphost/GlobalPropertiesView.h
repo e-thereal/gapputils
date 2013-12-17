@@ -8,6 +8,8 @@
 #ifndef GAPPUTILS_HOST_GLOBALPROPERTIESVIEW_H_
 #define GAPPUTILS_HOST_GLOBALPROPERTIESVIEW_H_
 
+#include <capputils/EventHandler.h>
+
 #include <qwidget.h>
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
@@ -30,15 +32,23 @@ class GlobalPropertiesView : public QWidget {
 private:
   boost::weak_ptr<workflow::Workflow> workflow;
   QTreeWidget* propertiesWidget;
+  capputils::EventHandler<GlobalPropertiesView> eventHandler;
 
 public:
   GlobalPropertiesView(QWidget* parent = 0);
   virtual ~GlobalPropertiesView();
 
   void setWorkflow(boost::shared_ptr<workflow::Workflow> workflow);
+  void updateProperties();
+  void handleChanged(capputils::ObservableClass* object, int eventId);
+
+protected:
+  virtual void keyPressEvent(QKeyEvent* event);
 
 public Q_SLOTS:
   void handleItemDoubleClicked(QTreeWidgetItem* item, int column);
+  void deletePropertyOrEdge();
+  void editPropertyName();
 
 Q_SIGNALS:
   void selectModuleRequested(const QString& uuid);

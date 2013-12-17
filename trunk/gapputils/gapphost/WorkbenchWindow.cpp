@@ -305,6 +305,10 @@ bool WorkbenchWindow::createCable(boost::shared_ptr<workflow::Edge> edge) {
   return false;
 }
 
+void WorkbenchWindow::removeSelectedItems() {
+  workbench->removeSelectedItems();
+}
+
 boost::shared_ptr<workflow::Workflow> WorkbenchWindow::copySelectedNodes() {
   boost::shared_ptr<Workflow> workflow = this->workflow.lock();
 
@@ -481,6 +485,7 @@ void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
     }
     gprop->setName(newName);
     workflow->getGlobalProperties()->push_back(gprop);
+    workflow->setGlobalProperties(workflow->getGlobalProperties());
   }
 
   // Paste global edges
@@ -492,6 +497,7 @@ void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
       dlog(Severity::Warning) << "Global edge connected to renamed global property '" << gedge->getGlobalProperty() << "'.";
     }
     workflow->getGlobalEdges()->push_back(gedge);
+    workflow->setGlobalEdges(workflow->getGlobalEdges());
     if (!workflow->activateGlobalEdge(gedge)) {
       workflow->removeGlobalEdge(gedge);
       dlog(Severity::Warning) << "Global edge has been removed from the model.";

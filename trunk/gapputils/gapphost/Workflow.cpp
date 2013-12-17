@@ -68,6 +68,8 @@ using namespace attributes;
 namespace workflow {
 
 int Workflow::librariesId;
+int Workflow::globalPropertiesId;
+int Workflow::globalEdgesId;
 
 BeginPropertyDefinitions(Workflow)
 
@@ -81,8 +83,8 @@ ReflectableBase(Node)
 
 DefineProperty(Edges, Enumerable<Type, true>())
 DefineProperty(Nodes, Enumerable<Type, true>())
-DefineProperty(GlobalProperties, Enumerable<Type, true>())
-DefineProperty(GlobalEdges, Enumerable<Type, true>())
+DefineProperty(GlobalProperties, Enumerable<Type, true>(), Observe(globalPropertiesId = Id))
+DefineProperty(GlobalEdges, Enumerable<Type, true>(), Observe(globalEdgesId = Id))
 DefineProperty(ViewportScale)
 DefineProperty(ViewportPosition)
 DefineProperty(Logbook, Volatile())
@@ -290,6 +292,7 @@ void Workflow::makePropertyGlobal(const std::string& name, const PropertyReferen
   globalProperty->setModuleUuid(propertyReference.getNodeId());
   globalProperty->setPropertyId(propertyReference.getPropertyId());
   getGlobalProperties()->push_back(globalProperty);
+  setGlobalProperties(getGlobalProperties());     // trigger changed event
 }
 
 void Workflow::connectProperty(const std::string& name, const PropertyReference& propertyReference) {
@@ -305,6 +308,7 @@ void Workflow::connectProperty(const std::string& name, const PropertyReference&
 
   getGlobalEdges()->push_back(edge);
   activateGlobalEdge(edge);
+  setGlobalEdges(getGlobalEdges());               // trigger changed event
 }
 
 bool Workflow::activateGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
@@ -337,6 +341,7 @@ void Workflow::removeGlobalProperty(boost::shared_ptr<GlobalProperty> gprop) {
       break;
     }
   }
+  setGlobalProperties(getGlobalProperties());
 }
 
 void Workflow::removeGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
@@ -349,6 +354,7 @@ void Workflow::removeGlobalEdge(boost::shared_ptr<GlobalEdge> edge) {
       break;
     }
   }
+  setGlobalEdges(getGlobalEdges());
 }
 
 boost::shared_ptr<Edge> Workflow::createEdge(const PropertyReference& fromProperty, const PropertyReference& toProperty) {

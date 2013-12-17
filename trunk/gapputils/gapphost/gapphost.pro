@@ -47,7 +47,9 @@ SOURCES = main.cpp \
 		  MergeTest.cpp \
 		  HorizontalAnnotation.cpp \
 		  VerticalAnnotation.cpp \
-		  MemoryTest.cpp
+		  MemoryTest.cpp \
+		  ModuleHelpWidget.cpp \
+		  GlobalPropertiesViewDelegate.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \
@@ -71,7 +73,9 @@ HEADERS = MainWindow.h \
           GlobalPropertiesView.h \
           WorkbenchWindow.h \
           HeadlessApp.h \
-          WorkflowSnippets.h
+          WorkflowSnippets.h \
+          ModuleHelpWidget.h \
+          GlobalPropertiesViewDelegate.h
           
 RESOURCES = res.qrc
           
@@ -109,4 +113,4 @@ INCLUDEPATH += ${RESPROG_INC_PATH}
 
 LIBS += -Wl,-E
 LIBS += -L${RESPROG_LIB_PATH}
-LIBS += -lboost_iostreams -lboost_filesystem -lboost_signals -lboost_system -lz
+LIBS += -lboost_iostreams -lboost_filesystem -lboost_signals -lboost_system -lboost_regex -lz

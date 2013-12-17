@@ -80,6 +80,16 @@ void Workbench::removeToolItem(ToolItem* item) {
   }
 }
 
+void Workbench::removeSelectedItems() {
+  while (scene()->selectedItems().size()) {
+    ToolItem* toolItem = dynamic_cast<ToolItem*>(scene()->selectedItems().first());
+    if (toolItem /*&& toolItem->isDeletable()*/) {
+      Q_EMIT preItemDeleted(toolItem);
+      removeToolItem(toolItem);
+    }
+  }
+}
+
 void Workbench::addCableItem(CableItem* cable) {
   scene()->addItem(cable);
 }
@@ -411,13 +421,7 @@ void Workbench::keyPressEvent(QKeyEvent *event)
 
   switch (event->key()) {
   case Qt::Key_Delete:
-    while (scene()->selectedItems().size()) {
-      ToolItem* toolItem = dynamic_cast<ToolItem*>(scene()->selectedItems().first());
-      if (toolItem /*&& toolItem->isDeletable()*/) {
-        Q_EMIT preItemDeleted(toolItem);
-        removeToolItem(toolItem);
-      }
-    }
+    removeSelectedItems();
     break;
   default:
     QGraphicsView::keyPressEvent(event);
