@@ -61,9 +61,11 @@ class Workflow : public QObject, public Node, public CompatibilityChecker, publi
   Property(ViewportPosition, std::vector<double>)
   Property(Logbook, boost::shared_ptr<capputils::Logbook>)
 
+public:
+  static int librariesId, globalPropertiesId, globalEdgesId;
+
 private:
   std::set<std::string> loadedLibraries;
-  static int librariesId;
   std::vector<boost::weak_ptr<Node> > interfaceNodes;
 
 public:

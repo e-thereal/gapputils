@@ -10,11 +10,15 @@
 #include <qboxlayout.h>
 #include <qtreewidget.h>
 #include <qsettings.h>
+#include <qevent.h>
+#include <qaction.h>
+#include <qkeysequence.h>
 
 #include <boost/units/detail/utility.hpp>
 
 #include "Workflow.h"
 #include "PropertyReference.h"
+#include "GlobalPropertiesViewDelegate.h"
 
 #include <gapputils/InterfaceAttribute.h>
 
@@ -27,10 +31,21 @@ namespace host {
 
 enum TableColumns {PropertyColumn, TypeColumn, ModuleColumn, UuidColumn};
 
-GlobalPropertiesView::GlobalPropertiesView(QWidget* parent) :QWidget(parent) {
+GlobalPropertiesView::GlobalPropertiesView(QWidget* parent) : QWidget(parent), eventHandler(this, &GlobalPropertiesView::handleChanged) {
   propertiesWidget = new QTreeWidget();
-  propertiesWidget->setEditTriggers(QAbstractItemView::SelectedClicked);
+  propertiesWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
   propertiesWidget->setHeaderLabels(QStringList() << "Property Connections" << "Type" << "Module" << "Node UUID");
+  propertiesWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+  propertiesWidget->setItemDelegate(new GlobalPropertiesViewDelegate());
+
+  QAction* action = new QAction("Edit Property Name", this);
+  action->setShortcut(QKeySequence(Qt::Key_F2));
+  propertiesWidget->addAction(action);
+  connect(action, SIGNAL(triggered()), this, SLOT(editPropertyName()));
+
+  action = new QAction("Delete", this);
+  propertiesWidget->addAction(action);
+  connect(action, SIGNAL(triggered()), this, SLOT(deletePropertyOrEdge()));
 
   connect(propertiesWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),
       this, SLOT(handleItemDoubleClicked(QTreeWidgetItem*, int)));
@@ -59,11 +74,23 @@ GlobalPropertiesView::~GlobalPropertiesView() {
 }
 
 void GlobalPropertiesView::setWorkflow(boost::shared_ptr<Workflow> workflow) {
+  boost::shared_ptr<Workflow> oldWorkflow = this->workflow.lock();
 
-  // TODO: observe changes of the workflow and reflect them.
-  // TODO: Turn the view into an editor (delete global properties, global edges, rename properties)
+  if (!workflow || oldWorkflow == workflow)
+    return;
+
+  if (oldWorkflow) {
+    oldWorkflow->Changed.disconnect(eventHandler);
+  }
+
+  workflow->Changed.connect(eventHandler);
 
   this->workflow = workflow;
+  updateProperties();
+}
+
+void GlobalPropertiesView::updateProperties() {
+  boost::shared_ptr<Workflow> workflow = this->workflow.lock();
 
   propertiesWidget->clear();
   propertiesWidget->setHeaderLabels(QStringList() << "Property Connections" << "Type" << "Module" << "Node UUID");
@@ -72,6 +99,7 @@ void GlobalPropertiesView::setWorkflow(boost::shared_ptr<Workflow> workflow) {
   for (size_t iProp = 0; iProp < globals.size(); ++iProp) {
 
     QTreeWidgetItem* propItem = new QTreeWidgetItem();
+    propItem->setFlags(propItem->flags() | Qt::ItemIsEditable);
 
     PropertyReference ref(workflow, globals[iProp]->getModuleUuid(), globals[iProp]->getPropertyId());
     assert(ref.getNode()->getModule());
@@ -84,9 +112,11 @@ void GlobalPropertiesView::setWorkflow(boost::shared_ptr<Workflow> workflow) {
     propItem->setText(2, ref.getNode()->getModule()->getClassName().c_str());
     propItem->setText(3, globals[iProp]->getModuleUuid().c_str());
 
-    std::vector<boost::weak_ptr<Edge> >& edges = *globals[iProp]->getEdges();
+    propItem->setData(0, Qt::UserRole, QVariant::fromValue(ref));
+
+    std::vector<boost::weak_ptr<GlobalEdge> >& edges = *globals[iProp]->getEdges();
     for (size_t iEdge = 0; iEdge < edges.size(); ++iEdge) {
-      boost::shared_ptr<Edge> edge = edges[iEdge].lock();
+      boost::shared_ptr<GlobalEdge> edge = edges[iEdge].lock();
       QTreeWidgetItem* subItem = new QTreeWidgetItem();
 
       PropertyReference& ref = *edge->getInputReference();
@@ -99,9 +129,89 @@ void GlobalPropertiesView::setWorkflow(boost::shared_ptr<Workflow> workflow) {
       subItem->setText(1, boost::units::detail::demangle(ref.getProperty()->getType().name()).c_str());
       subItem->setText(2, ref.getNode()->getModule()->getClassName().c_str());
       subItem->setText(3, ref.getNodeId().c_str());
+      subItem->setData(0, Qt::UserRole, QVariant::fromValue(ref));
+
       propItem->addChild(subItem);
     }
+
+    std::vector<boost::weak_ptr<Expression> >& expressions = *globals[iProp]->getExpressions();
+    for (size_t iExpr = 0; iExpr < expressions.size(); ++iExpr) {
+      boost::shared_ptr<Expression> expression = expressions[iExpr].lock();
+      boost::shared_ptr<Node> node = expression->getNode().lock();
+      boost::shared_ptr<Workflow> workflow = node->getWorkflow().lock();
+      QTreeWidgetItem* subItem = new QTreeWidgetItem();
+
+      PropertyReference ref(workflow, node->getUuid(), expression->getPropertyName());
+      assert(ref.getNode()->getModule());
+      std::string label = "<unknown>";
+      if (node->getModule() && node->getModule()->findProperty("Label"))
+        label = node->getModule()->findProperty("Label")->getStringValue(*node->getModule());
+
+      subItem->setText(0, (label + "::" + ref.getPropertyId()).c_str());
+      subItem->setText(1, boost::units::detail::demangle(ref.getProperty()->getType().name()).c_str());
+      subItem->setText(2, ref.getNode()->getModule()->getClassName().c_str());
+      subItem->setText(3, ref.getNodeId().c_str());
+      subItem->setData(0, Qt::UserRole, QVariant::fromValue(ref));
+
+      QFont font = subItem->font(0);
+      font.setItalic(true);
+      subItem->setFont(0, font);
+
+      propItem->addChild(subItem);
+    }
+
     propertiesWidget->addTopLevelItem(propItem);
+  }
+}
+
+void GlobalPropertiesView::handleChanged(capputils::ObservableClass* /*object*/, int eventId) {
+  if (eventId == Workflow::globalPropertiesId || eventId == Workflow::globalEdgesId) {
+    updateProperties();
+  }
+}
+
+void GlobalPropertiesView::deletePropertyOrEdge() {
+  boost::shared_ptr<Workflow> workflow = this->workflow.lock();
+
+  if (!propertiesWidget->currentItem()->data(0, Qt::UserRole).canConvert<PropertyReference>())
+    return;
+
+  PropertyReference reference = propertiesWidget->currentItem()->data(0, Qt::UserRole).value<PropertyReference>();
+  if (propertiesWidget->currentIndex().parent().isValid()) {
+    // remove edge
+    boost::shared_ptr<GlobalEdge> edge = workflow->getGlobalEdge(reference);
+    if (edge)
+      workflow->removeGlobalEdge(edge);
+  } else {
+    // remove property
+    boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(reference);
+    if (gprop)
+      workflow->removeGlobalProperty(gprop);
+  }
+}
+
+void GlobalPropertiesView::editPropertyName() {
+  boost::shared_ptr<Workflow> workflow = this->workflow.lock();
+
+  if (!propertiesWidget->currentItem()->data(0, Qt::UserRole).canConvert<PropertyReference>())
+    return;
+
+  PropertyReference reference = propertiesWidget->currentItem()->data(0, Qt::UserRole).value<PropertyReference>();
+  if (!propertiesWidget->currentIndex().parent().isValid()) {
+    boost::shared_ptr<GlobalProperty> gprop = workflow->getGlobalProperty(reference);
+    if (propertiesWidget->currentItem() && gprop) {
+      propertiesWidget->editItem(propertiesWidget->currentItem());
+    }
+  }
+}
+
+void GlobalPropertiesView::keyPressEvent(QKeyEvent* event) {
+  switch (event->key()) {
+  case Qt::Key_Delete:
+    deletePropertyOrEdge();
+    break;
+  default:
+    QWidget::keyPressEvent(event);
   }
 }
 
@@ -110,4 +220,5 @@ void GlobalPropertiesView::handleItemDoubleClicked(QTreeWidgetItem* item, int /*
 }
 
 } /* namespace host */
+
 } /* namespace gapputils */

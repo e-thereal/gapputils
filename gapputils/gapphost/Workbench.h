@@ -50,6 +50,7 @@ public:
   // disconnects and deletes a cable and removes it from the list
   void removeCableItem(CableItem* cable);
   void removeToolItem(ToolItem* item);
+  void removeSelectedItems();
 
   void setExclusivelySelected(ToolItem* item);
   void unselectAll();

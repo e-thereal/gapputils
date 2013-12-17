@@ -33,6 +33,7 @@
 #include "LogbookWidget.h"
 #include "GlobalPropertiesView.h"
 #include "WorkbenchWindow.h"
+#include "ModuleHelpWidget.h"
 
 #include <qmdiarea.h>
 #include <qtextedit.h>
@@ -84,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   editMenu = menuBar()->addMenu("&Edit");
   editMenu->addAction("Copy", this, SLOT(copy()), QKeySequence(Qt::CTRL + Qt::Key_C));
   editMenu->addAction("Paste", this, SLOT(paste()), QKeySequence(Qt::CTRL + Qt::Key_V));
+  editMenu->addAction("Delete", this, SLOT(removeSelectedItems()));
   editMenu->addAction("Create Workflow Snipped", this, SLOT(createSnippet()), QKeySequence(Qt::CTRL + Qt::Key_N));
 
   runMenu = menuBar()->addMenu("&Run");
@@ -188,11 +190,22 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
   addDockWidget(Qt::BottomDockWidgetArea, dock);
   windowMenu->addAction(dock->toggleViewAction());
 
+  // Module Help
+  dock = new QDockWidget(tr("Help"), this);
+  dock->setObjectName("ModuleHelp");
+  dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+  moduleHelp = new ModuleHelpWidget(dock);
+  dock->setWidget(moduleHelp);
+  addDockWidget(Qt::RightDockWidgetArea, dock);
+  windowMenu->addAction(dock->toggleViewAction());
+
   connect(logbook, SIGNAL(selectModuleRequested(const QString&)),
       this, SLOT(selectModule(const QString&)));
 
   connect(globalPropertiesView, SIGNAL(selectModuleRequested(const QString&)),
       this, SLOT(selectModule(const QString&)));
+
+  connect(toolBox, SIGNAL(itemSelected(QString)), moduleHelp, SLOT(setClassname(QString)));
 
   windowMenu->addAction("Tile Windows", area, SLOT(tileSubWindows()));
   windowMenu->insertSeparator(windowMenu->actions().last());
@@ -318,6 +331,10 @@ void MainWindow::copy() {
 
 void MainWindow::paste() {
   getCurrentWorkbenchWindow()->addNodesFromClipboard();
+}
+
+void MainWindow::removeSelectedItems() {
+  getCurrentWorkbenchWindow()->removeSelectedItems();
 }
 
 void MainWindow::createSnippet() {
@@ -531,11 +548,13 @@ void MainWindow::subWindowActivated(QMdiSubWindow* w) {
   if (!workflow)
     return;
   propertyGrid->setNode(window->getCurrentNode());
+  moduleHelp->setNode(window->getCurrentNode());
   globalPropertiesView->setWorkflow(workflow);
 }
 
 void MainWindow::handleCurrentNodeChanged(boost::shared_ptr<workflow::Node> node) {
   propertyGrid->setNode(node);
+  moduleHelp->setNode(node);
 }
 
 void MainWindow::selectModule(const QString& quuid) {

@@ -31,6 +31,7 @@ class PropertyGrid;
 class WorkbenchWindow;
 class WorkflowSnippets;
 class GlobalPropertiesView;
+class ModuleHelpWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -45,6 +46,7 @@ private:
   WorkflowToolBox* toolBox;
   WorkflowSnippets* snippets;
   PropertyGrid* propertyGrid;
+  ModuleHelpWidget* moduleHelp;
   GlobalPropertiesView* globalPropertiesView;
   QMdiArea* area;
 
@@ -79,6 +81,7 @@ public Q_SLOTS:
   void autoSave();
   void copy();
   void paste();
+  void removeSelectedItems();
   void createSnippet();
   void resetInputs();
   void incrementInputs();

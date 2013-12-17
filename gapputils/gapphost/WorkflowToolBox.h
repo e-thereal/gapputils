@@ -42,10 +42,14 @@ public:
 
   void update();
 
+Q_SIGNALS:
+  void itemSelected(QString classname);
+
 public Q_SLOTS:
   void focusFilter();
   void filterToolBox(const QString& text);
   void itemClickedHandler(QTreeWidgetItem *item, int column);
+  void currentItemChangedHandler(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 };
 
 } /* namespace host */
