@@ -19,7 +19,7 @@ SOURCES = main.cpp \
 		  Controller.cpp \
 		  GenericViewer.cpp \
 		  WorkflowItem.cpp \
-		  MakeGlobalDialog.cpp \
+		  LineEditDialog.cpp \
 		  GlobalProperty.cpp \
 		  PopUpList.cpp \
 		  GlobalEdge.cpp \
@@ -62,7 +62,7 @@ HEADERS = MainWindow.h \
           Workflow.h \
           WorkflowItem.h \
           GenericViewer.h \
-          MakeGlobalDialog.h \
+          LineEditDialog.h \
           PopUpList.h \
           ToolItem.h \
           WorkflowUpdater.h \

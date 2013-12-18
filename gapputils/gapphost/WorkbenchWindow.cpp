@@ -48,7 +48,7 @@
 
 #include "WorkflowUpdater.h"
 #include "DataModel.h"
-#include "MakeGlobalDialog.h"
+#include "LineEditDialog.h"
 #include "WorkflowSnippets.h"
 #include "WorkflowToolBox.h"
 
@@ -537,7 +537,7 @@ void WorkbenchWindow::addNodesFromClipboard() {
 void WorkbenchWindow::createSnippet() {
   boost::shared_ptr<Workflow> copyWorkflow = copySelectedNodes();
 
-  MakeGlobalDialog dialog(this);
+  LineEditDialog dialog("Enter the name of the snippet:", this);
   if (dialog.exec() == QDialog::Accepted) {
     std::string snippetName = dialog.getText().toAscii().data();
     if (snippetName.size()) {

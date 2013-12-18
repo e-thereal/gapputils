@@ -193,7 +193,7 @@ void GlobalPropertiesView::deletePropertyOrEdge() {
 void GlobalPropertiesView::editPropertyName() {
   boost::shared_ptr<Workflow> workflow = this->workflow.lock();
 
-  if (!propertiesWidget->currentItem()->data(0, Qt::UserRole).canConvert<PropertyReference>())
+  if (!propertiesWidget->currentItem() || !propertiesWidget->currentItem()->data(0, Qt::UserRole).canConvert<PropertyReference>())
     return;
 
   PropertyReference reference = propertiesWidget->currentItem()->data(0, Qt::UserRole).value<PropertyReference>();

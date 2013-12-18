@@ -22,7 +22,7 @@ private:
   QListWidget* list;
 
 public:
-  PopUpList(QWidget* parent = 0);
+  PopUpList(QString title = "Make a selection", QWidget* parent = 0);
   virtual ~PopUpList();
 
   QListWidget* getList();

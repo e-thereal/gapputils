@@ -25,7 +25,7 @@
 #include "GlobalEdge.h"
 #include "PropertyReference.h"
 #include "PropertyGridDelegate.h"
-#include "MakeGlobalDialog.h"
+#include "LineEditDialog.h"
 #include "PopUpList.h"
 #include "Workflow.h"
 #include "ModelHarmonizer.h"
@@ -199,6 +199,8 @@ void PropertyGrid::showContextMenu(const QPoint& point) {
   if (!index.isValid())
     return;
 
+  propertyGrid->closePersistentEditor(index);
+
   QVariant varient = index.data(Qt::UserRole);
   if (!varient.canConvert<PropertyReference>())
     return;
@@ -239,7 +241,7 @@ void PropertyGrid::makePropertyGlobal() {
   boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
   boost::shared_ptr<gapputils::workflow::Workflow> workflow = node->getWorkflow().lock();
 
-  MakeGlobalDialog dialog(propertyGrid);
+  LineEditDialog dialog("Enter the name of the global property:", propertyGrid);
   if (dialog.exec() == QDialog::Accepted) {
     QString text = dialog.getText();
     if (text.length()) {
@@ -288,9 +290,10 @@ void PropertyGrid::connectProperty() {
   // Show list windows.
   // establish connection.
   QModelIndex index = propertyGrid->currentIndex();
+
   PropertyReference reference = index.data(Qt::UserRole).value<PropertyReference>();
 
-  PopUpList list;
+  PopUpList list("Select the global property:", propertyGrid);
   boost::shared_ptr<std::vector<boost::shared_ptr<GlobalProperty> > > globals = workflow->getGlobalProperties();
   for (unsigned i = 0; i < globals->size(); ++i) {
     PropertyReference ref(reference.getWorkflow(), globals->at(i)->getModuleUuid(), globals->at(i)->getPropertyId());
@@ -303,16 +306,15 @@ void PropertyGrid::connectProperty() {
     return;
   }
 
-  QStandardItemModel* model = dynamic_cast<QStandardItemModel*>(propertyGrid->model());
-  if (model) {
-    QStandardItem* item = model->itemFromIndex(index);
-    QFont font = item->font();
-    font.setItalic(true);
-    item->setFont(font);
-  }
-
   if (list.exec() == QDialog::Accepted) {
     workflow->connectProperty(list.getList()->selectedItems()[0]->text().toAscii().data(), reference);
+    QStandardItemModel* model = dynamic_cast<QStandardItemModel*>(propertyGrid->model());
+    if (model) {
+      QStandardItem* item = model->itemFromIndex(index);
+      QFont font = item->font();
+      font.setItalic(true);
+      item->setFont(font);
+    }
   }
 }
 
@@ -368,11 +370,15 @@ void PropertyGrid::makePropertyParameter() {
   }
 
   std::string parameterName;
-  MakeGlobalDialog dialog(propertyGrid);
+  LineEditDialog dialog("Enter the name of the parameter:", propertyGrid);
   if (dialog.exec() == QDialog::Accepted) {
     parameterName = dialog.getText().toAscii().data();
-    if (parameterName.size() == 0)
+    if (parameterName.size() == 0) {
+      QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for a parameter!");
       return;
+    }
+  } else {
+    return;
   }
 
   boost::shared_ptr<Node> parameterNode = DataModel::getInstance().getMainWindow()->getCurrentWorkbenchWindow()->createModule(0, 0, classname.c_str());
@@ -428,11 +434,15 @@ void PropertyGrid::makePropertyInput() {
   }
 
   std::string inputName;
-  MakeGlobalDialog dialog(propertyGrid);
+  LineEditDialog dialog("Enter the name of the input module:", propertyGrid);
   if (dialog.exec() == QDialog::Accepted) {
     inputName = dialog.getText().toAscii().data();
-    if (inputName.size() == 0)
+    if (inputName.size() == 0) {
+      QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for an input module!");
       return;
+    }
+  } else {
+    return;
   }
 
   boost::shared_ptr<Node> inputNode = DataModel::getInstance().getMainWindow()->getCurrentWorkbenchWindow()->createModule(reference.getNode()->getX() - 160, reference.getNode()->getY(), classname.c_str());
@@ -487,11 +497,15 @@ void PropertyGrid::makePropertyOutput() {
   }
 
   std::string outputName;
-  MakeGlobalDialog dialog(propertyGrid);
+  LineEditDialog dialog("Enter the name of the output module:", propertyGrid);
   if (dialog.exec() == QDialog::Accepted) {
     outputName = dialog.getText().toAscii().data();
-    if (outputName.size() == 0)
+    if (outputName.size() == 0) {
+      QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for an output module!");
       return;
+    }
+  } else {
+    return;
   }
 
   boost::shared_ptr<Node> outputNode = DataModel::getInstance().getMainWindow()->getCurrentWorkbenchWindow()->createModule(reference.getNode()->getX() + 160, reference.getNode()->getY(), classname.c_str());
