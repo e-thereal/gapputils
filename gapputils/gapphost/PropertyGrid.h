@@ -48,6 +48,7 @@ public Q_SLOTS:
 private Q_SLOTS:
   void showContextMenu(const QPoint &);
   void currentChanged(const QModelIndex& current, const QModelIndex& previous);
+  void handleDoubleClicked(const QModelIndex& index);
   void makePropertyGlobal();
   void removePropertyFromGlobal();
   void connectProperty();
@@ -55,6 +56,9 @@ private Q_SLOTS:
   void makePropertyParameter();
   void makePropertyInput();
   void makePropertyOutput();
+
+Q_SIGNALS:
+  void selectModuleRequested(const QString& uuid);
 };
 
 } /* namespace host */

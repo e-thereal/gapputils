@@ -201,8 +201,9 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   connect(logbook, SIGNAL(selectModuleRequested(const QString&)),
       this, SLOT(selectModule(const QString&)));
-
   connect(globalPropertiesView, SIGNAL(selectModuleRequested(const QString&)),
+      this, SLOT(selectModule(const QString&)));
+  connect(propertyGrid, SIGNAL(selectModuleRequested(const QString&)),
       this, SLOT(selectModule(const QString&)));
 
   connect(toolBox, SIGNAL(itemSelected(QString)), moduleHelp, SLOT(setClassname(QString)));

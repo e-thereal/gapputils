@@ -60,6 +60,8 @@ PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent) {
   propertyGrid->setDropIndicatorShown(true);
   propertyGrid->setDragDropOverwriteMode(false);
 
+  connect(propertyGrid, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(handleDoubleClicked(const QModelIndex&)));
+
   QStandardItemModel* model = new QStandardItemModel(0, 2);
   model->setHorizontalHeaderItem(0, new QStandardItem("Property"));
   model->setHorizontalHeaderItem(1, new QStandardItem("Value"));
@@ -187,6 +189,31 @@ void PropertyGrid::currentChanged(const QModelIndex& current, const QModelIndex&
     moduleTypeLabel->setWordWrap(true);
     moduleTypeLabel->setMinimumSize(10, 10);
     infoLayout->addRow(createTopAlignedLabel("Module:"), moduleTypeLabel);
+  }
+}
+
+void PropertyGrid::handleDoubleClicked(const QModelIndex& index) {
+  if (index.column() != 0)
+    return;
+
+  boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
+  assert(node);
+  boost::shared_ptr<gapputils::workflow::Workflow> workflow = boost::dynamic_pointer_cast<gapputils::workflow::Workflow>(node);
+  if (!workflow)
+    return;
+
+  const QModelIndex& valueIndex = index.sibling(index.row(), 1);
+  if (!valueIndex.isValid())
+    return;
+
+  QVariant varient = valueIndex.data(Qt::UserRole);
+  if (!varient.canConvert<PropertyReference>())
+   return;
+
+  const PropertyReference& reference = varient.value<PropertyReference>();
+
+  if (workflow->getNode(reference.getPropertyId())) {
+    Q_EMIT selectModuleRequested(reference.getPropertyId().c_str());
   }
 }
 
