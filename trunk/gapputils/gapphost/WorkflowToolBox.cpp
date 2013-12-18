@@ -311,10 +311,11 @@ void WorkflowToolBox::itemClickedHandler(QTreeWidgetItem *item, int) {
 }
 
 void WorkflowToolBox::currentItemChangedHandler(QTreeWidgetItem* current, QTreeWidgetItem*) {
-  if (current->childCount() == 0) {
+  if (current && current->childCount() == 0) {
     Q_EMIT itemSelected(current->data(0, Qt::UserRole).toString());
   }
 }
 
 } /* namespace host */
+
 } /* namespace gapputils */
