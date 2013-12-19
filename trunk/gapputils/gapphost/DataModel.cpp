@@ -13,6 +13,7 @@
 #include <capputils/DescriptionAttribute.h>
 #include <capputils/FilenameAttribute.h>
 #include <capputils/HideAttribute.h>
+#include <capputils/ParameterAttribute.h>
 
 #include <cstdlib>
 
@@ -42,12 +43,16 @@ const char* DataModel::AutoSaveName = ".grapevine-autosave.xml";
 
 BeginPropertyDefinitions(DataModel)
   DefineProperty(UpdateAll, Flag(), Volatile(),
+      Parameter("update_all", "a"),
       Description("Automatically update the main workflow and quit afterwards"))
   DefineProperty(Update, Volatile(),
+      Parameter("update", "u"),
       Description("Automatically update only the specified output node and quit afterwards"))
   DefineProperty(Headless, Flag(), Volatile(),
+      Parameter("headless", ""),
       Description("Start grapevine without a GUI and update the main workflow if no other update target is given"))
   DefineProperty(Help, Flag(), Volatile(),
+      Parameter("help", "h"),
       Description("Show this help"))
 //  DefineProperty(AutoReload, Flag(), Volatile(),
 //      Description("Automatically reload the workflow if one of the loaded libraries has been changend"))
@@ -59,35 +64,38 @@ BeginPropertyDefinitions(DataModel)
       Description("Width of the main window"))
   DefineProperty(WindowHeight,
       Description("Height of the main window"))
-  ReflectableProperty(MainWorkflow,
-      Description(""), Hide())
-  DefineProperty(OpenWorkflows, Enumerable<boost::shared_ptr<std::vector<std::string> >, false>(),
-      Description(""), Hide())
-  DefineProperty(CurrentWorkflow,
-      Description(""), Hide())
-  DefineProperty(WorkflowMap, Volatile(), Observe(WorkflowMapId = Id),
-      Description(""), Hide())
-  DefineProperty(MainWindow, Volatile(),
-      Description(""), Hide())
-  DefineProperty(PassedLabel, Volatile(), Hide())
-  DefineProperty(RemainingLabel, Volatile(), Hide())
-  DefineProperty(TotalLabel, Volatile(), Hide())
-  DefineProperty(FinishedLabel, Volatile(), Hide())
+  ReflectableProperty(MainWorkflow)
+  DefineProperty(OpenWorkflows, Enumerable<boost::shared_ptr<std::vector<std::string> >, false>())
+  DefineProperty(CurrentWorkflow)
+  DefineProperty(WorkflowMap, Volatile(), Observe(WorkflowMapId = Id))
+  DefineProperty(MainWindow, Volatile())
+  DefineProperty(PassedLabel, Volatile())
+  DefineProperty(RemainingLabel, Volatile())
+  DefineProperty(TotalLabel, Volatile())
+  DefineProperty(FinishedLabel, Volatile())
   DefineProperty(Configuration, Volatile(), Filename(),
+      Parameter("config", "c"),
       Description("Name of the workflow configuration file"))
   DefineProperty(LibraryPath, Volatile(), Filename(),
+      Parameter("libraries", ""),
       Description("Path where default libraries are searched. The default value is read from '" GRAPEVINE_LIBRARY_PATH "'"))
   DefineProperty(SnippetsPath, Volatile(), Filename(),
-        Description("Path where workflow snippets are searched. The default value is read from 'GRAPEVINE_SNIPPETS_PATH'"))
+      Parameter("snippets", ""),
+      Description("Path where workflow snippets are searched. The default value is read from 'GRAPEVINE_SNIPPETS_PATH'"))
   DefineProperty(LogfileName, Volatile(), Filename(),
+      Parameter("log", "l"),
       Description("Name of the file to which log messages will be written. Default is 'grapevine.log'."))
   DefineProperty(SaveConfiguration, Volatile(),
+      Parameter("save", ""),
       Description("If set to true, the current configuration is saved when the program exists. Default is true."))
   DefineProperty(EmailLog, Volatile(),
+      Parameter("email", "e"),
       Description("If set, the final logfile will be send by e-mail to the given address."))
   DefineProperty(GenerateBashCompletion, Volatile(), Filename(),
+      Parameter("bash", "b"),
       Description("Generate a bash_completion configuration file for grapevine."))
   DefineProperty(WorkflowParameters, Volatile(), Flag(),
+      Parameter("parameters", "p"),
       Description("Return the list of workflow parameters."))
 EndPropertyDefinitions
 

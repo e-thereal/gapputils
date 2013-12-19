@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
 
   int ret = 0;
   DataModel& model = DataModel::getInstance();
-  ArgumentsParser::Parse(model, argc, argv);      // need to be here to read the configuration filename
+  ArgumentsParser::Parse(model, argc, argv, true);      // need to be here to read the configuration filename
 
   if (model.getHeadless()) {
     qapp = new QCoreApplication(argc, argv);
@@ -241,10 +241,10 @@ int main(int argc, char *argv[])
   if (!model.getMainWorkflow()->getModule())
     model.getMainWorkflow()->setModule(boost::shared_ptr<SubWorkflow>(new SubWorkflow()));
 
-  ArgumentsParser::Parse(model, argc, argv);    // Needs to be here again to override configuration file parameters
+  ArgumentsParser::Parse(model, argc, argv, true);    // Needs to be here again to override configuration file parameters
   parseWorkflowParameters(argc, argv, *model.getMainWorkflow());
   if (model.getHelp()) {
-    ArgumentsParser::PrintDefaultUsage(argv[0], model);
+    ArgumentsParser::PrintDefaultUsage(argv[0], model, true);
     showWorkflowUsage(*model.getMainWorkflow());
     return 0;
   }
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
   }
 
   if (model.getGenerateBashCompletion().size()) {
-    GenerateBashCompletion::Generate(argv[0], model, model.getGenerateBashCompletion());
+    GenerateBashCompletion::Generate(argv[0], model, model.getGenerateBashCompletion(), true);
     return 0;
   }
 
