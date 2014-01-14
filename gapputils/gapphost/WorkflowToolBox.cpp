@@ -276,6 +276,8 @@ void WorkflowToolBox::filterToolBox(const QString& text) {
   if (text.length()) {
     for (BOOST_AUTO(item, toolBoxItems.begin()); item != toolBoxItems.end(); ++item) {
       item->first->takeChildren();
+      item->first->setExpanded(true);
+      toolBoxItems;
       int count = 0;
       for (BOOST_AUTO(child, item->second->begin()); child != item->second->end(); ++child) {
         if ((*child)->text(0).contains(text)) {
@@ -291,6 +293,7 @@ void WorkflowToolBox::filterToolBox(const QString& text) {
   } else {
     for (BOOST_AUTO(item, toolBoxItems.begin()); item != toolBoxItems.end(); ++item) {
       item->first->takeChildren();
+      item->first->setExpanded(false);
       int count = 0;
       for (BOOST_AUTO(child, item->second->begin()); child != item->second->end(); ++child) {
         item->first->addChild(*child);
