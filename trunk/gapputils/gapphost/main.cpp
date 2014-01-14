@@ -241,10 +241,16 @@ int main(int argc, char *argv[])
   if (!model.getMainWorkflow()->getModule())
     model.getMainWorkflow()->setModule(boost::shared_ptr<SubWorkflow>(new SubWorkflow()));
 
-  ArgumentsParser::Parse(model, argc, argv, true);    // Needs to be here again to override configuration file parameters
+  ArgumentsParser::Parse(model, argc, argv);    // Needs to be here again to override configuration file parameters
   parseWorkflowParameters(argc, argv, *model.getMainWorkflow());
   if (model.getHelp()) {
     ArgumentsParser::PrintDefaultUsage(argv[0], model, true);
+    showWorkflowUsage(*model.getMainWorkflow());
+    return 0;
+  }
+
+  if (model.getHelpAll()) {
+    ArgumentsParser::PrintDefaultUsage(argv[0], model, false);
     showWorkflowUsage(*model.getMainWorkflow());
     return 0;
   }

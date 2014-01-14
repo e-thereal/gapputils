@@ -28,6 +28,7 @@ class DataModel : public capputils::reflection::ReflectableClass,
   Property(Update, std::string)
   Property(Headless, bool)
   Property(Help, bool)
+  Property(HelpAll, bool)
 //  Property(AutoReload, bool)
   Property(WindowX, int)
   Property(WindowY, int)
