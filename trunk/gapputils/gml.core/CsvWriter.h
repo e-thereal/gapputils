@@ -16,6 +16,9 @@ class CsvWriter : public DefaultWorkflowElement<CsvWriter> {
 
   Property(Data, boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<double> > > >)
   Property(FlatData, boost::shared_ptr<std::vector<double> >)
+  Property(OnlyRowNames, bool)
+  Property(RowNames, boost::shared_ptr<std::vector<std::string> >)
+  Property(Header, std::string)
   Property(ColumnCount, int)
   Property(Filename, std::string)
   Property(OutputName, std::string)

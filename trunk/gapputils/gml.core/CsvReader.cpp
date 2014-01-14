@@ -19,19 +19,22 @@ BeginPropertyDefinitions(CsvReader)
   WorkflowProperty(LastColumn, Description("Zero-based index of the last column. A value of -1 indicates to read until the end."))
   WorkflowProperty(FirstRow, Description("Zero-based index of the first row"))
   WorkflowProperty(LastRow, Description("Zero-based index of the last row. A value of -1 indicates to read until the end."))
+  WorkflowProperty(RowIdCount, Description("If greater than 0, the first RowIdCount columns are assumed to contain the row ID."))
   WorkflowProperty(Delimiter)
   WorkflowProperty(Mode, Enumerator<Type>())
   WorkflowProperty(FastRead)
   
   WorkflowProperty(Data, Output("D"))
   WorkflowProperty(FlatData, Output("FD"))
+  WorkflowProperty(RowIds, Output("Ids"))
   WorkflowProperty(ColumnCount, NoParameter())
   WorkflowProperty(RowCount, NoParameter())
 
 EndPropertyDefinitions
 
-CsvReader::CsvReader() : _FirstColumn(0), _LastColumn(-1),
-_FirstRow(0), _LastRow(-1), _Delimiter(","), _Mode(CsvReadMode::Structured), _FastRead(false), _ColumnCount(0), _RowCount(0)
+CsvReader::CsvReader()
+ : _FirstColumn(0), _LastColumn(-1), _FirstRow(0), _LastRow(-1), _RowIdCount(0),
+   _Delimiter(","), _Mode(CsvReadMode::Structured), _FastRead(false), _ColumnCount(0), _RowCount(0)
 {
   setLabel("CsvReader");
 }
@@ -72,6 +75,12 @@ void CsvReader::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<double> > > > data(
       new std::vector<boost::shared_ptr<std::vector<double> > >());
 
+  boost::shared_ptr<std::vector<std::string> > rowIds;
+
+  if (getRowIdCount() > 0) {
+    rowIds = boost::make_shared<std::vector<std::string> >();
+  }
+
   int columnCount = 0;
   const bool fast = getFastRead();
   for (int rowIndex = 0; getline(csvfile, line); ++rowIndex) {
@@ -82,12 +91,16 @@ void CsvReader::update(IProgressMonitor* monitor) const {
       vector<string> tokens;
 
       tokenize(line, tokens, getDelimiter());
-      for (int columnIndex = 0; columnIndex < (int)tokens.size(); ++columnIndex) {
-        if (firstColumn <= columnIndex && (lastColumn == -1 || columnIndex <= lastColumn)) {
-          stringstream stream(tokens[columnIndex]);
-          stream >> value;
-          dataRow->push_back(value);
-        }
+      if (rowIds) {
+        stringstream idStream;
+        for (int iCol = 0; iCol < getRowIdCount(); ++iCol)
+          idStream << (iCol ? "," : "") << tokens[iCol];
+        rowIds->push_back(idStream.str());
+      }
+      for (int iCol = firstColumn; iCol < (int)tokens.size() && (lastColumn == -1 || iCol <= lastColumn); ++iCol) {
+        stringstream stream(tokens[iCol]);
+        stream >> value;
+        dataRow->push_back(value);
       }
       columnCount = max(columnCount, (int)dataRow->size());
       data->push_back(dataRow);
@@ -97,8 +110,10 @@ void CsvReader::update(IProgressMonitor* monitor) const {
   }
   csvfile.close();
 
+  newState->setRowIds(rowIds);
   newState->setColumnCount(columnCount);
   newState->setRowCount(data->size());
+
   if (getMode() == CsvReadMode::Structured) {
     newState->setData(data);
   } else {
