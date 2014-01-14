@@ -23,12 +23,14 @@ class CsvReader : public DefaultWorkflowElement<CsvReader> {
   Property(LastColumn, int)
   Property(FirstRow, int)
   Property(LastRow, int)
+  Property(RowIdCount, int)
   Property(Delimiter, std::string)
   Property(Mode, CsvReadMode)
   Property(FastRead, bool)
 
   Property(Data, boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<double> > > >)
   Property(FlatData, boost::shared_ptr<std::vector<double> >)
+  Property(RowIds, boost::shared_ptr<std::vector<std::string> >)
   Property(ColumnCount, int)
   Property(RowCount, int)
 

@@ -25,12 +25,17 @@ namespace gml {
 
 namespace core {
 
-BeginPropertyDefinitions(CollectedFiles)
+BeginPropertyDefinitions(CollectedFiles, Description(
+    "Gets a list of filenames created by the command line program collect_files from shared memory.<br>"
+    "To create the list of filenames with one call, use \"collect_files filename1.txt filename2.txt\".<br>"
+    "To create the list of filenames with multiple calls, use \"collect_files filename1.txt; collect_files filename2.txt\".<br>"
+    "If the time between subsequent collect_files calls is bellow one second, filenames are collected into one list, otherwise"
+    "a new list of filenames is created. Double click the module in order to update the Filenames property."))
 
   ReflectableBase(DefaultWorkflowElement<CollectedFiles>)
 
-  WorkflowProperty(Filenames, Filename("", true), FileExists(), Enumerable<Type, false>())
-  WorkflowProperty(Output, Output(""))
+  WorkflowProperty(Filenames, Filename("", true), FileExists(), Enumerable<Type, false>(), Description("After a double click, the current list of filenames is written to this property."))
+  WorkflowProperty(Output, Output(""), Description("Contains the collected filenames."))
 
 EndPropertyDefinitions
 
