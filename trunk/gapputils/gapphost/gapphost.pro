@@ -49,7 +49,8 @@ SOURCES = main.cpp \
 		  VerticalAnnotation.cpp \
 		  MemoryTest.cpp \
 		  ModuleHelpWidget.cpp \
-		  GlobalPropertiesViewDelegate.cpp
+		  GlobalPropertiesViewDelegate.cpp \
+		  MessageBox.cpp
 		  
 HEADERS = MainWindow.h \
           Person.h \

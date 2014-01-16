@@ -54,6 +54,7 @@
 
 #include "HorizontalAnnotation.h"
 #include "VerticalAnnotation.h"
+#include "MessageBox.h"
 
 using namespace capputils;
 using namespace capputils::attributes;
@@ -265,6 +266,8 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
       item->setItemStyle(ToolItem::HorizontalAnnotation);
     if (boost::dynamic_pointer_cast<interfaces::VerticalAnnotation>(node->getModule()))
       item->setItemStyle(ToolItem::VerticalAnnotation);
+    if (boost::dynamic_pointer_cast<interfaces::MessageBox>(node->getModule()))
+      item->setItemStyle(ToolItem::MessageBox);
   }
 
   item->setPos(node->getX(), node->getY());

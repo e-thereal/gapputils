@@ -302,10 +302,16 @@ ToolItem::ToolItem(const std::string& label, Workbench* bench)
     labelFont.setPointSize(10);
     effect->setColor(QColor(0, 0, 0, 160));
     effect->setEnabled(false);
+  } else if (itemStyle == MessageBox ) {
+    labelFont.setBold(false);
+    labelFont.setPointSize(12);
+    labelWidth = 36;
+    effect->setColor(QColor(0, 0, 0, 72));
+    effect->setEnabled(true);
   } else {
     labelFont.setBold(false);
-    labelFont.setPointSize(16);
-    labelWidth = 42;
+    labelFont.setPointSize(14);
+    labelWidth = 36;
     effect->setColor(QColor(0, 0, 0, 72));
     effect->setEnabled(true);
   }
@@ -323,6 +329,12 @@ void ToolItem::setItemStyle(ItemStyle style) {
     this->setGraphicsEffect(0);
     effect->setColor(QColor(0, 0, 0, 160));
     effect->setEnabled(false);
+  } else if (itemStyle == MessageBox ) {
+    labelFont.setBold(false);
+    labelFont.setPointSize(12);
+    labelWidth = 36;
+    effect->setColor(QColor(0, 0, 0, 72));
+    effect->setEnabled(true);
   } else {
     labelFont.setBold(false);
     labelFont.setPointSize(14);
@@ -454,7 +466,7 @@ void ToolItem::updateSize() {
     height = max(height, outputsHeight);
 
     updateConnectionPositions();
-  } else if (itemStyle == HorizontalAnnotation) {
+  } else if (itemStyle == HorizontalAnnotation ||itemStyle == MessageBox) {
     width = labelFontMetrics.boundingRect(getLabel().c_str()).width() + 32;
     height = labelWidth;
   } else if (itemStyle == VerticalAnnotation) {
@@ -605,6 +617,10 @@ void ToolItem::drawBox(QPainter* painter) {
       painter->drawRoundedRect(0, 0, width, height, 4, 4);
       painter->restore();
     }
+  } else if (itemStyle == MessageBox) {
+    painter->setBrush(QColor(224, 224, 255));
+    painter->setPen(QColor(96, 96, 64));
+    painter->drawRect(0, 0, width, height);
   } else {
     painter->setBrush(QColor(255, 255, 192));
     painter->setPen(QColor(96, 96, 64));
@@ -689,7 +705,7 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     painter->rotate(270);
     painter->translate(-(inputs.size() ? inputsWidth : 0) -labelWidth/2, -height/2);
     painter->drawText((inputs.size() ? inputsWidth : 0) - height, 0, labelWidth + 2 * height, height, Qt::AlignCenter, label);
-  } else if (itemStyle == HorizontalAnnotation) {
+  } else if (itemStyle == HorizontalAnnotation || itemStyle == MessageBox) {
     painter->drawText(0, 0, width, height, Qt::AlignCenter, label);
   } else if (itemStyle == VerticalAnnotation) {
     painter->translate(width/2, height/2);
