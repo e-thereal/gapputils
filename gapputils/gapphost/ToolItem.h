@@ -91,7 +91,7 @@ class ToolItem : public QObject, public QGraphicsItem {
 
 public:
   enum ProgressStates { Neutral = -1, InProgress = -2 };
-  enum ItemStyle { Normal, HorizontalAnnotation, VerticalAnnotation };
+  enum ItemStyle { Normal, HorizontalAnnotation, VerticalAnnotation, MessageBox };
 
 protected:
   std::string label;
