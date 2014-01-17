@@ -49,9 +49,6 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(ShowWeights, test);
   CHECK_MEMORY_LAYOUT2(ShowEvery, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
-  CHECK_MEMORY_LAYOUT2(Weights, test);
-  CHECK_MEMORY_LAYOUT2(DebugMask, test);
-  CHECK_MEMORY_LAYOUT2(DebugMask2, test);
 }
 
 //#define TIC timer.restart();
@@ -102,17 +99,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     thrust::copy(getMask()->begin(), getMask()->end(), mask.begin());
   } else if (getAutoCreateMask()) {
     mask = sum(X, 0);
-    {
-      data_t maskData(new std::vector<double>(visibleCount));
-      thrust::copy(mask.begin(), mask.end(), maskData->begin());
-      newState->setDebugMask(maskData);
-    }
     mask = mask > 1e-9;
-    {
-      data_t maskData(new std::vector<double>(visibleCount));
-      thrust::copy(mask.begin(), mask.end(), maskData->begin());
-      newState->setDebugMask2(maskData);
-    }
   } else {
     mask = ones<value_t>(1, visibleCount);
   }
@@ -203,8 +190,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   const int cDebugWeight = (getShowWeights() ?
       (getShowWeights() == -1 ? visibleCount * hiddenCount : getShowWeights() * visibleCount) :
       0);
-
-  newState->setWeights(boost::make_shared<host_matrix_t>(W));
 
   dlog() << "Preparation finished after " << timer.elapsed() << " s";
   dlog() << "Starting training";
@@ -374,16 +359,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
         << hours << " h " << minutes << " min " << sec << " s";
 
     if (monitor && getShowWeights() && (iEpoch % getShowEvery() == 0)) {
-      newState->setWeights(boost::make_shared<host_matrix_t>(0.5 * W));
       monitor->reportProgress(100 * (iEpoch + 1) / epochCount, true);
     }
   }
 
   if (getDbmLayer() == DbmLayer::IntermediateLayer) {
-    newState->setWeights(boost::make_shared<host_matrix_t>(0.5 * W));
     rbm->setWeightMatrix(boost::make_shared<host_matrix_t>(0.5 * W));
   } else {
-    newState->setWeights(boost::make_shared<host_matrix_t>(W));
     rbm->setWeightMatrix(boost::make_shared<host_matrix_t>(W));
   }
   rbm->setVisibleBiases(boost::make_shared<host_matrix_t>(b));

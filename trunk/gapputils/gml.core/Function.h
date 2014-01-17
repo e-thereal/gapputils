@@ -13,11 +13,13 @@
 
 #include <capputils/Enumerators.h>
 
+#include <tbblas/tensor.hpp>
+
 namespace gml {
 
 namespace core {
 
-CapputilsEnumerator(Functions, Abs, Log, Sqrt, Bernstein, Gamma, Sigmoid, Threshold, Clipping);
+CapputilsEnumerator(Functions, Abs, Exp, Log, Sqrt, Bernstein, Gamma, Sigmoid, Threshold, Clipping);
 
 class FunctionParameters : public capputils::reflection::ReflectableClass,
                            public ObservableClass
@@ -81,12 +83,17 @@ public:
 
 class Function : public DefaultWorkflowElement<Function> {
 
+  typedef std::vector<double> data_t;
+  typedef std::vector<boost::shared_ptr<data_t> > v_data_t;
+
   InitReflectableClass(Function)
 
-  Property(Inputs, boost::shared_ptr<std::vector<double> >)
+  Property(Input, boost::shared_ptr<data_t>)
+  Property(Inputs, boost::shared_ptr<v_data_t>)
   Property(Function, Functions)
   Property(Parameters, boost::shared_ptr<FunctionParameters>)
-  Property(Outputs, boost::shared_ptr<std::vector<double> >)
+  Property(Output, boost::shared_ptr<data_t>)
+  Property(Outputs, boost::shared_ptr<v_data_t>)
 
   static int functionId;
 
@@ -97,6 +104,9 @@ protected:
   virtual void update(IProgressMonitor* monitor) const;
 
   void changedHandler(ObservableClass* sender, int eventId);
+
+protected:
+  void convertData(tbblas::tensor<double, 1>& data) const;
 };
 
 }

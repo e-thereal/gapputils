@@ -58,9 +58,6 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
   Property(ShowEvery, int)
 
   Property(Model, boost::shared_ptr<Model>)
-  Property(Weights, boost::shared_ptr<host_matrix_t>)
-  Property(DebugMask, data_t)
-  Property(DebugMask2, data_t)
 
 public:
   Trainer();

@@ -49,6 +49,7 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(GpuCount, trainer);
+  CHECK_MEMORY_LAYOUT2(PadInputs, trainer);
 
   CHECK_MEMORY_LAYOUT2(SparsityMethod, trainer);
   CHECK_MEMORY_LAYOUT2(SparsityTarget, trainer);
@@ -160,7 +161,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
   // Prepare sizes
   dim_t originalSize = getTensors()->at(0)->size();
   dim_t size = originalSize;
-  if (getInitialModel()->getConvolutionType() == ConvolutionType::Valid) {
+
+  // TODO: try to do without it
+//  if (getInitialModel()->getConvolutionType() == ConvolutionType::Valid) {
+  if (getPadInputs()) {
     for (unsigned j = 0; j < dimCount - 1; ++j) {
       size[j] = upper_power_of_two(size[j]);
     }
@@ -171,10 +175,46 @@ void Trainer::update(IProgressMonitor* monitor) const {
   filterBatchSize[dimCount - 1] = size[dimCount - 1] * filterBatchLength;
   layerBatchSize[dimCount - 1] = filterBatchLength;
 
-//  size_t layerVoxelCount = 1;
+  // Test if the FFT bug will bug us ;)
+  {
+    random_tensor<value_t, dimCount, true, normal<value_t> > v_noise(size);
+
+    tensor_t A = v_noise, B = A;
+    ctensor_t cA = fft(A, 3), cB = cA;
+
+    if (dot(A - B, A - B) > 0) {
+      dlog(Severity::Warning) << "Bug in cuFFT detected. FFT changes its input. Padding of inputs to a power of 2 might help. Aborting!";
+      return;
+    }
+
+    A = ifft(cA, 3);
+
+    if (abs(dot(cA - cB, cA - cB)) > 0) {
+      dlog(Severity::Warning) << "Bug in cuFFT detected. FFT changes its input. Padding of inputs to a power of 2 might help. Aborting!";
+      return;
+    }
+  }
+
+  {
+    random_tensor<value_t, dimCount, true, normal<value_t> > h_noise(layerBatchSize);
+
+    tensor_t A = h_noise, B = A;
+    ctensor_t cA = fft(A, 3), cB = cA;
+
+    if (dot(A - B, A - B) > 0) {
+      dlog(Severity::Warning) << "Bug in cuFFT detected. FFT changes its input. Padding of inputs to a power of 2 might help. Aborting!";
+      return;
+    }
+
+    A = ifft(cA, 3);
+
+    if (abs(dot(cA - cB, cA - cB)) > 0) {
+      dlog(Severity::Warning) << "Bug in cuFFT detected. FFT changes its input. Padding of inputs to a power of 2 might help. Aborting!";
+      return;
+    }
+  }
+
   size_t voxelCount = sum(*getInitialModel()->getMask()) * size[dimCount - 1];
-//  for (size_t i = 0; i < dimCount - 1; ++i)
-//    layerVoxelCount *= layerSize[i];
 
   // Initialize constants
   value_t epsilonw =  getLearningRate() / batchSize / voxelCount; // Learning rate for weights
@@ -251,10 +291,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
       x[seq(0,0,0,0), tensors->at(i)->size()] = *tensors->at(i);
 
       for (unsigned j = 0; j < dimCount - 1; ++j) {
-        if (x.size()[j] != upper_power_of_two(x.size()[j])) {
-          dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Aborting!";
-          return;
-        }
+        // TODO: relax this condition (replace it with an explicit check of the FFT bug)
+//        if (x.size()[j] != upper_power_of_two(x.size()[j])) {
+//          dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Aborting!";
+//          return;
+//        }
         if (tensors->at(i)->size()[j] > size[j]) {
           dlog(Severity::Warning) << "Input tensors must have the same size. Aborting!";
           return;

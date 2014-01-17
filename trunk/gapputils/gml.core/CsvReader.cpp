@@ -22,7 +22,7 @@ BeginPropertyDefinitions(CsvReader)
   WorkflowProperty(RowIdCount, Description("If greater than 0, the first RowIdCount columns are assumed to contain the row ID."))
   WorkflowProperty(Delimiter)
   WorkflowProperty(Mode, Enumerator<Type>())
-  WorkflowProperty(FastRead)
+  WorkflowProperty(FastRead, Flag())
   
   WorkflowProperty(Data, Output("D"))
   WorkflowProperty(FlatData, Output("FD"))

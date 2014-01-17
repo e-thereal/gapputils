@@ -46,8 +46,6 @@ void ModelReader::update(IProgressMonitor* monitor) const {
   if (!rbm->getVisibleMask())
     rbm->setVisibleMask(boost::make_shared<matrix_t>(ones<value_t>(1, rbm->getWeightMatrix()->size()[0])));
 
-  dlog(Severity::Message) << "Mean: " << (*rbm->getMean())[seq(0,0)] << " Sd: " << (*rbm->getStddev())[seq(0,0)];
-
   newState->setModel(rbm);
   newState->setVisibleCount(rbm->getWeightMatrix()->size()[0]);
   newState->setHiddenCount(rbm->getWeightMatrix()->size()[1]);

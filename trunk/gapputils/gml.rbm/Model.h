@@ -24,7 +24,7 @@ struct ModelChecker { ModelChecker(); };
  * \brief Contains bias terms and weight matrix of an RBM plus statistics for feature scaling
  *
  * The visible mask is used to mask out visible units that are not needed. Useful when receiving
- * The hidden units of a masked convRBM as input.
+ * the hidden units of a masked convRBM as input.
  */
 class Model : public capputils::reflection::ReflectableClass {
 public:

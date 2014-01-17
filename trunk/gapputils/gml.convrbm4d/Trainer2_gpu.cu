@@ -110,7 +110,7 @@ void Trainer2::update(IProgressMonitor* monitor) const {
 
   if (getFilterMethod() == FilterMethod::ConvNet && (getTensors()->at(0)->size()[0] / getStride() > 128 || getTensors()->at(0)->size()[1] / getStride() > 128 || getTensors()->at(0)->size()[2] > 1)) {
     dlog(Severity::Warning) << "Invalid input dimension. Only 2D images with a maximum resolution of 128 x 128 are supported. Aborting!";
-    return;
+//    return;
   }
 
 //  if (deviceCount < gpuCount) {
