@@ -37,9 +37,6 @@ BeginPropertyDefinitions(Trainer)
   WorkflowProperty(ShowEvery, Description("Debug output is shown only every ShowEvery epochs."))
 
   WorkflowProperty(Model, Output("RBM"))
-  WorkflowProperty(Weights, Output("W"))
-  WorkflowProperty(DebugMask, Output("M"))
-  WorkflowProperty(DebugMask2, Output("M2"))
 
 EndPropertyDefinitions
 

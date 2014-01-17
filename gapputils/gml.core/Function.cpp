@@ -66,10 +66,12 @@ int Function::functionId;
 BeginPropertyDefinitions(Function)
 
   ReflectableBase(DefaultWorkflowElement<Function>)
-  WorkflowProperty(Inputs, Input(""), NotNull<Type>())
+  WorkflowProperty(Input, Input("V"))
+  WorkflowProperty(Inputs, Input("Vs"))
   WorkflowProperty(Function, Enumerator<Type>(), Dummy(functionId = Id))
   WorkflowProperty(Parameters, Reflectable<Type>())
-  WorkflowProperty(Outputs, Output(""))
+  WorkflowProperty(Output, Output("V"))
+  WorkflowProperty(Outputs, Output("Vs"))
 
 EndPropertyDefinitions
 
@@ -83,6 +85,7 @@ void Function::changedHandler(ObservableClass* sender, int eventId) {
   if (eventId == functionId) {
     switch (getFunction()) {
     case Functions::Abs:
+    case Functions::Exp:
     case Functions::Log:
     case Functions::Sqrt:
       if (!boost::dynamic_pointer_cast<NoParameters>(getParameters()))
@@ -131,16 +134,10 @@ struct cpu_sigmoid {
   }
 };
 
-void Function::update(IProgressMonitor* monitor) const {
+void Function::convertData(tbblas::tensor<double, 1>& data) const {
   using namespace tbblas;
 
   Logbook& dlog = getLogbook();
-
-  std::vector<double>& inputs = *getInputs();
-  boost::shared_ptr<std::vector<double> > outputs(new std::vector<double>(inputs.size()));
-
-  tensor<double, 1> data(inputs.size());
-  std::copy(inputs.begin(), inputs.end(), data.begin());
 
   switch(getFunction()) {
   case Functions::Abs:
@@ -149,6 +146,10 @@ void Function::update(IProgressMonitor* monitor) const {
 
   case Functions::Log:
     data = log(data);
+    break;
+
+  case Functions::Exp:
+    data = exp(data);
     break;
 
   case Functions::Sqrt:
@@ -190,9 +191,46 @@ void Function::update(IProgressMonitor* monitor) const {
   default:
     dlog(Severity::Warning) << "Unsupported function: " << getFunction();
   }
+}
 
-  std::copy(data.begin(), data.end(), outputs->begin());
-  newState->setOutputs(outputs);
+void Function::update(IProgressMonitor* monitor) const {
+  using namespace tbblas;
+
+  Logbook& dlog = getLogbook();
+
+  if (!getInput() && !getInputs()) {
+    dlog(Severity::Warning) << "No input given. Aborting!";
+    return;
+  }
+
+  if (getInput()) {
+    data_t& input = *getInput();
+    boost::shared_ptr<data_t> output(new data_t(input.size()));
+
+    tensor<double, 1> data(input.size());
+    std::copy(input.begin(), input.end(), data.begin());
+    convertData(data);
+    std::copy(data.begin(), data.end(), output->begin());
+    newState->setOutput(output);
+  }
+
+  if (getInputs()) {
+    v_data_t& inputs = *getInputs();
+    boost::shared_ptr<v_data_t> outputs(new v_data_t());
+
+    for (size_t i = 0; i < inputs.size(); ++i) {
+      data_t& input = *inputs[i];
+      boost::shared_ptr<data_t> output(new data_t(input.size()));
+
+      tensor<double, 1> data(input.size());
+      std::copy(input.begin(), input.end(), data.begin());
+      convertData(data);
+      std::copy(data.begin(), data.end(), output->begin());
+      outputs->push_back(output);
+    }
+
+    newState->setOutputs(outputs);
+  }
 }
 
 }

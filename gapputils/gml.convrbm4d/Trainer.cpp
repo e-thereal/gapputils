@@ -23,6 +23,7 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(BatchSize, Description("Number of images used per gradient update."))
   WorkflowProperty(FilterBatchSize, Description("Number of filters that are processed in parallel."))
   WorkflowProperty(GpuCount, Description("Number of GPUs used for training."))
+  WorkflowProperty(PadInputs, Flag(), Description("If check, input tensor dimensions will be padded to a power of 2."))
 
   WorkflowProperty(SparsityMethod, Enumerator<Type>())
   WorkflowProperty(SparsityTarget, Description("Target expected activation of a hidden unit."))
@@ -59,7 +60,7 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
 EndPropertyDefinitions
 
 Trainer::Trainer()
- : _EpochCount(100), _BatchSize(20), _FilterBatchSize(1), _GpuCount(1),
+ : _EpochCount(100), _BatchSize(20), _FilterBatchSize(1), _GpuCount(1), _PadInputs(false),
    _SparsityTarget(1e-2), _SparsityWeight(0.1),
    _CdIterations(1), _LearningRate(1e-3), _LearningDecay(0.98), _InitialMomentum(0.5), _FinalMomentum(0.9),
    _MomentumDecayEpochs(50), _WeightDecay(0), _WeightVectorLimit(1), _RandomizeTraining(false),

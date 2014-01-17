@@ -22,7 +22,7 @@ BeginPropertyDefinitions(Normalize)
 
 EndPropertyDefinitions
 
-Normalize::Normalize() {
+Normalize::Normalize() : _Mean(0), _Stddev(1) {
   setLabel("Norm");
 }
 
