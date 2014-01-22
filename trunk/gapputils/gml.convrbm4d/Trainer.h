@@ -66,11 +66,11 @@ public:
   Property(RandomizeTraining, bool)
   Property(ShareBiasTerms, bool)
   Property(ChannelsPerBlock, int)
+  Property(DropoutMethod, DropoutMethod)
+  Property(DropoutStage, DropoutStage)
   Property(VisibleDropout, double)
   Property(HiddenDropout, double)
   Property(FilterDropout, double)
-  Property(DropoutMethod, DropoutMethod)
-  Property(DropoutStage, DropoutStage)
   Property(CalculateError, bool)
   Property(UpdateModel, int)
   int dummy3;
@@ -81,9 +81,6 @@ public:
   Property(ModelIncrement, boost::shared_ptr<Model>)
   Property(AverageEpochTime, double)
   Property(ReconstructionError, double)
-  Property(Visibles, boost::shared_ptr<v_host_tensor_t>)
-  Property(Hiddens, boost::shared_ptr<v_host_tensor_t>)
-  Property(Reconstructions, boost::shared_ptr<v_host_tensor_t>)
 
 public:
   Trainer();

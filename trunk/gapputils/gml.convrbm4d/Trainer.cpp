@@ -40,11 +40,11 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(RandomizeTraining, Flag(), Description("Randomly select images of a mini-batch."))
   WorkflowProperty(ShareBiasTerms, Flag(), Description("If checked, visible and hidden units of the same filter share bias terms."))
   WorkflowProperty(ChannelsPerBlock, Description("All channels of the same pooling block share the same bias terms when shared bias terms are active. Hence, this number must be known."))
-  WorkflowProperty(VisibleDropout, Description("Probability of a visible unit of being ignored."))
-  WorkflowProperty(HiddenDropout, Description("Probability of a hidden unit of being ignored."))
-  WorkflowProperty(FilterDropout, Description("Probability of an entire filter of being ignored."))
   WorkflowProperty(DropoutMethod, Enumerator<Type>(), Description("Defines if entire columns or individual hidden units are dropped."))
   WorkflowProperty(DropoutStage, Enumerator<Type>(), Description("Defines at which stage the dropout decision is made."))
+  WorkflowProperty(VisibleDropout, Description("Probability of a visible unit of being ignored."))
+  WorkflowProperty(HiddenDropout, Description("Probability of a hidden unit of being ignored."))
+  WorkflowProperty(FilterDropout, Description("Probability of an entire batch of filters being ignored. To drop individual filters, set the filter batch size to 1"))
   WorkflowProperty(CalculateError, Flag(), Description("If checked, the reconstruction error is calculated"))
   WorkflowProperty(UpdateModel, Description("If greater than 0, the model is updated every <UpdateModel> epochs."))
 
@@ -53,9 +53,6 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(ModelIncrement, Output("Inc"))
   WorkflowProperty(AverageEpochTime, Output("T"))
   WorkflowProperty(ReconstructionError, NoParameter())
-  WorkflowProperty(Visibles, Output("V"))
-  WorkflowProperty(Hiddens, Output("H"))
-  WorkflowProperty(Reconstructions, Output("Vneg"))
 
 EndPropertyDefinitions
 
@@ -63,8 +60,8 @@ Trainer::Trainer()
  : _EpochCount(100), _BatchSize(20), _FilterBatchSize(1), _GpuCount(1), _PadInputs(false),
    _SparsityTarget(1e-2), _SparsityWeight(0.1),
    _CdIterations(1), _LearningRate(1e-3), _LearningDecay(0.98), _InitialMomentum(0.5), _FinalMomentum(0.9),
-   _MomentumDecayEpochs(50), _WeightDecay(0), _WeightVectorLimit(1), _RandomizeTraining(false),
-   _ShareBiasTerms(false), _ChannelsPerBlock(1), _VisibleDropout(0.2), _HiddenDropout(0.5), _FilterDropout(0.0),
+   _MomentumDecayEpochs(20), _WeightDecay(0), _WeightVectorLimit(1), _RandomizeTraining(false),
+   _ShareBiasTerms(false), _ChannelsPerBlock(1), _VisibleDropout(0.0), _HiddenDropout(0.5), _FilterDropout(0.0),
    _CalculateError(false), _UpdateModel(0),
    _CurrentEpoch(0), _AverageEpochTime(0.0), _ReconstructionError(0.0)
 {
@@ -74,4 +71,5 @@ Trainer::Trainer()
 TrainerChecker trainerChecker;
 
 } /* namespace convrbm */
+
 } /* namespace gml */
