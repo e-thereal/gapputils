@@ -65,11 +65,11 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(WeightVectorLimit, trainer);
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, trainer);
   CHECK_MEMORY_LAYOUT2(ShareBiasTerms, trainer);
+  CHECK_MEMORY_LAYOUT2(DropoutMethod, trainer);
+  CHECK_MEMORY_LAYOUT2(DropoutStage, trainer);
   CHECK_MEMORY_LAYOUT2(VisibleDropout, trainer);
   CHECK_MEMORY_LAYOUT2(HiddenDropout, trainer);
   CHECK_MEMORY_LAYOUT2(FilterDropout, trainer);
-  CHECK_MEMORY_LAYOUT2(DropoutMethod, trainer);
-  CHECK_MEMORY_LAYOUT2(DropoutStage, trainer);
   CHECK_MEMORY_LAYOUT2(CalculateError, trainer);
   CHECK_MEMORY_LAYOUT2(UpdateModel, trainer);
 
@@ -78,9 +78,6 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(ModelIncrement, trainer);
   CHECK_MEMORY_LAYOUT2(AverageEpochTime, trainer);
   CHECK_MEMORY_LAYOUT2(ReconstructionError, trainer);
-  CHECK_MEMORY_LAYOUT2(Visibles, trainer);
-  CHECK_MEMORY_LAYOUT2(Hiddens, trainer);
-  CHECK_MEMORY_LAYOUT2(Reconstructions, trainer);
 }
 
 #define START size_t timerCycles = getEpochCount(); \
@@ -110,6 +107,7 @@ unsigned int upper_power_of_two(unsigned int v) {
 //#define MONITOR_TRAINING
 
 //#define SPREAD_IMAGES
+#define DROPOUT
 
 void Trainer::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
@@ -162,8 +160,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   dim_t originalSize = getTensors()->at(0)->size();
   dim_t size = originalSize;
 
-  // TODO: try to do without it
-//  if (getInitialModel()->getConvolutionType() == ConvolutionType::Valid) {
   if (getPadInputs()) {
     for (unsigned j = 0; j < dimCount - 1; ++j) {
       size[j] = upper_power_of_two(size[j]);
@@ -291,11 +287,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
       x[seq(0,0,0,0), tensors->at(i)->size()] = *tensors->at(i);
 
       for (unsigned j = 0; j < dimCount - 1; ++j) {
-        // TODO: relax this condition (replace it with an explicit check of the FFT bug)
-//        if (x.size()[j] != upper_power_of_two(x.size()[j])) {
-//          dlog(Severity::Warning) << "The input size in each dimension must be a power of 2. Aborting!";
-//          return;
-//        }
         if (tensors->at(i)->size()[j] > size[j]) {
           dlog(Severity::Warning) << "Input tensors must have the same size. Aborting!";
           return;
@@ -325,12 +316,14 @@ void Trainer::update(IProgressMonitor* monitor) const {
   std::vector<boost::shared_ptr<ctensor_t> > cc_master(c->size() / filterBatchLength);
 
 #ifdef DROPOUT
-  std::vector<boost::shared_ptr<tensor_t> > drops(cF.size());
-  std::vector<bool> dropFilter(filters->size());
+  std::vector<boost::shared_ptr<tensor_t> > drops(cF_master.size());
+  std::vector<bool> dropFilter(cF_master.size());
 #endif
 
   // Copy visible bias to the device
+#ifdef SPREAD_IMAGES
   ctensor_t *cb_master, *cbinc_master;
+#endif
 
   // Declare variables used for training
   ctensor_t* cv_master;      // Read from the master thread and then each other thread reads from the master device
@@ -343,10 +336,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
 #endif
 
   value_t error = 0;
-
-  boost::shared_ptr<v_host_tensor_t> vs(new v_host_tensor_t());
-  boost::shared_ptr<v_host_tensor_t> hs(new v_host_tensor_t());
-  boost::shared_ptr<v_host_tensor_t> vnegs(new v_host_tensor_t());
 
   /*** START OF PARALLEL CODE ***/
 
@@ -398,11 +387,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
       b.reset();
     }
 
+#ifdef SPREAD_IMAGES
     #pragma omp master
     {
       cb_master = &cb;
       cbinc_master = &cbinc;
     }
+#endif
 
     // Copy filters to the device and pre-calculate the FFT
     {
@@ -488,7 +479,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
     dim_t hsize = originalSize;
     hsize[dimCount - 1] = cF.size();
-    tensor_t H = zeros<value_t>(hsize); // TODO: remove H (debug)
 
     #pragma omp master
     {
@@ -598,7 +588,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         #pragma omp barrier
         if (getDropoutMethod() == DropoutMethod::DropColumn) {
           for (size_t k = tid; k < cF.size(); k += gpuCount)
-            *drops[k] = drop_master; //h_rand > getHiddenDropout();
+            *drops[k] = drop_master;
         } else {
           for (size_t k = tid; k < cF.size(); k += gpuCount)
             *drops[k] = h_rand > getHiddenDropout();
@@ -757,7 +747,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
                 }
 #ifdef DROPOUT
                 if (getDropoutMethod() != DropoutMethod::NoDrop)
-                  h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+                  h = h * *drops[k] / (1. - getHiddenDropout()) * repeat(hMask, h.size() / hMask.size());
                 else
 #endif
                   h = h * repeat(hMask, h.size() / hMask.size());
@@ -769,15 +759,13 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
                   /* POSITIVE PHASE */
 
-                  // TODO: Rework sparsity methods for batched hidden units
-
 //                  *cFinc[k] = *cFinc[k] + epsilonw * repeat(conj(ch), cv.size() / ch.size()) * cv;
                   *cFinc[k] += conj_repeat_mult(cv, ch, epsilonw);
                   *ccinc[k] = *ccinc[k] + epsilonhb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * ch;
                   switch(getSparsityMethod()) {
                   case SparsityMethod::WeightsAndBias:
                     chdiff = getSparsityTarget() * h.count() * mask<complex_t>(ch.size(), ch.fullsize(), spMaskSize) - ch;
-                    *cFinc[k] = *cFinc[k] + epsilonsw * repeat(conj(chdiff), cv.size() / ch.size()) * cv;
+                    *cFinc[k] = *cFinc[k] + epsilonsw * repeat(conj(chdiff), cFinc[k]->size() / ch.size()) * repeat(cv, cFinc[k]->size() / cv.size());
                     *ccinc[k] = *ccinc[k] + epsilonsb * mask<complex_t>(ch.size(), ch.fullsize(), hbMaskSize) * chdiff;
                     break;
 
@@ -816,16 +804,12 @@ void Trainer::update(IProgressMonitor* monitor) const {
                   }
 #ifdef DROPOUT
                   if (getDropoutMethod() != DropoutMethod::NoDrop)
-                    h = h * *drops[k] / (1. - getHiddenDropout()) * hMask;
+                    h = h * *drops[k] / (1. - getHiddenDropout()) * repeat(hMask, h.size() / hMask.size());
                   else
 #endif
                     h = h * repeat(hMask, h.size() / hMask.size());
 
-                  // TODO: calculate the FFT (I've only commented it for debugging purpose
                   ch = fft(h, dimCount - 1, plan_h);
-                  // TODO: remove debug code
-//                  H[seq(0,0,0,(int)k),originalLayerSize] = h[seq(0,0,0,0), originalLayerSize];
-
 
                   // dvneg = F * h
 //                  if (getDbmLayer() == DbmLayer::TopLayer)
@@ -919,13 +903,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
                 *cvneg_master = fft(vneg, dimCount - 1, plan_v);
                 if (getCalculateError() && iCd == getCdIterations() - 1) {
                   batchError += sqrt(dot((vneg - v) * repeat(vMask, size / layerSize), (vneg - v) * repeat(vMask, size / layerSize)) / voxelCount);
-                  // TODO: remove debug code
-                  if (iEpoch + 1 == epochCount) {
-
-                    vs->push_back(boost::make_shared<host_tensor_t>(v[seq(0,0,0,0), originalSize]));
-//                    hs->push_back(boost::make_shared<host_tensor_t>(H));
-                    vnegs->push_back(boost::make_shared<host_tensor_t>(vneg[seq(0,0,0,0), originalSize]));
-                  }
                 }
                 cudaStreamSynchronize(0);
 #endif
@@ -1167,9 +1144,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   } /* end of parallel code */
 
   newState->setModel(crbm);
-  newState->setVisibles(vs);
-  newState->setHiddens(hs);
-  newState->setReconstructions(vnegs);
 }
 
 }
