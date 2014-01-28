@@ -49,6 +49,7 @@ public:
 
   // Sparsity parameters
   Property(SparsityMethod, SparsityMethod)
+  int dummy1;
   Property(SparsityTarget, double)
   Property(SparsityWeight, double)
 

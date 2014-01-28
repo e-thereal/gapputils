@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include <tbblas/rearrange.hpp>
+#include <tbblas/repeat.hpp>
 #include <thrust/reduce.h>
 
 namespace gml {
@@ -78,8 +79,8 @@ void Pooling::update(IProgressMonitor* monitor) const {
       break;
 
     case PoolingMethod::MaxPooling:
-      dlog(Severity::Warning) << "MaxPooling doesn't support reverse pooling. Aborting!";
-      return;
+      outBlock = seq(getBlockWidth(), getBlockHeight(), getBlockDepth(), 1);
+      inBlock = seq(1, 1, 1, 1);
       break;
     }
   }
@@ -118,8 +119,12 @@ void Pooling::update(IProgressMonitor* monitor) const {
         for (int iz = 0, oz = 0; iz < inSize[2]; iz += inBlock[2], oz += outBlock[2]) {
           for (int iy = 0, oy = 0; iy < inSize[1]; iy += inBlock[1], oy += outBlock[1]) {
             for (int ix = 0, ox = 0; ix < inSize[0]; ix += inBlock[0], ox += outBlock[0]) {
-              (*output)[seq(ox, oy, oz, ok)] =  thrust::reduce((*input)[seq(ix, iy, iz, ik), inBlock].begin(),
-                  (*input)[seq(ix, iy, iz, ik), inBlock].end(), (*input)[seq(ix, iy, iz, ik)], thrust::maximum<tensor_t::value_t>());
+              if (getDirection() == CodingDirection::Encode) {
+                (*output)[seq(ox, oy, oz, ok)] =  thrust::reduce((*input)[seq(ix, iy, iz, ik), inBlock].begin(),
+                    (*input)[seq(ix, iy, iz, ik), inBlock].end(), (*input)[seq(ix, iy, iz, ik)], thrust::maximum<tensor_t::value_t>());
+              } else {
+                (*output)[seq(ox, oy, oz, ok), outBlock] =  repeat((*input)[seq(ix, iy, iz, ik), inBlock], outBlock) / count(outBlock);
+              }
             }
           }
         }
