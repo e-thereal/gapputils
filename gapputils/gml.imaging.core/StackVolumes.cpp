@@ -36,15 +36,23 @@ void StackVolumes::update(IProgressMonitor* monitor) const {
 
   if (getVolumes()) {
     for (size_t j = 0; j < getVolumes()->size(); ++j) {
+      if (!getVolumes()->at(j))
+        continue;
       std::vector<boost::shared_ptr<image_t> >& inputs = *getVolumes()->at(j);
-      for (size_t i = 0; i < inputs.size(); ++i)
+      for (size_t i = 0; i < inputs.size(); ++i) {
+        if (!inputs[i])
+          continue;
         output->push_back(inputs[i]);
+      }
     }
   }
 
   if (getVolume()) {
-    for (size_t i = 0; i < getVolume()->size(); ++i)
+    for (size_t i = 0; i < getVolume()->size(); ++i) {
+      if (!getVolume()->at(i))
+        continue;
       output->push_back(getVolume()->at(i));
+    }
   }
 
   if (!output->size()) {
