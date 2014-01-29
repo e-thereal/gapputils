@@ -11,6 +11,7 @@
 
 #include <tbblas/rearrange.hpp>
 #include <tbblas/repeat.hpp>
+#include <tbblas/sum.hpp>
 #include <thrust/reduce.h>
 
 namespace gml {
@@ -26,10 +27,12 @@ BeginPropertyDefinitions(Pooling)
   WorkflowProperty(BlockDepth)
   WorkflowProperty(Method, Enumerator<Type>())
   WorkflowProperty(Direction, Enumerator<Type>())
+  WorkflowProperty(IntensityCorrection)
   WorkflowProperty(Outputs, Output("Ts"))
+  WorkflowProperty(IntensityRatio, NoParameter())
 EndPropertyDefinitions
 
-Pooling::Pooling() : _BlockWidth(2), _BlockHeight(2), _BlockDepth(2) {
+Pooling::Pooling() : _BlockWidth(2), _BlockHeight(2), _BlockDepth(2), _IntensityCorrection(1), _IntensityRatio(1) {
   setLabel("Pooling");
 }
 
@@ -56,6 +59,7 @@ void Pooling::update(IProgressMonitor* monitor) const {
       new std::vector<boost::shared_ptr<tensor_t> >());
 
   dim_t inSize = inputs->at(0)->size(), inBlock, outBlock;
+  double blockSum = 0, maxSum = 0;
 
   if (getDirection() == CodingDirection::Encode) {
     switch (getMethod()) {
@@ -122,8 +126,10 @@ void Pooling::update(IProgressMonitor* monitor) const {
               if (getDirection() == CodingDirection::Encode) {
                 (*output)[seq(ox, oy, oz, ok)] =  thrust::reduce((*input)[seq(ix, iy, iz, ik), inBlock].begin(),
                     (*input)[seq(ix, iy, iz, ik), inBlock].end(), (*input)[seq(ix, iy, iz, ik)], thrust::maximum<tensor_t::value_t>());
+                blockSum += sum((*input)[seq(ix, iy, iz, ik), inBlock]);
+                maxSum += (*output)[seq(ox, oy, oz, ok)] * count(inBlock);
               } else {
-                (*output)[seq(ox, oy, oz, ok), outBlock] =  repeat((*input)[seq(ix, iy, iz, ik), inBlock], outBlock) / count(outBlock);
+                (*output)[seq(ox, oy, oz, ok), outBlock] =  repeat((*input)[seq(ix, iy, iz, ik), inBlock], outBlock) * getIntensityCorrection();
               }
             }
           }
@@ -137,6 +143,10 @@ void Pooling::update(IProgressMonitor* monitor) const {
       monitor->reportProgress(100. * i / inputs->size());
   }
 
+  if (getMethod() == PoolingMethod::MaxPooling && getDirection() == CodingDirection::Encode)
+    newState->setIntensityRatio(blockSum / maxSum);
+  else
+    newState->setIntensityRatio(1);
   newState->setOutputs(outputs);
 }
 

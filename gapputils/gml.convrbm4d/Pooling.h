@@ -30,7 +30,9 @@ class Pooling : public DefaultWorkflowElement<Pooling> {
   Property(BlockDepth, int)
   Property(Method, PoolingMethod)
   Property(Direction, CodingDirection)
+  Property(IntensityCorrection, double)
   Property(Outputs, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(IntensityRatio, double)
 
 public:
   Pooling();
