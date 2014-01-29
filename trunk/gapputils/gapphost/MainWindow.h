@@ -80,6 +80,7 @@ public Q_SLOTS:
 
   void autoSave();
   void copy();
+  void copyDanglingEdges();
   void paste();
   void removeSelectedItems();
   void createSnippet();

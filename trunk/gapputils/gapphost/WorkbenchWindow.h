@@ -65,9 +65,9 @@ public:
   bool createCable(boost::shared_ptr<workflow::Edge> edge);
   void removeSelectedItems();
 
-  boost::shared_ptr<workflow::Workflow> copySelectedNodes();
+  boost::shared_ptr<workflow::Workflow> copySelectedNodes(bool copyDanglingEdges = false);
   void addNodes(workflow::Workflow& pasteWorkflow);
-  void copySelectedNodesToClipboard();
+  void copySelectedNodesToClipboard(bool copyDanglingEdges = false);
   void addNodesFromClipboard();
   void createSnippet();
   void addNodesFromSnippet(int x, int y, const std::string& filename);
