@@ -84,6 +84,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
 
   editMenu = menuBar()->addMenu("&Edit");
   editMenu->addAction("Copy", this, SLOT(copy()), QKeySequence(Qt::CTRL + Qt::Key_C));
+  editMenu->addAction("Copy (including dangling edges)", this, SLOT(copyDanglingEdges()), QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_C));
   editMenu->addAction("Paste", this, SLOT(paste()), QKeySequence(Qt::CTRL + Qt::Key_V));
   editMenu->addAction("Delete", this, SLOT(removeSelectedItems()));
   editMenu->addAction("Create Workflow Snipped", this, SLOT(createSnippet()), QKeySequence(Qt::CTRL + Qt::Key_N));
@@ -328,6 +329,10 @@ void MainWindow::quit() {
 
 void MainWindow::copy() {
   getCurrentWorkbenchWindow()->copySelectedNodesToClipboard();
+}
+
+void MainWindow::copyDanglingEdges() {
+  getCurrentWorkbenchWindow()->copySelectedNodesToClipboard(true);
 }
 
 void MainWindow::paste() {

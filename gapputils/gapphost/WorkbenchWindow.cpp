@@ -312,14 +312,13 @@ void WorkbenchWindow::removeSelectedItems() {
   workbench->removeSelectedItems();
 }
 
-boost::shared_ptr<workflow::Workflow> WorkbenchWindow::copySelectedNodes() {
+boost::shared_ptr<workflow::Workflow> WorkbenchWindow::copySelectedNodes(bool copyDanglingEdges) {
   boost::shared_ptr<Workflow> workflow = this->workflow.lock();
 
   boost::shared_ptr<Workflow> copyWorkflow(new Workflow());
   std::set<std::string> copied;
 
   // Temporarily add nodes to the node list for the xmlization.
-  // Nodes have to be removed afterwards in order to avoid a double free memory (is this really true? I don't think so!)
   boost::shared_ptr<std::vector<boost::shared_ptr<Node> > > nodes = copyWorkflow->getNodes();
   Q_FOREACH(QGraphicsItem* item, workbench->scene()->selectedItems()) {
     ToolItem* toolItem = dynamic_cast<ToolItem*>(item);
@@ -331,14 +330,21 @@ boost::shared_ptr<workflow::Workflow> WorkbenchWindow::copySelectedNodes() {
     }
   }
 
-  // Add all edges to the workflow where both end nodes are about to be copied
+  // Add all edges to the workflow where both end nodes are about to be copied (no dangling edges)
+  // or where at least one node is copied (dangling edges)
   boost::shared_ptr<std::vector<boost::shared_ptr<Edge> > > edges = copyWorkflow->getEdges();
   for (unsigned i = 0; i < workflow->getEdges()->size(); ++i) {
     boost::shared_ptr<Edge> edge = workflow->getEdges()->at(i);
-    if (copied.find(edge->getInputNode()) != copied.end() &&
-        copied.find(edge->getOutputNode()) != copied.end())
-    {
-      edges->push_back(edge);
+    if (copyDanglingEdges) {
+      if (copied.find(edge->getInputNode()) != copied.end()) {
+        edges->push_back(edge);
+      }
+    } else {
+      if (copied.find(edge->getInputNode()) != copied.end() &&
+          copied.find(edge->getOutputNode()) != copied.end())
+      {
+        edges->push_back(edge);
+      }
     }
   }
 
@@ -508,8 +514,8 @@ void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
   }
 }
 
-void WorkbenchWindow::copySelectedNodesToClipboard() {
-  boost::shared_ptr<Workflow> copyWorkflow = copySelectedNodes();
+void WorkbenchWindow::copySelectedNodesToClipboard(bool copyDanglingEdges) {
+  boost::shared_ptr<Workflow> copyWorkflow = copySelectedNodes(copyDanglingEdges);
 
   std::stringstream xmlStream;
   Xmlizer::ToXml(xmlStream, *copyWorkflow);
