@@ -92,6 +92,7 @@ public Q_SLOTS:
   void updateWorkflow();
   void updateMainWorkflow();
   void updateMainWorkflowNode(const std::string& nodeLabel);
+  void updateMainWorkflowNodes(const std::vector<std::string>& nodeLabels);
   void updateCurrentWorkflowNode(const capputils::reflection::ReflectableClass* object);
   void terminateUpdate();
   void updateFinished();

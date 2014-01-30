@@ -11,6 +11,7 @@
 #include <qobject.h>
 
 #include <string>
+#include <vector>
 #include <map>
 
 #include <boost/shared_ptr.hpp>
@@ -41,6 +42,7 @@ public:
 public Q_SLOTS:
   bool updateMainWorkflow();
   bool updateMainWorkflowNode(const std::string& label);
+  bool updateMainWorkflowNodes(const std::vector<std::string>& labels);
   void updateFinished();
   void showProgress(boost::shared_ptr<workflow::Node>, double);
 };

@@ -493,6 +493,15 @@ void MainWindow::updateMainWorkflowNode(const std::string& nodeLabel) {
   abortAction->setEnabled(true);
 }
 
+void MainWindow::updateMainWorkflowNodes(const std::vector<std::string>& nodeLabels) {
+  setGuiEnabled(false);
+
+  workingWindow = showWorkflow(DataModel::getInstance().getMainWorkflow());
+  connect(workingWindow, SIGNAL(updateFinished()), this, SLOT(updateFinished()));
+  workingWindow->updateNodesByLabels(nodeLabels);
+  abortAction->setEnabled(true);
+}
+
 void MainWindow::updateCurrentWorkflowNode(const capputils::reflection::ReflectableClass* object) {
   setGuiEnabled(false);
 

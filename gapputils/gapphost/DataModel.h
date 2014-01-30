@@ -25,7 +25,7 @@ class DataModel : public capputils::reflection::ReflectableClass,
   InitReflectableClass(DataModel)
 
   Property(UpdateAll, bool)
-  Property(Update, std::string)
+  Property(Update, std::vector<std::string>)
   Property(Headless, bool)
   Property(Help, bool)
   Property(HelpAll, bool)
