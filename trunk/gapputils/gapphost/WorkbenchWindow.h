@@ -82,6 +82,7 @@ public:
   void updateInputs();
   void updateOutputs();
   void updateNodeByLabel(const std::string& label);
+  void updateNodesByLabels(const std::vector<std::string>& labels);
   void updateNode(const capputils::reflection::ReflectableClass* object);
   void abortUpdate();
 

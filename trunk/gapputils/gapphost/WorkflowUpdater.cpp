@@ -55,7 +55,25 @@ void WorkflowUpdater::update(boost::shared_ptr<workflow::Node> node) {
     dlog() << "Workflow update started.";
     updater->update(node);
   } else {
-    this->node = node;
+    this->nodes.clear();
+    this->nodes.push_back(node);
+    start();
+  }
+}
+
+void WorkflowUpdater::update(boost::shared_ptr<std::vector<boost::shared_ptr<workflow::Node> > > nodes) {
+  assert(nodes->size());
+
+  abortRequested = false;
+  if (!rootThread) {
+    capputils::Logbook dlog(&LogbookModel::GetInstance());
+    dlog.setModule("gapputils::host::WorkflowUpdater");
+    dlog() << "Workflow update started.";
+    updater->update(nodes);
+  } else {
+    this->nodes.clear();
+    for (size_t i = 0; i < nodes->size(); ++i)
+      this->nodes.push_back(nodes->at(i));
     start();
   }
 }
@@ -73,90 +91,95 @@ void WorkflowUpdater::run() {
   dlog.setSeverity(capputils::Severity::Trace);
 
   ChecksumUpdater checksumUpdater;
-  boost::shared_ptr<workflow::Workflow> workflow = boost::dynamic_pointer_cast<workflow::Workflow>(node.lock());
-  if (workflow) {
-    if (workflow->hasCollectionElementInterface()) {
 
-      dlog() << "Combiner case";
+  for (size_t iNode = 0; iNode < nodes.size(); ++iNode) {
+    this->node = nodes[iNode];
 
-      /*** Combiner case ***/
+    boost::shared_ptr<workflow::Workflow> workflow = boost::dynamic_pointer_cast<workflow::Workflow>(nodes[iNode].lock());
+    if (workflow) {
+      if (workflow->hasCollectionElementInterface()) {
 
-      // Update input (this is important to know how many elements need to be processed
-      // reset collection
-      // while advance all collections
-      // add all interface nodes to the stack
-      // and update nodes
-      // append results at the end
+        dlog() << "Combiner case";
 
-      interfaceNodes = workflow->getInterfaceNodes();
-      collectionElements.clear();
-      inputElements.clear();
+        /*** Combiner case ***/
 
-      needsUpdate = true;
-      lastIteration = false;
+        // Update input (this is important to know how many elements need to be processed
+        // reset collection
+        // while advance all collections
+        // add all interface nodes to the stack
+        // and update nodes
+        // append results at the end
 
-      Q_EMIT initializeCollectionLoopRequested(this);
+        interfaceNodes = workflow->getInterfaceNodes();
+        collectionElements.clear();
+        inputElements.clear();
 
-      dlog() << "#Elements: " << collectionElements.size();
-      dlog() << "#Inputs: " << inputElements.size();
+        needsUpdate = true;
+        lastIteration = false;
 
-      int iterationCount = (*inputElements.begin())->getIterationCount();
-      for (std::set<boost::shared_ptr<workflow::CollectionElement> >::iterator i = inputElements.begin(); i != inputElements.end(); ++i)
-        iterationCount = std::min(iterationCount, (*i)->getIterationCount());
+        Q_EMIT initializeCollectionLoopRequested(this);
 
-      while (needsUpdate && !abortRequested) {
-        
-        reportProgress(node.lock(), 100.0 * (*inputElements.begin())->getCurrentIteration() / iterationCount);
+        dlog() << "#Elements: " << collectionElements.size();
+        dlog() << "#Inputs: " << inputElements.size();
 
-        if (lastIteration) {
-          dlog() << "Resetting combiner flag";
-          Q_EMIT resetCollectionFlagRequested(this);
+        int iterationCount = (*inputElements.begin())->getIterationCount();
+        for (std::set<boost::shared_ptr<workflow::CollectionElement> >::iterator i = inputElements.begin(); i != inputElements.end(); ++i)
+          iterationCount = std::min(iterationCount, (*i)->getIterationCount());
+
+        while (needsUpdate && !abortRequested) {
+
+          reportProgress(nodes[iNode].lock(), 100.0 * (*inputElements.begin())->getCurrentIteration() / iterationCount);
+
+          if (lastIteration) {
+            dlog() << "Resetting combiner flag";
+            Q_EMIT resetCollectionFlagRequested(this);
+          }
+
+          // build stacks
+          checksumUpdater.update(nodes[iNode].lock());
+          while (!nodesStack.empty())
+            nodesStack.pop();
+          for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
+            if (workflow->isOutputNode(interfaceNodes[i].lock()))
+              buildStack(interfaceNodes[i].lock());
+          }
+
+          // update
+          updateNodes();
+
+          Q_EMIT advanceCollectionLoopRequested(this);
         }
 
-        // build stacks
-        checksumUpdater.update(node.lock());
+        // The combiner flag should be reset in all cases.
+        // Resetting is necessary if not a single update cycle was performed
+        Q_EMIT resetCollectionFlagRequested(this);
+
+      } else {
+
+        /*** Workflow case ***/
+
+        dlog() << "Workflow case";
+
+        checksumUpdater.update(nodes[iNode].lock());
         while (!nodesStack.empty())
           nodesStack.pop();
+        std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
         for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
           if (workflow->isOutputNode(interfaceNodes[i].lock()))
             buildStack(interfaceNodes[i].lock());
         }
-
-        // update
         updateNodes();
-
-        Q_EMIT advanceCollectionLoopRequested(this);
       }
-
-      // The combiner flag should be reset in all cases.
-      // Resetting is necessary if not a single update cycle was performed
-      Q_EMIT resetCollectionFlagRequested(this);
-
     } else {
 
-      /*** Workflow case ***/
+      /*** Single update case ***/
 
-      dlog() << "Workflow case";
-
-      checksumUpdater.update(node.lock());
+      checksumUpdater.update(nodes[iNode].lock());
       while (!nodesStack.empty())
         nodesStack.pop();
-      std::vector<boost::weak_ptr<workflow::Node> >& interfaceNodes = workflow->getInterfaceNodes();
-      for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
-        if (workflow->isOutputNode(interfaceNodes[i].lock()))
-          buildStack(interfaceNodes[i].lock());
-      }
+      buildStack(nodes[iNode].lock());
       updateNodes();
     }
-  } else {
-
-    /*** Single update case ***/
-
-    checksumUpdater.update(node.lock());
-    while (!nodesStack.empty())
-      nodesStack.pop();
-    buildStack(node.lock());
-    updateNodes();
   }
 }
 

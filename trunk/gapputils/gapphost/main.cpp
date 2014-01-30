@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
       } else if (model.getUpdate().size()) {
         model.setSaveConfiguration(false);
         w.setAutoQuit(true);
-        w.updateMainWorkflowNode(model.getUpdate());
+        w.updateMainWorkflowNodes(model.getUpdate());
       }
       ret = qapp->exec();
     } else {
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
       if (model.getUpdateAll()) {
         success = app.updateMainWorkflow();
       } else if (model.getUpdate().size()) {
-        success = app.updateMainWorkflowNode(model.getUpdate());
+        success = app.updateMainWorkflowNodes(model.getUpdate());
       }
       if (success)
         ret = qapp->exec();

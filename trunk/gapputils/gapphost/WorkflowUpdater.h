@@ -28,7 +28,9 @@ class WorkflowUpdater : public QThread, public virtual workflow::IProgressMonito
   Q_OBJECT
 
 private:
+  std::vector<boost::weak_ptr<workflow::Node> > nodes;
   boost::weak_ptr<workflow::Node> node;
+
   boost::shared_ptr<workflow::Node> currentNode;
   WorkflowUpdater* rootThread;
   bool abortRequested;
@@ -47,6 +49,7 @@ public:
   virtual ~WorkflowUpdater(void);
 
   void update(boost::shared_ptr<workflow::Node> node);
+  void update(boost::shared_ptr<std::vector<boost::shared_ptr<workflow::Node> > > nodes);
   virtual void run();
 
   // From IProgressMonitor

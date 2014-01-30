@@ -45,9 +45,9 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(UpdateAll, Flag(), Volatile(),
       Parameter("update_all", "a"),
       Description("Automatically update the main workflow and quit afterwards"))
-  DefineProperty(Update, Volatile(),
+  DefineProperty(Update, Enumerable<Type, false>(), Volatile(),
       Parameter("update", "u"),
-      Description("Automatically update only the specified output node and quit afterwards"))
+      Description("Automatically update only the specified output nodes and quit afterwards"))
   DefineProperty(Headless, Flag(), Volatile(),
       Parameter("headless", ""),
       Description("Start grapevine without a GUI and update the main workflow if no other update target is given"))

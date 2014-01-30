@@ -659,6 +659,24 @@ void WorkbenchWindow::updateNodeByLabel(const std::string& label) {
   workflowUpdater->update(node);
 }
 
+void WorkbenchWindow::updateNodesByLabels(const std::vector<std::string>& labels) {
+  boost::shared_ptr<Workflow> workflow = this->workflow.lock();
+  Logbook& dlog = *workflow->getLogbook();
+
+  boost::shared_ptr<std::vector<boost::shared_ptr<Node> > > nodes(new std::vector<boost::shared_ptr<Node> >());
+
+  for (size_t i = 0; i < labels.size(); ++i) {
+    boost::shared_ptr<Node> node = workflow->getNodeByLabel(labels[i]);
+    if(!node) {
+      dlog(Severity::Error) << "Could not find node with the label '" << labels[i] << "'. Won't update workflow.";
+      return;
+    }
+    nodes->push_back(node);
+  }
+
+  workflowUpdater->update(nodes);
+}
+
 void WorkbenchWindow::updateNode(const capputils::reflection::ReflectableClass* object) {
   boost::shared_ptr<Workflow> workflow = this->workflow.lock();
   Logbook& dlog = *workflow->getLogbook();
