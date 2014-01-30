@@ -56,11 +56,11 @@ using namespace interfaces;
 # include <windows.h>
 #endif
 
-void showWorkflowUsage(Workflow& workflow) {
+void createParameterList(Workflow& workflow, std::vector<capputils::ParameterDescription>& parameters) {
   reflection::IClassProperty *label, *description, *valueProp;
 
-  std::vector<std::string> parameters, descriptions;
-  size_t columnWidth = 0;
+  if (workflow.getModule())
+    capputils::ArgumentsParser::CreateParameterList(*workflow.getModule(), false, parameters);
 
   workflow.identifyInterfaceNodes();
   std::vector<boost::weak_ptr<Node> >& interfaceNodes = workflow.getInterfaceNodes();
@@ -68,110 +68,61 @@ void showWorkflowUsage(Workflow& workflow) {
     boost::shared_ptr<Node> node = interfaceNodes[i].lock();
     if (!workflow.isOutputNode(node) && node->getModule()) {
       boost::shared_ptr<reflection::ReflectableClass> module = node->getModule();
-      if ((label = module->findProperty("Label"))) {
-        columnWidth = max(columnWidth, label->getStringValue(*module).size());
-        parameters.push_back(label->getStringValue(*module));
 
-        std::string fullDescription;
-        if ((description = module->findProperty("Description")))
-          fullDescription = description->getStringValue(*module);
+      label = module->findProperty("Label");
+      description = module->findProperty("Description");
+      valueProp = module->findProperty("Values");
+      if (!valueProp)
+        valueProp = module->findProperty("Value");
 
-        if ((valueProp = module->findProperty("Value"))) {
-          attributes::IEnumeratorAttribute* enumAttr = valueProp->getAttribute<attributes::IEnumeratorAttribute>();
-          if (enumAttr) {
-            boost::shared_ptr<capputils::AbstractEnumerator> enumerator = enumAttr->getEnumerator(*module, valueProp);
-            if (enumerator) {
-              std::stringstream valuesDescription;
-              if (fullDescription.size())
-                valuesDescription << fullDescription << " (";
-              else
-                valuesDescription << "Possible values are: ";
-              vector<string>& values = enumerator->getValues();
-              for (unsigned i = 0; i < values.size(); ++i) {
-                if (i)
-                  valuesDescription << ", ";
-                valuesDescription << values[i];
-              }
-              if (fullDescription.size())
-                valuesDescription << ")";
-              fullDescription = valuesDescription.str();
-            }
-          }
-        }
-        descriptions.push_back(fullDescription);
+      if (valueProp && label) {
+        parameters.push_back(capputils::ParameterDescription(module.get(), valueProp, label->getStringValue(*module), "", (description ? description->getStringValue(*module) : "")));
       }
     }
-  }
-
-  assert(parameters.size() == descriptions.size());
-  if (parameters.size()) {
-    std::cout << "Workflow parameters:\n" << std::endl;
-    for (size_t i = 0; i < parameters.size(); ++i) {
-      std::cout << "  --" << std::setw(columnWidth) << std::left << parameters[i] << "   " << descriptions[i] << std::endl;
-    }
-    std::cout << std::endl;
-  }
-
-  // Show output targets
-  parameters.clear();
-  descriptions.clear();
-  columnWidth = 0;
-  for (size_t i = 0; i < interfaceNodes.size(); ++i) {
-    boost::shared_ptr<Node> node = interfaceNodes[i].lock();
-    if (workflow.isOutputNode(node) && node->getModule()) {
-      boost::shared_ptr<reflection::ReflectableClass> module = node->getModule();
-      if ((label = module->findProperty("Label"))) {
-        columnWidth = max(columnWidth, label->getStringValue(*module).size());
-        parameters.push_back(label->getStringValue(*module));
-
-        std::string fullDescription;
-        if ((description = module->findProperty("Description")))
-          fullDescription = description->getStringValue(*module);
-        descriptions.push_back(fullDescription);
-      }
-    }
-  }
-
-  assert(parameters.size() == descriptions.size());
-
-  if (parameters.size()) {
-    std::cout << "Workflow targets:\n" << std::endl;
-    for (size_t i = 0; i < parameters.size(); ++i) {
-      std::cout << "  * " << std::setw(columnWidth) << std::left << parameters[i] << "   " << descriptions[i] << std::endl;
-    }
-    std::cout << std::endl;
   }
 }
 
-void parseWorkflowParameters(int argc, char** argv, Workflow& workflow) {
-  std::map<std::string, reflection::ReflectableClass*> modules;
-  std::map<std::string, reflection::IClassProperty*> properties;
+void showWorkflowUsage(Workflow& workflow) {
+  std::vector<capputils::ParameterDescription> parameters;
+  createParameterList(workflow, parameters);
 
-  reflection::IClassProperty *label, *value;
-
-  workflow.identifyInterfaceNodes();
-  std::vector<boost::weak_ptr<Node> >& interfaceNodes = workflow.getInterfaceNodes();
-  for (size_t i = 0; i < interfaceNodes.size(); ++i) {
-    boost::shared_ptr<Node> node = interfaceNodes[i].lock();
-    if (!workflow.isOutputNode(node) && node->getModule()) {
-      boost::shared_ptr<reflection::ReflectableClass> module = node->getModule();
-      value = module->findProperty("Values");
-      if (!value)
-        value = module->findProperty("Value");
-      if ((label = module->findProperty("Label")) && value) {
-        modules[label->getStringValue(*module)] = module.get();
-        properties[label->getStringValue(*module)] = value;
-      }
-    }
+  if (parameters.size()) {
+    ArgumentsParser::PrintUsage("Workflow parameters:", parameters);
   }
 
-  for (int i = 0; i < argc; ++i) {
-    if (!strncmp(argv[i], "--", 2)) {
-      std::string propName = argv[i] + 2;
-      if (modules.find(propName) != modules.end() && properties.find(propName) != properties.end()) {
-        if (i < argc - 1)
-          properties[propName]->setStringValue(*modules[propName], argv[++i]);
+  {
+    workflow.identifyInterfaceNodes();
+    std::vector<boost::weak_ptr<Node> >& interfaceNodes = workflow.getInterfaceNodes();
+
+    reflection::IClassProperty *label, *description;
+    std::vector<std::string> parameters, descriptions;
+    size_t columnWidth = 0;
+
+    // Show output targets
+    for (size_t i = 0; i < interfaceNodes.size(); ++i) {
+      boost::shared_ptr<Node> node = interfaceNodes[i].lock();
+      if (workflow.isOutputNode(node) && node->getModule()) {
+        boost::shared_ptr<reflection::ReflectableClass> module = node->getModule();
+        if ((label = module->findProperty("Label"))) {
+          columnWidth = max(columnWidth, label->getStringValue(*module).size());
+          parameters.push_back(label->getStringValue(*module));
+
+          std::string fullDescription;
+          if ((description = module->findProperty("Description")))
+            fullDescription = description->getStringValue(*module);
+          descriptions.push_back(fullDescription);
+        }
       }
+    }
+
+    assert(parameters.size() == descriptions.size());
+
+    if (parameters.size()) {
+      std::cout << "Workflow targets:\n" << std::endl;
+      for (size_t i = 0; i < parameters.size(); ++i) {
+        std::cout << "  * " << std::setw(columnWidth) << std::left << parameters[i] << "   " << descriptions[i] << std::endl;
+      }
+      std::cout << std::endl;
     }
   }
 }
@@ -241,8 +192,14 @@ int main(int argc, char *argv[])
   if (!model.getMainWorkflow()->getModule())
     model.getMainWorkflow()->setModule(boost::shared_ptr<SubWorkflow>(new SubWorkflow()));
 
-  ArgumentsParser::Parse(model, argc, argv);    // Needs to be here again to override configuration file parameters
-  parseWorkflowParameters(argc, argv, *model.getMainWorkflow());
+  {
+    // Needs to be here again to override configuration file parameters and because only now we know the complete parameter list
+    std::vector<capputils::ParameterDescription> parameters;
+    capputils::ArgumentsParser::CreateParameterList(model, false, parameters);
+    createParameterList(*model.getMainWorkflow(), parameters);
+    capputils::ArgumentsParser::Parse(parameters, argc, argv);
+  }
+
   if (model.getHelp()) {
     ArgumentsParser::PrintDefaultUsage(argv[0], model, true);
     showWorkflowUsage(*model.getMainWorkflow());
@@ -264,7 +221,6 @@ int main(int argc, char *argv[])
     GenerateBashCompletion::Generate(argv[0], model, model.getGenerateBashCompletion(), true);
     return 0;
   }
-
 
   try {
     if (!model.getHeadless()) {
