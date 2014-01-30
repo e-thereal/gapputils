@@ -308,13 +308,14 @@ void WorkflowToolBox::filterToolBox(const QString& text) {
 }
 
 void WorkflowToolBox::itemClickedHandler(QTreeWidgetItem *item, int) {
-  if (item->childCount()) {
+  if (toolBoxItems.find(item) != toolBoxItems.end()) {
     item->setExpanded(!item->isExpanded());
   }
 }
 
 void WorkflowToolBox::currentItemChangedHandler(QTreeWidgetItem* current, QTreeWidgetItem*) {
-  if (current && current->childCount() == 0) {
+
+  if (current && toolBoxItems.find(current) == toolBoxItems.end()) {
     Q_EMIT itemSelected(current->data(0, Qt::UserRole).toString());
   }
 }
