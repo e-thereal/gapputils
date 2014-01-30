@@ -314,7 +314,6 @@ void WorkflowToolBox::itemClickedHandler(QTreeWidgetItem *item, int) {
 }
 
 void WorkflowToolBox::currentItemChangedHandler(QTreeWidgetItem* current, QTreeWidgetItem*) {
-
   if (current && toolBoxItems.find(current) == toolBoxItems.end()) {
     Q_EMIT itemSelected(current->data(0, Qt::UserRole).toString());
   }
