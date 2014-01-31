@@ -8,6 +8,8 @@
 #ifndef GAPPUTILS_IMAGE_H_
 #define GAPPUTILS_IMAGE_H_
 
+#include <algorithm>
+
 namespace gapputils {
 
 template<class T, unsigned dim>
@@ -20,6 +22,7 @@ public:
   typedef size_t dim_t[dim];
 
   typedef value_t* iterator;
+  typedef const value_t* const_iterator;
 
 protected:
   dim_t size;
@@ -49,7 +52,7 @@ protected:
 public:
 
   virtual ~ImageBase() {
-    delete data;
+    delete[] data;
   }
 
   const dim_t& getSize() const { return size; }
@@ -77,6 +80,14 @@ public:
   iterator end() {
     return data + getCount();
   }
+
+  const_iterator begin() const {
+    return data;
+  }
+
+  const_iterator end() const {
+    return data + getCount();
+  }
 };
 
 template<class T, unsigned dim>
@@ -95,6 +106,10 @@ public:
 
 public:
   Image3d(const dim_t& size, const dim_t& pixelSize) : Base(size, pixelSize) { }
+
+  Image3d(const Image3d& image) : Base(image.getSize(), image.getPixelSize()) {
+    std::copy(image.begin(), image.end(), this->begin());
+  }
 
   Image3d(size_t width, size_t height, size_t depth,
       size_t pixelWidth = 1000, size_t pixelHeight = 1000, size_t pixelDepth = 1000)

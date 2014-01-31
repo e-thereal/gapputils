@@ -14,7 +14,7 @@ BeginPropertyDefinitions(CsvReader)
 
   ReflectableBase(workflow::DefaultWorkflowElement<CsvReader>)
 
-  WorkflowProperty(Filename, Input("File"), Filename(), FileExists())
+  WorkflowProperty(Filename, Input("File"), Filename("CSV file (*.csv)"), FileExists())
   WorkflowProperty(FirstColumn, Description("Zero-based index of the first column"))
   WorkflowProperty(LastColumn, Description("Zero-based index of the last column. A value of -1 indicates to read until the end."))
   WorkflowProperty(FirstRow, Description("Zero-based index of the first row"))

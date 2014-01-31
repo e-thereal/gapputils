@@ -531,9 +531,9 @@ void MainWindow::save() {
 }
 
 void MainWindow::saveAs() {
-  QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "Host Configuration (*.xml)");
+  DataModel& model = DataModel::getInstance();
+  QString filename = QFileDialog::getSaveFileName(this, "Save File", QDir(model.getConfiguration().c_str()).absolutePath(), "Host Configuration (*.xml)");
   if (!filename.isNull()) {
-    DataModel& model = DataModel::getInstance();
     model.setConfiguration(filename.toUtf8().data());
     model.save();
 #ifdef _RELEASE
