@@ -56,11 +56,11 @@ using namespace interfaces;
 # include <windows.h>
 #endif
 
-void createParameterList(Workflow& workflow, std::vector<capputils::ParameterDescription>& parameters) {
+void createParameterList(Workflow& workflow, capputils::ParameterDescriptions& parameters) {
   reflection::IClassProperty *label, *description, *valueProp;
 
   if (workflow.getModule())
-    capputils::ArgumentsParser::CreateParameterList(*workflow.getModule(), false, parameters);
+    capputils::ArgumentsParser::CreateParameterDescriptions(*workflow.getModule(), false, parameters);
 
   workflow.identifyInterfaceNodes();
   std::vector<boost::weak_ptr<Node> >& interfaceNodes = workflow.getInterfaceNodes();
@@ -76,17 +76,17 @@ void createParameterList(Workflow& workflow, std::vector<capputils::ParameterDes
         valueProp = module->findProperty("Value");
 
       if (valueProp && label) {
-        parameters.push_back(capputils::ParameterDescription(module.get(), valueProp, label->getStringValue(*module), "", (description ? description->getStringValue(*module) : "")));
+        parameters.parameters.push_back(capputils::ParameterDescription(module.get(), valueProp, label->getStringValue(*module), "", (description ? description->getStringValue(*module) : "")));
       }
     }
   }
 }
 
 void showWorkflowUsage(Workflow& workflow) {
-  std::vector<capputils::ParameterDescription> parameters;
+  capputils::ParameterDescriptions parameters;
   createParameterList(workflow, parameters);
 
-  if (parameters.size()) {
+  if (parameters.parameters.size()) {
     ArgumentsParser::PrintUsage("Workflow parameters:", parameters);
   }
 
@@ -194,8 +194,8 @@ int main(int argc, char *argv[])
 
   {
     // Needs to be here again to override configuration file parameters and because only now we know the complete parameter list
-    std::vector<capputils::ParameterDescription> parameters;
-    capputils::ArgumentsParser::CreateParameterList(model, false, parameters);
+    capputils::ParameterDescriptions parameters;
+    capputils::ArgumentsParser::CreateParameterDescriptions(model, false, parameters);
     createParameterList(*model.getMainWorkflow(), parameters);
     capputils::ArgumentsParser::Parse(parameters, argc, argv);
   }
