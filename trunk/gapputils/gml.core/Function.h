@@ -19,7 +19,7 @@ namespace gml {
 
 namespace core {
 
-CapputilsEnumerator(Functions, Abs, Exp, Log, Sqrt, Bernstein, Gamma, Sigmoid, Threshold, Clipping);
+CapputilsEnumerator(Functions, Abs, Exp, Log, Sqrt, Bernstein, Gamma, Sigmoid, Threshold, Clipping, Axpb);
 
 class FunctionParameters : public capputils::reflection::ReflectableClass,
                            public ObservableClass
@@ -79,6 +79,16 @@ class ClippingParameters : public FunctionParameters {
 
 public:
   ClippingParameters();
+};
+
+class AxpbParameters : public FunctionParameters {
+  InitReflectableClass(AxpbParameters)
+
+  Property(Slope, double)
+  Property(Intercept, double)
+
+public:
+  AxpbParameters();
 };
 
 class Function : public DefaultWorkflowElement<Function> {
