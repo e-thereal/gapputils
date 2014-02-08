@@ -61,6 +61,13 @@ EndPropertyDefinitions
 
 ClippingParameters::ClippingParameters() : _Minimum(0), _Maximum(1) { }
 
+BeginPropertyDefinitions(AxpbParameters)
+  DefineProperty(Slope)
+  DefineProperty(Intercept)
+EndPropertyDefinitions
+
+AxpbParameters::AxpbParameters() : _Slope(1), _Intercept(0) { }
+
 int Function::functionId;
 
 BeginPropertyDefinitions(Function)
@@ -115,6 +122,11 @@ void Function::changedHandler(ObservableClass* sender, int eventId) {
     case Functions::Clipping:
       if (!boost::dynamic_pointer_cast<ClippingParameters>(getParameters()))
         setParameters(boost::make_shared<ClippingParameters>());
+      break;
+
+    case Functions::Axpb:
+      if (!boost::dynamic_pointer_cast<AxpbParameters>(getParameters()))
+        setParameters(boost::make_shared<AxpbParameters>());
       break;
     }
   }
@@ -186,6 +198,12 @@ void Function::convertData(tbblas::tensor<double, 1>& data) const {
     ClippingParameters* params = dynamic_cast<ClippingParameters*>(getParameters().get());
     if (params)
       data = max(params->getMinimum(), min(params->getMaximum(), data));
+    } break;
+
+  case Functions::Axpb: {
+    AxpbParameters* params = dynamic_cast<AxpbParameters*>(getParameters().get());
+    if (params)
+      data = params->getSlope() * data + params->getIntercept();
     } break;
 
   default:
