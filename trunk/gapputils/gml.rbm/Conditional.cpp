@@ -17,13 +17,14 @@ BeginPropertyDefinitions(Conditional)
 
   WorkflowProperty(Model, Input("RBM"), NotNull<Type>())
   WorkflowProperty(Given, Input("G"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(FirstGiven, Description("Index of first given unit."))
   WorkflowProperty(IterationCount)
 
   WorkflowProperty(Inferred, Output("I"))
 
 EndPropertyDefinitions
 
-Conditional::Conditional() : _IterationCount(10) {
+Conditional::Conditional() : _FirstGiven(0), _IterationCount(10) {
   setLabel("Infer");
 }
 

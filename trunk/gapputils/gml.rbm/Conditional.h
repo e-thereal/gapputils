@@ -35,6 +35,7 @@ class Conditional : public DefaultWorkflowElement<Conditional> {
 
   Property(Model, boost::shared_ptr<Model>)
   Property(Given, boost::shared_ptr<v_data_t>)
+  Property(FirstGiven, int)
   Property(IterationCount, int)
 
   Property(Inferred, boost::shared_ptr<v_data_t>)

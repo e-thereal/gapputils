@@ -31,6 +31,7 @@ ConditionalChecker::ConditionalChecker() {
 
   CHECK_MEMORY_LAYOUT2(Model, test);
   CHECK_MEMORY_LAYOUT2(Given, test);
+  CHECK_MEMORY_LAYOUT2(FirstGiven, test);
   CHECK_MEMORY_LAYOUT2(IterationCount, test);
   CHECK_MEMORY_LAYOUT2(Inferred, test);
 }
@@ -65,20 +66,26 @@ void Conditional::update(IProgressMonitor* monitor) const {
   const size_t hiddenCount = W.size()[1];
   const size_t givenCount = given[0]->size();
   const size_t sampleCount = given.size();
+  const int firstGiven = getFirstGiven();
+
+  if (firstGiven < 0 || givenCount + firstGiven >= visibleCount) {
+    dlog(Severity::Warning) << "Given units exceed the number of the visible units. Aborting!";
+    return;
+  }
 
   matrix_t V(sampleCount, visibleCount);  // all visible units
   matrix_t H(sampleCount, hiddenCount);   // all hidden units
   matrix_t X(sampleCount, givenCount);    // all given units
 
   for (size_t i = 0; i < sampleCount; ++i)
-    thrust::copy(given[i]->begin(), given[i]->end(), row(V, i).begin());
+    thrust::copy(given[i]->begin(), given[i]->end(), row(V, i).begin() + firstGiven);
 
   // Normalize the given values
   V = (V - repeat(mean, V.size() / mean.size())) / repeat(stddev, V.size() / stddev.size());
   X = V[seq(0,0), X.size()];
 
   for (int i = 0; i < getIterationCount(); ++i) {
-    V[seq(0,0), X.size()] = X;      // Replace given units
+    V[seq(0,firstGiven), X.size()] = X;      // Replace given units
 
     // Calculate p(h | V, W) = sigm(VW + C)
     H = prod(V, W);
