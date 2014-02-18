@@ -14,6 +14,7 @@
 #include <capputils/FilenameAttribute.h>
 #include <capputils/HideAttribute.h>
 #include <capputils/ParameterAttribute.h>
+#include <capputils/OperandAttribute.h>
 
 #include <cstdlib>
 
