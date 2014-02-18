@@ -28,6 +28,9 @@ class MifReader : public DefaultWorkflowElement<MifReader> {
   Property(Width, int)
   Property(Height, int)
   Property(Depth, int)
+  Property(VoxelWidth, double)
+  Property(VoxelHeight, double)
+  Property(VoxelDepth, double)
 
 public:
   MifReader();

@@ -47,4 +47,5 @@ void ApplyWarp::update(IProgressMonitor* monitor) const {
 }
 
 } /* namespace fsl */
+
 } /* namespace gml */

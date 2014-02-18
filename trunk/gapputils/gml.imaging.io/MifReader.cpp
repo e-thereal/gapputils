@@ -27,10 +27,13 @@ BeginPropertyDefinitions(MifReader)
   WorkflowProperty(Width, NoParameter())
   WorkflowProperty(Height, NoParameter())
   WorkflowProperty(Depth, NoParameter())
+  WorkflowProperty(VoxelWidth, NoParameter(), Description("Voxel width in mm."))
+  WorkflowProperty(VoxelHeight, NoParameter(), Description("Voxel height in mm."))
+  WorkflowProperty(VoxelDepth, NoParameter(), Description("Voxel depth in mm."))
 
 EndPropertyDefinitions
 
-MifReader::MifReader() : _MaximumIntensity(2048), _Width(0), _Height(0), _Depth(0)
+MifReader::MifReader() : _MaximumIntensity(2048), _Width(0), _Height(0), _Depth(0), _VoxelWidth(1), _VoxelHeight(1), _VoxelDepth(1)
 {
   setLabel("Mif");
 }
@@ -73,6 +76,9 @@ void MifReader::update(IProgressMonitor* /*monitor*/) const {
   newState->setWidth(width);
   newState->setHeight(height);
   newState->setDepth(depth);
+  newState->setVoxelWidth((double)pixelWidth / 1000.0);
+  newState->setVoxelHeight((double)pixelHeight / 1000.0);
+  newState->setVoxelDepth((double)pixelDepth / 1000.0);
   newState->setImage(image);
 }
 

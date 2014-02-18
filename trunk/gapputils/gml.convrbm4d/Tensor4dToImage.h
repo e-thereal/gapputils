@@ -25,6 +25,7 @@ class Tensor4dToImage : public DefaultWorkflowElement<Tensor4dToImage> {
   InitReflectableClass(Tensor4dToImage)
 
   Property(Tensor, boost::shared_ptr<tensor_t>)
+  Property(Spacing, std::vector<double>)
   Property(Image, boost::shared_ptr<image_t>)
 
 public:
