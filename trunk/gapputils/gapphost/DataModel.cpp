@@ -78,7 +78,8 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(TotalLabel, Volatile())
   DefineProperty(FinishedLabel, Volatile())
   DefineProperty(Configuration, Volatile(), Filename(),
-      Parameter("config", "c"),
+      Operand("configuration"),
+//      Parameter("config", "c"),
       Description("Name of the workflow configuration file"))
   DefineProperty(LibraryPath, Volatile(), Filename(),
       Parameter("libraries", ""),
