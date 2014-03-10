@@ -20,7 +20,7 @@
 #include "PropertyReference.h"
 #include "GlobalPropertiesViewDelegate.h"
 
-#include <gapputils/InterfaceAttribute.h>
+#include <gapputils/attributes/InterfaceAttribute.h>
 
 using namespace gapputils::workflow;
 using namespace gapputils::attributes;

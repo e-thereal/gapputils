@@ -9,8 +9,8 @@
 
 #include <capputils/EventHandler.h>
 #include <capputils/ObservableClass.h>
-#include <capputils/VolatileAttribute.h>
-#include <capputils/MergeAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
+#include <capputils/attributes/MergeAttribute.h>
 
 #include <capputils/Logbook.h>
 

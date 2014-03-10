@@ -3,7 +3,7 @@
 #ifndef _GAPPHOST_CONTROLLER_H_
 #define _GAPPHOST_CONTROLLER_H_
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 #include <gapputils/gapputils.h>
 
 namespace gapputils {

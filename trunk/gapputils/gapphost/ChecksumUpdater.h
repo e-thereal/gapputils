@@ -5,7 +5,7 @@
 
 #include <stack>
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 #include <gapputils/gapputils.h>
 #include <boost/weak_ptr.hpp>
 

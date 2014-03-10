@@ -7,7 +7,7 @@
 
 #include "TestModule.h"
 
-#include <capputils/DeprecatedAttribute.h>
+#include <capputils/attributes/DeprecatedAttribute.h>
 
 using namespace capputils::attributes;
 

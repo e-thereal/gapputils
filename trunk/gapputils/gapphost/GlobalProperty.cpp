@@ -9,7 +9,7 @@
 
 #include "GlobalEdge.h"
 
-#include <capputils/VolatileAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
 #include <boost/regex.hpp>
 
 using namespace capputils::attributes;

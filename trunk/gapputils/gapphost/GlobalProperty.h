@@ -8,7 +8,7 @@
 #ifndef GAPPHOST_GLOBALPROPERTY_H_
 #define GAPPHOST_GLOBALPROPERTY_H_
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 
 #include "Edge.h"
 #include "Node.h"

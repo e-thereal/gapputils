@@ -18,7 +18,7 @@
 #include "DataModel.h"
 #include "Controller.h"
 #include "ToolItem.h"
-#include <capputils/ReflectableClassFactory.h>
+#include <capputils/reflection/ReflectableClassFactory.h>
 #include <qbrush.h>
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/WorkflowInterface.h>

@@ -10,8 +10,8 @@
 
 #include <qboxlayout.h>
 
-#include <capputils/ReflectableClassFactory.h>
-#include <capputils/DeprecatedAttribute.h>
+#include <capputils/reflection/ReflectableClassFactory.h>
+#include <capputils/attributes/DeprecatedAttribute.h>
 
 #include <boost/typeof/std/utility.hpp>
 

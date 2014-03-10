@@ -5,10 +5,10 @@
  *      Author: tombr
  */
 
-#ifndef IPROGRESSMONITOR_H_
-#define IPROGRESSMONITOR_H_
+#ifndef GAPPUTILS_IPROGRESSMONITOR_H_
+#define GAPPUTILS_IPROGRESSMONITOR_H_
 
-#include "gapputils.h"
+#include <gapputils/gapputils.h>
 
 namespace gapputils {
 

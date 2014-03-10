@@ -4,7 +4,7 @@
 #include <QObject>
 #include <qmetatype.h>
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 
 namespace gapputils {
 

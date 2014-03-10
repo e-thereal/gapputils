@@ -1,8 +1,8 @@
 #include "Edge.h"
 
-#include <capputils/VolatileAttribute.h>
-#include <capputils/MergeAttribute.h>
-#include <capputils/ObserveAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
+#include <capputils/attributes/MergeAttribute.h>
+#include <capputils/attributes/ObserveAttribute.h>
 
 #include <capputils/Logbook.h>
 

@@ -9,10 +9,11 @@
 
 #include <qlabel.h>
 
-#include <capputils/DescriptionAttribute.h>
-#include <capputils/ReflectableClassFactory.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
+#include <capputils/attributes/DescriptionAttribute.h>
+#include <capputils/attributes/InputAttribute.h>
+#include <capputils/attributes/OutputAttribute.h>
+
+#include <capputils/reflection/ReflectableClassFactory.h>
 
 #include <boost/units/detail/utility.hpp>
 #include <qmenu.h>

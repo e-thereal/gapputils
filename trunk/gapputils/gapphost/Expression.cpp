@@ -7,8 +7,8 @@
 
 #include "Expression.h"
 
-#include <capputils/DescriptionAttribute.h>
-#include <capputils/VolatileAttribute.h>
+#include <capputils/attributes/DescriptionAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
 
 #include <cassert>
 #include <sstream>

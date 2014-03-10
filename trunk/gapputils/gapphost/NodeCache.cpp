@@ -7,13 +7,13 @@
 #define BOOST_FILESYSTEM_VERSION 2
 #include "NodeCache.h"
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 #include <capputils/Serializer.h>
-#include <capputils/SerializeAttribute.h>
-#include <capputils/NoParameterAttribute.h>
+#include <capputils/attributes/SerializeAttribute.h>
+#include <capputils/attributes/NoParameterAttribute.h>
 
-#include <gapputils/CacheableAttribute.h>
-#include <gapputils/LabelAttribute.h>
+#include <gapputils/attributes/CacheableAttribute.h>
+#include <gapputils/attributes/LabelAttribute.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>

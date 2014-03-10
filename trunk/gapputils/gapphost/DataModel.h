@@ -3,8 +3,8 @@
 #ifndef _GAPPHOST_DATAMODEL_H_
 #define _GAPPHOST_DATAMODEL_H_
 
-#include <capputils/ReflectableClass.h>
 #include <capputils/ObservableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 
 #include <map>
 

@@ -7,8 +7,8 @@
 
 #include "InterfaceModel.h"
 
-#include <capputils/EnumerableAttribute.h>
-#include <capputils/NotEmptyAttribute.h>
+#include <capputils/attributes/EnumerableAttribute.h>
+#include <capputils/attributes/NotEmptyAttribute.h>
 
 using namespace capputils::attributes;
 

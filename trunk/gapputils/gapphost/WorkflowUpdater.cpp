@@ -8,7 +8,7 @@
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/SubWorkflow.h>
 #include <gapputils/CollectionElement.h>
-#include <gapputils/LabelAttribute.h>
+#include <gapputils/attributes/LabelAttribute.h>
 
 #include <cassert>
 #include <iostream>
@@ -16,9 +16,9 @@
 #include "ChecksumUpdater.h"
 
 #include <capputils/Logbook.h>
-#include <capputils/NoParameterAttribute.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
+#include <capputils/attributes/NoParameterAttribute.h>
+#include <capputils/attributes/InputAttribute.h>
+#include <capputils/attributes/OutputAttribute.h>
 #include "LogbookModel.h"
 
 #include <exception>

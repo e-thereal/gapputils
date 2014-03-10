@@ -8,30 +8,31 @@
 #ifndef GAPPUTLIS_WORKFLOW_DEFAULTWORKFLOWELEMENT_H_
 #define GAPPUTLIS_WORKFLOW_DEFAULTWORKFLOWELEMENT_H_
 
-#include "WorkflowElement.h"
+#include <gapputils/WorkflowElement.h>
 
-#include <capputils/DescriptionAttribute.h>
-#include <capputils/DummyAttribute.h>
-#include <capputils/NotNullAttribute.h>
-#include <capputils/NotEmptyAttribute.h>
-#include <capputils/NotEqualAttribute.h>
-#include <capputils/EnumeratorAttribute.h>
-#include <capputils/VolatileAttribute.h>
-#include <gapputils/ReadOnlyAttribute.h>
-#include <capputils/ObserveAttribute.h>
-#include <capputils/Verifier.h>
 #include <capputils/Logbook.h>
-#include <capputils/NoParameterAttribute.h>
-#include <gapputils/LabelAttribute.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <capputils/FilenameAttribute.h>
-#include <capputils/FileExistsAttribute.h>
-#include <capputils/FlagAttribute.h>
+#include <capputils/Verifier.h>
 
-#include <capputils/EnumerableAttribute.h>
-#include <capputils/FromEnumerableAttribute.h>
-#include <capputils/ToEnumerableAttribute.h>
+#include <capputils/attributes/DescriptionAttribute.h>
+#include <capputils/attributes/DummyAttribute.h>
+#include <capputils/attributes/NotNullAttribute.h>
+#include <capputils/attributes/NotEmptyAttribute.h>
+#include <capputils/attributes/NotEqualAttribute.h>
+#include <capputils/attributes/EnumeratorAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
+#include <gapputils/attributes/ReadOnlyAttribute.h>
+#include <capputils/attributes/ObserveAttribute.h>
+#include <capputils/attributes/NoParameterAttribute.h>
+#include <gapputils/attributes/LabelAttribute.h>
+#include <capputils/attributes/InputAttribute.h>
+#include <capputils/attributes/OutputAttribute.h>
+#include <capputils/attributes/FilenameAttribute.h>
+#include <capputils/attributes/FileExistsAttribute.h>
+#include <capputils/attributes/FlagAttribute.h>
+
+#include <capputils/attributes/EnumerableAttribute.h>
+#include <capputils/attributes/FromEnumerableAttribute.h>
+#include <capputils/attributes/ToEnumerableAttribute.h>
 
 namespace gapputils {
 
