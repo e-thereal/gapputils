@@ -8,8 +8,8 @@
 #ifndef GAPPUTILS_WORKFLOW_COLLECTIONELEMENT_H_
 #define GAPPUTILS_WORKFLOW_COLLECTIONELEMENT_H_
 
-#include "WorkflowElement.h"
-#include <capputils/IEnumerableAttribute.h>
+#include <gapputils/WorkflowElement.h>
+#include <capputils/attributes/IEnumerableAttribute.h>
 
 namespace gapputils {
 

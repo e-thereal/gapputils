@@ -3,14 +3,16 @@
 #include <qcombobox.h>
 #include <qcheckbox.h>
 
-#include <capputils/EnumeratorAttribute.h>
-#include <capputils/EnumerableAttribute.h>
-#include <capputils/FromEnumerableAttribute.h>
-#include <capputils/IReflectableAttribute.h>
-#include <capputils/FileExists.h>
-#include <capputils/FilenameAttribute.h>
 #include <capputils/AbstractEnumerator.h>
-#include <capputils/FlagAttribute.h>
+
+#include <capputils/attributes/EnumeratorAttribute.h>
+#include <capputils/attributes/EnumerableAttribute.h>
+#include <capputils/attributes/FromEnumerableAttribute.h>
+#include <capputils/attributes/IReflectableAttribute.h>
+#include <capputils/attributes/FileExistsAttribute.h>
+#include <capputils/attributes/FilenameAttribute.h>
+#include <capputils/attributes/FlagAttribute.h>
+
 #include "PropertyReference.h"
 #include "FilenameEdit.h"
 #include "Expression.h"

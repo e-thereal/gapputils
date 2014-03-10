@@ -14,7 +14,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include <capputils/EventHandler.h>
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 
 #include <ctime>
 #include <set>

@@ -3,7 +3,7 @@
 #include "Node.h"
 #include "Workflow.h"
 #include <gapputils/CollectionElement.h>
-#include <capputils/IReflectableAttribute.h>
+#include <capputils/attributes/IReflectableAttribute.h>
 
 #include <cassert>
 

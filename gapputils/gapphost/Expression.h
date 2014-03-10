@@ -8,7 +8,7 @@
 #ifndef GAPPUTLIS_WORKFLOW_EXPRESSION_H_
 #define GAPPUTLIS_WORKFLOW_EXPRESSION_H_
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 #include <capputils/ObservableClass.h>
 #include <capputils/EventHandler.h>
 

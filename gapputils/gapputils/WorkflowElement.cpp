@@ -7,13 +7,14 @@
 
 #include "WorkflowElement.h"
 
-#include <capputils/NoParameterAttribute.h>
-#include <capputils/ObserveAttribute.h>
-#include <capputils/TimeStampAttribute.h>
-#include <capputils/VolatileAttribute.h>
 #include <capputils/Logbook.h>
 
-#include "LabelAttribute.h"
+#include <capputils/attributes/NoParameterAttribute.h>
+#include <capputils/attributes/ObserveAttribute.h>
+#include <capputils/attributes/TimeStampAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
+
+#include <gapputils/attributes/LabelAttribute.h>
 
 using namespace capputils;
 using namespace capputils::attributes;

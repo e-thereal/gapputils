@@ -5,17 +5,17 @@
  *      Author: tombr
  */
 
-#ifndef WORKFLOWELEMENT_H_
-#define WORKFLOWELEMENT_H_
+#ifndef GAPPUTILS_WORKFLOWELEMENT_H_
+#define GAPPUTILS_WORKFLOWELEMENT_H_
 
-#include "gapputils.h"
+#include <gapputils/gapputils.h>
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 #include <capputils/ObservableClass.h>
 #include <capputils/TimedClass.h>
 
-#include "IProgressMonitor.h"
-#include "IGapphostInterface.h"
+#include <gapputils/IProgressMonitor.h>
+#include <gapputils/IGapphostInterface.h>
 
 namespace capputils {
 

@@ -7,11 +7,12 @@
 
 #include "ModuleHelpWidget.h"
 
-#include <capputils/ReflectableClass.h>
-#include <capputils/ReflectableClassFactory.h>
-#include <capputils/DescriptionAttribute.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
+#include <capputils/attributes/DescriptionAttribute.h>
+#include <capputils/attributes/InputAttribute.h>
+#include <capputils/attributes/OutputAttribute.h>
+
+#include <capputils/reflection/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClassFactory.h>
 
 #include <sstream>
 

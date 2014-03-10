@@ -4,21 +4,23 @@
 #include <QtGui/QApplication>
 #include <qdir.h>
 
-#include <capputils/Xmlizer.h>
 #include <capputils/ArgumentsParser.h>
-#include <capputils/Verifier.h>
-#include <iostream>
-#include <capputils/ReflectableClassFactory.h>
-#include <capputils/FactoryException.h>
 #include <capputils/GenerateBashCompletion.h>
-#include <capputils/EnumeratorAttribute.h>
+#include <capputils/Logbook.h>
+#include <capputils/Verifier.h>
+#include <capputils/Xmlizer.h>
+#include <capputils/attributes/EnumeratorAttribute.h>
+#include <capputils/exceptions/FactoryException.h>
+#include <capputils/reflection/ReflectableClassFactory.h>
+
+#include <gapputils/SubWorkflow.h>
+
+#include <iostream>
 #include <sstream>
 
 #include "DataModel.h"
 #include "Workflow.h"
 #include "LogbookModel.h"
-#include <capputils/Logbook.h>
-#include <gapputils/SubWorkflow.h>
 #include <qmessagebox.h>
 
 #include "HeadlessApp.h"

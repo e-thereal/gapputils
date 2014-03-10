@@ -2,19 +2,20 @@
 
 #include "DataModel.h"
 
-#include <capputils/ObserveAttribute.h>
-#include <capputils/ReuseAttribute.h>
-#include <capputils/VolatileAttribute.h>
-#include <capputils/FlagAttribute.h>
 #include <tinyxml/tinyxml.h>
 #include <capputils/Xmlizer.h>
-#include <capputils/EnumerableAttribute.h>
-#include <capputils/ReuseAttribute.h>
-#include <capputils/DescriptionAttribute.h>
-#include <capputils/FilenameAttribute.h>
-#include <capputils/HideAttribute.h>
-#include <capputils/ParameterAttribute.h>
-#include <capputils/OperandAttribute.h>
+
+#include <capputils/attributes/ObserveAttribute.h>
+#include <capputils/attributes/ReuseAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
+#include <capputils/attributes/FlagAttribute.h>
+#include <capputils/attributes/EnumerableAttribute.h>
+#include <capputils/attributes/ReuseAttribute.h>
+#include <capputils/attributes/DescriptionAttribute.h>
+#include <capputils/attributes/FilenameAttribute.h>
+#include <capputils/attributes/HideAttribute.h>
+#include <capputils/attributes/ParameterAttribute.h>
+#include <capputils/attributes/OperandAttribute.h>
 
 #include <cstdlib>
 

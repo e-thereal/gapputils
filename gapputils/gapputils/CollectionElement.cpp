@@ -9,21 +9,22 @@
 
 #include <iostream>
 
-#include <capputils/FileExists.h>
-#include <capputils/FilenameAttribute.h>
-#include <capputils/FromEnumerableAttribute.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/NotEqualAssertion.h>
-#include <capputils/ObserveAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <capputils/TimeStampAttribute.h>
-#include <capputils/ToEnumerableAttribute.h>
-#include <capputils/Verifier.h>
 #include <capputils/Logbook.h>
-#include <capputils/FlagAttribute.h>
+#include <capputils/Verifier.h>
+#include <capputils/attributes/FileExistsAttribute.h>
+#include <capputils/attributes/FilenameAttribute.h>
+#include <capputils/attributes/FromEnumerableAttribute.h>
+#include <capputils/attributes/InputAttribute.h>
+#include <capputils/attributes/NotEqualAttribute.h>
+#include <capputils/attributes/ObserveAttribute.h>
+#include <capputils/attributes/OutputAttribute.h>
+#include <capputils/attributes/TimeStampAttribute.h>
+#include <capputils/attributes/ToEnumerableAttribute.h>
+#include <capputils/attributes/FlagAttribute.h>
+#include <capputils/attributes/IEnumerableAttribute.h>
 
-#include <gapputils/ReadOnlyAttribute.h>
-#include <capputils/NoParameterAttribute.h>
+#include <gapputils/attributes/ReadOnlyAttribute.h>
+#include <capputils/attributes/NoParameterAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;

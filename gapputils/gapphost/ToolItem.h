@@ -9,7 +9,7 @@
 #define TOOLITEM_H_
 
 #include <qgraphicsitem.h>
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 #include <qabstractitemmodel.h>
 #include <capputils/ObservableClass.h>
 #include <vector>

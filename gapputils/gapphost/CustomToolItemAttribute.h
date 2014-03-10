@@ -2,7 +2,7 @@
 #ifndef _CUSTOMTOOLITEMATTRIBUTE_H_
 #define _CUSTOMTOOLITEMATTRIBUTE_H_
 
-#include <capputils/IAttribute.h>
+#include <capputils/attributes/IAttribute.h>
 #include "ToolItem.h"
 
 namespace gapputils {

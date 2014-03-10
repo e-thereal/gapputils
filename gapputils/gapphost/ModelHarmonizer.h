@@ -9,7 +9,7 @@
 #define MODELHARMONIZER_H_
 
 #include <qstandarditemmodel.h>
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 #include <qobject.h>
 #include <capputils/ObservableClass.h>
 #include <capputils/EventHandler.h>

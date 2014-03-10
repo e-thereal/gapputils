@@ -7,26 +7,26 @@
 
 #include "ModelHarmonizer.h"
 
-#include <capputils/DescriptionAttribute.h>
 #include <capputils/AbstractEnumerator.h>
-#include <capputils/IReflectableAttribute.h>
-#include <capputils/FlagAttribute.h>
-#include <capputils/ScalarAttribute.h>
-#include <capputils/HideAttribute.h>
-#include <iostream>
-#include <sstream>
-#include <gapputils/LabelAttribute.h>
-#include <capputils/ShortNameAttribute.h>
-#include <gapputils/ReadOnlyAttribute.h>
-#include "Workflow.h"
+#include <capputils/attributes/DescriptionAttribute.h>
+#include <capputils/attributes/IReflectableAttribute.h>
+#include <capputils/attributes/FlagAttribute.h>
+#include <capputils/attributes/ScalarAttribute.h>
+#include <capputils/attributes/HideAttribute.h>
+#include <gapputils/attributes/LabelAttribute.h>
+#include <capputils/attributes/ShortNameAttribute.h>
+
 #include <gapputils/WorkflowElement.h>
+#include <gapputils/attributes/ReadOnlyAttribute.h>
 
-#include "Node.h"
-
+#include <iostream>
 #include <cassert>
 #include <cmath>
 #include <iomanip>
+#include <sstream>
 
+#include "Workflow.h"
+#include "Node.h"
 #include "PropertyReference.h"
 
 using namespace capputils;

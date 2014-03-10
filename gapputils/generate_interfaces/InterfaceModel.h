@@ -8,7 +8,7 @@
 #ifndef GAPPUTILS_INTERFACEMODEL_H_
 #define GAPPUTILS_INTERFACEMODEL_H_
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 
 namespace gapputils {
 

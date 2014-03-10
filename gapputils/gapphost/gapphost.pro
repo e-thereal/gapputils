@@ -1,6 +1,6 @@
-SOURCES = main.cpp \
+SOURCES = $$files(interfaces/*.cpp) \ 
+		  main.cpp \
 		  MainWindow.cpp \
-		  Person.cpp \
 		  PropertyReference.cpp \
 		  ModelHarmonizer.cpp \
 		  PropertyGridDelegate.cpp \
@@ -8,16 +8,12 @@ SOURCES = main.cpp \
 		  ToolItem.cpp \
 		  CableItem.cpp \
 		  FilenameEdit.cpp \
-		  ImageLoader.cpp \
-		  ImageViewer.cpp \
 		  ShowImageDialog.cpp \
 		  DataModel.cpp \
-		  DefaultInterface.cpp \
 		  Node.cpp \
 		  Edge.cpp \
 		  Workflow.cpp \
 		  Controller.cpp \
-		  GenericViewer.cpp \
 		  WorkflowItem.cpp \
 		  LineEditDialog.cpp \
 		  GlobalProperty.cpp \
@@ -26,20 +22,15 @@ SOURCES = main.cpp \
 		  Expression.cpp \
 		  HostInterface.cpp \
 		  linreg.cpp \
-		  Filename.cpp \
-		  StringInterface.cpp \
 		  ChecksumUpdater.cpp \
 		  WorkflowController.cpp \
 		  WorkflowUpdater.cpp \
-		  Filenames.cpp \
 		  NodeCache.cpp \
 		  WorkflowToolBox.cpp \
 		  PropertyGrid.cpp \
 		  LogbookModel.cpp \
 		  LogbookWidget.cpp \
 		  GlobalPropertiesView.cpp \
-		  ImageInterface.cpp \
-		  ImagesInterface.cpp \
 		  WorkbenchWindow.cpp \
 		  TestModule.cpp \
 		  HeadlessApp.cpp \
@@ -53,7 +44,6 @@ SOURCES = main.cpp \
 		  MessageBox.cpp
 		  
 HEADERS = MainWindow.h \
-          Person.h \
           PropertyReference.h \
           ModelHarmonizer.h \
           PropertyGridDelegate.h \

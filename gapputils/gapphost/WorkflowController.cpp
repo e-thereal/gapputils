@@ -2,13 +2,13 @@
 
 #include "WorkflowController.h"
 
-#include <capputils/FilenameAttribute.h>
-#include <capputils/IEnumerableAttribute.h>
-#include <capputils/IReflectableAttribute.h>
-#include <capputils/ScalarAttribute.h>
+#include <capputils/attributes/FilenameAttribute.h>
+#include <capputils/attributes/IEnumerableAttribute.h>
+#include <capputils/attributes/IReflectableAttribute.h>
+#include <capputils/attributes/ScalarAttribute.h>
 
-#include <gapputils/LabelAttribute.h>
-#include <gapputils/ChecksumAttribute.h>
+#include <gapputils/attributes/LabelAttribute.h>
+#include <gapputils/attributes/ChecksumAttribute.h>
 
 #include <boost/filesystem.hpp>
 

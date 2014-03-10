@@ -1,9 +1,9 @@
 #include "SubWorkflow.h"
 
-#include <capputils/TimeStampAttribute.h>
-#include <capputils/DescriptionAttribute.h>
-#include <capputils/ObserveAttribute.h>
-#include <capputils/FlagAttribute.h>
+#include <capputils/attributes/TimeStampAttribute.h>
+#include <capputils/attributes/DescriptionAttribute.h>
+#include <capputils/attributes/ObserveAttribute.h>
+#include <capputils/attributes/FlagAttribute.h>
 
 using namespace capputils::attributes;
 

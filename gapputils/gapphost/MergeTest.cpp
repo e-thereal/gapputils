@@ -7,8 +7,8 @@
 
 #include "MergeTest.h"
 
-#include <capputils/MergeAttribute.h>
-#include <capputils/DeprecatedAttribute.h>
+#include <capputils/attributes/MergeAttribute.h>
+#include <capputils/attributes/DeprecatedAttribute.h>
 
 namespace gapputils {
 

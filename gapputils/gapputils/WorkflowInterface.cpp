@@ -7,11 +7,10 @@
 
 #include "WorkflowInterface.h"
 
-#include <capputils/ObserveAttribute.h>
-#include <capputils/TimeStampAttribute.h>
-#include <capputils/VolatileAttribute.h>
+#include <capputils/attributes/ObserveAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
 
-#include "LabelAttribute.h"
+#include <gapputils/attributes/LabelAttribute.h>
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;

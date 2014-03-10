@@ -18,21 +18,24 @@
 #include "CableItem.h"
 #include "MainWindow.h"
 
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <capputils/FromEnumerableAttribute.h>
-#include <capputils/ToEnumerableAttribute.h>
-#include <gapputils/LabelAttribute.h>
-#include <gapputils/InterfaceAttribute.h>
-#include <gapputils/WorkflowInterface.h>
-#include <gapputils/WorkflowElement.h>
-#include <capputils/ShortNameAttribute.h>
-#include <capputils/Logbook.h>
-#include <capputils/Xmlizer.h>
-#include <capputils/ReflectableClassFactory.h>
 #include <capputils/LibraryLoader.h>
+#include <capputils/Logbook.h>
 #include <capputils/ObservableClass.h>
-#include <capputils/MergeAttribute.h>
+#include <capputils/Xmlizer.h>
+
+#include <capputils/attributes/InputAttribute.h>
+#include <capputils/attributes/OutputAttribute.h>
+#include <capputils/attributes/FromEnumerableAttribute.h>
+#include <capputils/attributes/ToEnumerableAttribute.h>
+#include <gapputils/attributes/InterfaceAttribute.h>
+#include <capputils/attributes/ShortNameAttribute.h>
+#include <capputils/attributes/MergeAttribute.h>
+
+#include <capputils/reflection/ReflectableClassFactory.h>
+
+#include <gapputils/WorkflowElement.h>
+#include <gapputils/WorkflowInterface.h>
+#include <gapputils/attributes/LabelAttribute.h>
 
 #include <qevent.h>
 #include <qmdiarea.h>

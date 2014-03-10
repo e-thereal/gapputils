@@ -7,7 +7,7 @@
 
 #include "MemoryTest.h"
 
-#include <capputils/DeprecatedAttribute.h>
+#include <capputils/attributes/DeprecatedAttribute.h>
 
 #include <cstdlib>
 

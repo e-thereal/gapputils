@@ -9,29 +9,30 @@
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 #include <boost/filesystem.hpp>
 
-#include <capputils/DeprecatedAttribute.h>
-#include <capputils/ScalarAttribute.h>
-#include <gapputils/LabelAttribute.h>
-#include <gapputils/CacheableAttribute.h>
-#include <capputils/VolatileAttribute.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <capputils/FilenameAttribute.h>
-#include <capputils/ReflectableAttribute.h>
-#include <capputils/ReflectableClassFactory.h>
-#include <capputils/EnumerableAttribute.h>
-#include <capputils/ObserveAttribute.h>
 #include <capputils/EventHandler.h>
-#include <capputils/Serializer.h>
-#include <capputils/SerializeAttribute.h>
-#include <capputils/DescriptionAttribute.h>
-
 #include <capputils/Logbook.h>
+#include <capputils/Serializer.h>
+#include <capputils/Verifier.h>
+
+#include <capputils/attributes/DeprecatedAttribute.h>
+#include <capputils/attributes/ScalarAttribute.h>
+#include <gapputils/attributes/LabelAttribute.h>
+#include <gapputils/attributes/CacheableAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
+#include <capputils/attributes/InputAttribute.h>
+#include <capputils/attributes/OutputAttribute.h>
+#include <capputils/attributes/FilenameAttribute.h>
+#include <capputils/attributes/ReflectableAttribute.h>
+#include <capputils/attributes/EnumerableAttribute.h>
+#include <capputils/attributes/ObserveAttribute.h>
+#include <capputils/attributes/SerializeAttribute.h>
+#include <capputils/attributes/DescriptionAttribute.h>
+#include <capputils/reflection/ReflectableClassFactory.h>
+
+#include <gapputils/WorkflowElement.h>
+#include <gapputils/attributes/ChecksumAttribute.h>
 
 #include <iostream>
-#include <gapputils/WorkflowElement.h>
-#include <gapputils/ChecksumAttribute.h>
-#include <capputils/Verifier.h>
 #include <algorithm>
 
 #include <boost/iostreams/filtering_stream.hpp>

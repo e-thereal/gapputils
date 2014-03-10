@@ -5,7 +5,7 @@
 #include <qlineedit.h>
 #include <qpushbutton.h>
 
-#include <capputils/FilenameAttribute.h>
+#include <capputils/attributes/FilenameAttribute.h>
 
 class FilenameEdit : public QFrame
 {

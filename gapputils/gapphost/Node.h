@@ -5,7 +5,7 @@
 
 #include <gapputils/gapputils.h>
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 #include <capputils/ObservableClass.h>
 #include <gapputils/IProgressMonitor.h>
 

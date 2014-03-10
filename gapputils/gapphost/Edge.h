@@ -4,8 +4,8 @@
 #define _GAPPHOST_EDGE_H_
 
 #include <capputils/EventHandler.h>
-#include <capputils/ReflectableClass.h>
 #include <capputils/ObservableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 
 #include "Node.h"
 

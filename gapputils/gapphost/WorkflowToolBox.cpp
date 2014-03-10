@@ -9,12 +9,13 @@
 
 #include <qboxlayout.h>
 
-#include <capputils/ReflectableClassFactory.h>
-#include <capputils/DeprecatedAttribute.h>
-#include <capputils/DescriptionAttribute.h>
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <capputils/NoParameterAttribute.h>
+#include <capputils/attributes/DeprecatedAttribute.h>
+#include <capputils/attributes/DescriptionAttribute.h>
+#include <capputils/attributes/InputAttribute.h>
+#include <capputils/attributes/OutputAttribute.h>
+#include <capputils/attributes/NoParameterAttribute.h>
+
+#include <capputils/reflection/ReflectableClassFactory.h>
 
 #include <boost/typeof/std/utility.hpp>
 

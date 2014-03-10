@@ -8,7 +8,7 @@
 #ifndef GAPPUTLIS_IGAPPHOSTINTERFACE_H_
 #define GAPPUTLIS_IGAPPHOSTINTERFACE_H_
 
-#include "gapputils.h"
+#include <gapputils/gapputils.h>
 
 #include <string>
 

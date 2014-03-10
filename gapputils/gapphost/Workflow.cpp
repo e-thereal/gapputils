@@ -16,25 +16,28 @@
 
 #include <cassert>
 
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <capputils/ReflectableClassFactory.h>
 #include <capputils/Xmlizer.h>
-#include <capputils/VolatileAttribute.h>
-#include <capputils/ObserveAttribute.h>
+
 #include <capputils/EventHandler.h>
 #include <capputils/LibraryLoader.h>
-#include <capputils/EnumerableAttribute.h>
-#include <capputils/ShortNameAttribute.h>
-#include <capputils/FromEnumerableAttribute.h>
-#include <capputils/ToEnumerableAttribute.h>
 #include <capputils/Logbook.h>
 
+#include <capputils/attributes/InputAttribute.h>
+#include <capputils/attributes/OutputAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
+#include <capputils/attributes/ObserveAttribute.h>
+#include <capputils/attributes/EnumerableAttribute.h>
+#include <capputils/attributes/ShortNameAttribute.h>
+#include <capputils/attributes/FromEnumerableAttribute.h>
+#include <capputils/attributes/ToEnumerableAttribute.h>
+
+#include <capputils/reflection/ReflectableClassFactory.h>
+
+#include <gapputils/CollectionElement.h>
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/WorkflowInterface.h>
-#include <gapputils/LabelAttribute.h>
-#include <gapputils/InterfaceAttribute.h>
-#include <gapputils/CollectionElement.h>
+#include <gapputils/attributes/InterfaceAttribute.h>
+#include <gapputils/attributes/LabelAttribute.h>
 
 #include <boost/units/detail/utility.hpp>
 
