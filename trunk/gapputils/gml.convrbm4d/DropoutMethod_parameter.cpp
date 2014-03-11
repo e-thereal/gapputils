@@ -1,9 +1,9 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/CollectionElement.h>
 
-#include <capputils/InputAttribute.h>
-#include <capputils/OutputAttribute.h>
-#include <gapputils/InterfaceAttribute.h>
+#include <capputils/attributes/InputAttribute.h>
+#include <capputils/attributes/OutputAttribute.h>
+#include <gapputils/attributes/InterfaceAttribute.h>
 
 #include "DropoutMethod.h"
 

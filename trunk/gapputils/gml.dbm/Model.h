@@ -8,7 +8,7 @@
 #ifndef GML_DBM_MODEL_H_
 #define GML_DBM_MODEL_H_
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 
 #include <gml.convrbm4d/Model.h>
 #include <gml.rbm/Model.h>

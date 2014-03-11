@@ -5,10 +5,10 @@
  *      Author: tombr
  */
 
-#ifndef MODEL_H_
-#define MODEL_H_
+#ifndef GML_MODEL_H_
+#define GML_MODEL_H_
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 
 #include <tbblas/tensor.hpp>
 

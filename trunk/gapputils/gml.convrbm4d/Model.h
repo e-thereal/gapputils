@@ -8,7 +8,7 @@
 #ifndef GML_CONVRBM4D_MODEL_H_
 #define GML_CONVRBM4D_MODEL_H_
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 
 #include <tbblas/tensor.hpp>
 

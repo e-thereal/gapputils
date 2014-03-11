@@ -8,8 +8,6 @@
 #include "ImageMatrix.h"
 
 #include <capputils/EventHandler.h>
-//#include <capputils/Verifier.h>
-#include <capputils/TimeStampAttribute.h>
 
 #include <tbblas/tensor.hpp>
 #include <tbblas/zeros.hpp>
@@ -30,7 +28,7 @@ BeginPropertyDefinitions(ImageMatrix)
 
   ReflectableBase(DefaultWorkflowElement<ImageMatrix>)
 
-  WorkflowProperty(InputImage, Input("In"), NotNull<Type>(), TimeStamp(inputId = Id))
+  WorkflowProperty(InputImage, Input("In"), NotNull<Type>(), Dummy(inputId = Id))
   WorkflowProperty(ImageMatrix, Output("Out"))
   WorkflowProperty(MaxSliceCount)
   WorkflowProperty(MinValue)

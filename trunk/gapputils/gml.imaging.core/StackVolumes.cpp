@@ -7,7 +7,7 @@
 
 #include "StackVolumes.h"
 
-#include <capputils/MergeAttribute.h>
+#include <capputils/attributes/MergeAttribute.h>
 
 namespace gml {
 

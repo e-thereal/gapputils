@@ -1,6 +1,6 @@
 #include "CsvWriter.h"
 
-#include <capputils/MergeAttribute.h>
+#include <capputils/attributes/MergeAttribute.h>
 
 #include <fstream>
 

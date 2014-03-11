@@ -7,7 +7,7 @@
 
 #include "ModelWriter.h"
 
-#include <capputils/DummyAttribute.h>
+#include <capputils/attributes/DummyAttribute.h>
 #include <capputils/EventHandler.h>
 #include <capputils/Serializer.h>
 

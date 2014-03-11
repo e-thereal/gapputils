@@ -8,7 +8,8 @@
 #ifndef GML_TBBLAS_SERIALIZE_HPP_
 #define GML_TBBLAS_SERIALIZE_HPP_
 
-#include <capputils/SerializeAttribute.h>
+#include <capputils/attributes/SerializeAttribute.h>
+
 #include <tbblas/tensor.hpp>
 #include <tbblas/serialize.hpp>
 

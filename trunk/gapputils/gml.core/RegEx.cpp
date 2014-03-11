@@ -7,7 +7,7 @@
 
 #include "RegEx.h"
 
-#include <capputils/DummyAttribute.h>
+#include <capputils/attributes/DummyAttribute.h>
 #include <capputils/EventHandler.h>
 
 #include <boost/regex.hpp>
