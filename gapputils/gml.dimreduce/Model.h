@@ -8,7 +8,7 @@
 #ifndef GML_MODEL_H_
 #define GML_MODEL_H_
 
-#include <capputils/ReflectableClass.h>
+#include <capputils/reflection/ReflectableClass.h>
 
 #include "DimensionalityReductionMethod.h"
 

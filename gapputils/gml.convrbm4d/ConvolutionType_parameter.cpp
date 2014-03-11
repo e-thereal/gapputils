@@ -5,7 +5,7 @@
 #include <capputils/attributes/OutputAttribute.h>
 #include <gapputils/attributes/InterfaceAttribute.h>
 
-#include "SparsityMethod.h"
+#include "ConvolutionType.h"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -14,21 +14,21 @@ namespace interfaces {
   
 namespace parameters {
 
-class SparsityMethod : public gapputils::workflow::DefaultWorkflowElement<SparsityMethod>
+class ConvolutionType : public gapputils::workflow::DefaultWorkflowElement<ConvolutionType>
 {
-  InitReflectableClass(SparsityMethod)
+  InitReflectableClass(ConvolutionType)
   
-  typedef gml::convrbm4d::SparsityMethod property_t;
+  typedef gml::convrbm4d::ConvolutionType property_t;
   
   Property(Description, std::string)
   Property(Value, property_t)
   
 public:
-  SparsityMethod() { setLabel("SparsityMethod"); }
+  ConvolutionType() { setLabel("ConvolutionType"); }
 };
 
-BeginPropertyDefinitions(SparsityMethod, Interface())
-  ReflectableBase(gapputils::workflow::DefaultWorkflowElement<SparsityMethod>)
+BeginPropertyDefinitions(ConvolutionType, Interface())
+  ReflectableBase(gapputils::workflow::DefaultWorkflowElement<ConvolutionType>)
   WorkflowProperty(Description)
   WorkflowProperty(Value, Enumerator<Type>());
 EndPropertyDefinitions

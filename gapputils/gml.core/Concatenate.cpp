@@ -7,7 +7,7 @@
 
 #include "Concatenate.h"
 
-#include <capputils/MergeAttribute.h>
+#include <capputils/attributes/MergeAttribute.h>
 
 #include <algorithm>
 

@@ -7,8 +7,6 @@
 
 #include "ImageViewer.h"
 
-#include <capputils/DummyAttribute.h>
-
 #include <capputils/EventHandler.h>
 
 namespace gml {

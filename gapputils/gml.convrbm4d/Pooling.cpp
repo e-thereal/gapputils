@@ -50,8 +50,6 @@ void Pooling::update(IProgressMonitor* monitor) const {
 
   typedef tensor_t::dim_t dim_t;
 
-  Logbook& dlog = getLogbook();
-
   boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > inputs = getInputs();
   const bool cleanup = getAtomicWorkflow() && inputs.use_count() == 2;
 

@@ -8,7 +8,6 @@
 #include "ImageWriter.h"
 
 #include <capputils/EventHandler.h>
-#include <capputils/TimeStampAttribute.h>
 
 #include <qimage.h>
 #include <qcolor.h>
@@ -27,7 +26,7 @@ int ImageWriter::imageId;
 BeginPropertyDefinitions(ImageWriter)
   ReflectableBase(DefaultWorkflowElement<ImageWriter>)
 
-  WorkflowProperty(Image, Input("Img"), NotNull<Type>(), TimeStamp(imageId = Id))
+  WorkflowProperty(Image, Input("Img"), NotNull<Type>(), Dummy(imageId = Id))
   WorkflowProperty(Filename, Filename("Images (*.jpg *.png)"), NotEmpty<Type>())
   WorkflowProperty(AutoSave)
   WorkflowProperty(AutoName)
