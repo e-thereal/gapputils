@@ -20,10 +20,11 @@ BeginPropertyDefinitions(Filter)
   WorkflowProperty(GpuCount)
   WorkflowProperty(DoubleWeights, Flag())
   WorkflowProperty(OnlyFilters, Flag())
+  WorkflowProperty(SampleUnits, Flag())
   WorkflowProperty(Outputs, Output("Ts"))
 EndPropertyDefinitions
 
-Filter::Filter() : _GpuCount(1), _DoubleWeights(false), _OnlyFilters(false) {
+Filter::Filter() : _GpuCount(1), _DoubleWeights(false), _OnlyFilters(false), _SampleUnits(false) {
   setLabel("Filter");
 }
 

@@ -36,6 +36,7 @@ public:
   Property(GpuCount, int)
   Property(DoubleWeights, bool)
   Property(OnlyFilters, bool)
+  Property(SampleUnits, bool)
   Property(Outputs, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
 
 public:

@@ -29,7 +29,7 @@
 #include <convnet/nvmatrix.cuh>
 #include <convnet/cudaconv2.cuh>
 
-#include "math.hpp"
+#include <tbblas/deeplearn/math.hpp>
 
 // All monitoring code is enclosed by #ifdef MONITOR_TRAINING blocks
 //#define MONITOR_TRAINING
@@ -80,6 +80,7 @@ unsigned int upper_power_of_two(unsigned int v);
 
 void Trainer2::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
+  using namespace tbblas::deeplearn;
   using namespace thrust::placeholders;
 
   typedef float value_t;

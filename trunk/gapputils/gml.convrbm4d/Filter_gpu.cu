@@ -18,7 +18,8 @@
 
 #include <omp.h>
 
-#include "math.hpp"
+#include <tbblas/deeplearn/math.hpp>
+#include <tbblas/deeplearn/conv_rbm.hpp>
 
 namespace gml {
 
@@ -33,6 +34,7 @@ FilterChecker::FilterChecker() {
   CHECK_MEMORY_LAYOUT2(GpuCount, filter);
   CHECK_MEMORY_LAYOUT2(DoubleWeights, filter);
   CHECK_MEMORY_LAYOUT2(OnlyFilters, filter);
+  CHECK_MEMORY_LAYOUT2(SampleUnits, filter);
 
   CHECK_MEMORY_LAYOUT2(Outputs, filter);
 }
@@ -43,9 +45,64 @@ unsigned int upper_power_of_two(unsigned int v);
 
 void Filter::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
+  using namespace tbblas::deeplearn;
 
   Logbook& dlog = getLogbook();
+  Model& model = *getModel();
 
+#if 1
+  std::vector<boost::shared_ptr<host_tensor_t> >& inputs = *getInputs();
+  boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > outputs(
+      new std::vector<boost::shared_ptr<host_tensor_t> >());
+
+  conv_rbm<float, 4> crbm(getGpuCount());
+
+  // Copy model
+  crbm.set_filters(*model.getFilters());
+  crbm.set_visible_bias(*model.getVisibleBias());
+  crbm.set_hidden_bias(*model.getHiddenBiases());
+  crbm.set_mask(*model.getMask());
+  crbm.set_kernel_size(model.getFilterKernelSize());
+  unit_type unittype;
+  unittype = model.getVisibleUnitType();
+  crbm.set_visibles_type(unittype);
+  unittype = model.getHiddenUnitType();
+  crbm.set_hiddens_type(unittype);
+  convolution_type convtype;
+  convtype = model.getConvolutionType();
+  crbm.set_convolution_type(convtype);
+  crbm.set_mean(model.getMean());
+  crbm.set_stddev(model.getStddev());
+  crbm.set_batch_length(model.getFilters()->size() / getGpuCount());
+
+  if (getDirection() == CodingDirection::Encode) {
+    for (size_t i = 0; i < inputs.size(); ++i) {
+      crbm.visibles() = *inputs[i];
+      crbm.normalize_visibles();
+      if (getSampleUnits())
+        crbm.sample_hiddens();
+      else
+        crbm.infer_hiddens();
+      outputs->push_back(boost::make_shared<host_tensor_t>(crbm.hiddens()));
+      if (monitor)
+        monitor->reportProgress(100. * i / inputs.size());
+    }
+  } else {
+    for (size_t i = 0; i < inputs.size(); ++i) {
+      crbm.hiddens() = *inputs[i];
+      if (getSampleUnits())
+        crbm.sample_visibles();
+      else
+        crbm.infer_visibles(getOnlyFilters());
+      if (!getOnlyFilters())
+        crbm.diversify_visibles();
+      outputs->push_back(boost::make_shared<host_tensor_t>(crbm.visibles()));
+      if (monitor)
+        monitor->reportProgress(100. * i / inputs.size());
+    }
+  }
+
+#else
   const unsigned dimCount = Model::dimCount;
   typedef complex<value_t> complex_t;
   typedef fft_plan<dimCount> plan_t;
@@ -304,6 +361,7 @@ void Filter::update(IProgressMonitor* monitor) const {
       cudaDeviceDisablePeerAccess(0);
     }
   } /* end of parallel */
+#endif
 
   newState->setOutputs(outputs);
 }

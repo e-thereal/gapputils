@@ -27,10 +27,11 @@
 #include <fstream>
 #include <omp.h>
 
-#include "math.hpp"
-#include "mult_sum.hpp"
-#include "repeat_mult.hpp"
-#include "repeat_mult_sum.hpp"
+//#include <tbblas/deeplearn/math.hpp>
+//#include <tbblas/deeplearn/mult_sum.hpp>
+//#include <tbblas/deeplearn/repeat_mult.hpp>
+//#include <tbblas/deeplearn/repeat_mult_sum.hpp>
+#include <tbblas/deeplearn/conv_rbm.hpp>
 
 #include "TensorWriter.h"
 
@@ -49,7 +50,6 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(GpuCount, trainer);
-  CHECK_MEMORY_LAYOUT2(PadInputs, trainer);
 
   CHECK_MEMORY_LAYOUT2(SparsityMethod, trainer);
   CHECK_MEMORY_LAYOUT2(SparsityTarget, trainer);
@@ -111,6 +111,7 @@ unsigned int upper_power_of_two(unsigned int v) {
 
 void Trainer::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
+  using namespace tbblas::deeplearn;
   using namespace thrust::placeholders;
 
   typedef float value_t;
@@ -126,6 +127,167 @@ void Trainer::update(IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
   dlog.setSeverity(Severity::Message);
 
+#if 1
+  /*** SETUP TRAINING PARAMETERS ***/
+
+  const size_t batchSize = getBatchSize();
+  const size_t filterBatchLength = getFilterBatchSize();
+  const size_t batchCount = getTensors()->size() / batchSize;
+  const size_t epochCount = getEpochCount();
+
+  std::vector<boost::shared_ptr<host_tensor_t> >& X = *getTensors();
+
+  if (filterBatchLength > getInitialModel()->getFilters()->size() ||
+      getInitialModel()->getFilters()->size() % filterBatchLength != 0)
+  {
+    dlog(Severity::Warning) << "Invalid FilterBatchSize. Aborting!";
+    return;
+  }
+
+  /*** PREPARE MASTER THREAD ***/
+
+  // Make copying of model optional
+#if 0
+  conv_rbm<float, 4> newModel(getGpuCount());
+  conv_rbm<float, 4>& crbm = oldModel();
+
+  if (!getAtomicWorkflow() || oldCrbm.use_count() != 2) {
+    // Copy model
+    crbm = newModel;
+  }
+  crbm.set_batch_length(getFilterBatchSize());
+#else
+  conv_rbm<float, 4> crbm(getGpuCount());
+  crbm.set_batch_length(getFilterBatchSize());
+
+  Model& model = *getInitialModel();
+  crbm.set_filters(*model.getFilters());
+  crbm.set_visible_bias(*model.getVisibleBias());
+  crbm.set_hidden_bias(*model.getHiddenBiases());
+  crbm.set_mask(*model.getMask());
+  crbm.set_kernel_size(model.getFilterKernelSize());
+  unit_type unittype;
+  unittype = model.getVisibleUnitType();
+  crbm.set_visibles_type(unittype);
+  unittype = model.getHiddenUnitType();
+  crbm.set_hiddens_type(unittype);
+  convolution_type convtype;
+  convtype = model.getConvolutionType();
+  crbm.set_convolution_type(convtype);
+  crbm.set_mean(model.getMean());
+  crbm.set_stddev(model.getStddev());
+#endif
+
+  // Prepare sizes
+  size_t voxelCount = sum(crbm.mask()) * X[0]->size()[dimCount - 1];
+
+  // Initialize constants
+  value_t epsilonw =  getLearningRate() / batchSize / voxelCount; // Learning rate for weights
+  value_t epsilonsw = getLearningRate() * getSparsityWeight() / batchSize / voxelCount; // Sparsity weight
+  value_t epsilonvb = getLearningRate() / batchSize / X[0]->size()[dimCount - 1];                  // Learning rate for biases of visible units
+  value_t epsilonhb = getLearningRate() / batchSize / X[0]->size()[dimCount - 1];                  // Learning rate for biases of hidden units
+  value_t epsilonsb = getLearningRate() * getSparsityWeight() / batchSize / X[0]->size()[dimCount - 1];                  // Sparsity weight
+  value_t weightcost = getWeightDecay() * getLearningRate() / X[0]->size()[dimCount - 1];
+  value_t initialmomentum = getInitialMomentum();
+  value_t finalmomentum = getFinalMomentum();
+  value_t momentum;
+
+  // TODO: implement drop out
+
+//  dim_t vbMaskSize, hbMaskSize, spMaskSize;
+
+  value_t error = 0;
+  tensor_t v;
+
+  // TODO: implement shared and non-shared bias terms: f = ones<value_t>(f.size()) * sum(f) / f.count();
+
+  /*** START OF PARALLEL CODE ***/
+
+  crbm.allocate_gpu_memory();
+
+  dlog() << "Trainer initialized. Starting training.";
+
+  for (size_t iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
+    error = 0;
+
+    if (iEpoch < getMomentumDecayEpochs()) {
+      const value_t t = (value_t)iEpoch / (value_t)getMomentumDecayEpochs();
+      momentum = (1 - t) * initialmomentum + t * finalmomentum;
+    } else {
+      momentum = finalmomentum;
+    }
+
+    for (size_t iBatch = 0; iBatch < batchCount; ++iBatch) {
+
+      // Apply momentum for next batch
+      crbm.init_gradient_updates(momentum, weightcost);
+
+      for (size_t iSample = 0; iSample < batchSize; ++iSample) {
+        // TODO: Make the dropout decision
+
+        // Get new sample
+        if (getRandomizeTraining())
+          crbm.visibles() = *X[rand() % X.size()];
+        else
+          crbm.visibles() = *X[iSample + iBatch * batchSize];
+        crbm.normalize_visibles();
+
+        if (getCalculateError())
+          v = crbm.visibles();
+
+        for (size_t iCd = 0; iCd <= getCdIterations(); ++iCd) {
+
+          /*** BEGIN OF POSITIVE PHASE ***/
+          crbm.infer_hiddens();
+
+          // TODO: drop hidden units
+          // h = h * *drops[k] / (1. - getHiddenDropout()) * repeat(hMask, h.size() / hMask.size());
+
+          if (iCd == 0) {
+            crbm.update_positive_gradient(epsilonw, epsilonvb, epsilonhb);
+          } else if (iCd == getCdIterations()) {
+            crbm.update_negative_gradient(epsilonw, epsilonvb, epsilonhb);
+
+            if (getCalculateError()) {
+              error += sqrt(dot((crbm.visibles() - v), (crbm.visibles() - v)) / voxelCount);
+            }
+          }
+
+          /*** RECONSTRUCT FROM SAMPLES ***/
+
+          if (iCd < getCdIterations()) {
+            // TODO: Sample hidden states with dropout
+            crbm.sample_hiddens();
+            crbm.sample_visibles();
+          }
+        } /* end of cd iterations */
+      } /* end of sample */
+
+      crbm.apply_gradient();
+
+      if (monitor)
+        monitor->reportProgress(100. * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
+    } /* end of batch */
+
+
+    if (getCalculateError())
+      dlog(Severity::Trace) << "Error at epoch " << iEpoch << " of " << epochCount << ": " << error / X.size();
+    else
+      dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
+
+    if (monitor)
+      monitor->reportProgress(100. * (iEpoch + 1) / epochCount, getUpdateModel() && (iEpoch % getUpdateModel() == 0));
+  } /* end of epochs */
+
+//    newState->setAverageEpochTime(_timer.elapsed() / getEpochCount());
+  newState->setReconstructionError(error / X.size());
+
+  // TODO: write model to host and free device memory
+  crbm.free_gpu_memory(); // this call automatically updates the host
+
+//  newState->setModel(crbm);
+
+#else
   int deviceCount = 0;
   cudaGetDeviceCount(&deviceCount);
 
@@ -160,11 +322,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
   dim_t originalSize = getTensors()->at(0)->size();
   dim_t size = originalSize;
 
-  if (getPadInputs()) {
-    for (unsigned j = 0; j < dimCount - 1; ++j) {
-      size[j] = upper_power_of_two(size[j]);
-    }
-  }
+//  if (getPadInputs()) {
+//    for (unsigned j = 0; j < dimCount - 1; ++j) {
+//      size[j] = upper_power_of_two(size[j]);
+//    }
+//  }
 
   dim_t originalLayerSize = originalSize, layerSize = size, layerBatchSize = size, filterBatchSize = size;
   originalLayerSize[dimCount - 1] = layerSize[dimCount - 1] = 1;
@@ -1142,8 +1304,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
       }
     }
   } /* end of parallel code */
-
   newState->setModel(crbm);
+#endif
 }
 
 }
