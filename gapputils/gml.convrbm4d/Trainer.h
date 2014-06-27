@@ -45,7 +45,6 @@ public:
   Property(BatchSize, int)
   Property(FilterBatchSize, int)
   Property(GpuCount, int)
-  Property(PadInputs, bool)
 
   // Sparsity parameters
   Property(SparsityMethod, SparsityMethod)
