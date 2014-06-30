@@ -157,29 +157,31 @@ void Trainer::update(IProgressMonitor* monitor) const {
   }
   crbm.set_batch_length(getFilterBatchSize());
 #else
-  conv_rbm<float, 4> crbm(getGpuCount());
-  crbm.set_batch_length(getFilterBatchSize());
+  conv_rbm_model<float, 4> cmodel;
 
   Model& model = *getInitialModel();
-  crbm.set_filters(*model.getFilters());
-  crbm.set_visible_bias(*model.getVisibleBias());
-  crbm.set_hidden_bias(*model.getHiddenBiases());
-  crbm.set_mask(*model.getMask());
-  crbm.set_kernel_size(model.getFilterKernelSize());
+  cmodel.set_filters(*model.getFilters());
+  cmodel.set_visible_bias(*model.getVisibleBias());
+  cmodel.set_hidden_bias(*model.getHiddenBiases());
+  cmodel.set_mask(*model.getMask());
+  cmodel.set_kernel_size(model.getFilterKernelSize());
   unit_type unittype;
   unittype = model.getVisibleUnitType();
-  crbm.set_visibles_type(unittype);
+  cmodel.set_visibles_type(unittype);
   unittype = model.getHiddenUnitType();
-  crbm.set_hiddens_type(unittype);
+  cmodel.set_hiddens_type(unittype);
   convolution_type convtype;
   convtype = model.getConvolutionType();
-  crbm.set_convolution_type(convtype);
-  crbm.set_mean(model.getMean());
-  crbm.set_stddev(model.getStddev());
+  cmodel.set_convolution_type(convtype);
+  cmodel.set_mean(model.getMean());
+  cmodel.set_stddev(model.getStddev());
+
+  conv_rbm<float, 4> crbm(cmodel, getGpuCount());
+  crbm.set_batch_length(getFilterBatchSize());
 #endif
 
   // Prepare sizes
-  size_t voxelCount = sum(crbm.mask()) * X[0]->size()[dimCount - 1];
+  size_t voxelCount = sum(cmodel.mask()) * X[0]->size()[dimCount - 1];
 
   // Initialize constants
   value_t epsilonw =  getLearningRate() / batchSize / voxelCount; // Learning rate for weights

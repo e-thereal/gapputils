@@ -11,6 +11,7 @@
 #include <capputils/reflection/ReflectableClass.h>
 
 #include <tbblas/tensor.hpp>
+#include <tbblas/deeplearn/conv_rbm_model.hpp>
 
 #include "UnitType.h"
 #include "ConvolutionType.h"
@@ -18,6 +19,8 @@
 namespace gml {
 
 namespace convrbm4d {
+
+typedef tbblas::deeplearn::conv_rbm_model<float, 4> model_t;
 
 struct ModelChecker { ModelChecker(); };
 
