@@ -20,6 +20,7 @@
 
 #include <tbblas/deeplearn/math.hpp>
 #include <tbblas/deeplearn/conv_rbm.hpp>
+#include <tbblas/deeplearn/conv_rbm_model.hpp>
 
 namespace gml {
 
@@ -55,24 +56,26 @@ void Filter::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > outputs(
       new std::vector<boost::shared_ptr<host_tensor_t> >());
 
-  conv_rbm<float, 4> crbm(getGpuCount());
+  conv_rbm_model<float, 4> cmodel;
 
   // Copy model
-  crbm.set_filters(*model.getFilters());
-  crbm.set_visible_bias(*model.getVisibleBias());
-  crbm.set_hidden_bias(*model.getHiddenBiases());
-  crbm.set_mask(*model.getMask());
-  crbm.set_kernel_size(model.getFilterKernelSize());
+  cmodel.set_filters(*model.getFilters());
+  cmodel.set_visible_bias(*model.getVisibleBias());
+  cmodel.set_hidden_bias(*model.getHiddenBiases());
+  cmodel.set_mask(*model.getMask());
+  cmodel.set_kernel_size(model.getFilterKernelSize());
   unit_type unittype;
   unittype = model.getVisibleUnitType();
-  crbm.set_visibles_type(unittype);
+  cmodel.set_visibles_type(unittype);
   unittype = model.getHiddenUnitType();
-  crbm.set_hiddens_type(unittype);
+  cmodel.set_hiddens_type(unittype);
   convolution_type convtype;
   convtype = model.getConvolutionType();
-  crbm.set_convolution_type(convtype);
-  crbm.set_mean(model.getMean());
-  crbm.set_stddev(model.getStddev());
+  cmodel.set_convolution_type(convtype);
+  cmodel.set_mean(model.getMean());
+  cmodel.set_stddev(model.getStddev());
+
+  conv_rbm<float, 4> crbm(cmodel, getGpuCount());
   crbm.set_batch_length(model.getFilters()->size() / getGpuCount());
 
   if (getDirection() == CodingDirection::Encode) {
