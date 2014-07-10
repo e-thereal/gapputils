@@ -20,7 +20,7 @@ namespace convrbm4d {
 
 class Pooling : public DefaultWorkflowElement<Pooling> {
 
-  typedef Model::tensor_t tensor_t;
+  typedef model_t::host_tensor_t tensor_t;
 
   InitReflectableClass(Pooling)
 

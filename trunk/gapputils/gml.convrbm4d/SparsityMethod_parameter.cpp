@@ -5,7 +5,7 @@
 #include <capputils/attributes/OutputAttribute.h>
 #include <gapputils/attributes/InterfaceAttribute.h>
 
-#include "SparsityMethod.h"
+#include "tbblas/deeplearn/sparsity_method.hpp"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -18,7 +18,7 @@ class SparsityMethod : public gapputils::workflow::DefaultWorkflowElement<Sparsi
 {
   InitReflectableClass(SparsityMethod)
   
-  typedef gml::convrbm4d::SparsityMethod property_t;
+  typedef tbblas::deeplearn::sparsity_method property_t;
   
   Property(Description, std::string)
   Property(Value, property_t)

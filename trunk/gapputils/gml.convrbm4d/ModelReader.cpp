@@ -8,6 +8,7 @@
 #include "ModelReader.h"
 
 #include <capputils/Serializer.h>
+#include <tbblas/deeplearn/serialize.hpp>
 
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
@@ -47,6 +48,8 @@ ModelReader::ModelReader()
 }
 
 void ModelReader::update(IProgressMonitor* monitor) const {
+  using namespace tbblas::deeplearn;
+
   Logbook& dlog = getLogbook();
 
   bio::filtering_istream file;
@@ -58,28 +61,27 @@ void ModelReader::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  boost::shared_ptr<Model> model(new Model());
-  Serializer::ReadFromFile(*model, file);
-
+  boost::shared_ptr<model_t> model(new model_t());
+  tbblas::deeplearn::deserialize(file, *model);
   newState->setModel(model);
-  if (model->getVisibleBias()) {
-    newState->setTensorWidth(model->getVisibleBias()->size()[0]);
-    newState->setTensorHeight(model->getVisibleBias()->size()[1]);
-    newState->setTensorDepth(model->getVisibleBias()->size()[2]);
+
+  newState->setTensorWidth(model->visible_bias().size()[0]);
+  newState->setTensorHeight(model->visible_bias().size()[1]);
+  newState->setTensorDepth(model->visible_bias().size()[2]);
+  if (model->filters().size()) {
+    newState->setFilterWidth(model->kernel_size()[0]);
+    newState->setFilterHeight(model->kernel_size()[1]);
+    newState->setFilterDepth(model->kernel_size()[2]);
+    newState->setChannelCount(model->filters()[0]->size()[3]);
   }
-  if (model->getFilters() && model->getFilters()->size()) {
-    newState->setFilterWidth(model->getFilters()->at(0)->size()[0]);
-    newState->setFilterHeight(model->getFilters()->at(0)->size()[1]);
-    newState->setFilterDepth(model->getFilters()->at(0)->size()[2]);
-    newState->setChannelCount(model->getFilters()->at(0)->size()[3]);
-    newState->setFilterCount(model->getFilters()->size());
-  }
-  newState->setVisibleUnitType(model->getVisibleUnitType());
-  newState->setHiddenUnitType(model->getHiddenUnitType());
-  newState->setConvolutionType(model->getConvolutionType());
-  newState->setMean(model->getMean());
-  newState->setStddev(model->getStddev());
+  newState->setFilterCount(model->filters().size());
+  newState->setVisibleUnitType(model->visibles_type());
+  newState->setHiddenUnitType(model->hiddens_type());
+  newState->setConvolutionType(model->convolution_type());
+  newState->setMean(model->mean());
+  newState->setStddev(model->stddev());
 }
 
 } /* namespace convrbm4d */
+
 } /* namespace gml */

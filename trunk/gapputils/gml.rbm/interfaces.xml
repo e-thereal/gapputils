@@ -4,22 +4,8 @@
     <Collection>
       <Item>
         <gapputils-Interface>
-          <Identifier value="RbmUnitType" />
-          <Type value="gml::rbm::UnitType" />
-          <Header value="UnitType.h" />
-          <PropertyAttributes>
-            <Collection>
-              <Item value="Enumerator<Type>()" />
-            </Collection>
-          </PropertyAttributes>
-          <IsParameter value="1" />
-          <IsCollection value="0" />
-        </gapputils-Interface>
-      </Item>
-      <Item>
-        <gapputils-Interface>
           <Identifier value="Rbm" />
-          <Type value="boost::shared_ptr<gml::rbm::Model>" />
+          <Type value="boost::shared_ptr<gml::rbm::model_t>" />
           <Header value="Model.h" />
           <IsParameter value="0" />
           <IsCollection value="0" />

@@ -13,10 +13,10 @@
 
 #include <capputils/Enumerators.h>
 
-#include "SparsityMethod.h"
-#include "DropoutMethod.h"
-
 #include "Model.h"
+
+#include <tbblas/deeplearn/sparsity_method.hpp>
+#include <tbblas/deeplearn/dropout_method.hpp>
 
 namespace gml {
 namespace convrbm4d {
@@ -27,16 +27,16 @@ struct TrainerChecker { TrainerChecker(); };
 
 class Trainer : public DefaultWorkflowElement<Trainer> {
 public:
-  typedef Model::value_t value_t;
-  typedef Model::tensor_t host_tensor_t;
-  typedef std::vector<boost::shared_ptr<host_tensor_t> > v_host_tensor_t;
+  typedef model_t::value_t value_t;
+  typedef model_t::host_tensor_t host_tensor_t;
+  typedef model_t::v_host_tensor_t v_host_tensor_t;
 
   friend class TrainerChecker;
 
   InitReflectableClass(Trainer)
 
   // Primary inputs
-  Property(InitialModel, boost::shared_ptr<Model>)
+  Property(InitialModel, boost::shared_ptr<model_t>)
   Property(Tensors, boost::shared_ptr<v_host_tensor_t>)
   Property(DbmLayer, DbmLayer)
 
@@ -47,7 +47,7 @@ public:
   Property(GpuCount, int)
 
   // Sparsity parameters
-  Property(SparsityMethod, SparsityMethod)
+  Property(SparsityMethod, tbblas::deeplearn::sparsity_method)
   int dummy1;
   Property(SparsityTarget, double)
   Property(SparsityWeight, double)
@@ -66,8 +66,7 @@ public:
   Property(RandomizeTraining, bool)
   Property(ShareBiasTerms, bool)
   Property(ChannelsPerBlock, int)
-  Property(DropoutMethod, DropoutMethod)
-  Property(DropoutStage, DropoutStage)
+  Property(DropoutMethod, tbblas::deeplearn::dropout_method)
   Property(VisibleDropout, double)
   Property(HiddenDropout, double)
   Property(FilterDropout, double)
@@ -77,8 +76,7 @@ public:
 
   // Output parameters
   Property(CurrentEpoch, int)
-  Property(Model, boost::shared_ptr<Model>)
-  Property(ModelIncrement, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(AverageEpochTime, double)
   Property(ReconstructionError, double)
 

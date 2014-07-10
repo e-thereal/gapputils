@@ -23,8 +23,8 @@ class Conditional : public DefaultWorkflowElement<Conditional> {
 
   friend class ConditionalChecker;
 
-  typedef Model::value_t value_t;
-  typedef Model::matrix_t host_matrix_t;
+  typedef model_t::value_t value_t;
+  typedef model_t::host_matrix_t host_matrix_t;
   typedef tbblas::tensor<value_t, 2, true> matrix_t;
   typedef matrix_t::dim_t dim_t;
 
@@ -33,7 +33,7 @@ class Conditional : public DefaultWorkflowElement<Conditional> {
 
   InitReflectableClass(Conditional)
 
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(Given, boost::shared_ptr<v_data_t>)
   Property(FirstGiven, int)
   Property(IterationCount, int)

@@ -8,6 +8,7 @@
 #include "ModelWriter.h"
 
 #include <capputils/Serializer.h>
+#include <tbblas/deeplearn/serialize.hpp>
 
 namespace gml {
 
@@ -28,7 +29,7 @@ ModelWriter::ModelWriter() {
 }
 
 void ModelWriter::update(IProgressMonitor* monitor) const {
-  Serializer::writeToFile(*getModel(), getFilename());
+  tbblas::deeplearn::serialize(*getModel(), getFilename());
   getHostInterface()->saveDataModel(getFilename() + ".config");
   newState->setOutputName(getFilename());
 }

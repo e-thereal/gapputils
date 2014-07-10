@@ -24,7 +24,7 @@ class SplitModel : public DefaultWorkflowElement<SplitModel> {
 
   InitReflectableClass(SplitModel)
 
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(Weights, boost::shared_ptr<v_data_t>)
   Property(VisibleBias, boost::shared_ptr<data_t>)
   Property(HiddenBias, boost::shared_ptr<data_t>)

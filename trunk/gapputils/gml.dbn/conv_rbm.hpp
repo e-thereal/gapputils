@@ -18,6 +18,7 @@
 #include <tbblas/zeros.hpp>
 #include <tbblas/io.hpp>
 #include <tbblas/random.hpp>
+#include <tbblas/dot.hpp>
 
 #include <omp.h>
 
@@ -73,6 +74,8 @@ protected:
   unit_type _visibleUnitType, _hiddenUnitType;
   convolution_type _convolutionType;
 
+  value_t _mean, _stddev;
+
   // weights and bias terms in GPU memory
   tensor_t b;
 
@@ -96,7 +99,8 @@ protected:
 
 public:
   /// Creates a new conv_rbm layer (called from non-parallel code)
-  conv_rbm(size_t gpu_count = 1) : _gpu_count(gpu_count), _filter_batch_length(1),
+  conv_rbm(size_t gpu_count = 1) : _mean(0), _stddev(1),
+    _gpu_count(gpu_count), _filter_batch_length(1),
     _memory_allocated(false), _double_weights(false), _padding(false), _host_updated(true)
   {
     assert(_gpu_count > 0);
@@ -130,6 +134,8 @@ public:
   /// Transforms
   void allocate_gpu_memory() {
     using namespace tbblas;
+
+    // TODO: check if peer access is enabled
 
     if (_memory_allocated)
       return;
@@ -178,6 +184,10 @@ public:
       A = ifft(cA, 3);
       assert (abs(dot(cA - cB, cA - cB)) == 0);
     }
+
+    b = _visibleBiases;
+    cF.resize(_filters.size());
+    cc.resize(_hiddenBiases.size());
 
     #pragma omp parallel
     {
@@ -239,6 +249,8 @@ public:
   }
 
   void free_gpu_memory() {
+    _memory_allocated = false;
+
     setup_threads();
 
     b = tensor_t();
@@ -267,7 +279,24 @@ public:
     }
   }
 
-#if 0
+  void normalize_visibles() {
+    if (!_memory_allocated)
+      allocate_gpu_memory();
+
+    tensor_t& v = *v_v[0];
+    tensor_t& v_mask = *v_v_mask[0];
+    v = ((v - _mean) / _stddev) * tbblas::repeat(v_mask, size / layer_size);
+  }
+
+  void diversify_visibles() {
+    if (!_memory_allocated)
+      allocate_gpu_memory();
+
+    tensor_t& v = *v_v[0];
+    tensor_t& v_mask = *v_v_mask[0];
+    v = ((v * _stddev) + _mean) * tbblas::repeat(v_mask, size / layer_size);
+  }
+
   void infer_visibles() {
     using namespace tbblas;
 
@@ -291,62 +320,50 @@ public:
       plan_t& iplan_v = *v_iplan_v[tid];
       plan_t& plan_h = *v_plan_h[tid];
       plan_t& iplan_h = *v_iplan_h[tid];
+      tensor_t& h_mask = *v_h_mask[tid];
+      tensor_t& v_mask = *v_v_mask[tid];
 
       cv = zeros<complex_t>(cF[0]->size(), cF[0]->fullsize());
 
-      #pragma omp master
-      {
-        cv_master = zeros<complex_t>(cF[0]->size(), cF[0]->fullsize());
-        cudaStreamSynchronize(0);
-      }
-      #pragma omp barrier
-
-      for (size_t k = tid; k < cF.size(); k += gpu_count) {
-        h = zeros<value_t>(layerSize);
-        h[topleft, inLayerSize] = (*inputs[i])[seq(0,0,0,(int)k), inLayerSize];
-        if (!getOnlyFilters())
-          h = h * hMask;
+      for (size_t k = tid; k < cF.size(); k += _gpu_count) {
+        h = zeros<value_t>(layer_size);
+        h[hidden_topleft, hidden_layer_size] = _hiddens[seq(0,0,0,(int)k), hidden_layer_size];
+        h = h * h_mask;
         ch = fft(h, dimCount - 1, plan_h);
 
         cv = cv + *cF[k] * repeat(ch, cF[k]->size() / ch.size());
       }
+      cudaStreamSynchronize(0);
+      #pragma omp barrier
 
       #pragma omp critical
       {
-        cv_master = cv_master + cv;
+        if (tid != 0)
+          *v_cv[0] = *v_cv[0] + cv;
         cudaStreamSynchronize(0);
       }
       #pragma omp barrier
 
       #pragma omp master
       {
-        v = ifft(cv_master, dimCount - 1, iplan_v);
+        v = ifft(cv, dimCount - 1, iplan_v);
 
-        if (getOnlyFilters()) {
-          output = v[seq(0,0,0,0), visibleSize];
-        } else {
-          switch(crbm.getVisibleUnitType()) {
-            case UnitType::Bernoulli: v = sigm(v + b); break;
-            case UnitType::Gaussian:  v = v + b;       break;
-            case UnitType::ReLU:      v = max(0.0, v + b);  break;
-            case UnitType::MyReLU:    v = nrelu_mean(v + b); break;
-            case UnitType::ReLU1:     v = min(1.0, max(0.0, v + b));  break;
-            case UnitType::ReLU2:     v = min(2.0, max(0.0, v + b));  break;
-            case UnitType::ReLU4:     v = min(4.0, max(0.0, v + b));  break;
-            case UnitType::ReLU8:     v = min(8.0, max(0.0, v + b));  break;
-            default:
-              dlog(Severity::Warning) << "Unsupported unit type: " << crbm.getVisibleUnitType();
-          }
-          v = ((v * crbm.getStddev()) + crbm.getMean()) * repeat(vMask, size / layerSize);
-          output = v[seq(0,0,0,0), visibleSize];
+        switch(_visibleUnitType) {
+          case unit_type::Bernoulli: v = sigm(v + b); break;
+          case unit_type::Gaussian:  v = v + b;       break;
+          case unit_type::ReLU:      v = max(0.0, v + b);  break;
+          case unit_type::MyReLU:    v = nrelu_mean(v + b); break;
+          case unit_type::ReLU1:     v = min(1.0, max(0.0, v + b));  break;
+          case unit_type::ReLU2:     v = min(2.0, max(0.0, v + b));  break;
+          case unit_type::ReLU4:     v = min(4.0, max(0.0, v + b));  break;
+          case unit_type::ReLU8:     v = min(8.0, max(0.0, v + b));  break;
         }
-
+        v = v * repeat(v_mask, size / layer_size);
         cudaStreamSynchronize(0);
       }
       #pragma omp barrier
     }
   }
-#endif
 
   void infer_hiddens() {
     using namespace tbblas;
@@ -355,6 +372,8 @@ public:
       allocate_gpu_memory();
 
     setup_threads();
+
+    *v_cv[0] = tbblas::fft(*v_v[0], dimCount - 1, *v_plan_v[0]);
 
     #pragma omp parallel
     {
@@ -417,19 +436,45 @@ public:
   }
 
   // Access to model data
+  void set_visibles(const host_tensor_t& v) {
+    if (!_memory_allocated)
+      allocate_gpu_memory();
+
+    // TODO: how to handle padding?
+    *v_v[0] = v;
+  }
+
   void set_visibles(const tensor_t& v) {
-    *v_cv[0] = tbblas::fft(v, dimCount - 1, *v_plan_v[0]);
+    if (!_memory_allocated)
+      allocate_gpu_memory();
+
+    // TODO: how to handle padding?
+    *v_v[0] = v;
   }
 
   const tensor_t& visibles() {
-    return (*v_v[0] = tbblas::ifft(*v_cv[0], dimCount - 1, *v_iplan_v[0]));
+    if (!_memory_allocated)
+      allocate_gpu_memory();
+
+    // TODO: how to handle padding?
+    return *v_v[0];
   }
 
-  ctensor_t& cvisibles() {
-    return *v_cv[0];
+  void set_hiddens(const host_tensor_t& h) {
+    if (!_memory_allocated)
+      allocate_gpu_memory();
+    _hiddens = h;
   }
 
-  tensor_t& hiddens() {
+  void set_hiddens(const tensor_t& h) {
+    if (!_memory_allocated)
+      allocate_gpu_memory();
+    _hiddens = h;
+  }
+
+  const tensor_t& hiddens() {
+    if (!_memory_allocated)
+      allocate_gpu_memory();
     return _hiddens;
   }
 
@@ -472,6 +517,22 @@ public:
 
   convolution_type& convolution_type() {
     return _convolutionType;
+  }
+
+  void set_mean(value_t mean) {
+    _mean = mean;
+  }
+
+  value_t mean() const {
+    return _mean;
+  }
+
+  void set_stddev(value_t stddev) {
+    _stddev = stddev;
+  }
+
+  value_t stddev() const {
+    return _stddev;
   }
 
 private:

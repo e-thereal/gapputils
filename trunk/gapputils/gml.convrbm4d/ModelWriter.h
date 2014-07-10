@@ -20,7 +20,7 @@ class ModelWriter : public DefaultWorkflowElement<ModelWriter> {
 
   InitReflectableClass(ModelWriter)
 
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(Filename, std::string)
   Property(AutoSave, bool)
   Property(OutputName, std::string)
@@ -38,5 +38,7 @@ protected:
 };
 
 } /* namespace convrbm4d */
+
 } /* namespace gml */
-#endif /* MODELWRITER_H_ */
+
+#endif /* GML_MODELWRITER_H_ */

@@ -5,7 +5,7 @@
 #include <capputils/attributes/OutputAttribute.h>
 #include <gapputils/attributes/InterfaceAttribute.h>
 
-#include "DropoutMethod.h"
+#include "tbblas/deeplearn/dropout_method.hpp"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -18,7 +18,7 @@ class DropoutMethod : public gapputils::workflow::DefaultWorkflowElement<Dropout
 {
   InitReflectableClass(DropoutMethod)
   
-  typedef gml::convrbm4d::DropoutMethod property_t;
+  typedef tbblas::deeplearn::dropout_method property_t;
   
   Property(Description, std::string)
   Property(Value, property_t)

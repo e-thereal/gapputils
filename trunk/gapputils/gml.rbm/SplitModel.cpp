@@ -31,13 +31,15 @@ SplitModel::SplitModel() {
 }
 
 void SplitModel::update(IProgressMonitor* monitor) const {
-  Model& rbm = *getModel();
+  using namespace tbblas;
 
-  typedef Model::matrix_t matrix_t;
+  model_t& rbm = *getModel();
 
-  matrix_t& W = *rbm.getWeightMatrix();
-  matrix_t& b = *rbm.getVisibleBiases();
-  matrix_t& c = *rbm.getHiddenBiases();
+  typedef model_t::host_matrix_t matrix_t;
+
+  matrix_t W = rbm.weights();
+  const matrix_t& b = rbm.visible_bias();
+  const matrix_t& c = rbm.hidden_bias();
 
   boost::shared_ptr<v_data_t> weights(new v_data_t());
   boost::shared_ptr<data_t> vb(new data_t(b.count()));

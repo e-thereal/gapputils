@@ -38,9 +38,9 @@ Pooling::Pooling() : _BlockWidth(2), _BlockHeight(2), _BlockDepth(2), _Intensity
 
 Pooling::~Pooling() { }
 
-int count(const Model::tensor_t::dim_t& size) {
+int count(const model_t::host_tensor_t::dim_t& size) {
   int count = 1;
-  for (unsigned i = 0; i < Model::dimCount; ++i)
+  for (unsigned i = 0; i < model_t::dimCount; ++i)
     count *= size[i];
   return count;
 }

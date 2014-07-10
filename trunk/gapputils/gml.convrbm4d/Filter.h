@@ -25,12 +25,12 @@ class Filter : public DefaultWorkflowElement<Filter> {
   friend class FilterChecker;
 
 public:
-  typedef Model::tensor_t host_tensor_t;
-  typedef Model::value_t value_t;
+  typedef model_t::host_tensor_t host_tensor_t;
+  typedef model_t::value_t value_t;
 
   InitReflectableClass(Filter)
 
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(Inputs, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(Direction, CodingDirection)
   Property(GpuCount, int)

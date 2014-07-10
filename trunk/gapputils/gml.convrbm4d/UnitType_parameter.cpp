@@ -5,7 +5,7 @@
 #include <capputils/attributes/OutputAttribute.h>
 #include <gapputils/attributes/InterfaceAttribute.h>
 
-#include "UnitType.h"
+#include "tbblas/deeplearn/unit_type.hpp"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -18,7 +18,7 @@ class UnitType : public gapputils::workflow::DefaultWorkflowElement<UnitType>
 {
   InitReflectableClass(UnitType)
   
-  typedef gml::convrbm4d::UnitType property_t;
+  typedef tbblas::deeplearn::unit_type property_t;
   
   Property(Description, std::string)
   Property(Value, property_t)

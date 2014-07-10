@@ -51,7 +51,7 @@ void StackTensors::update(IProgressMonitor* monitor) const {
   switch (getMode()) {
   case StackMode::SingleTensor:
     {
-      dim_t outSize = size, offset(0);
+      dim_t outSize = size, offset = tbblas::seq<dimCount>(0);
       outSize[dimCount - 1] = channels;
 
       boost::shared_ptr<tensor_t> output(new tensor_t(outSize));

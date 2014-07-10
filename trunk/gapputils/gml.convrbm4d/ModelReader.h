@@ -20,7 +20,7 @@ class ModelReader : public DefaultWorkflowElement<ModelReader> {
   InitReflectableClass(ModelReader)
 
   Property(Filename, std::string)
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(TensorWidth, int)
   Property(TensorHeight, int)
   Property(TensorDepth, int)
@@ -29,9 +29,9 @@ class ModelReader : public DefaultWorkflowElement<ModelReader> {
   Property(FilterDepth, int)
   Property(ChannelCount, int)
   Property(FilterCount, int)
-  Property(VisibleUnitType, UnitType)
-  Property(HiddenUnitType, UnitType)
-  Property(ConvolutionType, ConvolutionType)
+  Property(VisibleUnitType, tbblas::deeplearn::unit_type)
+  Property(HiddenUnitType, tbblas::deeplearn::unit_type)
+  Property(ConvolutionType, tbblas::deeplearn::convolution_type)
   Property(Mean, double)
   Property(Stddev, double)
 

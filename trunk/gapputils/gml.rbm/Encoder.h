@@ -38,8 +38,8 @@ struct EncoderChecker { EncoderChecker(); };
  */
 class Encoder : public DefaultWorkflowElement<Encoder> {
 
-  typedef Model::value_t value_t;
-  typedef Model::matrix_t host_matrix_t;
+  typedef model_t::value_t value_t;
+  typedef model_t::host_matrix_t host_matrix_t;
   typedef tbblas::tensor<value_t, 2, true> matrix_t;
   typedef matrix_t::dim_t dim_t;
 
@@ -49,7 +49,7 @@ class Encoder : public DefaultWorkflowElement<Encoder> {
 
   InitReflectableClass(Encoder)
 
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(Inputs, boost::shared_ptr<std::vector<data_t> >)
   Property(Direction, CodingDirection)
   Property(DoubleWeights, bool)

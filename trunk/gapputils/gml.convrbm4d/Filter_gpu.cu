@@ -49,34 +49,15 @@ void Filter::update(IProgressMonitor* monitor) const {
   using namespace tbblas::deeplearn;
 
   Logbook& dlog = getLogbook();
-  Model& model = *getModel();
+  model_t& model = *getModel();
 
 #if 1
   std::vector<boost::shared_ptr<host_tensor_t> >& inputs = *getInputs();
   boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > outputs(
       new std::vector<boost::shared_ptr<host_tensor_t> >());
 
-  conv_rbm_model<float, 4> cmodel;
-
-  // Copy model
-  cmodel.set_filters(*model.getFilters());
-  cmodel.set_visible_bias(*model.getVisibleBias());
-  cmodel.set_hidden_bias(*model.getHiddenBiases());
-  cmodel.set_mask(*model.getMask());
-  cmodel.set_kernel_size(model.getFilterKernelSize());
-  unit_type unittype;
-  unittype = model.getVisibleUnitType();
-  cmodel.set_visibles_type(unittype);
-  unittype = model.getHiddenUnitType();
-  cmodel.set_hiddens_type(unittype);
-  convolution_type convtype;
-  convtype = model.getConvolutionType();
-  cmodel.set_convolution_type(convtype);
-  cmodel.set_mean(model.getMean());
-  cmodel.set_stddev(model.getStddev());
-
-  conv_rbm<float, 4> crbm(cmodel, getGpuCount());
-  crbm.set_batch_length(model.getFilters()->size() / getGpuCount());
+  conv_rbm<float, 4> crbm(model, getGpuCount());
+  crbm.set_batch_length(model.filters().size() / getGpuCount());
 
   if (getDirection() == CodingDirection::Encode) {
     for (size_t i = 0; i < inputs.size(); ++i) {

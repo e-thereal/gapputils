@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef GMLDBN_MATH_HPP_
-#define GMLDBN_MATH_HPP_
+#ifndef GMLCONVRBM_MATH_HPP_
+#define GMLCONVRBM_MATH_HPP_
 
 #include <tbblas/type_traits.hpp>
 #include <tbblas/unary_expression.hpp>
@@ -37,4 +37,4 @@ nrelu_mean(const Expression& expr) {
 
 }
 
-#endif /* GMLDBN_MATH_HPP_ */
+#endif /* GMLCONVRBM_MATH_HPP_ */

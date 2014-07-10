@@ -19,7 +19,7 @@ namespace convrbm4d {
 
 class TransposeTensorsAndChannels : public DefaultWorkflowElement<TransposeTensorsAndChannels> {
 
-  typedef Model::tensor_t tensor_t;
+  typedef model_t::host_tensor_t tensor_t;
 
   InitReflectableClass(TransposeTensorsAndChannels)
 
