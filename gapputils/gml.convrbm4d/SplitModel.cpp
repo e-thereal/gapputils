@@ -36,27 +36,31 @@ SplitModel::SplitModel() : _MaxFilterCount(-1) {
 }
 
 void SplitModel::update(IProgressMonitor* monitor) const {
-  Model& model = *getModel();
+  model_t& model = *getModel();
 
-  const int filterCount = std::min(getMaxFilterCount(), (int)model.getFilters()->size());
+  const int filterCount = std::min(getMaxFilterCount(), (int)model.filters().size());
 
   if (filterCount > 0) {
-    boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > filters = boost::make_shared<std::vector<boost::shared_ptr<tensor_t> > >(filterCount);
-    boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > biases = boost::make_shared<std::vector<boost::shared_ptr<tensor_t> > >(filterCount);
-    std::copy(model.getFilters()->begin(), model.getFilters()->begin() + filterCount, filters->begin());
-    std::copy(model.getHiddenBiases()->begin(), model.getHiddenBiases()->begin() + filterCount, biases->begin());
+    boost::shared_ptr<v_tensor_t> filters = boost::make_shared<v_tensor_t>(filterCount);
+    boost::shared_ptr<v_tensor_t> biases = boost::make_shared<v_tensor_t>(filterCount);
+    std::copy(model.filters().begin(), model.filters().begin() + filterCount, filters->begin());
+    std::copy(model.hidden_bias().begin(), model.hidden_bias().begin() + filterCount, biases->begin());
     newState->setFilters(filters);
     newState->setHiddenBiases(biases);
   } else {
-    newState->setFilters(model.getFilters());
-    newState->setHiddenBiases(model.getHiddenBiases());
+    boost::shared_ptr<v_tensor_t> filters = boost::make_shared<v_tensor_t>(model.filters().size());
+    boost::shared_ptr<v_tensor_t> biases = boost::make_shared<v_tensor_t>(model.hidden_bias().size());
+    std::copy(model.filters().begin(), model.filters().end(), filters->begin());
+    std::copy(model.hidden_bias().begin(), model.hidden_bias().end(), biases->begin());
+    newState->setFilters(filters);
+    newState->setHiddenBiases(biases);
   }
-  newState->setVisibleBias(model.getVisibleBias());
-  newState->setFilterKernelSize(model.getFilterKernelSize());
-  newState->setMean(model.getMean());
-  newState->setStddev(model.getStddev());
-  newState->setVisibleUnitType(model.getVisibleUnitType());
-  newState->setHiddenUnitType(model.getHiddenUnitType());
+  newState->setVisibleBias(boost::make_shared<tensor_t>(model.visible_bias()));
+  newState->setFilterKernelSize(model.kernel_size());
+  newState->setMean(model.mean());
+  newState->setStddev(model.stddev());
+  newState->setVisibleUnitType(model.visibles_type());
+  newState->setHiddenUnitType(model.hiddens_type());
 }
 
 } /* namespace convrbm4d */

@@ -22,7 +22,7 @@ namespace convrbm4d {
 CapputilsEnumerator(SpecificityErrorMeasure, RMSE, CC);
 
 class Specificity : public DefaultWorkflowElement<Specificity> {
-  typedef Model::tensor_t tensor_t;
+  typedef model_t::host_tensor_t tensor_t;
 
   InitReflectableClass(Specificity)
 

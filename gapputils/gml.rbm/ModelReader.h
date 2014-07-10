@@ -22,11 +22,11 @@ class ModelReader : public DefaultWorkflowElement<ModelReader> {
   InitReflectableClass(ModelReader)
 
   Property(Filename, std::string)
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(VisibleCount, int)
   Property(HiddenCount, int)
-  Property(VisibleUnitType, UnitType)
-  Property(HiddenUnitType, UnitType)
+  Property(VisibleUnitType, tbblas::deeplearn::unit_type)
+  Property(HiddenUnitType, tbblas::deeplearn::unit_type)
 
 public:
   ModelReader();

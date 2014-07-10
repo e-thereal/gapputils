@@ -26,8 +26,8 @@ CapputilsEnumerator(StackMode, SingleTensor, TensorVector);
  */
 class StackTensors : public DefaultWorkflowElement<StackTensors> {
 
-  typedef Model::tensor_t tensor_t;
-  typedef std::vector<boost::shared_ptr<tensor_t> > v_tensor_t;
+  typedef model_t::host_tensor_t tensor_t;
+  typedef model_t::v_host_tensor_t v_tensor_t;
 
   InitReflectableClass(StackTensors)
 

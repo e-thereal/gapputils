@@ -5,7 +5,7 @@
 #include <capputils/attributes/OutputAttribute.h>
 #include <gapputils/attributes/InterfaceAttribute.h>
 
-#include "Model.h"
+#include "tbblas/deeplearn/conv_rbm_model.hpp"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -18,7 +18,7 @@ class Crbm4d : public gapputils::workflow::DefaultWorkflowElement<Crbm4d>
 {
   InitReflectableClass(Crbm4d)
   
-  typedef boost::shared_ptr<gml::convrbm4d::Model> property_t;
+  typedef boost::shared_ptr<tbblas::deeplearn::conv_rbm_model<float,4> > property_t;
   
   Property(Description, std::string)
   Property(Value, property_t)
@@ -41,7 +41,7 @@ class Crbm4d : public gapputils::workflow::DefaultWorkflowElement<Crbm4d>
 {
   InitReflectableClass(Crbm4d)
   
-  typedef boost::shared_ptr<gml::convrbm4d::Model> property_t;
+  typedef boost::shared_ptr<tbblas::deeplearn::conv_rbm_model<float,4> > property_t;
   
   Property(Description, std::string)
   Property(Value, property_t)

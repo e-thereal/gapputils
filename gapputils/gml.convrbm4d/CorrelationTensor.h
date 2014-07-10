@@ -19,9 +19,9 @@ namespace convrbm4d {
 
 class CorrelationTensor : public DefaultWorkflowElement<CorrelationTensor> {
 
-  typedef Model::value_t value_t;
-  typedef Model::tensor_t tensor_t;
-  typedef std::vector<boost::shared_ptr<tensor_t> > v_tensor_t;
+  typedef model_t::value_t value_t;
+  typedef model_t::host_tensor_t tensor_t;
+  typedef model_t::v_host_tensor_t v_tensor_t;
 
   typedef std::vector<double> data_t;
 

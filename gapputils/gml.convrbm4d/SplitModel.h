@@ -18,13 +18,14 @@ namespace gml {
 namespace convrbm4d {
 
 class SplitModel : public DefaultWorkflowElement<SplitModel> {
-  typedef Model::value_t value_t;
-  typedef Model::tensor_t tensor_t;
-  typedef Model::dim_t dim_t;
+  typedef model_t::value_t value_t;
+  typedef model_t::host_tensor_t tensor_t;
+  typedef model_t::v_host_tensor_t v_tensor_t;
+  typedef model_t::dim_t dim_t;
 
   InitReflectableClass(SplitModel)
 
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(MaxFilterCount, int)
 
   Property(Filters, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
@@ -33,8 +34,8 @@ class SplitModel : public DefaultWorkflowElement<SplitModel> {
   Property(FilterKernelSize, dim_t)
   Property(Mean, double)
   Property(Stddev, double)
-  Property(VisibleUnitType, UnitType)
-  Property(HiddenUnitType, UnitType)
+  Property(VisibleUnitType, tbblas::deeplearn::unit_type)
+  Property(HiddenUnitType, tbblas::deeplearn::unit_type)
 
 public:
   SplitModel();
@@ -45,4 +46,4 @@ protected:
 
 } /* namespace convrbm4d */
 } /* namespace gml */
-#endif /* SPLITMODEL_H_ */
+#endif /* GML_SPLITMODEL_H_ */

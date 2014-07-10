@@ -24,7 +24,7 @@ CapputilsEnumerator(TilingPlane, Axial, Sagittal, Coronal);
 
 class TensorMatrix : public DefaultWorkflowElement<TensorMatrix> {
 
-  typedef Model::tensor_t tensor_t;
+  typedef model_t::host_tensor_t tensor_t;
 
   InitReflectableClass(TensorMatrix)
 

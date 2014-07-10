@@ -11,6 +11,8 @@
 #include <tbblas/ones.hpp>
 #include <tbblas/io.hpp>
 
+#include <tbblas/deeplearn/serialize.hpp>
+
 namespace gml {
 
 namespace rbm {
@@ -33,24 +35,14 @@ ModelReader::ModelReader() : _VisibleCount(0), _HiddenCount(0) {
 }
 
 void ModelReader::update(IProgressMonitor* monitor) const {
-  Logbook& dlog = getLogbook();
-  using namespace tbblas;
+  boost::shared_ptr<model_t> model(new model_t());
+  tbblas::deeplearn::deserialize(getFilename(), *model);
 
-  typedef Model::matrix_t matrix_t;
-  typedef Model::value_t value_t;
-
-  boost::shared_ptr<Model> rbm(new Model());
-  Serializer::readFromFile(*rbm, getFilename());
-
-  // Compatibility with unmasked model
-  if (!rbm->getVisibleMask())
-    rbm->setVisibleMask(boost::make_shared<matrix_t>(ones<value_t>(1, rbm->getWeightMatrix()->size()[0])));
-
-  newState->setModel(rbm);
-  newState->setVisibleCount(rbm->getWeightMatrix()->size()[0]);
-  newState->setHiddenCount(rbm->getWeightMatrix()->size()[1]);
-  newState->setVisibleUnitType(rbm->getVisibleUnitType());
-  newState->setHiddenUnitType(rbm->getHiddenUnitType());
+  newState->setModel(model);
+  newState->setVisibleCount(model->weights().size()[0]);
+  newState->setHiddenCount(model->weights().size()[1]);
+  newState->setVisibleUnitType(model->visibles_type());
+  newState->setHiddenUnitType(model->hiddens_type());
 }
 
 }

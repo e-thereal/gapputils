@@ -5,8 +5,8 @@
       <Item>
         <gapputils-Interface>
           <Identifier value="UnitType" />
-          <Type value="gml::convrbm4d::UnitType" />
-          <Header value="UnitType.h" />
+          <Type value="tbblas::deeplearn::unit_type" />
+          <Header value="tbblas/deeplearn/unit_type.hpp" />
           <PropertyAttributes>
             <Collection>
               <Item value="Enumerator<Type>()" />
@@ -16,11 +16,11 @@
           <IsCollection value="0" />
         </gapputils-Interface>
       </Item>
-            <Item>
+      <Item>
         <gapputils-Interface>
           <Identifier value="ConvolutionType" />
-          <Type value="gml::convrbm4d::ConvolutionType" />
-          <Header value="ConvolutionType.h" />
+          <Type value="tbblas::deeplearn::convolution_type" />
+          <Header value="tbblas/deeplearn/convolution_type.hpp" />
           <PropertyAttributes>
             <Collection>
               <Item value="Enumerator<Type>()" />
@@ -33,8 +33,8 @@
       <Item>
         <gapputils-Interface>
           <Identifier value="SparsityMethod" />
-          <Type value="gml::convrbm4d::SparsityMethod" />
-          <Header value="SparsityMethod.h" />
+          <Type value="tbblas::deeplearn::sparsity_method" />
+          <Header value="tbblas/deeplearn/sparsity_method.hpp" />
           <PropertyAttributes>
             <Collection>
               <Item value="Enumerator<Type>()" />
@@ -47,8 +47,8 @@
       <Item>
         <gapputils-Interface>
           <Identifier value="DropoutMethod" />
-          <Type value="gml::convrbm4d::DropoutMethod" />
-          <Header value="DropoutMethod.h" />
+          <Type value="tbblas::deeplearn::dropout_method" />
+          <Header value="tbblas/deeplearn/dropout_method.hpp" />
           <PropertyAttributes>
             <Collection>
               <Item value="Enumerator<Type>()" />
@@ -79,8 +79,8 @@
       <Item>
         <gapputils-Interface>
           <Identifier value="Crbm4d" />
-          <Type value="boost::shared_ptr<gml::convrbm4d::Model>" />
-          <Header value="Model.h" />
+          <Type value="boost::shared_ptr<tbblas::deeplearn::conv_rbm_model<float,4> >" />
+          <Header value="tbblas/deeplearn/conv_rbm_model.hpp" />
           <IsParameter value="0" />
           <IsCollection value="0" />
         </gapputils-Interface>

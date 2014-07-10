@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef INITIALIZE_H_
-#define INITIALIZE_H_
+#ifndef GML_INITIALIZE_H_
+#define GML_INITIALIZE_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
@@ -20,26 +20,27 @@ struct InitializeChecker { InitializeChecker(); };
 
 class Initialize : public DefaultWorkflowElement<Initialize> {
 public:
-  typedef Model::value_t value_t;
-  typedef Model::tensor_t tensor_t;
+  typedef model_t::value_t value_t;
+  typedef model_t::host_tensor_t host_tensor_t;
+  typedef model_t::v_host_tensor_t v_host_tensor_t;
 
   friend class InitializeChecker;
 
   InitReflectableClass(Initialize)
 
-  Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
-  Property(Mask, boost::shared_ptr<tensor_t>)
+  Property(Tensors, boost::shared_ptr<v_host_tensor_t>)
+  Property(Mask, boost::shared_ptr<host_tensor_t>)
   Property(FilterWidth, int)
   Property(FilterHeight, int)
   Property(FilterDepth, int)
   Property(FilterCount, int)
   Property(WeightMean, double)
   Property(WeightStddev, double)
-  Property(VisibleUnitType, UnitType)
-  Property(HiddenUnitType, UnitType)
-  Property(ConvolutionType, ConvolutionType)
+  Property(VisibleUnitType, tbblas::deeplearn::unit_type)
+  Property(HiddenUnitType, tbblas::deeplearn::unit_type)
+  Property(ConvolutionType, tbblas::deeplearn::convolution_type)
 
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
 
 public:
   Initialize();
@@ -50,5 +51,7 @@ protected:
 };
 
 } /* namespace convrbm4d */
+
 } /* namespace gml */
-#endif /* INITIALIZE_H_ */
+
+#endif /* GML_INITIALIZE_H_ */

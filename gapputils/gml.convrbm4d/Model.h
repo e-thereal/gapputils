@@ -8,54 +8,13 @@
 #ifndef GML_CONVRBM4D_MODEL_H_
 #define GML_CONVRBM4D_MODEL_H_
 
-#include <capputils/reflection/ReflectableClass.h>
-
-#include <tbblas/tensor.hpp>
 #include <tbblas/deeplearn/conv_rbm_model.hpp>
-
-#include "UnitType.h"
-#include "ConvolutionType.h"
 
 namespace gml {
 
 namespace convrbm4d {
 
 typedef tbblas::deeplearn::conv_rbm_model<float, 4> model_t;
-
-struct ModelChecker { ModelChecker(); };
-
-class Model : public capputils::reflection::ReflectableClass {
-public:
-  const static unsigned dimCount = 4;
-  typedef float value_t;
-  typedef tbblas::tensor<value_t, dimCount> tensor_t;
-  typedef tensor_t::dim_t dim_t;
-  typedef std::vector<boost::shared_ptr<tensor_t> > v_tensor_t;
-
-  friend class ModelChecker;
-
-private:
-  InitReflectableClass(Model)
-
-  int dummy; ///< needed to align GCC and NVCC memory layouts.
-
-  Property(Filters, boost::shared_ptr<v_tensor_t>)
-  Property(VisibleBias, boost::shared_ptr<tensor_t>)
-  Property(HiddenBiases, boost::shared_ptr<v_tensor_t>)
-  Property(FilterKernelSize, dim_t)
-//  int dummy2;
-  Property(Mean, value_t)
-  Property(Stddev, value_t)
-  Property(VisibleUnitType, UnitType)
-  Property(HiddenUnitType, UnitType)
-  Property(Mask, boost::shared_ptr<tensor_t>) // The mask has always only one channel and must be extended if necessary
-  Property(ConvolutionType, ConvolutionType)
-
-public:
-  Model();
-
-  boost::shared_ptr<Model> clone();
-};
 
 }
 

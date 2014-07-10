@@ -18,7 +18,7 @@ class Rbm : public gapputils::workflow::DefaultWorkflowElement<Rbm>
 {
   InitReflectableClass(Rbm)
   
-  typedef boost::shared_ptr<gml::rbm::Model> property_t;
+  typedef boost::shared_ptr<gml::rbm::model_t> property_t;
   
   Property(Description, std::string)
   Property(Value, property_t)
@@ -41,7 +41,7 @@ class Rbm : public gapputils::workflow::DefaultWorkflowElement<Rbm>
 {
   InitReflectableClass(Rbm)
   
-  typedef boost::shared_ptr<gml::rbm::Model> property_t;
+  typedef boost::shared_ptr<gml::rbm::model_t> property_t;
   
   Property(Description, std::string)
   Property(Value, property_t)

@@ -220,7 +220,6 @@
 							<tool id="cuda.toolchain.gnu.archiver.405855890" name="GCC Archiver" superClass="cuda.toolchain.gnu.archiver"/>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="cuda.toolchain.configuration.so.release.1958712672.241446513.1625496" name="Trainer2.h" rcbsApplicability="disable" resourcePath="Trainer2.h" toolsToInvoke=""/>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>

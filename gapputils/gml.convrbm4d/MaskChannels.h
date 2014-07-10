@@ -19,13 +19,14 @@ namespace convrbm4d {
 
 class MaskChannels : public DefaultWorkflowElement<MaskChannels> {
 
-  typedef Model::tensor_t tensor_t;
+  typedef model_t::host_tensor_t tensor_t;
+  typedef model_t::v_host_tensor_t v_tensor_t;
 
   InitReflectableClass(MaskChannels)
 
-  Property(Inputs, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(Inputs, boost::shared_ptr<v_tensor_t>)
   Property(ChannelMask, boost::shared_ptr<std::vector<double> >)
-  Property(Outputs, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(Outputs, boost::shared_ptr<v_tensor_t>)
 
 public:
   MaskChannels();

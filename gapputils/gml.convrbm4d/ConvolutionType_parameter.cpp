@@ -5,7 +5,7 @@
 #include <capputils/attributes/OutputAttribute.h>
 #include <gapputils/attributes/InterfaceAttribute.h>
 
-#include "ConvolutionType.h"
+#include "tbblas/deeplearn/convolution_type.hpp"
 
 using namespace capputils::attributes;
 using namespace gapputils::attributes;
@@ -18,7 +18,7 @@ class ConvolutionType : public gapputils::workflow::DefaultWorkflowElement<Convo
 {
   InitReflectableClass(ConvolutionType)
   
-  typedef gml::convrbm4d::ConvolutionType property_t;
+  typedef tbblas::deeplearn::convolution_type property_t;
   
   Property(Description, std::string)
   Property(Value, property_t)

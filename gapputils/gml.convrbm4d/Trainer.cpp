@@ -40,8 +40,7 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(ShareBiasTerms, Flag(), Description("If checked, visible and hidden units of the same filter share bias terms."))
   WorkflowProperty(ChannelsPerBlock, Description("All channels of the same pooling block share the same bias terms when shared bias terms are active. Hence, this number must be known."))
   WorkflowProperty(DropoutMethod, Enumerator<Type>(), Description("Defines if entire columns or individual hidden units are dropped."))
-  WorkflowProperty(DropoutStage, Enumerator<Type>(), Description("Defines at which stage the dropout decision is made."))
-  WorkflowProperty(VisibleDropout, Description("Probability of a visible unit of being ignored."))
+  WorkflowProperty(VisibleDropout, Description("Probability of a visible unit of being ignored. (currently not used)"))
   WorkflowProperty(HiddenDropout, Description("Probability of a hidden unit of being ignored."))
   WorkflowProperty(FilterDropout, Description("Probability of an entire batch of filters being ignored. To drop individual filters, set the filter batch size to 1"))
   WorkflowProperty(CalculateError, Flag(), Description("If checked, the reconstruction error is calculated"))
@@ -49,7 +48,6 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
 
   WorkflowProperty(CurrentEpoch, NoParameter())
   WorkflowProperty(Model, Output("CRBM"), Description("The trained model."))
-  WorkflowProperty(ModelIncrement, Output("Inc"))
   WorkflowProperty(AverageEpochTime, Output("T"))
   WorkflowProperty(ReconstructionError, NoParameter())
 

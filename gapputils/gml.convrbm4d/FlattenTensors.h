@@ -23,12 +23,13 @@ CapputilsEnumerator(FlattenMode, OneVectorPerTensor, SingleVector);
 
 class FlattenTensors : public DefaultWorkflowElement<FlattenTensors> {
 
-  typedef Model::tensor_t tensor_t;
+  typedef model_t::host_tensor_t tensor_t;
+  typedef model_t::v_host_tensor_t v_tensor_t;
 
   InitReflectableClass(FlattenTensors)
 
   Property(Tensor, boost::shared_ptr<tensor_t>)
-  Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(Tensors, boost::shared_ptr<v_tensor_t>)
   Property(Mode, FlattenMode)
   Property(Vectors, boost::shared_ptr<std::vector<boost::shared_ptr<std::vector<double> > > >)
   Property(Vector, boost::shared_ptr<std::vector<double> >)

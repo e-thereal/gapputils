@@ -16,6 +16,8 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 
+#include <tbblas/deeplearn/serialize.hpp>
+
 namespace bio = boost::iostreams;
 namespace fs = boost::filesystem;
 
@@ -60,7 +62,8 @@ void ModelWriter::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  Serializer::WriteToFile(*getModel(), file);
+  tbblas::deeplearn::serialize(*getModel(), file);
+
   getHostInterface()->saveDataModel(getFilename() + ".config");
   newState->setOutputName(getFilename());
 }

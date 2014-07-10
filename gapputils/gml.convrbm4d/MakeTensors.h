@@ -19,7 +19,8 @@ namespace convrbm4d {
 
 class MakeTensors : public DefaultWorkflowElement<MakeTensors> {
 
-  typedef Model::tensor_t tensor_t;
+  typedef model_t::host_tensor_t tensor_t;
+  typedef model_t::v_host_tensor_t v_tensor_t;
 
   InitReflectableClass(MakeTensors)
 
@@ -28,7 +29,7 @@ class MakeTensors : public DefaultWorkflowElement<MakeTensors> {
   Property(Height, int)
   Property(Depth, int)
   Property(ChannelCount, int)
-  Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(Tensors, boost::shared_ptr<v_tensor_t>)
   Property(Tensor, boost::shared_ptr<tensor_t>)
 
 public:

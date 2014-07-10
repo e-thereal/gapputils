@@ -21,7 +21,7 @@ namespace convrbm4d {
 
 class PadTensors : public DefaultWorkflowElement<PadTensors> {
 
-  typedef Model::tensor_t tensor_t;
+  typedef model_t::host_tensor_t tensor_t;
 
   InitReflectableClass(PadTensors)
 

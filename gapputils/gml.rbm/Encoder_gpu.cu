@@ -11,7 +11,7 @@
 #include <tbblas/linalg.hpp>
 #include <tbblas/math.hpp>
 
-#include "math.hpp"
+#include <tbblas/deeplearn/rbm.hpp>
 
 namespace gml {
 
@@ -32,9 +32,69 @@ EncoderChecker::EncoderChecker() {
 
 void Encoder::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
+  using namespace tbblas::deeplearn;
 
   Logbook& dlog = getLogbook();
 
+#if 1
+  model_t& model = *getModel();
+  tbblas::deeplearn::rbm<value_t> rbm(model);
+
+  std::vector<data_t>& inputs = *getInputs();
+
+  // Calculate the mean and the std of all features
+  const size_t visibleCount = model.weights().size()[0];
+  const size_t hiddenCount = model.weights().size()[1];
+  const size_t sampleCount = inputs.size();
+
+  if (getDirection() == CodingDirection::Encode) {
+    rbm.visibles().resize(seq(sampleCount, visibleCount));
+    for (size_t i = 0; i < sampleCount; ++i) {
+      thrust::copy(inputs[i]->begin(), inputs[i]->end(), row(rbm.visibles(), i).begin());
+    }
+
+    rbm.normalize_visibles();
+
+    if (getNormalizeOnly()) {
+      boost::shared_ptr<std::vector<data_t> > outputs(new std::vector<data_t>());
+      for (size_t i = 0; i < sampleCount; ++i) {
+        data_t output(new std::vector<double>(visibleCount));
+        thrust::copy(row(rbm.visibles(), i).begin(), row(rbm.visibles(), i).end(), output->begin());
+        outputs->push_back(output);
+      }
+      newState->setOutputs(outputs);
+      return;
+    }
+
+    rbm.infer_hiddens();
+
+    boost::shared_ptr<std::vector<data_t> > outputs(new std::vector<data_t>());
+    for (size_t i = 0; i < sampleCount; ++i) {
+      data_t output(new std::vector<double>(hiddenCount));
+      thrust::copy(row(rbm.hiddens(), i).begin(), row(rbm.hiddens(), i).end(), output->begin());
+      outputs->push_back(output);
+    }
+    newState->setOutputs(outputs);
+  } else {
+    rbm.hiddens().resize(seq(sampleCount, hiddenCount));
+    for (size_t i = 0; i < sampleCount; ++i) {
+      thrust::copy(inputs[i]->begin(), inputs[i]->end(), row(rbm.hiddens(), i).begin());
+    }
+
+    rbm.infer_visibles(getOnlyFilters());
+
+    if (!getOnlyFilters())
+      rbm.diversify_visibles();
+
+    boost::shared_ptr<std::vector<data_t> > outputs(new std::vector<data_t>());
+    for (size_t i = 0; i < sampleCount; ++i) {
+      data_t output(new std::vector<double>(visibleCount));
+      thrust::copy(row(rbm.visibles(), i).begin(), row(rbm.visibles(), i).end(), output->begin());
+      outputs->push_back(output);
+    }
+    newState->setOutputs(outputs);
+  }
+#else
   Model& rbm = *getModel();
   UnitType visibleUnitType = rbm.getVisibleUnitType();
   UnitType hiddenUnitType = rbm.getHiddenUnitType();
@@ -145,6 +205,7 @@ void Encoder::update(IProgressMonitor* monitor) const {
     }
     newState->setOutputs(outputs);
   }
+#endif
 }
 
 }

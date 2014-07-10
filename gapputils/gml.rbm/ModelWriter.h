@@ -21,7 +21,7 @@ class ModelWriter : public DefaultWorkflowElement<ModelWriter> {
 
   InitReflectableClass(ModelWriter)
 
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(Filename, std::string)
   Property(OutputName, std::string)
 

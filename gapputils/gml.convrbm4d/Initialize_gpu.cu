@@ -39,25 +39,26 @@ InitializeChecker::InitializeChecker() {
 
 void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   using namespace tbblas;
+  using namespace tbblas::deeplearn;
 
-  typedef tensor_t::value_t value_t;
+  typedef host_tensor_t::value_t value_t;
 
   Logbook& dlog = getLogbook();
 
   // Calculate the mean and the std of all features
   const int filterCount = getFilterCount();
-  const int dimCount = tensor_t::dimCount;
+  const int dimCount = host_tensor_t::dimCount;
 
-  boost::shared_ptr<Model> crbm(new Model());
-  crbm->setVisibleUnitType(getVisibleUnitType());
-  crbm->setHiddenUnitType(getHiddenUnitType());
-  crbm->setConvolutionType(getConvolutionType());
+  boost::shared_ptr<model_t> crbm(new model_t());
+  crbm->set_visibles_type(getVisibleUnitType());
+  crbm->set_hiddens_type(getHiddenUnitType());
+  crbm->set_convolution_type(getConvolutionType());
 
-  std::vector<boost::shared_ptr<tensor_t> >& tensors = *getTensors();
-  tensor_t::dim_t size = tensors[0]->size(), maskSize = size;
+  v_host_tensor_t& tensors = *getTensors();
+  host_tensor_t::dim_t size = tensors[0]->size(), maskSize = size;
   maskSize[dimCount - 1] = 1;
 
-  tensor_t mask = (getMask() ? *getMask() : ones<value_t>(maskSize));
+  host_tensor_t mask = (getMask() ? *getMask() : ones<value_t>(maskSize));
   const value_t count = sum(mask) * size[dimCount - 1];
 
   if (!(mask.size() == maskSize)) {
@@ -67,7 +68,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
 
   const int totalCount = tensors.size() * 2 + filterCount;
 
-  if (getVisibleUnitType() == UnitType::Gaussian) {
+  if (getVisibleUnitType() == unit_type::Gaussian) {
 
     // Calculate the mean and normalize the data
     value_t mean = 0;
@@ -87,44 +88,43 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
     }
 
     value_t stddev = sqrt(var / tensors.size());
-    crbm->setMean(mean);
-    crbm->setStddev(stddev);
-    std::cout << mean << ", " << stddev << std::endl;
+    crbm->set_mean(mean);
+    crbm->set_stddev(stddev);
   } else {
-    crbm->setMean(0.0);
-    crbm->setStddev(1.0);
+    crbm->set_mean(0.0);
+    crbm->set_stddev(1.0);
   }
 
   // Initialize filters and bias terms
-  boost::shared_ptr<tensor_t> vb(new tensor_t(zeros<value_t>(tensors[0]->size())));
-  boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > hb(new std::vector<boost::shared_ptr<tensor_t> >());
-  boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > filters(new std::vector<boost::shared_ptr<tensor_t> >());
+  host_tensor_t vb = zeros<value_t>(tensors[0]->size());
+  v_host_tensor_t hb;
+  v_host_tensor_t filters;
 
-  tensor_t::dim_t kernelSize;
+  host_tensor_t::dim_t kernelSize;
   kernelSize[0] = getFilterWidth();
   kernelSize[1] = getFilterHeight();
   kernelSize[2] = getFilterDepth();
   kernelSize[3] = size[3];
 
-  random_tensor<value_t, Model::dimCount, false, normal<value_t> > randn(kernelSize);
-  tensor_t sample;
+  random_tensor<value_t, model_t::dimCount, false, normal<value_t> > randn(kernelSize);
+  host_tensor_t sample;
 
-  tensor_t::dim_t hiddenSize = tensors[0]->size();
-  hiddenSize[Model::dimCount - 1] = 1;
+  host_tensor_t::dim_t hiddenSize = tensors[0]->size();
+  hiddenSize[model_t::dimCount - 1] = 1;
 
   for (int i = 0; i < filterCount; ++i) {
     sample = (getWeightStddev() * randn + getWeightMean()); // / (value_t)randn.count();
-    filters->push_back(boost::make_shared<tensor_t>(sample));
-    hb->push_back(boost::make_shared<tensor_t>(zeros<value_t>(hiddenSize)));
+    filters.push_back(boost::make_shared<host_tensor_t>(sample));
+    hb.push_back(boost::make_shared<host_tensor_t>(zeros<value_t>(hiddenSize)));
     if (monitor)
       monitor->reportProgress(100.0 * (i + 2 * tensors.size()) / totalCount);
   }
 
-  crbm->setFilters(filters);
-  crbm->setHiddenBiases(hb);
-  crbm->setVisibleBias(vb);
-  crbm->setFilterKernelSize(kernelSize);
-  crbm->setMask(boost::make_shared<tensor_t>(mask));
+  crbm->set_filters(filters);
+  crbm->set_hidden_bias(hb);
+  crbm->set_visible_bias(vb);
+  crbm->set_kernel_size(kernelSize);
+  crbm->set_mask(mask);
 
   newState->setModel(crbm);
 }

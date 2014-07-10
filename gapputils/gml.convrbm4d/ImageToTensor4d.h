@@ -20,7 +20,7 @@ namespace convrbm4d {
 
 class ImageToTensor4d : public DefaultWorkflowElement<ImageToTensor4d> {
 
-  typedef Model::tensor_t tensor_t;
+  typedef model_t::host_tensor_t tensor_t;
 
   InitReflectableClass(ImageToTensor4d)
 

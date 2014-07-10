@@ -24,8 +24,8 @@ struct TrainerChecker { TrainerChecker(); };
 
 class Trainer : public DefaultWorkflowElement<Trainer> {
 
-  typedef Model::value_t value_t;
-  typedef Model::matrix_t host_matrix_t;
+  typedef model_t::value_t value_t;
+  typedef model_t::host_matrix_t host_matrix_t;
   typedef tbblas::tensor<value_t, 2, true> matrix_t;
   typedef matrix_t::dim_t dim_t;
 
@@ -51,13 +51,13 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
   Property(HiddenDropout, double)
   Property(SparsityTarget, double)
   Property(SparsityWeight, double)
-  Property(VisibleUnitType, UnitType)
-  Property(HiddenUnitType, UnitType)
+  Property(VisibleUnitType, tbblas::deeplearn::unit_type)
+  Property(HiddenUnitType, tbblas::deeplearn::unit_type)
   Property(NormalizeIndividualUnits, bool)
   Property(ShowWeights, int)
   Property(ShowEvery, int)
 
-  Property(Model, boost::shared_ptr<Model>)
+  Property(Model, boost::shared_ptr<model_t>)
 
 public:
   Trainer();
