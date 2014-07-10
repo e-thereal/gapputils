@@ -16,6 +16,9 @@
 #include <capputils/attributes/HideAttribute.h>
 #include <capputils/attributes/ParameterAttribute.h>
 #include <capputils/attributes/OperandAttribute.h>
+#include <capputils/attributes/FileExistsAttribute.h>
+#include <capputils/attributes/EmptyAttribute.h>
+#include <capputils/attributes/OrAttribute.h>
 
 #include <cstdlib>
 
@@ -78,10 +81,8 @@ BeginPropertyDefinitions(DataModel)
   DefineProperty(RemainingLabel, Volatile())
   DefineProperty(TotalLabel, Volatile())
   DefineProperty(FinishedLabel, Volatile())
-  DefineProperty(Configuration, Volatile(), Filename(),
-      Operand("configuration"),
-//      Parameter("config", "c"),
-      Description("Name of the workflow configuration file"))
+  DefineProperty(Configuration, Volatile(), Filename("*.xml"), Or(Empty<Type>(), FileExists()),
+      Operand("configuration"), Description("Name of the workflow configuration file"))
   DefineProperty(LibraryPath, Volatile(), Filename(),
       Parameter("libraries", ""),
       Description("Path where default libraries are searched. The default value is read from '" GRAPEVINE_LIBRARY_PATH "'"))
