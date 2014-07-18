@@ -28,12 +28,35 @@ CreateDbn::CreateDbn() {
 }
 
 void CreateDbn::update(IProgressMonitor* monitor) const {
+  Logbook& dlog = getLogbook();
+
   boost::shared_ptr<dbn_t> dbn(new dbn_t());
 
   if (getCrbmModels())
     dbn->set_crbms(*getCrbmModels());
   if (getRbmModels())
     dbn->set_rbms(*getRbmModels());
+
+  for (size_t i = 0; i < dbn->crbms().size() - 1; ++i) {
+    if (dbn->crbms()[i]->hiddens_count() != dbn->crbms()[i + 1]->visibles_count()) {
+      dlog(Severity::Warning) << "Number of hidden units of convRBM " << i << " not equal to number of visibles units of convRBM " << i + 1 << ". Aborting!";
+      return;
+    }
+  }
+
+  if (dbn->rbms().size() && dbn->crbms().size() &&
+      dbn->crbms()[dbn->crbms().size() - 1]->hiddens_count() != dbn->rbms()[0]->visibles_count())
+  {
+    dlog(Severity::Warning) << "Number of hidden units of convRBM " << dbn->crbms().size() - 1 << " not equal to number of visibles units of the first RBM. Aborting!";
+    return;
+  }
+
+  for (size_t i = 0; i < dbn->rbms().size() - 1; ++i) {
+    if (dbn->rbms()[i]->hiddens_count() != dbn->rbms()[i + 1]->visibles_count()) {
+      dlog(Severity::Warning) << "Number of hidden units of RBM " << i << " not equal to number of visibles units of RBM " << i + 1 << ". Aborting!";
+      return;
+    }
+  }
 
   newState->setDbnModel(dbn);
 }
