@@ -29,15 +29,16 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
   typedef tbblas::tensor<value_t, 2, true> matrix_t;
   typedef matrix_t::dim_t dim_t;
 
-  typedef boost::shared_ptr<std::vector<double> > data_t;
+  typedef std::vector<double> data_t;
+  typedef std::vector<boost::shared_ptr<data_t> > v_data_t;
 
   friend class TrainerChecker;
 
   InitReflectableClass(Trainer)
 
-  Property(TrainingSet, boost::shared_ptr<std::vector<data_t> >)
+  Property(TrainingSet, boost::shared_ptr<v_data_t>)
   Property(DbmLayer, DbmLayer)
-  Property(Mask, data_t)
+  Property(Mask, boost::shared_ptr<data_t>)
   Property(AutoCreateMask, bool)
   Property(HiddenCount, int)
   Property(SampleHiddens, bool)

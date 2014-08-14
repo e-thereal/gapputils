@@ -20,13 +20,19 @@ namespace core {
 
 class MakeImage : public DefaultWorkflowElement<MakeImage> {
 
+  typedef std::vector<double> data_t;
+  typedef std::vector<boost::shared_ptr<data_t> > v_data_t;
+  typedef std::vector<boost::shared_ptr<image_t> > v_image_t;
+
   InitReflectableClass(MakeImage)
 
-  Property(Data, boost::shared_ptr<std::vector<double> >)
+  Property(Data, boost::shared_ptr<data_t>)
+  Property(Datas, boost::shared_ptr<v_data_t>)
   Property(Width, int)
   Property(Height, int)
   Property(Depth, int)
   Property(Image, boost::shared_ptr<image_t>)
+  Property(Images, boost::shared_ptr<v_image_t>)
 
 public:
   MakeImage();

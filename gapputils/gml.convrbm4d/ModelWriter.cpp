@@ -9,7 +9,7 @@
 
 #include <capputils/attributes/DummyAttribute.h>
 #include <capputils/EventHandler.h>
-#include <capputils/Serializer.h>
+//#include <capputils/Serializer.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>

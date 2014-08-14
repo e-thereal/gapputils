@@ -49,16 +49,16 @@ void Pooling::update(IProgressMonitor* monitor) const {
   dim_t inSize = inputs[0]->size(), inBlock, outBlock;
 
   if (getDirection() == CodingDirection::Encode) {
-    inBlock = dim_t(getBlockSize());
+    inBlock = seq<dimCount>(getBlockSize());
     inBlock[dimCount - 1] = 1;
 
-    outBlock = dim_t(1);
+    outBlock = seq<dimCount>(1);
     outBlock[dimCount - 1] = count(inBlock);
   } else {
-    outBlock = dim_t(getBlockSize());
+    outBlock = seq<dimCount>(getBlockSize());
     outBlock[dimCount - 1] = 1;
 
-    inBlock = dim_t(1);
+    inBlock = seq<dimCount>(1);
     inBlock[dimCount - 1] = count(outBlock);
   }
 

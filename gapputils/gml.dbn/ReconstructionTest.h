@@ -11,11 +11,15 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
+#include <capputils/Enumerators.h>
+
 #include "Model.h"
 
 namespace gml {
 
 namespace dbn {
+
+CapputilsEnumerator(TestType, Reconstruct, CalculateMSE, CalculateRMSE, CalculateRRMSE);
 
 struct ReconstructionTestChecker { ReconstructionTestChecker(); };
 
@@ -30,8 +34,12 @@ class ReconstructionTest : public DefaultWorkflowElement<ReconstructionTest> {
 
   Property(Model, boost::shared_ptr<dbn_t>)
   Property(Dataset, boost::shared_ptr<v_host_tensor_t>)
-  Property(Reconstructions, boost::shared_ptr<v_host_tensor_t>)
+  Property(Type, TestType)
   Property(MaxLayer, int)
+  Property(GpuCount, int)
+  Property(FilterBatchLength, std::vector<int>)
+  Property(Reconstructions, boost::shared_ptr<v_host_tensor_t>)
+  Property(ReconstructionError, double)
 
 public:
   ReconstructionTest();

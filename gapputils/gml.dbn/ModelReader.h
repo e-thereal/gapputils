@@ -25,6 +25,7 @@ class ModelReader : public DefaultWorkflowElement<ModelReader> {
   Property(Model, boost::shared_ptr<dbn_t>)
   Property(ConvolutionalLayers, int)
   Property(DenseLayers, int)
+  Property(FilterCounts, std::vector<int>)
 
 public:
   ModelReader();

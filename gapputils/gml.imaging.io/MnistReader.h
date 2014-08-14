@@ -26,9 +26,12 @@ class MnistReader : public DefaultWorkflowElement<MnistReader> {
   Property(LabelFile, std::string)
   Property(MaxImageCount, int)
   Property(SelectedDigits, std::vector<int>)
-  Property(MakeBinary, int)
+  Property(MakeBinary, bool)
   Property(Images, boost::shared_ptr<std::vector<boost::shared_ptr<image_t> > >)
   Property(Labels, boost::shared_ptr<std::vector<double> >)
+  Property(ImageCount, int)
+  Property(Width, int)
+  Property(Height, int)
 
 public:
   MnistReader();

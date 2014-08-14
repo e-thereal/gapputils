@@ -18,9 +18,6 @@
 #include <tbblas/dot.hpp>
 #include <tbblas/repeat.hpp>
 #include <tbblas/io.hpp>
-#include <tbblas/mask.hpp>
-#include <tbblas/fft.hpp>
-#include <tbblas/shift.hpp>
 
 #include <boost/timer.hpp>
 
@@ -90,18 +87,11 @@ TrainerChecker::TrainerChecker() {
 
 void Trainer::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
-  using namespace tbblas::deeplearn;
-  using namespace thrust::placeholders;
 
   typedef float value_t;
-
+//
   const unsigned dimCount = model_t::dimCount;
-  typedef complex<value_t> complex_t;
-  typedef fft_plan<dimCount> plan_t;
   typedef tensor<value_t, dimCount, true> tensor_t;
-  typedef tensor<complex_t, dimCount, true> ctensor_t;
-  typedef tensor<complex_t, dimCount, false> host_ctensor_t;
-  typedef tensor_t::dim_t dim_t;
 
   Logbook& dlog = getLogbook();
   dlog.setSeverity(Severity::Message);
@@ -139,7 +129,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
   model->set_shared_bias(getShareBiasTerms());
 
-  conv_rbm<float, 4> crbm(*model, getGpuCount());
+  tbblas::deeplearn::conv_rbm<float, 4> crbm(*model, getGpuCount());
   crbm.set_batch_length(getFilterBatchSize());
   crbm.set_sparsity_method(getSparsityMethod());
   crbm.set_sparsity_target(getSparsityTarget());
@@ -150,12 +140,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
   size_t voxelCount = sum(model->mask()) * X[0]->size()[dimCount - 1];
 
   // Initialize constants
-  value_t epsilonw =  getLearningRate() / batchSize / voxelCount; // Learning rate for weights
-  value_t epsilonsw = getLearningRate() * getSparsityWeight() / batchSize / voxelCount; // Sparsity weight
-  value_t epsilonvb = getLearningRate() / batchSize / X[0]->size()[dimCount - 1];                  // Learning rate for biases of visible units
-  value_t epsilonhb = getLearningRate() / batchSize / X[0]->size()[dimCount - 1];                  // Learning rate for biases of hidden units
-  value_t epsilonsb = getLearningRate() * getSparsityWeight() / batchSize / X[0]->size()[dimCount - 1];                  // Sparsity weight
-  value_t weightcost = getWeightDecay() * getLearningRate() / X[0]->size()[dimCount - 1];
+  value_t epsilonw =  getLearningRate() / batchSize;  // Learning rate for weights
+  value_t epsilonvb = getLearningRate() / batchSize;  // Learning rate for biases of visible units
+  value_t epsilonhb = getLearningRate() / batchSize;  // Learning rate for biases of hidden units
+  value_t weightcost = getWeightDecay() * getLearningRate();
   value_t initialmomentum = getInitialMomentum();
   value_t finalmomentum = getFinalMomentum();
   value_t momentum;

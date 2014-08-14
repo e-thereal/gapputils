@@ -22,6 +22,7 @@ class OneOfN : public DefaultWorkflowElement<OneOfN> {
 
   InitReflectableClass(OneOfN)
 
+  Property(Input, boost::shared_ptr<data_t>)
   Property(Inputs, boost::shared_ptr<v_data_t>)
   Property(LevelCount, int)
   Property(Outputs, boost::shared_ptr<v_data_t>)
