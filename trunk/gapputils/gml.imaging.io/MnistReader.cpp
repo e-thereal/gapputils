@@ -29,13 +29,16 @@ BeginPropertyDefinitions(MnistReader)
   WorkflowProperty(LabelFile, Input("L"), Filename(), FileExists())
   WorkflowProperty(MaxImageCount)
   WorkflowProperty(SelectedDigits)
-  WorkflowProperty(MakeBinary)
+  WorkflowProperty(MakeBinary, Flag())
   WorkflowProperty(Images, Output("I"))
   WorkflowProperty(Labels, Output("L"))
+  WorkflowProperty(ImageCount, NoParameter())
+  WorkflowProperty(Width, NoParameter())
+  WorkflowProperty(Height, NoParameter())
 
 EndPropertyDefinitions
 
-MnistReader::MnistReader() : _MaxImageCount(-1), _SelectedDigits(10) {
+MnistReader::MnistReader() : _MaxImageCount(-1), _SelectedDigits(10), _ImageCount(0), _Width(0), _Height(0) {
   setLabel("Mnist");
 
   for (int i = 0; i < 10; ++i)
@@ -112,9 +115,6 @@ void MnistReader::update(IProgressMonitor* /*monitor*/) const {
       continue;
     }
 
-//    if (labels)
-//      dlog(Severity::Message) << "Adding image with label " << (int)labels->at(i);
-
     boost::shared_ptr<image_t> image(new image_t(columnCount, rowCount, 1));
     std::copy(bytes.begin(), bytes.end(), image->begin());
 
@@ -135,6 +135,10 @@ void MnistReader::update(IProgressMonitor* /*monitor*/) const {
   fclose(file);
 
   newState->setImages(images);
+  newState->setImageCount(images->size());
+  newState->setWidth(columnCount);
+  newState->setHeight(rowCount);
+
   if (labels) {
     newState->setLabels(usedLabels);
   }

@@ -76,7 +76,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
   dlog(Severity::Message) << "Building RBM with " << getHiddenUnitType() << " hidden units.";
 
-  std::vector<data_t>& data = *getTrainingSet();
+  v_data_t& data = *getTrainingSet();
 
   // Calculate the mean and the std of all features
   const size_t visibleCount = data[0]->size();
@@ -178,16 +178,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   float finalmomentum = 0.9f;
   float momentum;
 
-//  matrix_t batch(batchSize, visibleCount), poshidprobs, poshidx, poshidstates, posprods,
-//      negdata, neghidprobs, negprods,
-//      posvisact, poshidact, negvisact, neghidact,
-//      posdiffprobs, possparsityact, possparsityprod,
-//      hiddrop;
-//
-//  matrix_t dW = zeros<value_t>(W.size());
-//  matrix_t db = zeros<value_t>(b.size());
-//  matrix_t dc = zeros<value_t>(c.size());
-
   const int epochCount = getEpochCount();
 
   // TODO: implement debug weights
@@ -204,6 +194,12 @@ void Trainer::update(IProgressMonitor* monitor) const {
   for (int iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
 
     float error = 0;
+
+    if (iEpoch < 10)
+      momentum = initialmomentum;
+    else
+      momentum = finalmomentum;
+
     for (int iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
       /*** START POSITIVE PHASE ***/
@@ -214,146 +210,19 @@ void Trainer::update(IProgressMonitor* monitor) const {
       rbm.init_gradient_updates(momentum, weightcost);
 
       rbm.infer_hiddens();
-
-      // Calculate p(h | X, W) = sigm(XW + C)
-//      poshidx = prod(batch, W);
-//      if (getDbmLayer() == DbmLayer::VisibleLayer)
-//        poshidx = 2.0 * poshidx + repeat(c, poshidx.size() / c.size());
-//      else
-//        poshidx = poshidx + repeat(c, poshidx.size() / c.size());
-//
-//      switch(hiddenUnitType) {
-//        case UnitType::Bernoulli: poshidprobs = sigm(poshidx);    break;
-//        case UnitType::ReLU:      poshidprobs = max(0, poshidx);  break;
-//        case UnitType::MyReLU:    poshidprobs = nrelu_mean(poshidx); break;
-//        case UnitType::ReLU1:     poshidprobs = min(1.0, max(0.0, poshidx));  break;
-//        case UnitType::ReLU2:     poshidprobs = min(2.0, max(0.0, poshidx));  break;
-//        case UnitType::ReLU4:     poshidprobs = min(4.0, max(0.0, poshidx));  break;
-//        case UnitType::ReLU8:     poshidprobs = min(8.0, max(0.0, poshidx));  break;
-//        default:
-//          dlog(Severity::Error) << "Hidden unit type '" << hiddenUnitType << "' has not yet been implemented.";
-//      }
-//      poshidprobs = poshidprobs * hiddrop / (1. - getHiddenDropout());
-
-//      // (x_n)(mu_n)'
-//      posprods = tbblas::prod(trans(batch), poshidprobs);
-//
-//      // Calculate the total activation of the hidden and visible units
-//      poshidact = sum(poshidprobs, 0);
-//      posvisact = sum(batch, 0);
-//
-//      if (sparsityWeight != 0) {
-//        posdiffprobs = poshidprobs - sparsityTarget;
-//        possparsityact = sum(posdiffprobs, 0);
-//        possparsityprod = prod(trans(batch), posdiffprobs);
-//      }
-
       rbm.update_positive_gradient(epsilonw, epsilonvb, epsilonhb);
 
       /*** END OF POSITIVE PHASE ***/
 
       rbm.sample_hiddens();
-
-//      // Sample the hidden states
-//      if (getSampleHiddens()) {
-//        switch(hiddenUnitType) {
-//          case UnitType::Bernoulli: poshidstates = sigm(poshidx) > hidrand; break;
-//          case UnitType::MyReLU:
-//          case UnitType::ReLU:      poshidstates = max(0.0, poshidx + sqrt(sigm(poshidx)) * hidnoise); break;
-//          case UnitType::ReLU1:     poshidstates = min(1.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 1.0) * hidnoise)); break;
-//          case UnitType::ReLU2:     poshidstates = min(2.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 2.0) * hidnoise)); break;
-//          case UnitType::ReLU4:     poshidstates = min(4.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 4.0) * hidnoise)); break;
-//          case UnitType::ReLU8:     poshidstates = min(8.0, max(0.0, poshidx + (poshidx > 0) * (poshidx < 8.0) * hidnoise)); break;
-//          default:
-//            dlog(Severity::Error) << "Hidden unit type '" << hiddenUnitType << "' has not yet been implemented.";
-//        }
-//        poshidprobs = poshidprobs * hiddrop / (1. - getHiddenDropout());
-//      } else {
-//        poshidstates = poshidprobs;
-//      }
-
-      /*** START NEGATIVE PHASE ***/
-
-      // Calculate p(x | H, W) = sigm(HW' + B) (bernoulli case)
-//      negdata = prod(poshidstates, trans(W));
-//      if (getDbmLayer() == DbmLayer::TopLayer)
-//        negdata = 2.0 * negdata + repeat(b, negdata.size() / b.size());
-//      else
-//        negdata = negdata + repeat(b, negdata.size() / b.size());
-//
-//      switch (visibleUnitType) {
-//        case UnitType::Gaussian:  break;
-//        case UnitType::Bernoulli: negdata = sigm(negdata) > visrand;    break;
-//        case UnitType::MyReLU:
-//        case UnitType::ReLU:      negdata = max(0.0, negdata + sqrt(sigm(negdata)) * visnoise); break;
-//        case UnitType::ReLU1:     negdata = min(1.0, max(0.0, negdata + (negdata > 0) * (negdata < 1.0) * visnoise)); break;
-//        case UnitType::ReLU2:     negdata = min(2.0, max(0.0, negdata + (negdata > 0) * (negdata < 2.0) * visnoise)); break;
-//        case UnitType::ReLU4:     negdata = min(4.0, max(0.0, negdata + (negdata > 0) * (negdata < 4.0) * visnoise)); break;
-//        case UnitType::ReLU8:     negdata = min(8.0, max(0.0, negdata + (negdata > 0) * (negdata < 8.0) * visnoise)); break;
-////        case UnitType::Bernoulli: negdata = sigm(negdata);    break;
-////        case UnitType::ReLU:      negdata = max(0, negdata);  break;
-////        case UnitType::MyReLU:    negdata = nrelu_mean(negdata); break;
-////        case UnitType::ReLU1:     negdata = min(1.0, max(0.0, negdata));  break;
-////        case UnitType::ReLU2:     negdata = min(2.0, max(0.0, negdata));  break;
-////        case UnitType::ReLU4:     negdata = min(4.0, max(0.0, negdata));  break;
-////        case UnitType::ReLU8:     negdata = min(8.0, max(0.0, negdata));  break;
-//        default:
-//          dlog(Severity::Error) << "Visible unit type '" << visibleUnitType << "' has not yet been implemented.";
-//      }
-//      negdata = negdata * repeat(mask, negdata.size() / mask.size());
       rbm.sample_visibles();
-
-      // Calculate p(h | Xneg, W) = sigm(XnegW + C)
-//      neghidprobs = prod(negdata, W);
-//      if (getDbmLayer() == DbmLayer::VisibleLayer)
-//        neghidprobs = 2.0 * neghidprobs + repeat(c, neghidprobs.size() / c.size());
-//      else
-//        neghidprobs = neghidprobs + repeat(c, neghidprobs.size() / c.size());
-//
-//      switch(hiddenUnitType) {
-//        case UnitType::Bernoulli: neghidprobs = sigm(neghidprobs);    break;
-//        case UnitType::ReLU:      neghidprobs = max(0, neghidprobs);  break;
-//        case UnitType::MyReLU:    neghidprobs = nrelu_mean(neghidprobs); break;
-//        case UnitType::ReLU1:     neghidprobs = min(1.0, max(0.0, neghidprobs));  break;
-//        case UnitType::ReLU2:     neghidprobs = min(2.0, max(0.0, neghidprobs));  break;
-//        case UnitType::ReLU4:     neghidprobs = min(4.0, max(0.0, neghidprobs));  break;
-//        case UnitType::ReLU8:     neghidprobs = min(8.0, max(0.0, neghidprobs));  break;
-//        default:
-//          dlog(Severity::Error) << "Hidden unit type '" << hiddenUnitType << "' has not yet been implemented.";
-//      }
-//      neghidprobs = neghidprobs * hiddrop / (1. - getHiddenDropout());
-
       rbm.infer_hiddens();
-
-      // (xneg)(mu_neg)'
-//      negprods = prod(trans(negdata), neghidprobs);
-//
-//      // Calculate the total activation of the visible and hidden units (reconstruction)
-//      neghidact = sum(neghidprobs, 0);
-//      negvisact = sum(negdata, 0);
-
       rbm.update_negative_gradient(epsilonw, epsilonvb, epsilonhb);
 
       /*** END OF NEGATIVE PHASE ***/
 
       error += sqrt(dot(rbm.visibles() - X[seq(iBatch * batchSize, 0), rbm.visibles().size()], rbm.visibles() - X[seq(iBatch * batchSize, 0), rbm.visibles().size()]) / rbm.visibles().count());
       momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
-
-      /*** UPDATE WEIGHTS AND BIASES ***/
-
-//      if (sparsityWeight != 0) {
-//        dW = momentum * dW + epsilonw * ((posprods - negprods + sparsityWeight * possparsityprod) / batchSize - weightcost * W);
-//        db = momentum * db + (epsilonvb / batchSize) * (posvisact - negvisact);
-//        dc = momentum * dc + (epsilonhb / batchSize) * (poshidact - neghidact + sparsityWeight * possparsityact);
-//      } else {
-//        dW = momentum * dW + epsilonw * ((posprods - negprods) / batchSize - weightcost * W);
-//        db = momentum * db + (epsilonvb / batchSize) * (posvisact - negvisact);
-//        dc = momentum * dc + (epsilonhb / batchSize) * (poshidact - neghidact);
-//      }
-//
-//      W = W + dW;
-//      b = b + db;
-//      c = c + dc;
 
       rbm.apply_gradient();
 

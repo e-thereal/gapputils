@@ -27,6 +27,7 @@ BeginPropertyDefinitions(ModelReader)
   WorkflowProperty(Model, Output("DBN"))
   WorkflowProperty(ConvolutionalLayers, NoParameter())
   WorkflowProperty(DenseLayers, NoParameter())
+  WorkflowProperty(FilterCounts, NoParameter())
 
 EndPropertyDefinitions
 
@@ -53,6 +54,11 @@ void ModelReader::update(IProgressMonitor* monitor) const {
   newState->setModel(model);
   newState->setConvolutionalLayers(model->crbms().size());
   newState->setDenseLayers(model->rbms().size());
+
+  std::vector<int> filterCounts(model->crbms().size());
+  for (size_t i = 0; i < filterCounts.size(); ++i)
+    filterCounts[i] = model->crbms()[i]->filters().size();
+  newState->setFilterCounts(filterCounts);
 }
 
 } /* namespace dbn */
