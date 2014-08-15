@@ -337,11 +337,15 @@ void WorkflowUpdater::updateNodes() {
           boost::shared_ptr<interfaces::SubWorkflow> subworkflow = boost::dynamic_pointer_cast<interfaces::SubWorkflow>(currentNode->getWorkflow().lock()->getModule());
           if (subworkflow)
             element->setAtomicWorkflow(subworkflow->getAtomic());
+#if defined(_DEBUG)
+          element->execute(this);
+#else
           try {
             element->execute(this);
           } catch (std::exception& ex) {
             dlog(capputils::Severity::Error) << "Exception thrown during module update: " << ex.what();
           }
+#endif
         }
       }
     }
