@@ -114,21 +114,44 @@ void TensorViewerWidget::updateView() {
 
   if (tensors.size() && tensors[viewer->getCurrentTensor()]->size()[2]) {
     tensor_t& tensor = *tensors[viewer->getCurrentTensor()];
-    QGraphicsScene* scene = new QGraphicsScene();
-    scene->setSceneRect(0, 0, tensor.size()[0], tensor.size()[1]);
-    scene->addRect(0, 0, tensor.size()[0], tensor.size()[1]);
-
     const int width = tensor.size()[0];
     const int height = tensor.size()[1];
 
-    float w = 0.05, h = 0.05;
+    QGraphicsScene* scene = new QGraphicsScene();
 
-    for (int i = 0, y = 0; y < height; ++y) {
-      for (int x = 0; x < width; ++x, ++i) {
-        float dx = (tensor[seq(x,y,viewer->getCurrentSlice(),0)] - viewer->getMinimumLength()) / (viewer->getMaximumLength() - viewer->getMinimumLength()) * viewer->getVisibleLength();
-        float dy = (tensor[seq(x,y,viewer->getCurrentSlice(),1)] - viewer->getMinimumLength()) / (viewer->getMaximumLength() - viewer->getMinimumLength()) * viewer->getVisibleLength();
-        scene->addLine(x + 0.5, y + 0.5, x + dx + 0.5, y + dy + 0.5, QPen(Qt::red));
-        scene->addEllipse(x - w + 0.5, y - h + 0.5, 2 * w, 2 * h, QPen(Qt::red), QBrush(Qt::red));
+    if (viewer->getGridResolution().size() == 2) {
+
+      const int xCount = viewer->getGridResolution()[0];
+      const int yCount = viewer->getGridResolution()[1];
+
+      scene->setSceneRect(0, 0, width, height);
+      scene->addRect(0, 0, width, height);
+
+      float w = 0.05, h = 0.05;
+
+      for (int iy = 0; iy < yCount; ++iy) {
+        for (int ix = 0; ix < xCount; ++ix) {
+          const int x = ix * width / xCount;
+          const int y = iy * height / yCount;
+          float dx = (tensor[seq(x,y,viewer->getCurrentSlice(),0)] - viewer->getMinimumLength()) / (viewer->getMaximumLength() - viewer->getMinimumLength()) * viewer->getVisibleLength();
+          float dy = (tensor[seq(x,y,viewer->getCurrentSlice(),1)] - viewer->getMinimumLength()) / (viewer->getMaximumLength() - viewer->getMinimumLength()) * viewer->getVisibleLength();
+          scene->addLine(x + 0.5, y + 0.5, x + dx + 0.5, y + dy + 0.5, QPen(Qt::red));
+          scene->addEllipse(x - w + 0.5, y - h + 0.5, 2 * w, 2 * h, QPen(Qt::red), QBrush(Qt::red));
+        }
+      }
+    } else {
+      scene->setSceneRect(0, 0, tensor.size()[0], tensor.size()[1]);
+      scene->addRect(0, 0, tensor.size()[0], tensor.size()[1]);
+
+      float w = 0.05, h = 0.05;
+
+      for (int i = 0, y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x, ++i) {
+          float dx = (tensor[seq(x,y,viewer->getCurrentSlice(),0)] - viewer->getMinimumLength()) / (viewer->getMaximumLength() - viewer->getMinimumLength()) * viewer->getVisibleLength();
+          float dy = (tensor[seq(x,y,viewer->getCurrentSlice(),1)] - viewer->getMinimumLength()) / (viewer->getMaximumLength() - viewer->getMinimumLength()) * viewer->getVisibleLength();
+          scene->addLine(x + 0.5, y + 0.5, x + dx + 0.5, y + dy + 0.5, QPen(Qt::red));
+          scene->addEllipse(x - w + 0.5, y - h + 0.5, 2 * w, 2 * h, QPen(Qt::red), QBrush(Qt::red));
+        }
       }
     }
     QGraphicsScene* oldScene = this->scene();
@@ -315,7 +338,7 @@ void TensorViewerWidget::changedHandler(capputils::ObservableClass* /*sender*/, 
     }
   }
 
-  if (eventId == TensorViewer::labelId || eventId == TensorViewer::minimumLengthId || eventId == TensorViewer::maximumLengthId) {
+  if (eventId == TensorViewer::labelId || eventId == TensorViewer::minimumLengthId || eventId == TensorViewer::maximumLengthId || eventId == TensorViewer::resolutionId) {
     updateView();
   }
 

@@ -22,6 +22,7 @@ int TensorViewer::currentTensorId;
 int TensorViewer::currentSliceId;
 int TensorViewer::minimumLengthId;
 int TensorViewer::maximumLengthId;
+int TensorViewer::resolutionId;
 
 BeginPropertyDefinitions(TensorViewer)
 
@@ -35,6 +36,7 @@ BeginPropertyDefinitions(TensorViewer)
   WorkflowProperty(MinimumLength, Dummy(minimumLengthId = Id))
   WorkflowProperty(MaximumLength, Dummy(maximumLengthId = Id))
   WorkflowProperty(VisibleLength)
+  WorkflowProperty(GridResolution, Dummy(resolutionId = Id))
 
 EndPropertyDefinitions
 

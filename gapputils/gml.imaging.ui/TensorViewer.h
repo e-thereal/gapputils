@@ -41,9 +41,10 @@ class TensorViewer : public DefaultWorkflowElement<TensorViewer> {
   Property(MinimumLength, double)
   Property(MaximumLength, double)
   Property(VisibleLength, double)
+  Property(GridResolution, std::vector<int>)
 
 public:
-  static int tensorId, tensorsId, backgroundId, currentTensorId, currentSliceId, minimumLengthId, maximumLengthId;
+  static int tensorId, tensorsId, backgroundId, currentTensorId, currentSliceId, minimumLengthId, maximumLengthId, resolutionId;
 
 private:
   boost::shared_ptr<TensorViewerDialog> dialog;
