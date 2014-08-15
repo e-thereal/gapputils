@@ -20,10 +20,16 @@ class NormalizeContrast : public DefaultWorkflowElement<NormalizeContrast> {
   InitReflectableClass(NormalizeContrast)
 
   Property(InputImage, boost::shared_ptr<image_t>)
+  Property(IntensityWindow, std::vector<double>)
   Property(OutputImage, boost::shared_ptr<image_t>)
+
+private:
+  static int intensityId;
 
 public:
   NormalizeContrast();
+
+  void changedHandler(ObservableClass* sender, int eventId);
 
 protected:
   void update(IProgressMonitor* monitor) const;

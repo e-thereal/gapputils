@@ -70,6 +70,11 @@ void ImageCombiner::update(IProgressMonitor* monitor) const {
     for (int i = 0; i < count; ++i)
       buffer[i] = buffer1[i] / buffer2[i];
     break;
+
+  case CombinerMode::RobustDivide:
+    for (int i = 0; i < count; ++i)
+      buffer[i] = buffer1[i] / (buffer2[i] + 1e-8);
+    break;
   }
 
   newState->setOutputImage(output);
