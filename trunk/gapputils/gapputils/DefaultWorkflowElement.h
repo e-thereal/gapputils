@@ -13,17 +13,22 @@
 #include <capputils/Logbook.h>
 #include <capputils/Verifier.h>
 
+#include <gapputils/attributes/ReadOnlyAttribute.h>
+#include <capputils/attributes/ObserveAttribute.h>
+#include <capputils/attributes/NoParameterAttribute.h>
+#include <capputils/attributes/VolatileAttribute.h>
+#include <gapputils/attributes/LabelAttribute.h>
+
+#include <boost/make_shared.hpp>
+
+#ifndef __CUDACC__
+
 #include <capputils/attributes/DescriptionAttribute.h>
 #include <capputils/attributes/DummyAttribute.h>
 #include <capputils/attributes/NotNullAttribute.h>
 #include <capputils/attributes/NotEmptyAttribute.h>
 #include <capputils/attributes/NotEqualAttribute.h>
 #include <capputils/attributes/EnumeratorAttribute.h>
-#include <capputils/attributes/VolatileAttribute.h>
-#include <gapputils/attributes/ReadOnlyAttribute.h>
-#include <capputils/attributes/ObserveAttribute.h>
-#include <capputils/attributes/NoParameterAttribute.h>
-#include <gapputils/attributes/LabelAttribute.h>
 #include <capputils/attributes/InputAttribute.h>
 #include <capputils/attributes/OutputAttribute.h>
 #include <capputils/attributes/FilenameAttribute.h>
@@ -33,6 +38,8 @@
 #include <capputils/attributes/EnumerableAttribute.h>
 #include <capputils/attributes/FromEnumerableAttribute.h>
 #include <capputils/attributes/ToEnumerableAttribute.h>
+
+#endif
 
 namespace gapputils {
 
