@@ -90,9 +90,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
   model->set_hiddens_type(hiddenUnitType);
 
   matrix_t X(sampleCount, visibleCount);
+  host_matrix_t h_X(sampleCount, visibleCount);
   for (size_t i = 0; i < sampleCount; ++i) {
-    thrust::copy(data[i]->begin(), data[i]->end(), row(X, i).begin());
+    thrust::copy(data[i]->begin(), data[i]->end(), row(h_X, i).begin());
   }
+  X = h_X;
 
   matrix_t mask(1, visibleCount);
   if (getMask()) {
@@ -139,7 +141,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     model->set_stddev(visibleStds);
   }
 
-  {
+  if (getShuffleTrainingSet()){
     matrix_t trow;
     for (unsigned i = X.size()[0] - 1; i > 0; --i) {
       unsigned j = rand() % (i + 1);

@@ -9,7 +9,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gml.convrbm4d"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gml.convrbm4d/Debug2"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gml.convrbm4d"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gml.convrbm4d" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -121,7 +121,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gml.convrbm4d"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gml.convrbm4d/Release"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gml.convrbm4d"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gml.convrbm4d" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -191,7 +191,6 @@
 									<listOptionValue builtIn="false" value="cuda"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_filesystem"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_iostreams"/>
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="convnet"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="cublas"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="blas"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_thread"/>

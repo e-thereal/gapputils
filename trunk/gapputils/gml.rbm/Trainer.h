@@ -55,6 +55,7 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
   Property(VisibleUnitType, tbblas::deeplearn::unit_type)
   Property(HiddenUnitType, tbblas::deeplearn::unit_type)
   Property(NormalizeIndividualUnits, bool)
+  Property(ShuffleTrainingSet, bool)
   Property(ShowWeights, int)
   Property(ShowEvery, int)
 

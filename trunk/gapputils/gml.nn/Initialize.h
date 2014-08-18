@@ -26,10 +26,12 @@ class Initialize : public DefaultWorkflowElement<Initialize> {
 
   Property(TrainingSet, boost::shared_ptr<v_data_t>)
   Property(Labels, boost::shared_ptr<v_data_t>)
+  Property(HiddenUnitCounts, std::vector<int>)
   Property(InitialWeights, double)
-  Property(ActivationFunction, tbblas::deeplearn::activation_function)
+  Property(HiddenActivationFunction, tbblas::deeplearn::activation_function)
+  Property(OutputActivationFunction, tbblas::deeplearn::activation_function)
   Property(NormalizeInputs, bool)
-  Property(Model, boost::shared_ptr<nn_layer_t>)
+  Property(Model, boost::shared_ptr<model_t>)
 
 public:
   Initialize();

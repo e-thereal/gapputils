@@ -28,7 +28,7 @@ class Train : public DefaultWorkflowElement<Train> {
 
   InitReflectableClass(Train)
 
-  Property(InitialModel, boost::shared_ptr<nn_layer_t>)
+  Property(InitialModel, boost::shared_ptr<model_t>)
   Property(TrainingSet, boost::shared_ptr<v_data_t>)
   Property(Labels, boost::shared_ptr<v_data_t>)
   Property(EpochCount, int)
@@ -36,7 +36,8 @@ class Train : public DefaultWorkflowElement<Train> {
 
   Property(LearningRate, double)
   Property(WeightCosts, double)
-  Property(Model, boost::shared_ptr<nn_layer_t>)
+  Property(ShuffleTrainingSet, bool)
+  Property(Model, boost::shared_ptr<model_t>)
 
 public:
   Train();

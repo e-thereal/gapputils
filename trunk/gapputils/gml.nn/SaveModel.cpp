@@ -7,7 +7,7 @@
 
 #include "SaveModel.h"
 
-#include <tbblas/deeplearn/serialize_nn_layer.hpp>
+#include <tbblas/deeplearn/serialize_nn.hpp>
 
 namespace gml {
 

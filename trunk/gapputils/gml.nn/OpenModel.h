@@ -22,10 +22,13 @@ class OpenModel : public DefaultWorkflowElement<OpenModel> {
   InitReflectableClass(OpenModel)
 
   Property(Filename, std::string)
-  Property(Model, boost::shared_ptr<nn_layer_t>)
-  Property(VisibleCount, int)
-  Property(HiddenCount, int)
-  Property(ActivationFunction, tbblas::deeplearn::activation_function)
+  Property(Model, boost::shared_ptr<model_t>)
+  Property(InputCount, int)
+  Property(HiddenCounts, std::vector<int>)
+  Property(OutputCount, int)
+  Property(LayerCount, int)
+  Property(HiddenActivationFunction, tbblas::deeplearn::activation_function)
+  Property(OutputActivationFunction, tbblas::deeplearn::activation_function)
 
 public:
   OpenModel();

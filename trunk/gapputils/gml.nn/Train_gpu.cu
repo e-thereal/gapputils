@@ -7,7 +7,7 @@
 
 #include "Train.h"
 
-#include <tbblas/deeplearn/nn_layer.hpp>
+#include <tbblas/deeplearn/nn.hpp>
 #include <tbblas/io.hpp>
 #include <tbblas/sum.hpp>
 #include <tbblas/dot.hpp>
@@ -27,43 +27,54 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(LearningRate, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
+  CHECK_MEMORY_LAYOUT2(ShuffleTrainingSet, test);
 }
 
 void Train::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
   Logbook& dlog = getLogbook();
-  dlog.setSeverity(Severity::Trace);
+  dlog.setSeverity(Severity::Message);
 
-  typedef nn_layer_t::value_t value_t;
+  typedef model_t::value_t value_t;
   typedef tbblas::tensor<value_t, 2, true> matrix_t;
+  typedef tbblas::tensor<value_t, 2> host_matrix_t;
 
   if (getTrainingSet()->size() != getLabels()->size()) {
     dlog(Severity::Warning) << "The sizes of the training and label set don't match. Aborting!";
     return;
   }
 
-  boost::shared_ptr<nn_layer_t> model(new nn_layer_t(*getInitialModel()));
+  boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
 
-  tbblas::deeplearn::nn_layer<value_t> nn_layer(*model);
-  nn_layer.visibles().resize(seq((int)getBatchSize(), (int)model->visibles_count()));
-  nn_layer.hiddens().resize(seq((int)getBatchSize(), (int)model->hiddens_count()));
+  tbblas::deeplearn::nn<value_t> nn(*model);
+  nn.visibles().resize(seq((int)getBatchSize(), (int)model->visibles_count()));
 
   // Prepare data
   v_data_t& data = *getTrainingSet();
   v_data_t& labels = *getLabels();
   matrix_t X(data.size(), model->visibles_count());
   matrix_t Y(data.size(), model->hiddens_count());
-  matrix_t yBatch(getBatchSize(), model->visibles_count());
+  matrix_t yBatch(getBatchSize(), model->hiddens_count());
 
   matrix_t res;
 
+  host_matrix_t h_X(data.size(), model->visibles_count());
+  host_matrix_t h_Y(data.size(), model->hiddens_count());
+
   for (size_t i = 0; i < data.size(); ++i) {
-    thrust::copy(data[i]->begin(), data[i]->end(), row(X, i).begin());
-    thrust::copy(labels[i]->begin(), labels[i]->end(), row(Y, i).begin());
+    thrust::copy(data[i]->begin(), data[i]->end(), row(h_X, i).begin());
+    thrust::copy(labels[i]->begin(), labels[i]->end(), row(h_Y, i).begin());
   }
 
-  {
+  dlog() << "Data copied to the CPU.";
+
+  X = h_X;
+  Y = h_Y;
+
+  dlog() << "Data copied to the GPU.";
+
+  if (getShuffleTrainingSet()) {
     matrix_t trow, lrow;
     for (unsigned i = X.size()[0] - 1; i > 0; --i) {
       unsigned j = rand() % (i + 1);
@@ -88,7 +99,7 @@ void Train::update(IProgressMonitor* monitor) const {
 
   value_t error;
 
-  for (int iEpoch = 0; iEpoch < getEpochCount(); ++iEpoch) {
+  for (int iEpoch = 0; iEpoch < getEpochCount() && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
 
     error = 0;
 
@@ -98,24 +109,19 @@ void Train::update(IProgressMonitor* monitor) const {
       momentum = finalmomentum;
 
     for (int iBatch = 0; iBatch < batchCount; ++iBatch) {
-      nn_layer.visibles() = X[seq(iBatch * getBatchSize(), 0), nn_layer.visibles().size()];
-      yBatch = Y[seq(iBatch * getBatchSize(), 0), nn_layer.hiddens().size()];
+      nn.visibles() = X[seq(iBatch * getBatchSize(), 0), nn.visibles().size()];
+      yBatch = Y[seq(iBatch * getBatchSize(), 0), yBatch.size()];
 
       // Perform forward propagation
-      nn_layer.normalize_visibles();
-      nn_layer.infer_hiddens();
-      error += sqrt(dot(nn_layer.hiddens() - yBatch, nn_layer.hiddens() - yBatch));
-
-//      tbblas_print(dot(nn_layer.hiddens(), nn_layer.hiddens()));
-//      tbblas_print(dot(model->weights(), model->weights()));
-//      tbblas_print(dot(model->bias(), model->bias()));
+      nn.normalize_visibles();
+      nn.infer_hiddens();
+      error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch));
 
       // Update model
-      nn_layer.calculate_deltas(yBatch);
-      nn_layer.update_model(getLearningRate(), momentum, weightcost);
+      nn.update_model(yBatch, getLearningRate(), momentum, weightcost);
     }
 
-    dlog() << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / data.size();
+    dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / data.size();
 
     if (monitor)
       monitor->reportProgress(100 * (iEpoch + 1) / getEpochCount());
@@ -127,5 +133,3 @@ void Train::update(IProgressMonitor* monitor) const {
 }
 
 }
-
-

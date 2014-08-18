@@ -26,8 +26,10 @@ BeginPropertyDefinitions(Initialize)
 
   WorkflowProperty(TrainingSet, Input("D"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Labels, Input("L"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(HiddenUnitCounts)
   WorkflowProperty(InitialWeights)
-  WorkflowProperty(ActivationFunction, Enumerator<Type>())
+  WorkflowProperty(HiddenActivationFunction, Enumerator<Type>())
+  WorkflowProperty(OutputActivationFunction, Enumerator<Type>())
   WorkflowProperty(NormalizeInputs, Flag())
   WorkflowProperty(Model, Output("NN"))
 
@@ -49,8 +51,6 @@ void Initialize::update(IProgressMonitor* monitor) const {
   v_data_t& data = *getTrainingSet();
   v_data_t& labels = *getLabels();
 
-  const size_t visibleCount = data[0]->size();
-  const size_t hiddenCount = labels[0]->size();
   const size_t sampleCount = data.size();
 
   if (sampleCount != labels.size()) {
@@ -58,38 +58,50 @@ void Initialize::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  matrix_t X(sampleCount, visibleCount);
-  for (size_t i = 0; i < sampleCount; ++i) {
-    thrust::copy(data[i]->begin(), data[i]->end(), row(X, i).begin());
+  boost::shared_ptr<model_t> model(new model_t());
+  const std::vector<int>& hiddens = getHiddenUnitCounts();
+
+  for (size_t iLayer = 0; iLayer < hiddens.size() + 1; ++iLayer) {
+    const size_t visibleCount = iLayer == 0 ? data[0]->size() : hiddens[iLayer - 1];
+    const size_t hiddenCount = iLayer == hiddens.size() ? labels[0]->size() : hiddens[iLayer];
+
+    model_t::nn_layer_t layer;
+    if (iLayer == hiddens.size())
+      layer.set_activation_function(getOutputActivationFunction());
+    else
+      layer.set_activation_function(getHiddenActivationFunction());
+
+    matrix_t W = getInitialWeights() * randn_t(visibleCount, hiddenCount);
+    matrix_t b = zeros<value_t>(1, hiddenCount);
+    layer.set_weights(W);
+    layer.set_bias(b);
+
+    matrix_t means = zeros<value_t>(1, visibleCount);
+    matrix_t stddev = ones<value_t>(1, visibleCount);
+
+    if (getNormalizeInputs() && iLayer == 0) {
+
+      matrix_t X(sampleCount, visibleCount);
+      for (size_t i = 0; i < sampleCount; ++i) {
+        thrust::copy(data[i]->begin(), data[i]->end(), row(X, i).begin());
+      }
+
+      means = ones<value_t>(means.size()) * sum(X) / X.count();
+  //    means = sum(X, 0);
+  //    means = means / X.size()[0];
+      X = X - repeat(means, X.size() / means.size());
+
+      stddev = ones<value_t>(stddev.size()) * sqrt(dot(X, X) / X.count());
+  //    matrix_t temp = X * X;
+  //    stddev = sum(temp, 0);
+  //    stddev = sqrt(stddev / X.size()[0]) + (stddev == 0);  // If stddev == 0 set stddev to 1
+    }
+
+    layer.set_mean(means);
+    layer.set_stddev(stddev);
+
+    model->append_layer(layer);
   }
-
-  boost::shared_ptr<nn_layer_t> model(new nn_layer_t());
-  model->set_activation_function(getActivationFunction());
-
-  // Initialize weights, bias, mean and stddev
-
-  matrix_t W = getInitialWeights() * randn_t(visibleCount, hiddenCount);
-  matrix_t b = zeros<value_t>(1, hiddenCount);
-  model->set_weights(W);
-  model->set_bias(b);
-
-  matrix_t means = zeros<value_t>(1, visibleCount);
-  matrix_t stddev = ones<value_t>(1, visibleCount);
-
-  if (getNormalizeInputs()) {
-    means = ones<value_t>(means.size()) * sum(X) / X.count();
-//    means = sum(X, 0);
-//    means = means / X.size()[0];
-    X = X - repeat(means, X.size() / means.size());
-
-    stddev = ones<value_t>(stddev.size()) * sqrt(dot(X, X) / X.count());
-//    matrix_t temp = X * X;
-//    stddev = sum(temp, 0);
-//    stddev = sqrt(stddev / X.size()[0]) + (stddev == 0);  // If stddev == 0 set stddev to 1
-  }
-
-  model->set_mean(means);
-  model->set_stddev(stddev);
 
   newState->setModel(model);
 }
