@@ -24,11 +24,12 @@ BeginPropertyDefinitions(Train)
 
   WorkflowProperty(LearningRate)
   WorkflowProperty(WeightCosts)
+  WorkflowProperty(ShuffleTrainingSet, Flag())
   WorkflowProperty(Model, Output("NN"))
 
 EndPropertyDefinitions
 
-Train::Train() : _EpochCount(100), _BatchSize(50), _LearningRate(0.0001), _WeightCosts(0.0002) {
+Train::Train() : _EpochCount(100), _BatchSize(50), _LearningRate(0.0001), _WeightCosts(0.0002), _ShuffleTrainingSet(true) {
   setLabel("Train");
 }
 

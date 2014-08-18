@@ -1,12 +1,12 @@
 /*
- * SplitModel.h
+ * BackpropWeights.h
  *
- *  Created on: Aug 14, 2014
+ *  Created on: 2014-08-16
  *      Author: tombr
  */
 
-#ifndef GML_SPLITMODEL_H_
-#define GML_SPLITMODEL_H_
+#ifndef GML_BACKPROPWEIGHTS_H_
+#define GML_BACKPROPWEIGHTS_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
@@ -17,27 +17,28 @@ namespace gml {
 
 namespace nn {
 
-class SplitModel : public DefaultWorkflowElement<SplitModel> {
+struct BackpropWeightsChecker { BackpropWeightsChecker(); };
+
+class BackpropWeights : public DefaultWorkflowElement<BackpropWeights> {
+
+  friend class BackpropWeightsChecker;
 
   typedef std::vector<double> data_t;
   typedef std::vector<boost::shared_ptr<data_t> > v_data_t;
 
-  InitReflectableClass(SplitModel)
+  InitReflectableClass(BackpropWeights)
 
   Property(Model, boost::shared_ptr<model_t>)
   Property(Layer, int)
   Property(Weights, boost::shared_ptr<v_data_t>)
-  Property(Bias, boost::shared_ptr<data_t>)
 
 public:
-  SplitModel();
+  BackpropWeights();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
 } /* namespace nn */
-
 } /* namespace gml */
-
-#endif /* GML_SPLITMODEL_H_ */
+#endif /* BACKPROPWEIGHTS_H_ */

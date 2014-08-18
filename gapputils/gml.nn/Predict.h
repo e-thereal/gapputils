@@ -28,7 +28,7 @@ class Predict : public DefaultWorkflowElement<Predict> {
 
   InitReflectableClass(Predict)
 
-  Property(Model, boost::shared_ptr<nn_layer_t>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(Inputs, boost::shared_ptr<v_data_t>)
   Property(Outputs, boost::shared_ptr<v_data_t>)
 

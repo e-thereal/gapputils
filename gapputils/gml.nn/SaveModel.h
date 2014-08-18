@@ -21,7 +21,7 @@ class SaveModel : public DefaultWorkflowElement<SaveModel> {
 
   InitReflectableClass(SaveModel)
 
-  Property(Model, boost::shared_ptr<nn_layer_t>)
+  Property(Model, boost::shared_ptr<model_t>)
   Property(Filename, std::string)
   Property(OutputName, std::string)
 

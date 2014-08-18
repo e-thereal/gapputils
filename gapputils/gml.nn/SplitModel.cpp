@@ -20,21 +20,29 @@ BeginPropertyDefinitions(SplitModel)
   ReflectableBase(DefaultWorkflowElement<SplitModel>)
 
   WorkflowProperty(Model, Input("NN"), NotNull<Type>())
+  WorkflowProperty(Layer)
   WorkflowProperty(Weights, Output("W"))
   WorkflowProperty(Bias, Output("B"))
 
 EndPropertyDefinitions
 
-SplitModel::SplitModel() {
+SplitModel::SplitModel() : _Layer(0) {
   setLabel("Split");
 }
 
 void SplitModel::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
-  nn_layer_t& nn_layer = *getModel();
+  Logbook& dlog = getLogbook();
 
-  typedef nn_layer_t::host_matrix_t matrix_t;
+  if (getLayer() >= (int)getModel()->layers().size()) {
+    dlog(Severity::Warning) << "Invalid layer specified. The given network has only " << getModel()->layers().size() << " layers. Aborting!";
+    return;
+  }
+
+  model_t::nn_layer_t& nn_layer = *getModel()->layers()[getLayer()];
+
+  typedef model_t::nn_layer_t::host_matrix_t matrix_t;
 
   matrix_t W = nn_layer.weights();
   const matrix_t& b = nn_layer.bias();
