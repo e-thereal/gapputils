@@ -209,7 +209,7 @@ void PropertyGridDelegate::setModelData(QWidget *editor, QAbstractItemModel *mod
     } //else if (stringProperty) {
       QLineEdit* edit = static_cast<QLineEdit*>(editor);
       QString text = edit->text();
-      if (text[0] == '=') {
+      if (text.length() && text[0] == '=') {
         std::string expressionString(text.toAscii().data());
         // TODO: use name field of PropertyReference instead
         boost::shared_ptr<Expression> expression = node->getExpression(property->getName());
