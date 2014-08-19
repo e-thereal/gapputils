@@ -175,7 +175,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
   float epsilonw =  getLearningRate();      // Learning rate for weights
   float epsilonvb = getLearningRate();      // Learning rate for biases of visible units
   float epsilonhb = getLearningRate();      // Learning rate for biases of hidden units
-  float weightcost = 0.0002;
+  float weightcost = 0.0002 * getLearningRate();
   float initialmomentum = 0.5f;
   float finalmomentum = 0.9f;
   float momentum;
