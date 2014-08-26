@@ -1,7 +1,7 @@
 SOURCES = ImageReader.cpp \
           ImageWriter.cpp \
           MnistReader.cpp \
-          OldMifReader.cpp \
+          OpenNii.cpp \
           CopyNiftiHeader.cpp
 		  
 HEADERS = 

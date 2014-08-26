@@ -1,12 +1,12 @@
 /*
- * OldMifReader.h
+ * OpenNii.h
  *
- *  Created on: Jul 5, 2013
+ *  Created on: Aug 26, 2014
  *      Author: tombr
  */
 
-#ifndef GML_OLDMIFREADER_H_
-#define GML_OLDMIFREADER_H_
+#ifndef GML_OPENNII_H_
+#define GML_OPENNII_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/Image.h>
@@ -18,19 +18,22 @@ namespace imaging {
 
 namespace io {
 
-class OldMifReader : public DefaultWorkflowElement<OldMifReader> {
+class OpenNii : public DefaultWorkflowElement<OpenNii> {
 
-  InitReflectableClass(OldMifReader)
+  InitReflectableClass(OpenNii)
 
-  Property(MifName, std::string)
+  Property(Filename, std::string)
   Property(Image, boost::shared_ptr<image_t>)
   Property(MaximumIntensity, int)
   Property(Width, int)
   Property(Height, int)
   Property(Depth, int)
+  Property(VoxelWidth, double)
+  Property(VoxelHeight, double)
+  Property(VoxelDepth, double)
 
 public:
-  OldMifReader();
+  OpenNii();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
@@ -42,4 +45,4 @@ protected:
 
 } /* namespace gml */
 
-#endif /* GML_OLDMIFREADER_H_ */
+#endif /* GML_OPENNII_H_ */
