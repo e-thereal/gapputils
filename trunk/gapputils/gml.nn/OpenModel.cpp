@@ -17,7 +17,7 @@ BeginPropertyDefinitions(OpenModel)
 
   ReflectableBase(DefaultWorkflowElement<OpenModel>)
 
-  WorkflowProperty(Filename, Input("File"), Filename(), NotEmpty<Type>(), FileExists())
+  WorkflowProperty(Filename, Input("File"), Filename("Neural Network (*.nn)"), NotEmpty<Type>(), FileExists())
   WorkflowProperty(Model, Output("NN"))
   WorkflowProperty(InputCount, NoParameter())
   WorkflowProperty(HiddenCounts, NoParameter())

@@ -21,6 +21,7 @@ BeginPropertyDefinitions(Train)
   WorkflowProperty(Labels, Input("L"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(EpochCount)
   WorkflowProperty(BatchSize)
+  WorkflowProperty(BatchedLearning, Flag())
 
   WorkflowProperty(LearningRate)
   WorkflowProperty(WeightCosts)
@@ -29,7 +30,7 @@ BeginPropertyDefinitions(Train)
 
 EndPropertyDefinitions
 
-Train::Train() : _EpochCount(100), _BatchSize(50), _LearningRate(0.0001), _WeightCosts(0.0002), _ShuffleTrainingSet(true) {
+Train::Train() : _EpochCount(100), _BatchSize(50), _BatchedLearning(true), _LearningRate(0.0001), _WeightCosts(0.0002), _ShuffleTrainingSet(true) {
   setLabel("Train");
 }
 

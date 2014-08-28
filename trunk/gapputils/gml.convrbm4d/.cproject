@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cuda.toolchain.configuration.so.debug.601604622.1278465237">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cuda.toolchain.configuration.so.debug.601604622.1278465237" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -37,7 +35,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
-								<option id="cuda.toolchain.compiler.option.misc.other.1603691908" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_30,code=\&quot;sm_30,compute_30\&quot; -Xcompiler -fpic" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.1603691908" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_${COMPUTE_CAPABILITY},code=\&quot;sm_${COMPUTE_CAPABILITY},compute_${COMPUTE_CAPABILITY}\&quot; -Xcompiler -fpic" valueType="string"/>
 								<option id="cuda.toolchain.compiler.option.preprocessor.def.1117958023" name="Defined symbols (-D)" superClass="cuda.toolchain.compiler.option.preprocessor.def"/>
 								<inputType id="cuda.toolchain.compiler.input.547789298" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
@@ -149,7 +147,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
-								<option id="cuda.toolchain.compiler.option.misc.other.1359836252" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_30,code=\&quot;sm_30,compute_30\&quot; -Xcompiler -fpic" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.1359836252" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_${COMPUTE_CAPABILITY},code=\&quot;sm_${COMPUTE_CAPABILITY},compute_${COMPUTE_CAPABILITY}\&quot; -Xcompiler -fpic" valueType="string"/>
 								<option id="cuda.toolchain.compiler.option.optimization.flags.1448938227" name="Other optimization flags" superClass="cuda.toolchain.compiler.option.optimization.flags" value="--use_fast_math" valueType="string"/>
 								<inputType id="cuda.toolchain.compiler.input.116446618" superClass="cuda.toolchain.compiler.input"/>
 							</tool>

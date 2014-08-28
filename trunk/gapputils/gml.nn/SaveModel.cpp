@@ -18,7 +18,7 @@ BeginPropertyDefinitions(SaveModel)
   ReflectableBase(DefaultWorkflowElement<SaveModel>)
 
   WorkflowProperty(Model, Input("NN"), NotNull<Type>())
-  WorkflowProperty(Filename, Filename(), NotEmpty<Type>())
+  WorkflowProperty(Filename, Filename("Neural Network (*.nn)"), NotEmpty<Type>())
   WorkflowProperty(OutputName, Output("File"))
 
 EndPropertyDefinitions

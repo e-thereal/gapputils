@@ -35,7 +35,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
-								<option id="cuda.toolchain.compiler.option.misc.other.2075003384" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_30,code=\&quot;sm_30,compute_30\&quot; -Xcompiler -fpic" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.2075003384" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_${COMPUTE_CAPABILITY},code=\&quot;sm_${COMPUTE_CAPABILITY},compute_${COMPUTE_CAPABILITY}\&quot; -Xcompiler -fpic" valueType="string"/>
 								<option id="cuda.toolchain.compiler.option.preprocessor.def.846812080" name="Defined symbols (-D)" superClass="cuda.toolchain.compiler.option.preprocessor.def"/>
 								<inputType id="cuda.toolchain.compiler.input.478240902" superClass="cuda.toolchain.compiler.input"/>
 							</tool>
@@ -144,7 +144,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
-								<option id="cuda.toolchain.compiler.option.misc.other.2069192565" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_30,code=\&quot;sm_30,compute_30\&quot; -Xcompiler -fpic" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.2069192565" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_${COMPUTE_CAPABILITY},code=\&quot;sm_${COMPUTE_CAPABILITY},compute_${COMPUTE_CAPABILITY}\&quot; -Xcompiler -fpic" valueType="string"/>
 								<option id="cuda.toolchain.compiler.option.optimization.flags.1430673411" name="Other optimization flags" superClass="cuda.toolchain.compiler.option.optimization.flags" value="--use_fast_math" valueType="string"/>
 								<inputType id="cuda.toolchain.compiler.input.1916813274" superClass="cuda.toolchain.compiler.input"/>
 							</tool>

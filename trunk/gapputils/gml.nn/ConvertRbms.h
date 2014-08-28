@@ -19,8 +19,6 @@ namespace gml {
 
 namespace nn {
 
-// TODO: implement
-
 class ConvertRbms : public DefaultWorkflowElement<ConvertRbms> {
 
   typedef tbblas::deeplearn::rbm_model<double> rbm_t;

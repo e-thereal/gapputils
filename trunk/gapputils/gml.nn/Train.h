@@ -33,6 +33,7 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(Labels, boost::shared_ptr<v_data_t>)
   Property(EpochCount, int)
   Property(BatchSize, int)
+  Property(BatchedLearning, bool)
 
   Property(LearningRate, double)
   Property(WeightCosts, double)
