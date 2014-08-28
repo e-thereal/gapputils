@@ -4,8 +4,11 @@ SOURCES = deprecated/ImageReader.cpp \
           OpenImage.cpp \
           OpenMnist.cpp \
           OpenNii.cpp \
+          OpenNiiTensor.cpp \
+          OpenTensor.cpp \
           SaveImage.cpp \
           SaveNii.cpp \
+          SaveTensor.cpp \
           CopyNiftiHeader.cpp
 		  
 HEADERS = 
@@ -44,9 +47,11 @@ QMAKE_CXXFLAGS += -std=c++0x
 
 INCLUDEPATH += ".."
 INCLUDEPATH += ${RESPROG_INC_PATH}
+INCLUDEPATH += ${CUDA_INC_PATH}
 
 LIBS += -Wl,-E -pg
 LIBS += -L${RESPROG_LIB_PATH}
+LIBS += -L${CUDA_LIB_PATH}
 
 CONFIG(MIF) {
 
@@ -73,6 +78,6 @@ CONFIG(gpufarm, gpufarm|fornix) {
 	message("Gpufarm build.")
 }
 
-LIBS += -lcmif_v5_3 -lutilities_v3_2 -lz
+LIBS += -lcudart -lcmif_v5_3 -lutilities_v3_2 -lz
 
 }

@@ -25,8 +25,6 @@
 
 #include <tbblas/deeplearn/conv_rbm.hpp>
 
-#include "TensorWriter.h"
-
 namespace gml {
 
 namespace convrbm4d {

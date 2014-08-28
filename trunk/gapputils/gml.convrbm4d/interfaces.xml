@@ -60,24 +60,6 @@
       </Item>
       <Item>
         <gapputils-Interface>
-          <Identifier value="Tensors4d" />
-          <Type value="boost::shared_ptr<tbblas::tensor<float,4> >" />
-          <Header value="tbblas/tensor.hpp" />
-          <IsParameter value="0" />
-          <IsCollection value="1" />
-        </gapputils-Interface>
-      </Item>
-      <Item>
-        <gapputils-Interface>
-          <Identifier value="Tensor4d" />
-          <Type value="boost::shared_ptr<tbblas::tensor<float,4> >" />
-          <Header value="tbblas/tensor.hpp" />
-          <IsParameter value="0" />
-          <IsCollection value="0" />
-        </gapputils-Interface>
-      </Item>
-      <Item>
-        <gapputils-Interface>
           <Identifier value="Crbm4d" />
           <Type value="boost::shared_ptr<tbblas::deeplearn::conv_rbm_model<float,4> >" />
           <Header value="tbblas/deeplearn/conv_rbm_model.hpp" />

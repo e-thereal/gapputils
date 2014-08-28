@@ -1,11 +1,11 @@
 /*
- * TensorReader.cpp
+ * OpenTensor.cpp
  *
  *  Created on: Sep 7, 2012
  *      Author: tombr
  */
 
-#include "TensorReader.h"
+#include "OpenTensor.h"
 
 #include <tbblas/serialize.hpp>
 
@@ -17,10 +17,12 @@ namespace bio = boost::iostreams;
 
 namespace gml {
 
-namespace convrbm4d {
+namespace imaging {
 
-BeginPropertyDefinitions(TensorReader)
-  ReflectableBase(DefaultWorkflowElement<TensorReader>)
+namespace io {
+
+BeginPropertyDefinitions(OpenTensor)
+  ReflectableBase(DefaultWorkflowElement<OpenTensor>)
 
   WorkflowProperty(Filename, Input("File"), Filename(), FileExists())
   WorkflowProperty(FirstIndex)
@@ -34,11 +36,11 @@ BeginPropertyDefinitions(TensorReader)
 
 EndPropertyDefinitions
 
-TensorReader::TensorReader() : _FirstIndex(0), _MaxCount(-1), _Width(0), _Height(0), _Depth(0), _Channels(0), _TensorCount(0) {
+OpenTensor::OpenTensor() : _FirstIndex(0), _MaxCount(-1), _Width(0), _Height(0), _Depth(0), _Channels(0), _TensorCount(0) {
   setLabel("Reader");
 }
 
-void TensorReader::update(gapputils::workflow::IProgressMonitor* monitor) const {
+void OpenTensor::update(gapputils::workflow::IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
 
   bio::filtering_istream file;
@@ -93,6 +95,8 @@ void TensorReader::update(gapputils::workflow::IProgressMonitor* monitor) const 
   }
 }
 
-} /* namespace convrbm4d */
+} /* io */
+
+} /* namespace imaging */
 
 } /* namespace gml */
