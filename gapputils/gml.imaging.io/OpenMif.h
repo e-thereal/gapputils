@@ -1,12 +1,12 @@
 /*
- * OpenNii.h
+ * OpenMif.h
  *
- *  Created on: Aug 26, 2014
+ *  Created on: Oct 29, 2012
  *      Author: tombr
  */
 
-#ifndef GML_OPENNII_H_
-#define GML_OPENNII_H_
+#ifndef GML_IMAGING_IO_OPENMIF_H_
+#define GML_IMAGING_IO_OPENMIF_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/Image.h>
@@ -18,16 +18,13 @@ namespace imaging {
 
 namespace io {
 
-class OpenNii : public DefaultWorkflowElement<OpenNii> {
+class OpenMif : public DefaultWorkflowElement<OpenMif> {
 
-  typedef std::vector<char> data_t;
+  InitReflectableClass(OpenMif)
 
-  InitReflectableClass(OpenNii)
-
-  Property(Filename, std::string)
-  Property(MaximumIntensity, int)
+  Property(MifName, std::string)
   Property(Image, boost::shared_ptr<image_t>)
-  Property(Header, boost::shared_ptr<data_t>)
+  Property(MaximumIntensity, int)
   Property(Width, int)
   Property(Height, int)
   Property(Depth, int)
@@ -36,16 +33,16 @@ class OpenNii : public DefaultWorkflowElement<OpenNii> {
   Property(VoxelDepth, double)
 
 public:
-  OpenNii();
+  OpenMif();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace io */
+}
 
-} /* namespace imaging */
+}
 
-} /* namespace gml */
+}
 
-#endif /* GML_OPENNII_H_ */
+#endif /* GML_IMAGING_IO_OPENMIF_H_ */

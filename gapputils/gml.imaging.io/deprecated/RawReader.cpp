@@ -1,12 +1,15 @@
 #include "RawReader.h"
 
+#include <capputils/attributes/RenamedAttribute.h>
+#include <capputils/attributes/DeprecatedAttribute.h>
+
 namespace gml {
 
 namespace imaging {
 
 namespace io {
 
-BeginPropertyDefinitions(RawReader)
+BeginPropertyDefinitions(RawReader, Renamed("gml::imaging::io::OpenRaw"), Deprecated("Use OpenRaw instead."))
 
   ReflectableBase(DefaultWorkflowElement<RawReader>)
 

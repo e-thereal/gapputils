@@ -1,11 +1,11 @@
 /*
- * MifReader.cpp
+ * OpenMif.cpp
  *
  *  Created on: Jun 29, 2011
  *      Author: tombr
  */
 
-#include "MifReader.h"
+#include "OpenMif.h"
 
 #include <CMIF.hpp>
 #include <CChannel.hpp>
@@ -17,9 +17,9 @@ namespace imaging {
 
 namespace io {
 
-BeginPropertyDefinitions(MifReader)
+BeginPropertyDefinitions(OpenMif)
 
-  ReflectableBase(DefaultWorkflowElement<MifReader>)
+  ReflectableBase(DefaultWorkflowElement<OpenMif>)
 
   WorkflowProperty(MifName, Input("Mif"), Filename("MIFs (*.MIF)"), FileExists())
   WorkflowProperty(Image, Output("Img"))
@@ -33,12 +33,12 @@ BeginPropertyDefinitions(MifReader)
 
 EndPropertyDefinitions
 
-MifReader::MifReader() : _MaximumIntensity(2048), _Width(0), _Height(0), _Depth(0), _VoxelWidth(1), _VoxelHeight(1), _VoxelDepth(1)
+OpenMif::OpenMif() : _MaximumIntensity(2048), _Width(0), _Height(0), _Depth(0), _VoxelWidth(1), _VoxelHeight(1), _VoxelDepth(1)
 {
   setLabel("Mif");
 }
 
-void MifReader::update(IProgressMonitor* /*monitor*/) const {
+void OpenMif::update(IProgressMonitor* /*monitor*/) const {
   using namespace MSMRI::MIF;
   using namespace std;
 

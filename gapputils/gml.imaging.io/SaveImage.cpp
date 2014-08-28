@@ -1,11 +1,11 @@
 /*
- * ImageWriter.cpp
+ * SaveImage.cpp
  *
  *  Created on: Aug 15, 2011
  *      Author: tombr
  */
 
-#include "ImageWriter.h"
+#include "SaveImage.h"
 
 #include <capputils/EventHandler.h>
 
@@ -21,10 +21,10 @@ namespace imaging {
 
 namespace io {
 
-int ImageWriter::imageId;
+int SaveImage::imageId;
 
-BeginPropertyDefinitions(ImageWriter)
-  ReflectableBase(DefaultWorkflowElement<ImageWriter>)
+BeginPropertyDefinitions(SaveImage)
+  ReflectableBase(DefaultWorkflowElement<SaveImage>)
 
   WorkflowProperty(Image, Input("Img"), NotNull<Type>(), Dummy(imageId = Id))
   WorkflowProperty(Filename, Filename("Images (*.jpg *.png)"), NotEmpty<Type>())
@@ -34,15 +34,15 @@ BeginPropertyDefinitions(ImageWriter)
   WorkflowProperty(OutputName, Output("Name"))
 EndPropertyDefinitions
 
-ImageWriter::ImageWriter() : _AutoSave(false), imageNumber(0) {
+SaveImage::SaveImage() : _AutoSave(false), imageNumber(0) {
   setLabel("Writer");
 
-  Changed.connect(capputils::EventHandler<ImageWriter>(this, &ImageWriter::changedHandler));
+  Changed.connect(capputils::EventHandler<SaveImage>(this, &SaveImage::changedHandler));
 }
 
 #define F_TO_INT(value) std::min(255, std::max(0, (int)(value * 256)))
 
-void saveImage(image_t& image, const std::string& filename) {
+void SaveImage::saveImage(image_t& image, const std::string& filename) const {
   const int width = image.getSize()[0];
   const int height = image.getSize()[1];
   const int depth = image.getSize()[2];
@@ -64,7 +64,7 @@ void saveImage(image_t& image, const std::string& filename) {
   qimage.save(filename.c_str());
 }
 
-void ImageWriter::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
+void SaveImage::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
   if (eventId == imageId && getAutoSave() && getImage()) {
     std::stringstream filename;
     filename << getAutoName() << std::setw(8) << std::setfill('0') << imageNumber++ << getAutoSuffix();
@@ -72,7 +72,7 @@ void ImageWriter::changedHandler(capputils::ObservableClass* /*sender*/, int eve
   }
 }
 
-void ImageWriter::update(gapputils::workflow::IProgressMonitor* /*monitor*/) const {
+void SaveImage::update(gapputils::workflow::IProgressMonitor* /*monitor*/) const {
   saveImage(*getImage(), getFilename());
   newState->setOutputName(getFilename());
 }

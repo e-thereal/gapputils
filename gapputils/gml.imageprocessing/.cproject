@@ -9,7 +9,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gml.imageprocessing"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gml.imageprocessing/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gml.imageprocessing" srcPrefixMapping="" srcRootPath=""/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gml.imageprocessing"/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -115,7 +115,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gml.imageprocessing"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gml.imageprocessing/Release"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gml.imageprocessing" srcPrefixMapping="" srcRootPath=""/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gml.imageprocessing"/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -181,6 +181,8 @@
 									<listOptionValue builtIn="false" value="cufft"/>
 									<listOptionValue builtIn="false" value="gomp"/>
 									<listOptionValue builtIn="false" value="cuda"/>
+									<listOptionValue builtIn="false" value="boost_thread"/>
+									<listOptionValue builtIn="false" value="cublas"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1048193718" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

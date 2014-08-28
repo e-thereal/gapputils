@@ -1,7 +1,11 @@
-SOURCES = ImageReader.cpp \
-          ImageWriter.cpp \
-          MnistReader.cpp \
+SOURCES = deprecated/ImageReader.cpp \
+          deprecated/ImageWriter.cpp \
+          deprecated/MnistReader.cpp \
+          OpenImage.cpp \
+          OpenMnist.cpp \
           OpenNii.cpp \
+          SaveImage.cpp \
+          SaveNii.cpp \
           CopyNiftiHeader.cpp
 		  
 HEADERS = 
@@ -20,6 +24,8 @@ CONFIG(debug, debug|release) {
   LIBS += -L"../../gapputils/Debug"
   LIBS += -lgapputilsd -lcapputilsd -ltinyxmld
   
+  QMAKE_POST_LINK += cp ${PWD}/${TARGET} ${GRAPEVINE_DEBUG_LIBRARY_PATH}/libgml.imaging.io.so
+  
   message("Debug build.")
 }
 
@@ -28,6 +34,8 @@ CONFIG(release, debug|release) {
   LIBS += -L"../../capputils/Release"
   LIBS += -L"../../gapputils/Release"
   LIBS += -lgapputils -lcapputils -ltinyxml
+  
+  QMAKE_POST_LINK += cp ${PWD}/${TARGET} ${GRAPEVINE_LIBRARY_PATH}/libgml.imaging.io.so
   
   message("Release build.")
 }
@@ -44,8 +52,10 @@ CONFIG(MIF) {
 
 SOURCES += trace.cpp \
            SliceFromMif.cpp \
-           MifReader.cpp \
-           MifWriter.cpp
+           OpenMif.cpp \
+           SaveMif.cpp \
+           deprecated/MifReader.cpp \
+           deprecated/MifWriter.cpp
 
 CONFIG(fornix, gpufarm|fornix) {
 	INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/cmif

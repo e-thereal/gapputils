@@ -1,11 +1,11 @@
 /*
- * MifWriter.cpp
+ * SaveMif.cpp
  *
  *  Created on: Jan 16, 2012
  *      Author: tombr
  */
 
-#include "MifWriter.h"
+#include "SaveMif.h"
 
 #include <CMIF.hpp>
 #include <CSlice.hpp>
@@ -21,8 +21,8 @@ namespace imaging {
 
 namespace io {
 
-BeginPropertyDefinitions(MifWriter)
-  ReflectableBase(DefaultWorkflowElement<MifWriter>)
+BeginPropertyDefinitions(SaveMif)
+  ReflectableBase(DefaultWorkflowElement<SaveMif>)
 
   WorkflowProperty(Image, Input("I"))
   WorkflowProperty(Images, Input("Is"))
@@ -35,7 +35,7 @@ BeginPropertyDefinitions(MifWriter)
 
 EndPropertyDefinitions
 
-MifWriter::MifWriter() : _MinValue(0), _MaxValue(1), _MaximumIntensity(2048), _AutoScale(false) {
+SaveMif::SaveMif() : _MinValue(0), _MaxValue(1), _MaximumIntensity(2048), _AutoScale(false) {
   setLabel("MifWriter");
 
   static char** argv = new char*[1];
@@ -44,7 +44,7 @@ MifWriter::MifWriter() : _MinValue(0), _MaxValue(1), _MaximumIntensity(2048), _A
   MSMRI::CProcessInfo::getInstance().getCommandLine(1, argv);
 }
 
-void MifWriter::update(IProgressMonitor* monitor) const {
+void SaveMif::update(IProgressMonitor* monitor) const {
   using namespace MSMRI::MIF;
   Logbook& dlog = getLogbook();
 

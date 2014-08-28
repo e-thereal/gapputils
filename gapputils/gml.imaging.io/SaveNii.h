@@ -1,12 +1,12 @@
 /*
- * OpenNii.h
+ * SaveNii.h
  *
- *  Created on: Aug 26, 2014
+ *  Created on: Aug 27, 2014
  *      Author: tombr
  */
 
-#ifndef GML_OPENNII_H_
-#define GML_OPENNII_H_
+#ifndef GML_SAVENII_H_
+#define GML_SAVENII_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/Image.h>
@@ -18,25 +18,19 @@ namespace imaging {
 
 namespace io {
 
-class OpenNii : public DefaultWorkflowElement<OpenNii> {
+class SaveNii : public DefaultWorkflowElement<SaveNii> {
 
   typedef std::vector<char> data_t;
 
-  InitReflectableClass(OpenNii)
+  InitReflectableClass(SaveNii)
 
-  Property(Filename, std::string)
-  Property(MaximumIntensity, int)
   Property(Image, boost::shared_ptr<image_t>)
   Property(Header, boost::shared_ptr<data_t>)
-  Property(Width, int)
-  Property(Height, int)
-  Property(Depth, int)
-  Property(VoxelWidth, double)
-  Property(VoxelHeight, double)
-  Property(VoxelDepth, double)
+  Property(Filename, std::string)
+  Property(OutpuName, std::string)
 
 public:
-  OpenNii();
+  SaveNii();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
@@ -48,4 +42,4 @@ protected:
 
 } /* namespace gml */
 
-#endif /* GML_OPENNII_H_ */
+#endif /* GML_SAVENII_H_ */

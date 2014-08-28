@@ -20,6 +20,8 @@ CONFIG(debug, debug|release) {
   LIBS += -L"../../gapputils/Debug"
   LIBS += -lgapputilsd -lcapputilsd -ltinyxmld
   
+  QMAKE_POST_LINK += cp ${PWD}/${TARGET} ${GRAPEVINE_DEBUG_LIBRARY_PATH}/libgml.imaging.ui.so
+  
   message("Debug build.")
 }
 
@@ -28,6 +30,8 @@ CONFIG(release, debug|release) {
   LIBS += -L"../../capputils/Release"
   LIBS += -L"../../gapputils/Release"
   LIBS += -lgapputils -lcapputils -ltinyxml
+  
+  QMAKE_POST_LINK += cp ${PWD}/${TARGET} ${GRAPEVINE_LIBRARY_PATH}/libgml.imaging.ui.so
   
   message("Release build.")
 }
