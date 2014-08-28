@@ -7,18 +7,18 @@
 
 #include "SaveModel.h"
 
-#include <tbblas/deeplearn/serialize_nn.hpp>
+#include <tbblas/deeplearn/serialize_cnn.hpp>
 
 namespace gml {
 
-namespace nn {
+namespace cnn {
 
 BeginPropertyDefinitions(SaveModel)
 
   ReflectableBase(DefaultWorkflowElement<SaveModel>)
 
-  WorkflowProperty(Model, Input("NN"), NotNull<Type>())
-  WorkflowProperty(Filename, Filename("Neural Network (*.nn)"), NotEmpty<Type>())
+  WorkflowProperty(Model, Input("CNN"), NotNull<Type>())
+  WorkflowProperty(Filename, Filename("Convolutional Neural Network (*.cnn)"), NotEmpty<Type>())
   WorkflowProperty(OutputName, Output("File"))
 
 EndPropertyDefinitions
@@ -33,6 +33,6 @@ void SaveModel::update(IProgressMonitor* monitor) const {
   newState->setOutputName(getFilename());
 }
 
-} /* namespace nn */
+} /* namespace cnn */
 
 } /* namespace gml */

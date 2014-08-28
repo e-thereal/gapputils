@@ -25,6 +25,7 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(Labels, test);
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
+  CHECK_MEMORY_LAYOUT2(BatchedLearning, test);
   CHECK_MEMORY_LAYOUT2(LearningRate, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
   CHECK_MEMORY_LAYOUT2(ShuffleTrainingSet, test);
@@ -48,14 +49,18 @@ void Train::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
 
   tbblas::deeplearn::nn<value_t> nn(*model);
-  nn.visibles().resize(seq((int)getBatchSize(), (int)model->visibles_count()));
+  if (getBatchedLearning())
+    nn.visibles().resize(seq((int)getBatchSize(), (int)model->visibles_count()));
+  else
+    nn.visibles().resize(seq(1, (int)model->visibles_count()));
 
   // Prepare data
   v_data_t& data = *getTrainingSet();
   v_data_t& labels = *getLabels();
   matrix_t X(data.size(), model->visibles_count());
   matrix_t Y(data.size(), model->hiddens_count());
-  matrix_t yBatch(getBatchSize(), model->hiddens_count());
+
+  matrix_t yBatch(getBatchedLearning() ? getBatchSize() : 1, model->hiddens_count());
 
   matrix_t res;
 
@@ -95,7 +100,8 @@ void Train::update(IProgressMonitor* monitor) const {
 
   dlog() << "Preparation finished. Starting training.";
 
-  const size_t batchCount = data.size() / getBatchSize();
+  const int batchSize = getBatchSize();
+  const int batchCount = data.size() / batchSize;
 
   value_t error;
 
@@ -109,16 +115,37 @@ void Train::update(IProgressMonitor* monitor) const {
       momentum = finalmomentum;
 
     for (int iBatch = 0; iBatch < batchCount; ++iBatch) {
-      nn.visibles() = X[seq(iBatch * getBatchSize(), 0), nn.visibles().size()];
-      yBatch = Y[seq(iBatch * getBatchSize(), 0), yBatch.size()];
 
-      // Perform forward propagation
-      nn.normalize_visibles();
-      nn.infer_hiddens();
-      error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch));
+      if (getBatchedLearning()) {
+        nn.visibles() = X[seq(iBatch * getBatchSize(), 0), nn.visibles().size()];
+        yBatch = Y[seq(iBatch * getBatchSize(), 0), yBatch.size()];
 
-      // Update model
-      nn.update_model(yBatch, getLearningRate(), momentum, weightcost);
+        // Perform forward propagation
+        nn.normalize_visibles();
+        nn.infer_hiddens();
+        error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch));
+
+        // Update model
+        nn.update_model(yBatch, getLearningRate(), momentum, weightcost);
+      } else {
+
+        nn.init_gradient_updates(getLearningRate() / batchSize, momentum, weightcost);
+
+        for (int iSample = 0; iSample < batchSize; ++iSample) {
+          nn.visibles() = X[seq(iBatch * batchSize + iSample, 0), nn.visibles().size()];
+          yBatch = Y[seq(iBatch * batchSize + iSample, 0), yBatch.size()];
+
+          // Perform forward propagation
+          nn.normalize_visibles();
+          nn.infer_hiddens();
+          error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch));
+
+          // Update model
+          nn.update_gradient(yBatch, getLearningRate() / batchSize);
+        }
+
+        nn.apply_gradient();
+      }
     }
 
     dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / data.size();

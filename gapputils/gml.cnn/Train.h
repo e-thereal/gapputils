@@ -15,29 +15,35 @@
 
 namespace gml {
 
-namespace nn {
+namespace cnn {
 
 struct TrainChecker { TrainChecker(); } ;
 
 class Train : public DefaultWorkflowElement<Train> {
 
+  typedef model_t::value_t value_t;
+  static const unsigned dimCount = model_t::dimCount;
+
   typedef std::vector<double> data_t;
   typedef std::vector<boost::shared_ptr<data_t> > v_data_t;
+
+  typedef tbblas::tensor<value_t, dimCount> host_tensor_t;
+  typedef std::vector<boost::shared_ptr<host_tensor_t> > v_host_tensor_t;
 
   friend class TrainChecker;
 
   InitReflectableClass(Train)
 
   Property(InitialModel, boost::shared_ptr<model_t>)
-  Property(TrainingSet, boost::shared_ptr<v_data_t>)
+  Property(TrainingSet, boost::shared_ptr<v_host_tensor_t>)
   Property(Labels, boost::shared_ptr<v_data_t>)
   Property(EpochCount, int)
   Property(BatchSize, int)
-  Property(BatchedLearning, bool)
 
-  Property(LearningRate, double)
+  Property(CLearningRate, double)
+  Property(DLearningRate, double)
   Property(WeightCosts, double)
-  Property(ShuffleTrainingSet, bool)
+  Property(RandomizeTraining, bool)
   Property(Model, boost::shared_ptr<model_t>)
 
 public:
@@ -47,7 +53,7 @@ protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace nn */
+} /* namespace cnn */
 
 } /* namespace gml */
 
