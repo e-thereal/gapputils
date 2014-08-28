@@ -1,4 +1,4 @@
-#include "ImageReader.h"
+#include "OpenImage.h"
 
 #include <qimage.h>
 
@@ -8,9 +8,9 @@ namespace imaging {
 
 namespace io {
 
-BeginPropertyDefinitions(ImageReader)
+BeginPropertyDefinitions(OpenImage)
 
-  ReflectableBase(DefaultWorkflowElement<ImageReader>)
+  ReflectableBase(DefaultWorkflowElement<OpenImage>)
 
   WorkflowProperty(ImageName, Input("Name"), Filename("Images (*.jpg *.png)"), FileExists())
   WorkflowProperty(ImagePtr, Output("Img"))
@@ -19,11 +19,11 @@ BeginPropertyDefinitions(ImageReader)
 
 EndPropertyDefinitions
 
-ImageReader::ImageReader() : _Width(0), _Height(0) {
+OpenImage::OpenImage() : _Width(0), _Height(0) {
   setLabel("Image");
 }
 
-void ImageReader::update(workflow::IProgressMonitor* monitor) const {
+void OpenImage::update(workflow::IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
 
   QImage qimage;

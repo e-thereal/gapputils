@@ -20,11 +20,14 @@ namespace io {
 
 class OpenNii : public DefaultWorkflowElement<OpenNii> {
 
+  typedef std::vector<char> data_t;
+
   InitReflectableClass(OpenNii)
 
   Property(Filename, std::string)
-  Property(Image, boost::shared_ptr<image_t>)
   Property(MaximumIntensity, int)
+  Property(Image, boost::shared_ptr<image_t>)
+  Property(Header, boost::shared_ptr<data_t>)
   Property(Width, int)
   Property(Height, int)
   Property(Depth, int)

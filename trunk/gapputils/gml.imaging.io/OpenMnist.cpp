@@ -1,11 +1,11 @@
 /*
- * MnistReader.cpp
+ * OpenMnist.cpp
  *
  *  Created on: Nov 4, 2011
  *      Author: tombr
  */
 
-#include "MnistReader.h"
+#include "OpenMnist.h"
 
 #include <algorithm>
 #include <cassert>
@@ -21,9 +21,9 @@ namespace imaging {
 
 namespace io {
 
-BeginPropertyDefinitions(MnistReader)
+BeginPropertyDefinitions(OpenMnist)
 
-  ReflectableBase(DefaultWorkflowElement<MnistReader>)
+  ReflectableBase(DefaultWorkflowElement<OpenMnist>)
 
   WorkflowProperty(ImageFile, Input("I"), FileExists(), Filename())
   WorkflowProperty(LabelFile, Input("L"), Filename(), FileExists())
@@ -38,7 +38,7 @@ BeginPropertyDefinitions(MnistReader)
 
 EndPropertyDefinitions
 
-MnistReader::MnistReader() : _MaxImageCount(-1), _SelectedDigits(10), _ImageCount(0), _Width(0), _Height(0) {
+OpenMnist::OpenMnist() : _MaxImageCount(-1), _SelectedDigits(10), _ImageCount(0), _Width(0), _Height(0) {
   setLabel("Mnist");
 
   for (int i = 0; i < 10; ++i)
@@ -49,7 +49,7 @@ inline void swapEndian(unsigned int &val) {
   val = (val<<24) | ((val<<8) & 0x00ff0000) | ((val>>8) & 0x0000ff00) | (val>>24);
 }
 
-void MnistReader::update(IProgressMonitor* /*monitor*/) const {
+void OpenMnist::update(IProgressMonitor* /*monitor*/) const {
   using namespace boost::lambda;
 
   Logbook& dlog = getLogbook();
