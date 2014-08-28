@@ -81,11 +81,13 @@ void TensorViewerWidget::updateBackground() {
       slicePos = std::min(image.getSize()[2] - 1, viewer->getCurrentSlice() * image.getSize()[2] / tensor.size()[2]);
     }
 
+    float maxElement = *std::max_element(image.begin(), image.end());
+
     float* buffer = image.getData();
     for (int i = 0, y = 0; y < height; ++y) {
       for (int x = 0; x < width; ++x, ++i) {
 
-        int c = F_TO_INT(buffer[i + slicePos * count] / 1024.0);
+        int c = F_TO_INT(buffer[i + slicePos * count] / maxElement);
         qimage->setPixel(x, y, QColor(c, c, c).rgb());
       }
     }

@@ -36,7 +36,7 @@ BeginPropertyDefinitions(TensorViewer)
   WorkflowProperty(MinimumLength, Dummy(minimumLengthId = Id))
   WorkflowProperty(MaximumLength, Dummy(maximumLengthId = Id))
   WorkflowProperty(VisibleLength)
-  WorkflowProperty(GridResolution, Dummy(resolutionId = Id))
+  WorkflowProperty(GridResolution, Dummy(resolutionId = Id), Description("Must be a 2D vector."))
 
 EndPropertyDefinitions
 

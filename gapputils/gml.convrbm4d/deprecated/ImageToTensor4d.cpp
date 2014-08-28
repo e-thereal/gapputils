@@ -9,10 +9,13 @@
 
 #include <algorithm>
 
+#include <capputils/attributes/RenamedAttribute.h>
+#include <capputils/attributes/DeprecatedAttribute.h>
+
 namespace gml {
 namespace convrbm4d {
 
-BeginPropertyDefinitions(ImageToTensor4d)
+BeginPropertyDefinitions(ImageToTensor4d, Renamed("gml::imaging::core::ImageToTensor"), Deprecated("Use gml::imaging::core::ImageToTensor instead."))
 
   ReflectableBase(DefaultWorkflowElement<ImageToTensor4d>)
 

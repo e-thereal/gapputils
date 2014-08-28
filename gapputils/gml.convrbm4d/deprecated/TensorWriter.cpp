@@ -13,6 +13,9 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 
+#include <capputils/attributes/RenamedAttribute.h>
+#include <capputils/attributes/DeprecatedAttribute.h>
+
 namespace bio = boost::iostreams;
 namespace fs = boost::filesystem;
 
@@ -20,7 +23,7 @@ namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(TensorWriter)
+BeginPropertyDefinitions(TensorWriter, Renamed("gml::imaging::io::SaveTensor"), Deprecated("Use gml::imaging::io::SaveTensor instead."))
   ReflectableBase(DefaultWorkflowElement<TensorWriter>)
 
   WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())

@@ -5,6 +5,9 @@
 #include <capputils/attributes/OutputAttribute.h>
 #include <gapputils/attributes/InterfaceAttribute.h>
 
+#include <capputils/attributes/RenamedAttribute.h>
+#include <capputils/attributes/DeprecatedAttribute.h>
+
 #include "tbblas/tensor.hpp"
 
 using namespace capputils::attributes;
@@ -27,7 +30,7 @@ public:
   Tensor4d() { setLabel("Tensor4d"); }
 };
 
-BeginPropertyDefinitions(Tensor4d, Interface())
+BeginPropertyDefinitions(Tensor4d, Interface(), Renamed("interfaces::inputs::Tensor"), Deprecated("Use interfaces::inputs::Tensor instead."))
   ReflectableBase(gapputils::workflow::DefaultWorkflowElement<Tensor4d>)
   WorkflowProperty(Description)
   WorkflowProperty(Value, Output(""));
@@ -50,7 +53,7 @@ public:
   Tensor4d() { setLabel("Tensor4d"); }
 };
 
-BeginPropertyDefinitions(Tensor4d, Interface())
+BeginPropertyDefinitions(Tensor4d, Interface(), Renamed("interfaces::outputs::Tensor"), Deprecated("Use interfaces::outputs::Tensor instead."))
   ReflectableBase(gapputils::workflow::DefaultWorkflowElement<Tensor4d>)
   WorkflowProperty(Description)
   WorkflowProperty(Value, Input(""));
