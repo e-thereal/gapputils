@@ -45,6 +45,7 @@ private:
   capputils::EventHandler<Edge> handler;
   int outputId; // TODO: get rid of outputId
   static int positionId;
+  bool activated;
 
 public:
   Edge(void);
@@ -61,6 +62,7 @@ public:
    */
   // TODO: activate via workflow pointer: well create property references
   bool activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> inputNode);
+  void deactivate();
   void changedHandler(capputils::ObservableClass* sender, int eventId);
 
   static bool areCompatible(const capputils::reflection::IClassProperty* outputProperty,

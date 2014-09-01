@@ -19,8 +19,7 @@ class MergeTest : public DefaultWorkflowElement<MergeTest> {
 
   InitReflectableClass(MergeTest)
 
-  Property(Inputs, boost::shared_ptr<std::vector<double> >)
-  Property(Inputs2, boost::shared_ptr<std::vector<double> >)
+  Property(Inputs, std::vector<double>)
   Property(Outputs, std::vector<double>)
 
 public:

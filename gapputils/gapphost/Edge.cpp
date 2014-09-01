@@ -35,18 +35,13 @@ BeginPropertyDefinitions(Edge)
 
 EndPropertyDefinitions
 
-Edge::Edge(void) : _InputPosition(0), _CableItem(0), handler(this, &Edge::changedHandler), outputId(-1) {
+Edge::Edge(void) : _InputPosition(0), _CableItem(0), handler(this, &Edge::changedHandler), outputId(-1), activated(false) {
   Changed.connect(handler);
 }
 
 Edge::~Edge(void) {
-  PropertyReference* outputRef = getOutputReference().get();
-  if (outputRef) {
-    capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(outputRef->getObject());
-    if (observable) {
-      observable->Changed.disconnect(handler);
-    }
-  }
+  if (activated)
+    deactivate();
 }
 
 bool Edge::activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> inputNode) {
@@ -81,6 +76,8 @@ bool Edge::activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> 
     return false;
   }
 
+  activated = true;
+
   capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(outputRef->getObject());
   if (observable) {
     observable->Changed.connect(handler);
@@ -100,6 +97,24 @@ bool Edge::activate(boost::shared_ptr<Node> outputNode, boost::shared_ptr<Node> 
   setOutputReference(outputRef);
 
   return true;
+}
+
+void Edge::deactivate() {
+  PropertyReference* outputRef = getOutputReference().get();
+  if (outputRef) {
+    capputils::ObservableClass* observable = dynamic_cast<capputils::ObservableClass*>(outputRef->getObject());
+    if (observable) {
+      observable->Changed.disconnect(handler);
+    }
+  }
+
+  // if connected to a merge input then decrease collection size
+  PropertyReference* inputRef = getInputReference().get();
+  IMergeAttribute* merge = inputRef->getProperty()->getAttribute<IMergeAttribute>();
+  if (merge) {
+    merge->deleteValue(*inputRef->getObject(), inputRef->getProperty(), getInputPosition());
+  }
+  activated = false;
 }
 
 bool Edge::areCompatible(const capputils::reflection::IClassProperty* outProp,

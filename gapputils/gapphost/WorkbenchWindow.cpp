@@ -112,7 +112,7 @@ WorkbenchWindow::WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow,
   workbench->setChecker(workflow.get());
 
   connect(workbench, SIGNAL(createItemRequest(int, int, QString)), this, SLOT(createModule(int, int, QString)));
-  connect(workbench, SIGNAL(connectionCompleted(CableItem*, int)), this, SLOT(createEdge(CableItem*, int)));
+  connect(workbench, SIGNAL(connectionCompleted(CableItem*)), this, SLOT(createEdge(CableItem*)));
   connect(workbench, SIGNAL(connectionRemoved(CableItem*)), this, SLOT(deleteEdge(CableItem*)));
   connect(workbench, SIGNAL(preItemDeleted(ToolItem*)), this, SLOT(deleteModule(ToolItem*)));
 
@@ -758,11 +758,13 @@ boost::shared_ptr<workflow::Node> WorkbenchWindow::createModule(int x, int y, QS
   return node;
 }
 
-void WorkbenchWindow::createEdge(CableItem* cable, int position) {
+void WorkbenchWindow::createEdge(CableItem* cable) {
   boost::shared_ptr<Workflow> workflow = this->workflow.lock();
 
   boost::shared_ptr<Node> outputNode = workflow->getNode(cable->getInput()->parent);
   boost::shared_ptr<Node> inputNode = workflow->getNode(cable->getOutput()->parent);
+
+  int position = cable->getOutput()->getIndex();
 
   // Sanity check. Should never fail
   assert(outputNode && outputNode->getModule() && inputNode && inputNode->getModule());
