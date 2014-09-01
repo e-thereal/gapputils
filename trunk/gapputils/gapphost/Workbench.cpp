@@ -324,7 +324,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
                   Q_EMIT connectionRemoved(oldCable);
                   removeCableItem(oldCable);
                 }
-                Q_EMIT connectionCompleted(currentCables[0], connection->getIndex());
+                Q_EMIT connectionCompleted(currentCables[0]);
                 break;
               }
             }
@@ -341,7 +341,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
                   foundConnection = true;
                   currentCables[iCable]->setOutput(newConnection);
                   currentCables[iCable]->endDrag();
-                  Q_EMIT connectionCompleted(currentCables[iCable], newConnection->getIndex());
+                  Q_EMIT connectionCompleted(currentCables[iCable]);
                 }
               }
               if (foundConnection)
@@ -365,7 +365,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
                   Q_EMIT connectionRemoved(oldCable);
                   removeCableItem(oldCable);
                 }
-                Q_EMIT connectionCompleted(currentCables[0], connection->getIndex());
+                Q_EMIT connectionCompleted(currentCables[0]);
                 break;
               }
             }
@@ -382,7 +382,7 @@ void Workbench::mouseReleaseEvent(QMouseEvent* event) {
                   foundConnection = true;
                   currentCables[iCable]->setInput(newConnection);
                   currentCables[iCable]->endDrag();
-                  Q_EMIT connectionCompleted(currentCables[iCable], newConnection->getIndex());
+                  Q_EMIT connectionCompleted(currentCables[iCable]);
                 }
               }
               if (foundConnection)

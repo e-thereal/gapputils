@@ -73,7 +73,7 @@ Q_SIGNALS:
 
   void itemChanged(ToolItem* item);
 
-  void connectionCompleted(CableItem* cable, int position);
+  void connectionCompleted(CableItem* cable);
   void connectionRemoved(CableItem* cable);
   void viewportChanged();
 

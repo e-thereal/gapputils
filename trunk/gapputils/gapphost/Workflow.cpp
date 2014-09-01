@@ -646,6 +646,8 @@ void Workflow::removeEdge(boost::shared_ptr<Edge> edge) {
     }
   }
 
+  edge->deactivate();
+
   for (size_t iEdge = 0, pos = 0; iEdge < edges.size(); ++iEdge) {
     if (edges[iEdge]->getInputNode() == edge->getInputNode() &&
         edges[iEdge]->getInputProperty() == edge->getInputProperty())

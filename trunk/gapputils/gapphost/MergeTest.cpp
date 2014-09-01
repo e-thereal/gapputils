@@ -22,8 +22,7 @@ BeginPropertyDefinitions(MergeTest)
 
   ReflectableBase(DefaultWorkflowElement<MergeTest>)
 
-  WorkflowProperty(Inputs, Input("Ds"), NotNull<Type>(), Merge<Type>())
-  WorkflowProperty(Inputs2, Input("Ds"))
+  WorkflowProperty(Inputs, Input("Ds"), Merge<Type>())
   WorkflowProperty(Outputs, Output("Out"))
 
 EndPropertyDefinitions
@@ -33,7 +32,7 @@ MergeTest::MergeTest() {
 }
 
 void MergeTest::update(IProgressMonitor* /*monitor*/) const {
-  std::vector<double> outputs(getInputs()->begin(), getInputs()->end());
+  std::vector<double> outputs(_Inputs.begin(), _Inputs.end());
   newState->setOutputs(outputs);
 }
 
