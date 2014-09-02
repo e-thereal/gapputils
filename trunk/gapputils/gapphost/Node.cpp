@@ -71,11 +71,12 @@ BeginPropertyDefinitions(Node)
   DefineProperty(ToolItem, Volatile())
   DefineProperty(Workflow, Volatile())
   DefineProperty(Expressions, Enumerable<TYPE_OF(Expressions), true>())
+  DefineProperty(Progress, Volatile())
 EndPropertyDefinitions
 
 Node::Node(void)
  : _Uuid(Node::CreateUuid()), _X(0), _Y(0), _InputChecksum(0), _OutputChecksum(0), _ToolItem(0),
-   _Expressions(new std::vector<boost::shared_ptr<Expression> >()), readFromCache(false)
+   _Expressions(new std::vector<boost::shared_ptr<Expression> >()), _Progress(ToolItem::Neutral), readFromCache(0)
 {
   Changed.connect(EventHandler<Node>(this, &Node::changedHandler));
 }

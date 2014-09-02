@@ -566,10 +566,10 @@ void ToolItem::drawBox(QPainter* painter) {
     if (bench && isCurrentItem()) {
       gradient.setColorAt(0, Qt::white);
       switch ((int)progress) {
-      case -1:
+      case Neutral:
         gradient.setColorAt(1, Qt::lightGray);
         break;
-      case -2:
+      case InProgress:
         gradient.setColorAt(1, Qt::yellow);
         break;
       default:
@@ -581,10 +581,10 @@ void ToolItem::drawBox(QPainter* painter) {
     } else {
       gradient.setColorAt(0, Qt::lightGray);
       switch ((int)progress) {
-      case -1:
+      case Neutral:
         gradient.setColorAt(1, Qt::gray);
         break;
-      case -2:
+      case InProgress:
         gradient.setColorAt(1, Qt::yellow);
         break;
       default:

@@ -9,6 +9,7 @@
 #define GAPPUTILS_HOST_WORKBENCHWINDOW_H_
 
 #include <qmdisubwindow.h>
+#include <qtimer.h>
 
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
@@ -18,6 +19,7 @@
 
 #include <ctime>
 #include <set>
+#include <stack>
 
 #include "linreg.h"
 
@@ -46,11 +48,12 @@ private:
   Workbench* workbench;
   boost::shared_ptr<WorkflowUpdater> workflowUpdater;
   std::set<boost::weak_ptr<workflow::Node> > processedNodes;
-  boost::weak_ptr<workflow::Node> progressNode;
+  std::stack<boost::weak_ptr<workflow::Node> > progressedNodes;
   LinearRegression etaRegression;
   time_t startTime;
   capputils::EventHandler<WorkbenchWindow> handler, modelEventHandler;
   bool closable;
+  QTimer progressTimer;
 
 public:
   WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow, QWidget* parent = 0);
@@ -105,6 +108,7 @@ public Q_SLOTS:
   void handleViewportChanged();
 
   void showProgress(boost::shared_ptr<workflow::Node> node, double progress);
+  void updateProgress();
   void workflowUpdateFinished();
 
 Q_SIGNALS:

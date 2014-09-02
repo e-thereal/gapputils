@@ -39,6 +39,7 @@ SOURCES = $$files(interfaces/*.cpp) \
 		  HorizontalAnnotation.cpp \
 		  VerticalAnnotation.cpp \
 		  MemoryTest.cpp \
+		  DummyLoop.cpp \
 		  ModuleHelpWidget.cpp \
 		  GlobalPropertiesViewDelegate.cpp \
 		  MessageBox.cpp
@@ -52,7 +53,6 @@ HEADERS = MainWindow.h \
           ShowImageDialog.h \
           Workflow.h \
           WorkflowItem.h \
-          GenericViewer.h \
           LineEditDialog.h \
           PopUpList.h \
           ToolItem.h \
