@@ -79,7 +79,7 @@ BeginPropertyDefinitions(Workflow)
 // Libraries must be the first property since libraries must be loaded before all other modules
 DefineProperty(Libraries, Enumerable<Type, false>(), Observe(librariesId = Id))
 
-// Add Properties of node after librarie
+// Add Properties of node after libraries
 // Original reason: module could be an object of a class of one of the libraries)
 // Shouldn't be the case anymore but just to be save, leave it here for now. (there's no harm)
 ReflectableBase(Node)

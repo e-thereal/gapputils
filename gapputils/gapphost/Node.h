@@ -41,6 +41,7 @@ public:
   Property(ToolItem, ToolItem*)
   Property(Workflow, boost::weak_ptr<Workflow>)
   Property(Expressions, boost::shared_ptr<std::vector<boost::shared_ptr<Expression> > >)
+  Property(Progress, double)
 
 private:
   static int moduleId;

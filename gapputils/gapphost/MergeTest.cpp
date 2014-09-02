@@ -10,9 +10,7 @@
 #include <capputils/attributes/MergeAttribute.h>
 #include <capputils/attributes/DeprecatedAttribute.h>
 
-namespace gapputils {
-
-namespace testing {
+namespace debug {
 
 #ifdef _RELEASE
 BeginPropertyDefinitions(MergeTest, Deprecated("Only available in debug mode."))
@@ -36,6 +34,4 @@ void MergeTest::update(IProgressMonitor* /*monitor*/) const {
   newState->setOutputs(outputs);
 }
 
-} /* namespace testing */
-
-} /* namespace gapputils */
+} /* namespace debug */

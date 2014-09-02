@@ -100,6 +100,7 @@ void addDependencies(Workflow& workflow, const std::string& classname) {
 
 WorkbenchWindow::WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow, QWidget* parent)
 : QMdiSubWindow(parent), workflow(workflow), workflowUpdater(new WorkflowUpdater()),
+  startTime(0),
   handler(this, &WorkbenchWindow::changedHandler),
   modelEventHandler(this, &WorkbenchWindow::handleModelEvents),
   closable(true)
@@ -122,6 +123,10 @@ WorkbenchWindow::WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow,
 
   connect(workflowUpdater.get(), SIGNAL(updateFinished()), this, SLOT(workflowUpdateFinished()));
   connect(workflowUpdater.get(), SIGNAL(progressed(boost::shared_ptr<workflow::Node>, double)), this, SLOT(showProgress(boost::shared_ptr<workflow::Node>, double)));
+
+  connect(&progressTimer, SIGNAL(timeout()), this, SLOT(updateProgress()));
+  progressTimer.setInterval(1000);
+  progressTimer.start();
 
   std::vector<boost::shared_ptr<workflow::Node> >& nodes = *workflow->getNodes();
   for (unsigned i = 0; i < nodes.size(); ++i)
@@ -154,6 +159,7 @@ WorkbenchWindow::WorkbenchWindow(boost::shared_ptr<workflow::Workflow> workflow,
 }
 
 WorkbenchWindow::~WorkbenchWindow() {
+  progressTimer.stop();
   boost::shared_ptr<workflow::Workflow> workflow = this->workflow.lock();
   if (workflow) {
     std::vector<boost::shared_ptr<Node> >& nodes = *workflow->getNodes();
@@ -274,6 +280,7 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
   }
 
   item->setPos(node->getX(), node->getY());
+  item->setProgress(node->getProgress());
   node->setToolItem(item);
 
   workbench->addToolItem(item);
@@ -895,26 +902,56 @@ std::string formatTime(int seconds) {
   return out.str() + std::string(25 - out.str().size(), ' ');
 }
 
+// split into two functions: one updates the progress information of the node every time the progress changes
+// the other function is timer activated and periodically updates the nodes
+
 void WorkbenchWindow::showProgress(boost::shared_ptr<Node> node, double progress) {
-  if (node->getToolItem())
-    node->getToolItem()->setProgress(progress);
-  processedNodes.insert(node);
+  node->setProgress(progress);
+  if (progressedNodes.empty() || progressedNodes.top().lock() != node)
+    progressedNodes.push(node);
 
-  // TODO: Implement the ETA feature. A timer updates passed time and remaining time.
-  //       This function updates estimates total time and time and date when the operation
-  //       will have finished.
+  if (progress == ToolItem::InProgress)
+    updateProgress();
+}
 
-  if (boost::dynamic_pointer_cast<Workflow>(node))    // no progress for workflows
+void WorkbenchWindow::updateProgress() {
+  // update all changed nodes and add them to the processed list
+  boost::shared_ptr<Node> node;
+  double progress = -3;
+  if (!progressedNodes.empty()) {
+    node = progressedNodes.top().lock();
+    progress = node->getProgress();
+  }
+
+  while (!progressedNodes.empty()) {
+    boost::shared_ptr<Node> node = progressedNodes.top().lock();
+    if (node->getToolItem())
+      node->getToolItem()->setProgress(node->getProgress());
+    processedNodes.insert(node);
+    progressedNodes.pop();
+  }
+
+  // This function updates estimates total time and time and date when the operation
+  // will have finished.
+
+  if (node && boost::dynamic_pointer_cast<Workflow>(node))    // no progress for workflows
     return;
 
-  if (node != progressNode.lock()) {           // new progress
+  if (progress == ToolItem::InProgress) {           // new progress
+    // set old node to done
     etaRegression.clear();
     startTime = time(NULL);
   }
 
-  if (progress > 0) {
+  if (startTime) {
     int passedSeconds = time(0) - startTime;
-    etaRegression.addXY(progress, passedSeconds);
+    host::DataModel& model = host::DataModel::getInstance();
+    if (model.getPassedLabel())
+      model.getPassedLabel()->setText(formatTime(passedSeconds).c_str());
+
+    if (progress > 0)
+      etaRegression.addXY(progress, passedSeconds);
+
     if (etaRegression.haveData()) {
       int totalSeconds = etaRegression.estimateY(100.0);
       int remainingSeconds = totalSeconds - passedSeconds;
@@ -926,28 +963,35 @@ void WorkbenchWindow::showProgress(boost::shared_ptr<Node> node, double progress
       timeinfo = localtime(&finishTime);
       strftime(buffer, 256, "%b %d %Y %H:%M:%S", timeinfo);
 
-      host::DataModel& model = host::DataModel::getInstance();
-//      if (this->mdiArea()->currentSubWindow() == this) {
-        if (model.getPassedLabel())
-          model.getPassedLabel()->setText(formatTime(passedSeconds).c_str());
-        if (model.getRemainingLabel())
-          model.getRemainingLabel()->setText(formatTime(remainingSeconds).c_str());
-        if (model.getTotalLabel())
-          model.getTotalLabel()->setText(formatTime(totalSeconds).c_str());
-        if (model.getFinishedLabel())
-          model.getFinishedLabel()->setText(buffer);
-//      }
+      if (model.getRemainingLabel())
+        model.getRemainingLabel()->setText(formatTime(remainingSeconds).c_str());
+      if (model.getTotalLabel())
+        model.getTotalLabel()->setText(formatTime(totalSeconds).c_str());
+      if (model.getFinishedLabel())
+        model.getFinishedLabel()->setText(buffer);
+    } else {
+      if (model.getRemainingLabel())
+        model.getRemainingLabel()->setText("");
+      if (model.getTotalLabel())
+        model.getTotalLabel()->setText("");
+      if (model.getFinishedLabel())
+        model.getFinishedLabel()->setText("");
     }
   }
-  progressNode = node;
 }
 
 void WorkbenchWindow::workflowUpdateFinished() {
+  // stop timer update unfinished progress and start timer when done again
+  progressTimer.stop();
+  updateProgress();
   for (std::set<boost::weak_ptr<Node> >::iterator iter = processedNodes.begin(); iter != processedNodes.end(); ++iter) {
+    iter->lock()->setProgress(ToolItem::Neutral);
     if (iter->lock()->getToolItem())
       iter->lock()->getToolItem()->setProgress(ToolItem::Neutral);
   }
   processedNodes.clear();
+  progressTimer.start();
+  startTime = 0;
 
   Q_EMIT updateFinished();
 }

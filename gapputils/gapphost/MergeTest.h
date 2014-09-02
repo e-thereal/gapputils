@@ -11,9 +11,7 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
-namespace gapputils {
-
-namespace testing {
+namespace debug {
 
 class MergeTest : public DefaultWorkflowElement<MergeTest> {
 
@@ -29,8 +27,6 @@ protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace testing */
-
-} /* namespace gapputils */
+} /* namespace debug */
 
 #endif /* GAPPHOST_MERGETEST_H_ */
