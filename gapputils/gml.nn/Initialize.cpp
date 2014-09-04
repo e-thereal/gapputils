@@ -31,7 +31,7 @@ BeginPropertyDefinitions(Initialize)
   WorkflowProperty(HiddenActivationFunction, Enumerator<Type>())
   WorkflowProperty(OutputActivationFunction, Enumerator<Type>())
   WorkflowProperty(NormalizeInputs, Flag())
-  WorkflowProperty(Model, Output("CNN"))
+  WorkflowProperty(Model, Output("NN"))
 
 EndPropertyDefinitions
 

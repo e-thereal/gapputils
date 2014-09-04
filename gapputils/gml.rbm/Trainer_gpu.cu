@@ -36,6 +36,7 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(LearningRate, test);
+  CHECK_MEMORY_LAYOUT2(WeightDecay, test);
   CHECK_MEMORY_LAYOUT2(InitialWeights, test);
   CHECK_MEMORY_LAYOUT2(InitialVisible, test);
   CHECK_MEMORY_LAYOUT2(InitialHidden, test);
@@ -175,7 +176,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
   float epsilonw =  getLearningRate();      // Learning rate for weights
   float epsilonvb = getLearningRate();      // Learning rate for biases of visible units
   float epsilonhb = getLearningRate();      // Learning rate for biases of hidden units
-  float weightcost = 0.0002 * getLearningRate();
+  float weightcost = getWeightDecay();
   float initialmomentum = 0.5f;
   float finalmomentum = 0.9f;
   float momentum;
@@ -209,7 +210,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
       // Get current batch
       rbm.visibles() = X[seq(iBatch * batchSize, 0), rbm.visibles().size()];
       rbm.init_dropout(getHiddenDropout());
-      rbm.init_gradient_updates(momentum, weightcost);
+      rbm.init_gradient_updates(epsilonw, momentum, weightcost);
 
       rbm.infer_hiddens();
       rbm.update_positive_gradient(epsilonw, epsilonvb, epsilonhb);

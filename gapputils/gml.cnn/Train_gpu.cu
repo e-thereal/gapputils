@@ -20,11 +20,12 @@ TrainChecker::TrainChecker() {
   Train test;
   test.initializeClass();
 
-  CHECK_MEMORY_LAYOUT2(InitialModel, test);
   CHECK_MEMORY_LAYOUT2(TrainingSet, test);
   CHECK_MEMORY_LAYOUT2(Labels, test);
+  CHECK_MEMORY_LAYOUT2(InitialModel, test);
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
+  CHECK_MEMORY_LAYOUT2(FilterBatchSize, test);
   CHECK_MEMORY_LAYOUT2(CLearningRate, test);
   CHECK_MEMORY_LAYOUT2(DLearningRate, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
@@ -50,6 +51,8 @@ void Train::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
 
   tbblas::deeplearn::cnn<value_t, dimCount> cnn(*model);
+  for (size_t i = 0; i < model->cnn_layers().size() && i < getFilterBatchSize().size(); ++i)
+    cnn.set_batch_length(i, getFilterBatchSize()[i]);
 
   // Prepare data
   v_host_tensor_t& tensors = *getTrainingSet();
@@ -78,7 +81,7 @@ void Train::update(IProgressMonitor* monitor) const {
     else
       momentum = finalmomentum;
 
-    for (int iBatch = 0; iBatch < batchCount; ++iBatch) {
+    for (int iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
       cnn.init_gradient_updates(getCLearningRate(), getDLearningRate(), momentum, weightcost);
 

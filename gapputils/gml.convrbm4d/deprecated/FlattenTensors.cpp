@@ -7,12 +7,15 @@
 
 #include "FlattenTensors.h"
 
+#include <capputils/attributes/DeprecatedAttribute.h>
+#include <capputils/attributes/RenamedAttribute.h>
+
 #include <algorithm>
 
 namespace gml {
 namespace convrbm4d {
 
-BeginPropertyDefinitions(FlattenTensors)
+BeginPropertyDefinitions(FlattenTensors, Renamed("gml::imaging::core::FlattenTensors"), Deprecated("Use gml::imaging::core::FlattenTensors instead."))
 
   ReflectableBase(DefaultWorkflowElement<FlattenTensors>)
 
