@@ -34,11 +34,12 @@ class Train : public DefaultWorkflowElement<Train> {
 
   InitReflectableClass(Train)
 
-  Property(InitialModel, boost::shared_ptr<model_t>)
   Property(TrainingSet, boost::shared_ptr<v_host_tensor_t>)
   Property(Labels, boost::shared_ptr<v_data_t>)
+  Property(InitialModel, boost::shared_ptr<model_t>)
   Property(EpochCount, int)
   Property(BatchSize, int)
+  Property(FilterBatchSize, std::vector<int>)
 
   Property(CLearningRate, double)
   Property(DLearningRate, double)

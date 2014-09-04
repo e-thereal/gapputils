@@ -46,6 +46,7 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
   Property(BatchSize, int)
   int dummy;
   Property(LearningRate, double)
+  Property(WeightDecay, double)
   Property(InitialWeights, double)
   Property(InitialVisible, double)
   Property(InitialHidden, double)

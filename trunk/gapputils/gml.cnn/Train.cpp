@@ -16,11 +16,12 @@ BeginPropertyDefinitions(Train)
 
   ReflectableBase(DefaultWorkflowElement<Train>)
 
-  WorkflowProperty(InitialModel, Input("CNN"), NotNull<Type>())
   WorkflowProperty(TrainingSet, Input("D"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Labels, Input("L"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(InitialModel, Input("CNN"), NotNull<Type>())
   WorkflowProperty(EpochCount)
   WorkflowProperty(BatchSize)
+  WorkflowProperty(FilterBatchSize)
 
   WorkflowProperty(CLearningRate)
   WorkflowProperty(DLearningRate)

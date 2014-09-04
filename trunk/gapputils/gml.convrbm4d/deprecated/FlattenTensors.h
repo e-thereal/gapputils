@@ -13,7 +13,7 @@
 
 #include <capputils/Enumerators.h>
 
-#include "Model.h"
+#include "../Model.h"
 
 namespace gml {
 

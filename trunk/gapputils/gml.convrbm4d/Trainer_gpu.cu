@@ -213,6 +213,9 @@ void Trainer::update(IProgressMonitor* monitor) const {
         monitor->reportProgress(100. * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
     } /* end of batch */
 
+    epsilonw *= getLearningDecay();
+    epsilonvb *= getLearningDecay();
+    epsilonhb *= getLearningDecay();
 
     if (getCalculateError())
       dlog(Severity::Trace) << "Error at epoch " << iEpoch << " of " << epochCount << ": " << error / X.size();

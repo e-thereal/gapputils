@@ -33,7 +33,32 @@ PlanModel::PlanModel() {
 }
 
 void PlanModel::update(IProgressMonitor* monitor) const {
+  Logbook& dlog = getLogbook();
 
+  if (getInputSize().size() != 3) {
+    dlog(Severity::Warning) << "The input size must contain the width, height, and depth of the input image.";
+    return;
+  }
+
+  double width = getInputSize()[0], height = getInputSize()[1], depth = getInputSize()[2];
+  size_t layerCount = _StrideWidth.size();
+  layerCount = std::min(layerCount, _StrideHeight.size());
+  layerCount = std::min(layerCount, _StrideDepth.size());
+  layerCount = std::min(layerCount, _FilterWidth.size());
+  layerCount = std::min(layerCount, _FilterHeight.size());
+  layerCount = std::min(layerCount, _FilterDepth.size());
+
+  std::vector<double> widths, heights, depths;
+
+  for (size_t i = 0; i < layerCount; ++i) {
+    widths.push_back(width = (width / (double)_StrideWidth[i]) - (double)_FilterWidth[i] + 1.0);
+    heights.push_back(height = (height / (double)_StrideHeight[i]) - (double)_FilterHeight[i] + 1.0);
+    depths.push_back(depth = (depth / (double)_StrideDepth[i]) - (double)_FilterDepth[i] + 1.0);
+  }
+
+  newState->setOutputWidth(widths);
+  newState->setOutputHeight(heights);
+  newState->setOutputDepth(depths);
 }
 
 } /* namespace convrbm4d */
