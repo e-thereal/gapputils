@@ -148,7 +148,7 @@ bool CollectionElement::advanceCombinations() {
 //  }
 
   //cout << "Advance combinations" << endl;
-  if (_CurrentIteration >= _IterationCount)
+  if (_CurrentIteration + 1 >= _IterationCount)
     return false;
 
   setCurrentIteration(_CurrentIteration + 1);
@@ -156,7 +156,7 @@ bool CollectionElement::advanceCombinations() {
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
     inputIterators[i]->next();
     if (inputIterators[i]->eof()) {
-      cout << "DONE" << endl;
+      cout << "Unexpected end of collection detected in "__FILE__ << endl;
       return false;
     }
     inputProperties[i]->setValue(*this, *this, inputIterators[i].get());
