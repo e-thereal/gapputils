@@ -383,10 +383,8 @@ void MainWindow::loadLibrary() {
 #ifdef _WIN32
   QString filename = QFileDialog::getOpenFileName(this, "Open Library", "", "Library (*.dll)");
 #else
-  QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Library (*.so)");
+  QStringList filenames = QFileDialog::getOpenFileNames(this, "Open File", "", "Library (*.so)");
 #endif
-  if (filename.isNull())
-    return;
 
   WorkbenchWindow* window = dynamic_cast<WorkbenchWindow*>(area->currentSubWindow());
   if (!window) {
@@ -397,16 +395,20 @@ void MainWindow::loadLibrary() {
   boost::shared_ptr<Workflow> workflow = window->getWorkflow();
   boost::shared_ptr<vector<string> > libs = workflow->getLibraries();
 
-  std::string path = model.getLibraryPath();
-  if (path.size()) {
-    if (filename.startsWith(path.c_str())) {
-      filename = filename.right(filename.size() - path.size());
-      if (filename[0] == '/')
-        filename = filename.right(filename.size() - 1);
-    }
-  }
+  for (int i = 0; i < filenames.count(); ++i) {
+    QString filename = filenames[i];
 
-  libs->push_back(filename.toUtf8().data());
+    std::string path = model.getLibraryPath();
+    if (path.size()) {
+      if (filename.startsWith(path.c_str())) {
+        filename = filename.right(filename.size() - path.size());
+        if (filename[0] == '/')
+          filename = filename.right(filename.size() - 1);
+      }
+    }
+
+    libs->push_back(filename.toUtf8().data());
+  }
   workflow->setLibraries(libs);
   toolBox->update();
 }
