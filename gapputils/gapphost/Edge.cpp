@@ -110,9 +110,11 @@ void Edge::deactivate() {
 
   // if connected to a merge input then decrease collection size
   PropertyReference* inputRef = getInputReference().get();
-  IMergeAttribute* merge = inputRef->getProperty()->getAttribute<IMergeAttribute>();
-  if (merge) {
-    merge->deleteValue(*inputRef->getObject(), inputRef->getProperty(), getInputPosition());
+  if (inputRef) {
+    IMergeAttribute* merge = inputRef->getProperty()->getAttribute<IMergeAttribute>();
+    if (merge) {
+      merge->deleteValue(*inputRef->getObject(), inputRef->getProperty(), getInputPosition());
+    }
   }
   activated = false;
 }
