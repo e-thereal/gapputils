@@ -1,12 +1,12 @@
 /*
- * Initialize.h
+ * InitializePatch.h
  *
- *  Created on: Nov 21, 2012
+ *  Created on: Oct 16, 2014
  *      Author: tombr
  */
 
-#ifndef GML_INITIALIZE_H_
-#define GML_INITIALIZE_H_
+#ifndef GML_INITIALIZEPATCH_H_
+#define GML_INITIALIZEPATCH_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
@@ -16,20 +16,19 @@
 namespace gml {
 namespace convrbm4d {
 
-struct InitializeChecker { InitializeChecker(); };
+struct InitializePatchChecker { InitializePatchChecker(); };
 
-class Initialize : public DefaultWorkflowElement<Initialize> {
+class InitializePatch : public DefaultWorkflowElement<InitializePatch> {
 public:
   typedef model_t::value_t value_t;
   typedef model_t::host_tensor_t host_tensor_t;
   typedef model_t::v_host_tensor_t v_host_tensor_t;
 
-  friend class InitializeChecker;
+  friend class InitializePatchChecker;
 
-  InitReflectableClass(Initialize)
+  InitReflectableClass(InitializePatch)
 
   Property(Tensors, boost::shared_ptr<v_host_tensor_t>)
-  Property(Mask, boost::shared_ptr<host_tensor_t>)
   Property(FilterWidth, int)
   Property(FilterHeight, int)
   Property(FilterDepth, int)
@@ -39,6 +38,10 @@ public:
   Property(StrideDepth, int)
   Property(WeightMean, double)
   Property(WeightStddev, double)
+  Property(PatchWidth, int)
+  Property(PatchHeight, int)
+  Property(PatchDepth, int)
+  Property(PatchChannels, int)
   Property(VisibleUnitType, tbblas::deeplearn::unit_type)
   Property(HiddenUnitType, tbblas::deeplearn::unit_type)
   Property(ConvolutionType, tbblas::deeplearn::convolution_type)
@@ -46,8 +49,8 @@ public:
   Property(Model, boost::shared_ptr<model_t>)
 
 public:
-  Initialize();
-  virtual ~Initialize();
+  InitializePatch();
+  virtual ~InitializePatch();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
@@ -57,4 +60,4 @@ protected:
 
 } /* namespace gml */
 
-#endif /* GML_INITIALIZE_H_ */
+#endif /* GML_INITIALIZEPATCH_H_ */
