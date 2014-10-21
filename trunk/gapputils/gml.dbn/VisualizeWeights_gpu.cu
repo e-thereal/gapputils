@@ -93,7 +93,7 @@ void VisualizeWeights::update(IProgressMonitor* monitor) const {
       topleft[dimCount - 1] = 0;
       filterSize[dimCount - 1] = model.crbms()[0]->visibles_size()[dimCount - 1];
       filter = dbn.cvisibles()[topleft, filterSize];
-      weights->push_back(boost::make_shared<host_tensor_t>(filter));
+      weights->push_back(boost::make_shared<host_tensor_t>(rearrange_r(filter, model.stride_size(0))));
       tbblas::synchronize();
     }
   }

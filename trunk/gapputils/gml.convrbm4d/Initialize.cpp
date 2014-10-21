@@ -12,7 +12,7 @@
 namespace gml {
 namespace convrbm4d {
 
-BeginPropertyDefinitions(Initialize)
+BeginPropertyDefinitions(Initialize, Description("Initializes a full-image or patch-based convRBM. Note that the mask parameter will be ignored when trained patch-based."))
 
   ReflectableBase(DefaultWorkflowElement<Initialize>)
 
@@ -22,6 +22,9 @@ BeginPropertyDefinitions(Initialize)
   WorkflowProperty(FilterHeight)
   WorkflowProperty(FilterDepth)
   WorkflowProperty(FilterCount)
+  WorkflowProperty(StrideWidth)
+  WorkflowProperty(StrideHeight)
+  WorkflowProperty(StrideDepth)
   WorkflowProperty(WeightMean)
   WorkflowProperty(WeightStddev)
   WorkflowProperty(VisibleUnitType, Enumerator<Type>())
@@ -34,6 +37,7 @@ EndPropertyDefinitions
 
 Initialize::Initialize()
  : _FilterWidth(9), _FilterHeight(9), _FilterDepth(9), _FilterCount(24),
+   _StrideWidth(1), _StrideHeight(1), _StrideDepth(1),
    _WeightMean(0.0), _WeightStddev(1e-3)
 {
   setLabel("Initialize");

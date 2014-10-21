@@ -14,6 +14,7 @@
 #include <tbblas/zeros.hpp>
 #include <tbblas/ones.hpp>
 #include <tbblas/repeat.hpp>
+#include <tbblas/rearrange.hpp>
 
 namespace gml {
 
@@ -28,6 +29,9 @@ InitializeChecker::InitializeChecker() {
   CHECK_MEMORY_LAYOUT2(FilterHeight, test);
   CHECK_MEMORY_LAYOUT2(FilterDepth, test);
   CHECK_MEMORY_LAYOUT2(FilterCount, test);
+  CHECK_MEMORY_LAYOUT2(StrideWidth, test);
+  CHECK_MEMORY_LAYOUT2(StrideHeight, test);
+  CHECK_MEMORY_LAYOUT2(StrideDepth, test);
   CHECK_MEMORY_LAYOUT2(WeightMean, test);
   CHECK_MEMORY_LAYOUT2(WeightStddev, test);
   CHECK_MEMORY_LAYOUT2(VisibleUnitType, test);
@@ -54,11 +58,21 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   crbm->set_hiddens_type(getHiddenUnitType());
   crbm->set_convolution_type(getConvolutionType());
 
+  host_tensor_t::dim_t stride = seq(getStrideWidth(), getStrideHeight(), getStrideDepth(), 1);
+
   v_host_tensor_t& tensors = *getTensors();
-  host_tensor_t::dim_t size = tensors[0]->size(), maskSize = size;
+  host_tensor_t::dim_t size = rearrange(*tensors[0], stride).size(), maskSize = size;
   maskSize[dimCount - 1] = 1;
 
-  host_tensor_t mask = (getMask() ? *getMask() : ones<value_t>(maskSize));
+  host_tensor_t mask;
+  if (getMask()) {
+    host_tensor_t temp = rearrange(*getMask(), stride);
+    mask = sum(temp, dimCount - 1);
+    mask = mask > 0;
+  } else {
+    mask = ones<value_t>(maskSize);
+  }
+
   const value_t count = sum(mask) * size[dimCount - 1];
 
   if (!(mask.size() == maskSize)) {
@@ -73,7 +87,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
     // Calculate the mean and normalize the data
     value_t mean = 0;
     for (size_t i = 0; i < tensors.size(); ++i) {
-      mean = mean + sum(*tensors[i] * repeat(mask, size / maskSize)) / count;
+      mean = mean + sum(rearrange(*tensors[i], stride) * repeat(mask, size / maskSize)) / count;
       if (monitor)
         monitor->reportProgress(100.0 * i / totalCount);
     }
@@ -82,7 +96,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
     // Calculate the stddev and normalize the data
     value_t var = 0;
     for (size_t i = 0; i < tensors.size(); ++i) {
-      var += dot((*tensors[i] - mean) * repeat(mask, size / maskSize), (*tensors[i] - mean) * repeat(mask, size / maskSize)) / count;
+      var += dot((rearrange(*tensors[i], stride) - mean) * repeat(mask, size / maskSize), (rearrange(*tensors[i], stride) - mean) * repeat(mask, size / maskSize)) / count;
       if (monitor)
         monitor->reportProgress(100.0 * (i + tensors.size()) / totalCount);
     }
@@ -96,26 +110,31 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   }
 
   // Initialize filters and bias terms
-  host_tensor_t vb = zeros<value_t>(tensors[0]->size());
+  host_tensor_t vb = zeros<value_t>(size);
   v_host_tensor_t hb;
   v_host_tensor_t filters;
 
+  if ((getFilterWidth() % stride[0]) != 0 ||
+      (getFilterHeight() % stride[1]) != 0 ||
+      (getFilterDepth() % stride[2]) != 0)
+  {
+    dlog(Severity::Warning) << "Filter size must be a multiple of stride size. Aborting!";
+    return;
+  }
+
   host_tensor_t::dim_t kernelSize;
-  kernelSize[0] = getFilterWidth();
-  kernelSize[1] = getFilterHeight();
-  kernelSize[2] = getFilterDepth();
+  kernelSize[0] = getFilterWidth() / stride[0];
+  kernelSize[1] = getFilterHeight() / stride[1];
+  kernelSize[2] = getFilterDepth() / stride[2];
   kernelSize[3] = size[3];
 
   random_tensor<value_t, model_t::dimCount, false, normal<value_t> > randn(kernelSize);
   host_tensor_t sample;
 
-  host_tensor_t::dim_t hiddenSize = tensors[0]->size();
-  hiddenSize[model_t::dimCount - 1] = 1;
-
   for (int i = 0; i < filterCount; ++i) {
     sample = (getWeightStddev() * randn + getWeightMean()); // / (value_t)randn.count();
     filters.push_back(boost::make_shared<host_tensor_t>(sample));
-    hb.push_back(boost::make_shared<host_tensor_t>(zeros<value_t>(hiddenSize)));
+    hb.push_back(boost::make_shared<host_tensor_t>(zeros<value_t>(maskSize)));
     if (monitor)
       monitor->reportProgress(100.0 * (i + 2 * tensors.size()) / totalCount);
   }
@@ -124,6 +143,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   crbm->set_hidden_bias(hb);
   crbm->set_visible_bias(vb);
   crbm->set_kernel_size(kernelSize);
+  crbm->set_stride_size(stride);
   crbm->set_mask(mask);
 
   newState->setModel(crbm);
