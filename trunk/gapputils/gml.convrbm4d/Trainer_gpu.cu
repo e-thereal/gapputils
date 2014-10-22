@@ -88,7 +88,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
   typedef float value_t;
-//
   const unsigned dimCount = model_t::dimCount;
   typedef tensor<value_t, dimCount, true> tensor_t;
 
@@ -127,15 +126,15 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
   // Initialize constants
   value_t epsilonw =  getLearningRate() / batchSize;  // Learning rate for weights
-  value_t epsilonvb = getLearningRate() / batchSize;  // Learning rate for biases of visible units
-  value_t epsilonhb = getLearningRate() / batchSize;  // Learning rate for biases of hidden units
+  value_t epsilonvb = getBiasLearningRate() / batchSize;  // Learning rate for biases of visible units
+  value_t epsilonhb = getBiasLearningRate() / batchSize;  // Learning rate for biases of hidden units
   value_t weightcost = getWeightDecay() * getLearningRate();
   value_t initialmomentum = getInitialMomentum();
   value_t finalmomentum = getFinalMomentum();
   value_t momentum;
 
   value_t error = 0;
-  tensor_t v;
+  tensor_t v, input;
 
   /*** START OF PARALLEL CODE ***/
 
@@ -163,9 +162,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
         // Get new sample
         if (getRandomizeTraining())
-          crbm.visibles() = rearrange(*X[rand() % X.size()], model->stride_size());
+          input = *X[rand() % X.size()];
         else
-          crbm.visibles() = rearrange(*X[iSample + iBatch * batchSize], model->stride_size());
+          input = *X[iSample + iBatch * batchSize];
+
+        crbm.visibles() = rearrange(input, model->stride_size());
         crbm.normalize_visibles();
 
         if (getCalculateError())

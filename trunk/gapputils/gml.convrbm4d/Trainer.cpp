@@ -29,7 +29,8 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(SparsityWeight, Description("Weight of the sparsity target relative to the learning rate."))
 
   WorkflowProperty(CdIterations, Description("Number of CD iterations. (1: CD learning, >1: CD-n learning)"))
-  WorkflowProperty(LearningRate, Description("Initial value of the exponentially decaying learning rate."))
+  WorkflowProperty(LearningRate, Description("Initial value of the exponentially decaying learning rate of the filters."))
+  WorkflowProperty(BiasLearningRate, Description("Initial value of the exponentially decaying learning rate of the bias terms."))
   WorkflowProperty(LearningDecay, Description("Rate at which the learning rate decays."))
   WorkflowProperty(InitialMomentum, Description("Momentum used for the first epoch."))
   WorkflowProperty(FinalMomentum)
@@ -56,7 +57,7 @@ EndPropertyDefinitions
 Trainer::Trainer()
  : _EpochCount(100), _BatchSize(20), _FilterBatchSize(1), _GpuCount(1),
    _SparsityTarget(1e-2), _SparsityWeight(0.1),
-   _CdIterations(1), _LearningRate(1e-3), _LearningDecay(0.98), _InitialMomentum(0.5), _FinalMomentum(0.9),
+   _CdIterations(1), _LearningRate(1e-3), _BiasLearningRate(3e-3), _LearningDecay(1), _InitialMomentum(0.5), _FinalMomentum(0.9),
    _MomentumDecayEpochs(20), _WeightDecay(0), _WeightVectorLimit(1), _RandomizeTraining(false),
    _ShareBiasTerms(false), _ChannelsPerBlock(1), _VisibleDropout(0.0), _HiddenDropout(0.5), _FilterDropout(0.0),
    _CalculateError(false), _UpdateModel(0),

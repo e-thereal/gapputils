@@ -56,6 +56,7 @@ public:
   Property(CdIterations, int)
   int dummy4;
   Property(LearningRate, double)
+  Property(BiasLearningRate, double)
   Property(LearningDecay, double)
   Property(InitialMomentum, double)
   Property(FinalMomentum, double)

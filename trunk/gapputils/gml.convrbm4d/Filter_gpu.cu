@@ -49,6 +49,7 @@ void Filter::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
   using namespace tbblas::deeplearn;
 
+
   Logbook& dlog = getLogbook();
   model_t& model = *getModel();
 
@@ -59,9 +60,12 @@ void Filter::update(IProgressMonitor* monitor) const {
   conv_rbm<float, 4> crbm(model, getGpuCount());
   crbm.set_batch_length(model.filters().size() / getGpuCount());
 
+  tensor<float, 4, true> input;
+
   if (getDirection() == CodingDirection::Encode) {
     for (size_t i = 0; i < inputs.size(); ++i) {
-      crbm.visibles() = rearrange(*inputs[i], model.stride_size());
+      input = *inputs[i];   // copies memory to the device. Makes rearranging faster
+      crbm.visibles() = rearrange(input, model.stride_size());
       crbm.normalize_visibles();
       if (getSampleUnits())
         crbm.sample_hiddens();
@@ -80,7 +84,9 @@ void Filter::update(IProgressMonitor* monitor) const {
         crbm.infer_visibles(getOnlyFilters());
       if (!getOnlyFilters())
         crbm.diversify_visibles();
-      outputs->push_back(boost::make_shared<host_tensor_t>(rearrange_r(crbm.visibles(), model.stride_size())));
+
+      input = rearrange_r(crbm.visibles(), model.stride_size());
+      outputs->push_back(boost::make_shared<host_tensor_t>(input));
       if (monitor)
         monitor->reportProgress(100. * i / inputs.size());
     }
