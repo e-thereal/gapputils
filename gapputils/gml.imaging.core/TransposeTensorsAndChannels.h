@@ -11,15 +11,17 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
-#include "Model.h"
+#include <tbblas/tensor.hpp>
 
 namespace gml {
 
-namespace convrbm4d {
+namespace imaging {
+
+namespace core {
 
 class TransposeTensorsAndChannels : public DefaultWorkflowElement<TransposeTensorsAndChannels> {
 
-  typedef model_t::host_tensor_t tensor_t;
+  typedef tbblas::tensor<float, 4> tensor_t;
 
   InitReflectableClass(TransposeTensorsAndChannels)
 
@@ -35,7 +37,9 @@ protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace convrbm4d */
+} /* namespace core */
+
+} /* namespace imaging */
 
 } /* namespace gml */
 

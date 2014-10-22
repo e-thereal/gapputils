@@ -1,22 +1,22 @@
 /*
- * CorrelationTensor.cpp
+ * CorrelateTensor.cpp
  *
  *  Created on: Dec 10, 2013
  *      Author: tombr
  */
 
-#include "CorrelationTensor.h"
+#include "CorrelateTensor.h"
 
 #include <tbblas/zeros.hpp>
 #include <tbblas/math.hpp>
 
 namespace gml {
 
-namespace convrbm4d {
+namespace imageprocessing {
 
-BeginPropertyDefinitions(CorrelationTensor, Description("Calculates the correlation of an input vector with each element of a vector of tensors."))
+BeginPropertyDefinitions(CorrelateTensor, Description("Calculates the correlation of an input vector with each element of a vector of tensors."))
 
-  ReflectableBase(DefaultWorkflowElement<CorrelationTensor>)
+  ReflectableBase(DefaultWorkflowElement<CorrelateTensor>)
 
   WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Data, Input("D"), NotNull<Type>(), NotEmpty<Type>())
@@ -24,11 +24,11 @@ BeginPropertyDefinitions(CorrelationTensor, Description("Calculates the correlat
 
 EndPropertyDefinitions
 
-CorrelationTensor::CorrelationTensor() {
+CorrelateTensor::CorrelateTensor() {
   setLabel("Corr");
 }
 
-void CorrelationTensor::update(IProgressMonitor* monitor) const {
+void CorrelateTensor::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
   Logbook& dlog = getLogbook();
@@ -75,6 +75,6 @@ void CorrelationTensor::update(IProgressMonitor* monitor) const {
   newState->setCorrelationTensor(output);
 }
 
-} /* namespace convrbm4d */
+} /* namespace imageprocessing */
 
 } /* namespace gml */

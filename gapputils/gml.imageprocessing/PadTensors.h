@@ -9,28 +9,26 @@
 #define GML_PADTENSORS_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
+#include <gapputils/Tensor.h>
 #include <gapputils/namespaces.h>
-
-#include "CodingDirection.h"
-
-#include "Model.h"
 
 namespace gml {
 
-namespace convrbm4d {
+namespace imageprocessing {
 
 class PadTensors : public DefaultWorkflowElement<PadTensors> {
 
-  typedef model_t::host_tensor_t tensor_t;
+  typedef gapputils::host_tensor_t tensor_t;
+  typedef gapputils::v_host_tensor_t v_tensor_t;
 
   InitReflectableClass(PadTensors)
 
-  Property(InputTensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
-  Property(Direction, CodingDirection)
+  Property(InputTensors, boost::shared_ptr<v_tensor_t>)
   Property(Width, int)
   Property(Height, int)
   Property(Depth, int)
-  Property(OutputTensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(ReversePadding, bool)
+  Property(OutputTensors, boost::shared_ptr<v_tensor_t>)
 
 public:
   PadTensors();
@@ -39,7 +37,7 @@ protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace convrbm4d */
+} /* namespace imageprocessing */
 
 } /* namespace gml */
 

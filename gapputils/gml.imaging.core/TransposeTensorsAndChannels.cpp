@@ -9,7 +9,9 @@
 
 namespace gml {
 
-namespace convrbm4d {
+namespace imaging {
+
+namespace core {
 
 BeginPropertyDefinitions(TransposeTensorsAndChannels)
 
@@ -70,6 +72,8 @@ void TransposeTensorsAndChannels::update(IProgressMonitor* monitor) const {
   newState->setOutputTensors(outputs);
   if (outputs->size())
     newState->setOutputTensor(outputs->at(0));
+}
+
 }
 
 } /* namespace convrbm4d */

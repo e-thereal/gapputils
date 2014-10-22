@@ -12,22 +12,22 @@
 
 namespace gml {
 
-namespace convrbm4d {
+namespace imageprocessing {
 
 BeginPropertyDefinitions(PadTensors)
 
   ReflectableBase(DefaultWorkflowElement<PadTensors>)
 
   WorkflowProperty(InputTensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
-  WorkflowProperty(Direction, Enumerator<Type>())
   WorkflowProperty(Width)
   WorkflowProperty(Height)
   WorkflowProperty(Depth)
+  WorkflowProperty(ReversePadding, Flag())
   WorkflowProperty(OutputTensors, Output("Ts"))
 
 EndPropertyDefinitions
 
-PadTensors::PadTensors() : _Width(0), _Height(0), _Depth(0) {
+PadTensors::PadTensors() : _Width(0), _Height(0), _Depth(0), _ReversePadding(false) {
   setLabel("Padding");
 }
 
@@ -45,11 +45,10 @@ void PadTensors::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  std::vector<boost::shared_ptr<tensor_t> >& inputs = *getInputTensors();
-  boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > outputs(
-      new std::vector<boost::shared_ptr<tensor_t> >());
+  v_tensor_t& inputs = *getInputTensors();
+  boost::shared_ptr<v_tensor_t> outputs(new v_tensor_t());
 
-  if (getDirection() == CodingDirection::Encode) {
+  if (!getReversePadding()) {
     dim_t padSize = seq(getWidth(), getHeight(), getDepth(), 0);
     for (size_t i = 0; i < inputs.size(); ++i) {
       tensor_t& kern = *inputs[i];

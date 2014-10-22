@@ -11,7 +11,7 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
-#include "Model.h"
+#include "../Model.h"
 
 namespace gml {
 
