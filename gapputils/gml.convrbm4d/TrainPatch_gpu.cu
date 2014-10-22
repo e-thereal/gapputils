@@ -121,6 +121,11 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   dim_t patchSize = model->input_size();
   dim_t range = X[0]->size() - patchSize + 1;
 
+  if (range[dimCount -1] != 0) {
+    dlog(Severity::Warning) << "Number of channels of the input tensors and patch size does not match. Aborting!";
+    return;
+  }
+
   tbblas::deeplearn::conv_rbm<float, 4> crbm(*model, getGpuCount());
   crbm.set_batch_length(getFilterBatchSize());
   crbm.set_sparsity_method(getSparsityMethod());
