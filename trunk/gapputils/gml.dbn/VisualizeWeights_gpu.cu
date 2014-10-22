@@ -61,7 +61,7 @@ void VisualizeWeights::update(IProgressMonitor* monitor) const {
     for (size_t iRow = 0; iRow < ident.size()[0]; ++iRow) {
       dbn.hiddens() = row(ident, iRow);
       dbn.infer_visibles(-1, true);
-      weights->push_back(boost::make_shared<host_tensor_t>(dbn.cvisibles()));
+      weights->push_back(boost::make_shared<host_tensor_t>(rearrange_r(dbn.cvisibles(), model.stride_size(0))));
       tbblas::synchronize();
     }
   } else {
