@@ -11,7 +11,9 @@
 
 namespace gml {
 
-namespace convrbm4d {
+namespace imaging {
+
+namespace core {
 
 BeginPropertyDefinitions(MakeTensors)
 
@@ -50,6 +52,8 @@ void MakeTensors::update(IProgressMonitor* monitor) const {
 
   newState->setTensors(outputs);
   newState->setTensor(outputs->at(0));
+}
+
 }
 
 } /* namespace convrbm4d */

@@ -9,18 +9,17 @@
 #define GML_MASKCHANNELS_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
+#include <gapputils/Tensor.h>
 #include <gapputils/namespaces.h>
-
-#include "Model.h"
 
 namespace gml {
 
-namespace convrbm4d {
+namespace imageprocessing {
 
 class MaskChannels : public DefaultWorkflowElement<MaskChannels> {
 
-  typedef model_t::host_tensor_t tensor_t;
-  typedef model_t::v_host_tensor_t v_tensor_t;
+  typedef gapputils::host_tensor_t tensor_t;
+  typedef gapputils::v_host_tensor_t v_tensor_t;
 
   InitReflectableClass(MaskChannels)
 
@@ -35,7 +34,7 @@ protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace convrbm4d */
+} /* namespace imageprocessing */
 
 } /* namespace gml */
 

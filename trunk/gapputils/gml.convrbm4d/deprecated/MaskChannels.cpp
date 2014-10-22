@@ -9,11 +9,14 @@
 
 #include <tbblas/zeros.hpp>
 
+#include <capputils/attributes/DeprecatedAttribute.h>
+#include <capputils/attributes/RenamedAttribute.h>
+
 namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(MaskChannels)
+BeginPropertyDefinitions(MaskChannels, Renamed("gml::imageprocessing::MaskChannels"), Deprecated("Use gml::imageprocessing::MaskChannels instead."))
 
   ReflectableBase(DefaultWorkflowElement<MaskChannels>)
 

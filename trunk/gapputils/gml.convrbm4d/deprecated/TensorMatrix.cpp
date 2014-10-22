@@ -12,11 +12,14 @@
 #include <tbblas/math.hpp>
 #include <tbblas/repeat.hpp>
 
+#include <capputils/attributes/DeprecatedAttribute.h>
+#include <capputils/attributes/RenamedAttribute.h>
+
 namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(TensorMatrix)
+BeginPropertyDefinitions(TensorMatrix, Renamed("gml::imaging::core::TensorMatrix"), Deprecated("Use gml::imaging::core::TensorMatrix instead."))
 
   ReflectableBase(DefaultWorkflowElement<TensorMatrix>)
 

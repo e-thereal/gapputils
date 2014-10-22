@@ -42,4 +42,5 @@ protected:
 
 } /* namespace convrbm4d */
 } /* namespace gml */
+
 #endif /* SPECIFICITY_H_ */

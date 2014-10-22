@@ -14,25 +14,30 @@
 
 #include <capputils/Enumerators.h>
 
-#include "Model.h"
+#include <tbblas/tensor.hpp>
 
 namespace gml {
 
-namespace convrbm4d {
+namespace imaging {
+
+namespace core {
 
 CapputilsEnumerator(TilingPlane, Axial, Sagittal, Coronal);
 
 class TensorMatrix : public DefaultWorkflowElement<TensorMatrix> {
 
-  typedef model_t::host_tensor_t tensor_t;
+  typedef tbblas::tensor<float, 4> tensor_t;
+  typedef std::vector<boost::shared_ptr<tensor_t> > v_tensor_t;
 
   InitReflectableClass(TensorMatrix)
 
-  Property(InputTensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)
+  Property(InputTensors, boost::shared_ptr<v_tensor_t>)
+  Property(IndividualMatrices, bool)
   Property(MaxCount, int)
   Property(ColumnCount, int)
   Property(TilingPlane, TilingPlane)
   Property(TensorMatrix, boost::shared_ptr<tensor_t>)
+  Property(TensorMatrices, boost::shared_ptr<v_tensor_t>)
 
 public:
   TensorMatrix();
@@ -40,6 +45,8 @@ public:
 protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
+
+}
 
 } /* namespace convrbm4d */
 

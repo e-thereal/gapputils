@@ -8,12 +8,14 @@
 #include "StackTensors.h"
 
 #include <capputils/attributes/MergeAttribute.h>
+#include <capputils/attributes/DeprecatedAttribute.h>
+#include <capputils/attributes/RenamedAttribute.h>
 
 namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(StackTensors, Description("Stacks multiple tensors into one multi-channel tensor or into a vector of tensors."))
+BeginPropertyDefinitions(StackTensors, Renamed("gml::imaging::core::StackTensors"), Deprecated("Use gml::imaging::core::StackTensors instead."), Description("Stacks multiple tensors into one multi-channel tensor or into a vector of tensors."))
 
   ReflectableBase(DefaultWorkflowElement<StackTensors>)
 
