@@ -24,6 +24,10 @@ BeginPropertyDefinitions(InitializePatch, Description("Initializes a patch-based
   WorkflowProperty(StrideWidth)
   WorkflowProperty(StrideHeight)
   WorkflowProperty(StrideDepth)
+  WorkflowProperty(PoolingMethod, Enumerator<Type>())
+  WorkflowProperty(PoolingWidth)
+  WorkflowProperty(PoolingHeight)
+  WorkflowProperty(PoolingDepth)
   WorkflowProperty(WeightMean)
   WorkflowProperty(WeightStddev)
   WorkflowProperty(PatchWidth, Description("Width of a training patch."))
@@ -41,6 +45,7 @@ EndPropertyDefinitions
 InitializePatch::InitializePatch()
  : _FilterWidth(9), _FilterHeight(9), _FilterDepth(9), _FilterCount(24),
    _StrideWidth(1), _StrideHeight(1), _StrideDepth(1),
+   _PoolingWidth(1), _PoolingHeight(1), _PoolingDepth(1),
    _WeightMean(0.0), _WeightStddev(1e-3),
    _PatchWidth(16), _PatchHeight(16), _PatchDepth(16), _PatchChannels(1)
 {

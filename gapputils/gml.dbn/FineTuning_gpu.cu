@@ -10,7 +10,7 @@
 #include <tbblas/sum.hpp>
 #include <tbblas/dot.hpp>
 #include <tbblas/rearrange.hpp>
-#include <tbblas/deeplearn/dbn.hpp>
+#include <tbblas/deeplearn/dbn_trainer.hpp>
 #include <tbblas/new_context.hpp>
 #include <tbblas/util.hpp>
 
@@ -92,7 +92,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
 
   value_t totalError = 0;
 
-  std::vector<tbblas::deeplearn::dbn<value_t, dimCount>* > dbns(getGpuCount());
+  std::vector<tbblas::deeplearn::dbn_trainer<value_t, dimCount>* > dbns(getGpuCount());
 
   #pragma omp parallel
   {
@@ -101,7 +101,7 @@ void FineTuning::update(IProgressMonitor* monitor) const {
     new_context context;
 
     dbn_t tempModel(*model);
-    tbblas::deeplearn::dbn<value_t, dimCount> dbn(tid == 0 ? *model : tempModel);
+    tbblas::deeplearn::dbn_trainer<value_t, dimCount> dbn(tid == 0 ? *model : tempModel);
     for (size_t i = 0; i < model->crbms().size() && i < getFilterBatchLength().size(); ++i)
       dbn.set_batch_length(i, getFilterBatchLength()[i]);
 

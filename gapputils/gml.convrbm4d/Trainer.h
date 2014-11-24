@@ -57,7 +57,7 @@ public:
   int dummy4;
   Property(LearningRate, double)
   Property(BiasLearningRate, double)
-  Property(LearningDecay, double)
+  Property(LearningDecay, int)
   Property(InitialMomentum, double)
   Property(FinalMomentum, double)
   Property(MomentumDecayEpochs, int)
@@ -74,6 +74,10 @@ public:
   Property(CalculateError, bool)
   Property(UpdateModel, int)
   int dummy3;
+
+  Property(FindLearningRate, bool)
+  Property(TrialLearningRates, std::vector<double>)
+  Property(TrialEpochCount, int)
 
   // Output parameters
   Property(CurrentEpoch, int)

@@ -39,13 +39,6 @@ ReconstructionTestChecker::ReconstructionTestChecker() {
   CHECK_MEMORY_LAYOUT2(ReconstructionError, test);
 }
 
-void load_v(const tbblas::tensor<dbn_t::value_t, dbn_t::dimCount>* from,
-    tbblas::tensor<dbn_t::value_t, dbn_t::dimCount, true>* to, cudaStream_t stream)
-{
-  tbblas::change_stream context(stream);
-  *to = *from;
-}
-
 void ReconstructionTest::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
   using namespace tbblas::deeplearn;
@@ -132,25 +125,23 @@ void ReconstructionTest::update(IProgressMonitor* monitor) const {
         monitor->reportProgress((double)(i+1) / (double)dataset.size() * 100.0);
     }
     cudaStreamSynchronize(copyStream);
+    cudaStreamDestroy(copyStream);
 
     #pragma omp critical
     totalError += error;
     #pragma omp barrier
+  }
 
-    #pragma omp master
-    switch (getType()) {
-    case TestType::Reconstruct:
-      newState->setReconstructions(reconstructions);
-      break;
+  switch (getType()) {
+  case TestType::Reconstruct:
+    newState->setReconstructions(reconstructions);
+    break;
 
-    case TestType::CalculateMSE:
-    case TestType::CalculateRMSE:
-    case TestType::CalculateRRMSE:
-      newState->setReconstructionError(totalError / dataset.size());
-      break;
-    }
-
-    cudaStreamDestroy(copyStream);
+  case TestType::CalculateMSE:
+  case TestType::CalculateRMSE:
+  case TestType::CalculateRRMSE:
+    newState->setReconstructionError(totalError / dataset.size());
+    break;
   }
 }
 

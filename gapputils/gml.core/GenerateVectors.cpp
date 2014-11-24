@@ -69,10 +69,10 @@ void GenerateVectors::update(workflow::IProgressMonitor* monitor) const {
         output->push_back(from[j]);
       else
         output->push_back((double)i[j] * (to[j] - from[j]) / (double)(stepCount[j] - 1) + (double)from[j]);
-      std::cout << output->at(output->size() - 1) << " ";
+//      std::cout << output->at(output->size() - 1) << " ";
     }
     outputs->push_back(output);
-    std::cout << std::endl;
+//    std::cout << std::endl;
 
     // increment i
     ++i[order[0]];

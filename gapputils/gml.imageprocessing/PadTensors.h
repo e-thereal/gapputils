@@ -23,11 +23,13 @@ class PadTensors : public DefaultWorkflowElement<PadTensors> {
 
   InitReflectableClass(PadTensors)
 
+  Property(InputTensor, boost::shared_ptr<tensor_t>)
   Property(InputTensors, boost::shared_ptr<v_tensor_t>)
   Property(Width, int)
   Property(Height, int)
   Property(Depth, int)
   Property(ReversePadding, bool)
+  Property(OutputTensor, boost::shared_ptr<tensor_t>)
   Property(OutputTensors, boost::shared_ptr<v_tensor_t>)
 
 public:

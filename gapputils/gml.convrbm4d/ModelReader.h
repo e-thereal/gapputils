@@ -32,6 +32,8 @@ class ModelReader : public DefaultWorkflowElement<ModelReader> {
   Property(VisibleUnitType, tbblas::deeplearn::unit_type)
   Property(HiddenUnitType, tbblas::deeplearn::unit_type)
   Property(ConvolutionType, tbblas::deeplearn::convolution_type)
+  Property(PoolingMethod, tbblas::deeplearn::pooling_method)
+  Property(PoolingSize, model_t::host_tensor_t::dim_t)
   Property(Mean, double)
   Property(Stddev, double)
 

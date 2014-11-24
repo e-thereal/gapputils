@@ -42,7 +42,9 @@ public:
   Property(DbmLayer, DbmLayer)
 
   // Data set size dependent parameters
-  Property(PatchCount, int)
+  Property(SuperPatchWidth, int)
+  Property(SuperPatchHeight, int)
+  Property(SuperPatchDepth, int)
   Property(EpochCount, int)
   Property(BatchSize, int)
   Property(FilterBatchSize, int)

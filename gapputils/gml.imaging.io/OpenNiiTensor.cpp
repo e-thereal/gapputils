@@ -68,7 +68,11 @@ void OpenNiiTensor::update(IProgressMonitor* /*monitor*/) const {
     return;
   }
 
-  boost::shared_ptr<tensor_t> tensor(new tensor_t(hdr.dim[1], hdr.dim[2], hdr.dim[3], hdr.dim[4]));
+  int channelCount = 1;
+  for (int i = 4; i <= hdr.dim[0]; ++i)
+    channelCount *= hdr.dim[i];
+
+  boost::shared_ptr<tensor_t> tensor(new tensor_t(hdr.dim[1], hdr.dim[2], hdr.dim[3], channelCount));
 
   boost::shared_ptr<data_t> header(new data_t((long)hdr.vox_offset));
   std::copy((char*)&hdr, ((char*)&hdr) + sizeof(hdr), header->begin());

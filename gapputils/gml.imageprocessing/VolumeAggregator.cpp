@@ -11,6 +11,7 @@
 
 #include <tbblas/tensor.hpp>
 #include <tbblas/math.hpp>
+#include <tbblas/zeros.hpp>
 
 namespace gml {
 
@@ -39,26 +40,59 @@ void VolumeAggregator::update(IProgressMonitor* monitor) const {
   size_t count = inputs[0]->getCount();
 
   boost::shared_ptr<image_t> output(new image_t(inputs[0]->getSize(), inputs[0]->getPixelSize()));
-  tensor<float, 4> img(inputs[0]->getSize()[0], inputs[0]->getSize()[1], inputs[0]->getSize()[2], inputs.size());
-  tensor<float, 4> out(output->getSize()[0], output->getSize()[1], output->getSize()[2], 1);
+  tensor<float, 3> img(inputs[0]->getSize()[0], inputs[0]->getSize()[1], inputs[0]->getSize()[2]);
+  tensor<float, 3> out;
 
+  // Make size check
   for (size_t i = 0; i < inputs.size(); ++i) {
     if (inputs[i]->getCount() != count) {
       dlog(Severity::Warning) << "Image " << (i + 1) << " has a different size than the rest of the images. Aborting!";
       return;
     }
-    assert(img.end() >= img.begin() + i * inputs[i]->getCount() + (inputs[i]->end() - inputs[i]->begin()));
-    std::copy(inputs[i]->begin(), inputs[i]->end(), img.begin() + i * inputs[i]->getCount());
   }
 
   switch (getFunction()) {
   case AggregatorFunction::Average:
-    out = sum(img, 3);
-    out = out / inputs.size();
+    {
+      out = zeros<float>(img.size());
+      for (size_t i = 0; i < inputs.size(); ++i) {
+        std::copy(inputs[i]->begin(), inputs[i]->end(), img.begin());
+        out = out + img;
+      }
+      out = out / inputs.size();
+    }
     break;
 
   case AggregatorFunction::Sum:
-    out = sum(img, 3);
+    {
+      out = zeros<float>(img.size());
+      for (size_t i = 0; i < inputs.size(); ++i) {
+        std::copy(inputs[i]->begin(), inputs[i]->end(), img.begin());
+        out = out + img;
+      }
+    }
+    break;
+
+  case AggregatorFunction::Maximum:
+    {
+      std::copy(inputs[0]->begin(), inputs[0]->end(), img.begin());
+      out = img;
+      for (size_t i = 1; i < inputs.size(); ++i) {
+        std::copy(inputs[i]->begin(), inputs[i]->end(), img.begin());
+        out = max(out, img);
+      }
+    }
+    break;
+
+  case AggregatorFunction::Minimum:
+    {
+      std::copy(inputs[0]->begin(), inputs[0]->end(), img.begin());
+      out = img;
+      for (size_t i = 1; i < inputs.size(); ++i) {
+        std::copy(inputs[i]->begin(), inputs[i]->end(), img.begin());
+        out = min(out, img);
+      }
+    }
     break;
 
   default:

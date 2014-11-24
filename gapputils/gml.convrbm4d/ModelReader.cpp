@@ -36,6 +36,8 @@ BeginPropertyDefinitions(ModelReader)
   WorkflowProperty(VisibleUnitType, NoParameter())
   WorkflowProperty(HiddenUnitType, NoParameter())
   WorkflowProperty(ConvolutionType, NoParameter())
+  WorkflowProperty(PoolingMethod, NoParameter())
+  WorkflowProperty(PoolingSize, NoParameter())
   WorkflowProperty(Mean, NoParameter())
   WorkflowProperty(Stddev, NoParameter())
 
@@ -78,6 +80,8 @@ void ModelReader::update(IProgressMonitor* monitor) const {
   newState->setVisibleUnitType(model->visibles_type());
   newState->setHiddenUnitType(model->hiddens_type());
   newState->setConvolutionType(model->convolution_type());
+  newState->setPoolingMethod(model->pooling_method());
+  newState->setPoolingSize(model->pooling_size());
   newState->setMean(model->mean());
   newState->setStddev(model->stddev());
 }

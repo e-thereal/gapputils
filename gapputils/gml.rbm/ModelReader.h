@@ -23,6 +23,7 @@ class ModelReader : public DefaultWorkflowElement<ModelReader> {
 
   Property(Filename, std::string)
   Property(Model, boost::shared_ptr<model_t>)
+  Property(FloatModel, bool)
   Property(VisibleCount, int)
   Property(HiddenCount, int)
   Property(VisibleUnitType, tbblas::deeplearn::unit_type)

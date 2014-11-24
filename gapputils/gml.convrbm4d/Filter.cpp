@@ -17,6 +17,7 @@ BeginPropertyDefinitions(Filter)
   WorkflowProperty(Model, Input("CRBM"), NotNull<Type>())
   WorkflowProperty(Inputs, Input("Ts"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Direction, Enumerator<Type>())
+  WorkflowProperty(FilterBatchSize, Description("Number of filters that are processed in parallel."))
   WorkflowProperty(GpuCount)
   WorkflowProperty(DoubleWeights, Flag())
   WorkflowProperty(OnlyFilters, Flag())
@@ -24,7 +25,7 @@ BeginPropertyDefinitions(Filter)
   WorkflowProperty(Outputs, Output("Ts"))
 EndPropertyDefinitions
 
-Filter::Filter() : _GpuCount(1), _DoubleWeights(false), _OnlyFilters(false), _SampleUnits(false) {
+Filter::Filter() : _FilterBatchSize(1), _GpuCount(1), _DoubleWeights(false), _OnlyFilters(false), _SampleUnits(false) {
   setLabel("Filter");
 }
 

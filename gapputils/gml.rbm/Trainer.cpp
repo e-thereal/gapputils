@@ -24,6 +24,8 @@ BeginPropertyDefinitions(Trainer)
   WorkflowProperty(EpochCount)
   WorkflowProperty(BatchSize)
   WorkflowProperty(LearningRate)
+  WorkflowProperty(BiasLearningRate)
+  WorkflowProperty(LearningDecay, Description("After how many epochs the learning rate will be halved. A value of -1 indicates no LearningDecay."))
   WorkflowProperty(WeightDecay)
   WorkflowProperty(InitialWeights)
   WorkflowProperty(InitialVisible)
@@ -37,6 +39,9 @@ BeginPropertyDefinitions(Trainer)
   WorkflowProperty(ShuffleTrainingSet, Flag())
   WorkflowProperty(ShowWeights, Description("Only the first ShowWeights features are shown."))
   WorkflowProperty(ShowEvery, Description("Debug output is shown only every ShowEvery epochs."))
+  WorkflowProperty(FindLearningRate, Flag())
+  WorkflowProperty(TrialLearningRates)
+  WorkflowProperty(TrialEpochCount)
 
   WorkflowProperty(Model, Output("RBM"))
 
@@ -44,8 +49,8 @@ EndPropertyDefinitions
 
 Trainer::Trainer()
  : _AutoCreateMask(false), _HiddenCount(1), _SampleHiddens(true),
-   _EpochCount(1), _BatchSize(10), _LearningRate(0.01), _WeightDecay(0.0002), _InitialWeights(0.01), _InitialVisible(0.0), _InitialHidden(0.0), _HiddenDropout(0),
-   _SparsityTarget(0.1), _SparsityWeight(0.1), _NormalizeIndividualUnits(true), _ShuffleTrainingSet(true), _ShowWeights(0), _ShowEvery(1)
+   _EpochCount(1), _BatchSize(10), _LearningRate(0.01), _BiasLearningRate(0.03), _LearningDecay(-1), _WeightDecay(0.0002), _InitialWeights(0.01), _InitialVisible(0.0), _InitialHidden(0.0), _HiddenDropout(0),
+   _SparsityTarget(0.1), _SparsityWeight(0.1), _NormalizeIndividualUnits(true), _ShuffleTrainingSet(true), _ShowWeights(0), _ShowEvery(1), _FindLearningRate(false), _TrialEpochCount(10)
 {
   setLabel("Trainer");
 }

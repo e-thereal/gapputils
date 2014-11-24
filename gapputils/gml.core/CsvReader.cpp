@@ -27,6 +27,7 @@ BeginPropertyDefinitions(CsvReader)
   WorkflowProperty(Data, Output("D"))
   WorkflowProperty(FlatData, Output("FD"))
   WorkflowProperty(RowIds, Output("Ids"))
+  WorkflowProperty(Header, NoParameter())
   WorkflowProperty(ColumnCount, NoParameter())
   WorkflowProperty(RowCount, NoParameter())
 
@@ -84,6 +85,8 @@ void CsvReader::update(IProgressMonitor* monitor) const {
   int columnCount = 0;
   const bool fast = getFastRead();
   for (int rowIndex = 0; getline(csvfile, line); ++rowIndex) {
+    if (rowIndex == 0)
+      newState->setHeader(line);
     if (firstRow <= rowIndex && (lastRow == -1 || rowIndex <= lastRow)) {
 
       double value;

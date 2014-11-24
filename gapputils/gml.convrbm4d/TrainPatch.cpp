@@ -19,7 +19,9 @@ BeginPropertyDefinitions(TrainPatch, Description("Trains a convolutional RBM usi
   WorkflowProperty(Tensors, Input("Ts"), NotNull<Type>(), NotEmpty<Type>(), Description("The training set."))
   WorkflowProperty(DbmLayer, Enumerator<Type>())
 
-  WorkflowProperty(PatchCount, Description("Number of a training patches per image."))
+  WorkflowProperty(SuperPatchWidth, Description("PatchWidth + number of patches per super patch in the x direction - 1. A value of -1 indicates a SuperPatchWidth equal to the image width."))
+  WorkflowProperty(SuperPatchHeight, Description("PatchHeight + number of patches per super patch in the y direction - 1. A value of -1 indicates a SuperPatchHeight equal to the image height."))
+  WorkflowProperty(SuperPatchDepth, Description("PatchDepth + number of patches per super patch in the z direction - 1. A value of -1 indicates a SuperPatchDepth equal to the image depth."))
 
   WorkflowProperty(EpochCount, Description("Number of sweeps through the entire training set."))
   WorkflowProperty(BatchSize, Description("Number of images used per gradient update."))
@@ -56,7 +58,7 @@ BeginPropertyDefinitions(TrainPatch, Description("Trains a convolutional RBM usi
 EndPropertyDefinitions
 
 TrainPatch::TrainPatch()
- : _PatchCount(10), _EpochCount(100), _BatchSize(20), _FilterBatchSize(1), _GpuCount(1),
+ : _SuperPatchWidth(-1), _SuperPatchHeight(-1), _SuperPatchDepth(-1), _EpochCount(100), _BatchSize(20), _FilterBatchSize(1), _GpuCount(1),
    _SparsityTarget(1e-2), _SparsityWeight(0.1),
    _CdIterations(1), _LearningRate(1e-3), _LearningDecay(0.98), _InitialMomentum(0.5), _FinalMomentum(0.9),
    _MomentumDecayEpochs(20), _WeightDecay(0), _WeightVectorLimit(1), _RandomizeTraining(false),

@@ -187,6 +187,7 @@
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_iostreams"/>
 									<listOptionValue builtIn="false" value="cublas"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_thread"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="curand"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.275253813" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

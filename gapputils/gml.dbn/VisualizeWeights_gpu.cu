@@ -72,17 +72,18 @@ void VisualizeWeights::update(IProgressMonitor* monitor) const {
 
     for (size_t i = 0; i < lastCrbm.filter_count(); ++i) {
       dim_t filterSize = seq<dimCount>(1);
-      dim_t topleft = lastCrbm.hiddens_size() / 2;
+      dim_t topleft = lastCrbm.output_size() / 2;
       topleft[dimCount - 1] = i;
 
-      paddedFilter = zeros<value_t>(lastCrbm.hiddens_size());
+      paddedFilter = zeros<value_t>(lastCrbm.output_size());
       paddedFilter[topleft] = 1.0f;
 
-      dbn.chiddens() = paddedFilter;
+      dbn.coutput() = paddedFilter;
       dbn.infer_visibles(-1, true);
 
       for (int iLayer = model.crbms().size() - 1; iLayer >= 0; --iLayer) {
-        filterSize = filterSize + model.crbms()[iLayer]->kernel_size() - 1;
+        filterSize = filterSize * model.crbms()[iLayer]->pooling_size() + model.crbms()[iLayer]->kernel_size() - 1;
+        topleft = topleft * model.crbms()[iLayer]->pooling_size();
 
         if (iLayer > 0) {
           filterSize = filterSize * model.stride_size(iLayer);

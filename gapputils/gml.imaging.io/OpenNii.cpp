@@ -67,11 +67,6 @@ void OpenNii::update(IProgressMonitor* /*monitor*/) const {
     return;
   }
 
-  if (hdr.datatype != DT_FLOAT) {
-    dlog(Severity::Warning) << "Only data type float is supported. Aborting!";
-    return;
-  }
-
   boost::shared_ptr<image_t> image(new image_t(hdr.dim[1], hdr.dim[2], hdr.dim[3],
       hdr.pixdim[1] * 1000,hdr.pixdim[2] * 1000, hdr.pixdim[3] * 1000));
 
@@ -82,8 +77,29 @@ void OpenNii::update(IProgressMonitor* /*monitor*/) const {
     return;
   }
 
-  if (!file.read((char*)image->getData(), sizeof(float) * image->getCount())) {
-    dlog(Severity::Warning) << "Error reading volume from NII file: " << file.gcount();
+  switch (hdr.datatype) {
+  case DT_FLOAT:
+    {
+      if (!file.read((char*)image->getData(), sizeof(float) * image->getCount())) {
+        dlog(Severity::Warning) << "Error reading volume from NII file: " << file.gcount();
+        return;
+      }
+    }
+    break;
+
+  case DT_INT16:
+    {
+      std::vector<int16_t> buffer(image->getCount());
+      if (!file.read((char*)&buffer[0], sizeof(int16_t) * image->getCount())) {
+        dlog(Severity::Warning) << "Error reading volume from NII file: " << file.gcount();
+        return;
+      }
+      std::copy(buffer.begin(), buffer.end(), image->begin());
+    }
+    break;
+
+  default:
+    dlog(Severity::Warning) << "Unsupported data type. Aborting!";
     return;
   }
 

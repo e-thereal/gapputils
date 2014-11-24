@@ -5,8 +5,8 @@
  *      Author: tombr
  */
 
-#ifndef GML_FILTER_H_
-#define GML_FILTER_H_
+#ifndef GML_FILTERPATCH_H_
+#define GML_FILTERPATCH_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
@@ -18,21 +18,25 @@ namespace gml {
 
 namespace convrbm4d {
 
-struct FilterChecker { FilterChecker(); };
+struct FilterPatchChecker { FilterPatchChecker(); };
 
-class Filter : public DefaultWorkflowElement<Filter> {
+class FilterPatch : public DefaultWorkflowElement<FilterPatch> {
 
-  friend class FilterChecker;
+  friend class FilterPatchChecker;
 
 public:
   typedef model_t::host_tensor_t host_tensor_t;
   typedef model_t::value_t value_t;
 
-  InitReflectableClass(Filter)
+  InitReflectableClass(FilterPatch)
 
   Property(Model, boost::shared_ptr<model_t>)
   Property(Inputs, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
   Property(Direction, CodingDirection)
+
+  Property(SuperPatchWidth, int)
+  Property(SuperPatchHeight, int)
+  Property(SuperPatchDepth, int)
   Property(FilterBatchSize, int)
   Property(GpuCount, int)
   Property(DoubleWeights, bool)
@@ -41,7 +45,7 @@ public:
   Property(Outputs, boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > >)
 
 public:
-  Filter();
+  FilterPatch();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
@@ -51,4 +55,4 @@ protected:
 
 } /* namespace gml */
 
-#endif /* GML_FILTER_H_ */
+#endif /* GML_FILTERPATCH_H_ */
