@@ -31,6 +31,10 @@ InitializePatchChecker::InitializePatchChecker() {
   CHECK_MEMORY_LAYOUT2(StrideWidth, test);
   CHECK_MEMORY_LAYOUT2(StrideHeight, test);
   CHECK_MEMORY_LAYOUT2(StrideDepth, test);
+  CHECK_MEMORY_LAYOUT2(PoolingMethod, test);
+  CHECK_MEMORY_LAYOUT2(PoolingWidth, test);
+  CHECK_MEMORY_LAYOUT2(PoolingHeight, test);
+  CHECK_MEMORY_LAYOUT2(PoolingDepth, test);
   CHECK_MEMORY_LAYOUT2(WeightMean, test);
   CHECK_MEMORY_LAYOUT2(WeightStddev, test);
   CHECK_MEMORY_LAYOUT2(PatchWidth, test);
@@ -60,8 +64,10 @@ void InitializePatch::update(gapputils::workflow::IProgressMonitor* monitor) con
   crbm->set_visibles_type(getVisibleUnitType());
   crbm->set_hiddens_type(getHiddenUnitType());
   crbm->set_convolution_type(getConvolutionType());
+  crbm->set_pooling_method(getPoolingMethod());
 
   host_tensor_t::dim_t stride = seq(getStrideWidth(), getStrideHeight(), getStrideDepth(), 1);
+  host_tensor_t::dim_t pooling = seq(getPoolingWidth(), getPoolingHeight(), getPoolingDepth(), 1);
 
   v_host_tensor_t* tensors = getTensors().get();
   if (tensors && tensors->size() == 0)
@@ -140,6 +146,7 @@ void InitializePatch::update(gapputils::workflow::IProgressMonitor* monitor) con
   crbm->set_visible_bias(vb);
   crbm->set_kernel_size(kernelSize);
   crbm->set_stride_size(stride);
+  crbm->set_pooling_size(pooling);
   crbm->set_mask(mask);
 
   newState->setModel(crbm);

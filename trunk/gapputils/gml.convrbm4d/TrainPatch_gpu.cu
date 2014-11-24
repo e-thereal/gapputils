@@ -24,7 +24,7 @@
 
 #include <fstream>
 
-#include <tbblas/deeplearn/conv_rbm.hpp>
+#include <tbblas/deeplearn/conv_rbm_trainer.hpp>
 
 namespace gml {
 
@@ -38,7 +38,9 @@ TrainPatchChecker::TrainPatchChecker() {
   CHECK_MEMORY_LAYOUT2(Tensors, trainer);
   CHECK_MEMORY_LAYOUT2(DbmLayer, trainer);
 
-  CHECK_MEMORY_LAYOUT2(PatchCount, trainer);
+  CHECK_MEMORY_LAYOUT2(SuperPatchWidth, trainer);
+  CHECK_MEMORY_LAYOUT2(SuperPatchHeight, trainer);
+  CHECK_MEMORY_LAYOUT2(SuperPatchDepth, trainer);
   CHECK_MEMORY_LAYOUT2(EpochCount, trainer);
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, trainer);
@@ -113,20 +115,41 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  /*** PREPARE MASTER THREAD ***/
+  /*** PREPARE SUPER PATCH TRAINING ***/
 
   boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
   model->set_shared_bias(true);
 
-  dim_t patchSize = model->input_size();
-  dim_t range = X[0]->size() - patchSize + 1;
+  // TODO: handle training with differently sized images
 
-  if (range[dimCount -1] != 0) {
-    dlog(Severity::Warning) << "Number of channels of the input tensors and patch size does not match. Aborting!";
+  if (X[0]->size()[3] != model->input_size()[3]) {
+    dlog(Severity::Warning) << "Number of channels doesn't match. Aborting!";
     return;
   }
 
-  tbblas::deeplearn::conv_rbm<float, 4> crbm(*model, getGpuCount());
+  // Change size of bias terms to the super patch size and unstride the model
+  dim_t superPatchSize = seq(
+      getSuperPatchWidth() > 0 ? getSuperPatchWidth() : X[0]->size()[0],
+      getSuperPatchHeight() > 0 ? getSuperPatchHeight() : X[0]->size()[1],
+      getSuperPatchDepth() > 0 ? getSuperPatchDepth() : X[0]->size()[2],
+      X[0]->size()[3]);
+  dim_t superPatchLayerSize = superPatchSize;
+  superPatchLayerSize[dimCount - 1] = 1;
+
+  dim_t patchSize = model->input_size();
+  dim_t oldStride = model->stride_size();
+
+  model->change_stride(seq<dimCount>(1));
+  model->change_size(superPatchSize);
+
+  dim_t superPatchStepSize = model->hiddens_size();
+  dim_t superPatchMaxStep = X[0]->size();
+  if (model->convolution_type() == deeplearn::convolution_type::Valid) {
+    superPatchMaxStep = superPatchMaxStep - model->kernel_size() + 1;
+  }
+  superPatchStepSize[dimCount - 1] = 1;
+
+  tbblas::deeplearn::conv_rbm_trainer<float, 4> crbm(*model, getGpuCount());
   crbm.set_batch_length(getFilterBatchSize());
   crbm.set_sparsity_method(getSparsityMethod());
   crbm.set_sparsity_target(getSparsityTarget());
@@ -136,9 +159,9 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   size_t voxelCount = model->visible_bias().count();
 
   // Initialize constants
-  value_t epsilonw =  getLearningRate() / batchSize / getPatchCount();  // Learning rate for weights
-  value_t epsilonvb = getLearningRate() / batchSize / getPatchCount();  // Learning rate for biases of visible units
-  value_t epsilonhb = getLearningRate() / batchSize / getPatchCount();  // Learning rate for biases of hidden units
+  value_t epsilonw =  getLearningRate() / batchSize / superPatchMaxStep.prod() * superPatchStepSize.prod();// / getPatchCount();  // Learning rate for weights
+  value_t epsilonvb = getLearningRate() / batchSize / superPatchMaxStep.prod() * superPatchStepSize.prod();// / getPatchCount();  // Learning rate for biases of visible units
+  value_t epsilonhb = getLearningRate() / batchSize / superPatchMaxStep.prod() * superPatchStepSize.prod();// / getPatchCount();  // Learning rate for biases of hidden units
   value_t weightcost = getWeightDecay() * getLearningRate();
   value_t initialmomentum = getInitialMomentum();
   value_t finalmomentum = getFinalMomentum();
@@ -146,6 +169,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
   value_t error = 0;
   tensor_t v, sample;
+  host_tensor_t overlapMask;
 
   /*** START OF PARALLEL CODE ***/
 
@@ -165,7 +189,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
       momentum = finalmomentum;
     }
 
-    for (size_t iBatch = 0; iBatch < batchCount; ++iBatch) {
+    for (size_t iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
       // Apply momentum for next batch
       crbm.init_gradient_updates(momentum, weightcost);
@@ -177,40 +201,57 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
         else
           sample = *X[iSample + iBatch * batchSize];
 
-        for (size_t iPatch = 0; iPatch < getPatchCount(); ++iPatch) {
-          crbm.init_dropout(getHiddenDropout(), getDropoutMethod());
+        for (int z = 0; z < superPatchMaxStep[2]; z += superPatchStepSize[2]) {
+          for (int y = 0; y < superPatchMaxStep[1]; y += superPatchStepSize[1]) {
+            for (int x = 0; x < superPatchMaxStep[0]; x += superPatchStepSize[0]) {
 
-          // Get new patch
-          dim_t topleft = seq(rand() % range[0], rand() % range[1], rand() % range[2], 0);
-          crbm.visibles() = rearrange(sample[topleft, patchSize], model->stride_size());
-          crbm.normalize_visibles();
+              crbm.init_dropout(getHiddenDropout(), getDropoutMethod());
 
-          if (getCalculateError()) {
-            v = crbm.visibles();
+              // Get new patch
+              dim_t topleft = seq(x, y, z, 0);
+              dim_t overlap = min(superPatchSize, sample.size() - topleft);   // the overlap of the current super patch and the image
+              for (size_t i = 0; i < dimCount; ++i)
+                assert(overlap[i] > 0);
+
+              dim_t overlapMaskSize = overlap;
+              overlapMaskSize[dimCount - 1] = 1;
+
+              overlapMask = zeros<value_t>(superPatchLayerSize);
+              overlapMask[seq<dimCount>(0), overlapMaskSize] = ones<value_t>(overlapMaskSize);
+              crbm.change_mask(overlapMask);
+
+              crbm.visibles() = zeros<value_t>(superPatchSize);
+              crbm.visibles()[seq<dimCount>(0), overlap] = sample[topleft, overlap];
+
+              if (iEpoch == epochCount - 1 && iBatch == 0)
+                patches->push_back(boost::make_shared<host_tensor_t>(crbm.visibles()));
+
+              crbm.normalize_visibles();
+
+              if (getCalculateError()) {
+                v = crbm.visibles();
+              }
+
+              /*** BEGIN OF POSITIVE PHASE ***/
+
+              crbm.infer_hiddens();
+              crbm.update_positive_gradient(epsilonw, epsilonvb, epsilonhb);
+
+              for (size_t iCd = 0; iCd < getCdIterations(); ++iCd) {
+                crbm.sample_hiddens();
+                crbm.sample_visibles();
+              } /* end of cd iterations */
+
+              /*** RECONSTRUCT FROM SAMPLES ***/
+
+              crbm.infer_hiddens();
+              crbm.update_negative_gradient(epsilonw, epsilonvb, epsilonhb);
+
+              if (getCalculateError()) {
+                error += sqrt(dot((crbm.visibles() - v), (crbm.visibles() - v)) / voxelCount);
+              }
+            }
           }
-
-          /*** BEGIN OF POSITIVE PHASE ***/
-
-          crbm.infer_hiddens();
-          crbm.update_positive_gradient(epsilonw, epsilonvb, epsilonhb);
-
-          for (size_t iCd = 0; iCd < getCdIterations(); ++iCd) {
-            crbm.sample_hiddens();
-            crbm.sample_visibles();
-          } /* end of cd iterations */
-
-          /*** RECONSTRUCT FROM SAMPLES ***/
-
-          crbm.infer_hiddens();
-          crbm.update_negative_gradient(epsilonw, epsilonvb, epsilonhb);
-
-          if (getCalculateError()) {
-            error += sqrt(dot((crbm.visibles() - v), (crbm.visibles() - v)) / voxelCount);
-          }
-
-          if (iEpoch == epochCount - 1 && iBatch == 0)
-            patches->push_back(boost::make_shared<host_tensor_t>(crbm.visibles()));
-
         } /* end of patches */
       } /* end of sample */
 
@@ -225,7 +266,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
     epsilonhb *= getLearningDecay();
 
     if (getCalculateError())
-      dlog(Severity::Trace) << "Error at epoch " << iEpoch << " of " << epochCount << ": " << error / X.size() / getPatchCount();
+      dlog(Severity::Trace) << "Error at epoch " << iEpoch << " of " << epochCount << ": " << error / X.size() / superPatchMaxStep.prod() * superPatchStepSize.prod();
     else
       dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
 
@@ -233,8 +274,14 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
       monitor->reportProgress(100. * (iEpoch + 1) / epochCount, getUpdateModel() && (iEpoch % getUpdateModel() == 0));
   } /* end of epochs */
 
+  crbm.write_model_to_host();
+
+  // Change size of bias terms back to the patch size and stride the model
+  model->change_size(patchSize);
+  model->change_stride(oldStride);
+
 //    newState->setAverageEpochTime(_timer.elapsed() / getEpochCount());
-  newState->setReconstructionError(error / X.size() / getPatchCount());
+  newState->setReconstructionError(error / X.size() / superPatchMaxStep.prod() * superPatchStepSize.prod());
   newState->setModel(model);
 }
 

@@ -23,6 +23,7 @@ BeginPropertyDefinitions(ModelReader)
 
   WorkflowProperty(Filename, Input("File"), Filename("RBM Model (*.rbm)"), FileExists())
   WorkflowProperty(Model, Output("RBM"))
+  WorkflowProperty(FloatModel, Flag())
   WorkflowProperty(VisibleCount, NoParameter())
   WorkflowProperty(HiddenCount, NoParameter())
   WorkflowProperty(VisibleUnitType, NoParameter())
@@ -30,13 +31,21 @@ BeginPropertyDefinitions(ModelReader)
 
 EndPropertyDefinitions
 
-ModelReader::ModelReader() : _VisibleCount(0), _HiddenCount(0) {
+ModelReader::ModelReader() : _FloatModel(false), _VisibleCount(0), _HiddenCount(0) {
   setLabel("Reader");
 }
 
 void ModelReader::update(IProgressMonitor* monitor) const {
-  boost::shared_ptr<model_t> model(new model_t());
-  tbblas::deeplearn::deserialize(getFilename(), *model);
+  boost::shared_ptr<model_t> model;
+
+  if (getFloatModel()) {
+    tbblas::deeplearn::rbm_model<float> fmodel;
+    tbblas::deeplearn::deserialize(getFilename(), fmodel);
+    model = boost::make_shared<model_t>(fmodel);
+  } else {
+    model = boost::make_shared<model_t>();
+    tbblas::deeplearn::deserialize(getFilename(), *model);
+  }
 
   newState->setModel(model);
   newState->setVisibleCount(model->weights().size()[0]);

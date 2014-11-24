@@ -38,14 +38,14 @@ void CreateDbn::update(IProgressMonitor* monitor) const {
     dbn->set_rbms(*getRbmModels());
 
   for (int i = 0; i < (int)dbn->crbms().size() - 1; ++i) {
-    if (dbn->crbms()[i]->hiddens_count() != dbn->crbms()[i + 1]->visibles_count()) {
+    if (dbn->crbms()[i]->pooled_count() != dbn->crbms()[i + 1]->visibles_count()) {
       dlog(Severity::Warning) << "Number of hidden units of convRBM " << i << " not equal to number of visibles units of convRBM " << i + 1 << ". Aborting!";
       return;
     }
   }
 
   if (dbn->rbms().size() && dbn->crbms().size() &&
-      dbn->crbms()[dbn->crbms().size() - 1]->hiddens_count() != dbn->rbms()[0]->visibles_count())
+      dbn->crbms()[dbn->crbms().size() - 1]->pooled_count() != dbn->rbms()[0]->visibles_count())
   {
     dlog(Severity::Warning) << "Number of hidden units of convRBM " << dbn->crbms().size() - 1 << " not equal to number of visibles units of the first RBM. Aborting!";
     return;

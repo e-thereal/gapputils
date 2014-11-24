@@ -31,7 +31,7 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(CdIterations, Description("Number of CD iterations. (1: CD learning, >1: CD-n learning)"))
   WorkflowProperty(LearningRate, Description("Initial value of the exponentially decaying learning rate of the filters."))
   WorkflowProperty(BiasLearningRate, Description("Initial value of the exponentially decaying learning rate of the bias terms."))
-  WorkflowProperty(LearningDecay, Description("Rate at which the learning rate decays."))
+  WorkflowProperty(LearningDecay, Description("After how many epochs the learning rate will be halved. A value of -1 indicates no LearningDecay."))
   WorkflowProperty(InitialMomentum, Description("Momentum used for the first epoch."))
   WorkflowProperty(FinalMomentum)
   WorkflowProperty(MomentumDecayEpochs)
@@ -47,6 +47,10 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(CalculateError, Flag(), Description("If checked, the reconstruction error is calculated"))
   WorkflowProperty(UpdateModel, Description("If greater than 0, the model is updated every <UpdateModel> epochs."))
 
+  WorkflowProperty(FindLearningRate, Flag())
+  WorkflowProperty(TrialLearningRates)
+  WorkflowProperty(TrialEpochCount)
+
   WorkflowProperty(CurrentEpoch, NoParameter())
   WorkflowProperty(Model, Output("CRBM"), Description("The trained model."))
   WorkflowProperty(AverageEpochTime, Output("T"))
@@ -57,10 +61,11 @@ EndPropertyDefinitions
 Trainer::Trainer()
  : _EpochCount(100), _BatchSize(20), _FilterBatchSize(1), _GpuCount(1),
    _SparsityTarget(1e-2), _SparsityWeight(0.1),
-   _CdIterations(1), _LearningRate(1e-3), _BiasLearningRate(3e-3), _LearningDecay(1), _InitialMomentum(0.5), _FinalMomentum(0.9),
+   _CdIterations(1), _LearningRate(1e-3), _BiasLearningRate(3e-3), _LearningDecay(-1), _InitialMomentum(0.5), _FinalMomentum(0.9),
    _MomentumDecayEpochs(20), _WeightDecay(0), _WeightVectorLimit(1), _RandomizeTraining(false),
    _ShareBiasTerms(false), _ChannelsPerBlock(1), _VisibleDropout(0.0), _HiddenDropout(0.5), _FilterDropout(0.0),
    _CalculateError(false), _UpdateModel(0),
+   _FindLearningRate(false), _TrialEpochCount(10),
    _CurrentEpoch(0), _AverageEpochTime(0.0), _ReconstructionError(0.0)
 {
   setLabel("Trainer");

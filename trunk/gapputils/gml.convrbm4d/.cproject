@@ -80,6 +80,7 @@
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="cublas"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="convnet"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_thread"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="curand"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1566326527" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -192,6 +193,7 @@
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="cublas"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="blas"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_thread"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="curand"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.66614842" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

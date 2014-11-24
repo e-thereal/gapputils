@@ -46,6 +46,8 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
   Property(BatchSize, int)
   int dummy;
   Property(LearningRate, double)
+  Property(BiasLearningRate, double)
+  Property(LearningDecay, int)
   Property(WeightDecay, double)
   Property(InitialWeights, double)
   Property(InitialVisible, double)
@@ -59,6 +61,10 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
   Property(ShuffleTrainingSet, bool)
   Property(ShowWeights, int)
   Property(ShowEvery, int)
+
+  Property(FindLearningRate, bool)
+  Property(TrialLearningRates, std::vector<double>)
+  Property(TrialEpochCount, int)
 
   Property(Model, boost::shared_ptr<model_t>)
 

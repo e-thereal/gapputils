@@ -33,6 +33,7 @@ FilterChecker::FilterChecker() {
   CHECK_MEMORY_LAYOUT2(Model, filter);
   CHECK_MEMORY_LAYOUT2(Inputs, filter);
   CHECK_MEMORY_LAYOUT2(Direction, filter);
+  CHECK_MEMORY_LAYOUT2(FilterBatchSize, filter);
   CHECK_MEMORY_LAYOUT2(GpuCount, filter);
   CHECK_MEMORY_LAYOUT2(DoubleWeights, filter);
   CHECK_MEMORY_LAYOUT2(OnlyFilters, filter);
@@ -49,16 +50,22 @@ void Filter::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
   using namespace tbblas::deeplearn;
 
-
   Logbook& dlog = getLogbook();
   model_t& model = *getModel();
+
+  if (getFilterBatchSize() > model.filters().size() ||
+      model.filters().size() % getFilterBatchSize() != 0)
+  {
+    dlog(Severity::Warning) << "Invalid FilterBatchSize. Aborting!";
+    return;
+  }
 
   std::vector<boost::shared_ptr<host_tensor_t> >& inputs = *getInputs();
   boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > outputs(
       new std::vector<boost::shared_ptr<host_tensor_t> >());
 
   conv_rbm<float, 4> crbm(model, getGpuCount());
-  crbm.set_batch_length(model.filters().size() / getGpuCount());
+  crbm.set_batch_length(getFilterBatchSize());
 
   tensor<float, 4, true> input;
 
