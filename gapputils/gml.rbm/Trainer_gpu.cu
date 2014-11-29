@@ -34,9 +34,9 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(HiddenCount, test);
   CHECK_MEMORY_LAYOUT2(SampleHiddens, test);
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
+  CHECK_MEMORY_LAYOUT2(TrialEpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
-  CHECK_MEMORY_LAYOUT2(LearningRate, test);
-  CHECK_MEMORY_LAYOUT2(BiasLearningRate, test);
+  CHECK_MEMORY_LAYOUT2(LearningRates, test);
   CHECK_MEMORY_LAYOUT2(LearningDecay, test);
   CHECK_MEMORY_LAYOUT2(WeightDecay, test);
   CHECK_MEMORY_LAYOUT2(InitialWeights, test);
@@ -50,10 +50,6 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(NormalizeIndividualUnits, test);
   CHECK_MEMORY_LAYOUT2(ShowWeights, test);
   CHECK_MEMORY_LAYOUT2(ShowEvery, test);
-
-  CHECK_MEMORY_LAYOUT2(FindLearningRate, test);
-  CHECK_MEMORY_LAYOUT2(TrialLearningRates, test);
-  CHECK_MEMORY_LAYOUT2(TrialEpochCount, test);
 
   CHECK_MEMORY_LAYOUT2(Model, test);
 }
@@ -147,149 +143,156 @@ void Trainer::update(IProgressMonitor* monitor) const {
   }
   dlog() << "Rows shuffled: " << timer.elapsed() << " s";
 
-  value_t epsilonw =  getLearningRate();          // Learning rate for weights
-  value_t epsilonvb = getBiasLearningRate();      // Learning rate for biases of visible units
-  value_t epsilonhb = getBiasLearningRate();      // Learning rate for biases of hidden units
+  value_t epsilonw, epsilonvb, epsilonhb, initialWeight;
 
-  std::vector<double> learningRates = getTrialLearningRates();
-  value_t bestEpsilon, bestError;
-
-  if (!getFindLearningRate())
-    learningRates.clear();
+  std::vector<double> learningRates = getLearningRates();
+  std::vector<double> initialWeights = getInitialWeights();
+  value_t bestEpsilon, bestWeight, bestError;
 
   int epochCount = getEpochCount();
 
-  for (int iLearningRate = 0; iLearningRate < learningRates.size() + 1; ++iLearningRate) {
-    if (iLearningRate < learningRates.size()) {
-      dlog(Severity::Message) << "Trying learning rate of " << learningRates[iLearningRate];
-      epsilonhb = epsilonvb = epsilonw = learningRates[iLearningRate];
-      epochCount = getTrialEpochCount();
-    } else {
-      if (learningRates.size()) {
-        epsilonhb = epsilonvb = epsilonw = bestEpsilon;
+  for (int iWeight = 0; iWeight < initialWeights.size(); ++iWeight) {
+    for (int iLearningRate = 0; iLearningRate < learningRates.size() + 1; ++iLearningRate) {
+
+      // iLearningRate == learningRate.size() marks the final run, this is only done when all the weights were tried
+      if (iLearningRate == learningRates.size() && iWeight < initialWeights.size() - 1)
+        continue;
+
+      // if only one weight and one learning rate is given, do the final run immediately
+      if (iWeight == 0 && iLearningRate == 0 && initialWeights.size() == 1 && learningRates.size() == 1) {
+        bestEpsilon = learningRates[0];
+        bestWeight = initialWeights[0];
+        continue;
+      }
+
+      if (iLearningRate < learningRates.size()) {
+        epsilonhb = epsilonvb = epsilonw = learningRates[iLearningRate];
+        initialWeight = initialWeights[iWeight];
+        epochCount = getTrialEpochCount();
+        dlog(Severity::Message) << "Trying learning rate of " << epsilonw << " with weight " << initialWeight;
       } else {
-        epsilonw =  getLearningRate();
-        epsilonvb = getBiasLearningRate();
-        epsilonhb = getBiasLearningRate();
-      }
-      dlog(Severity::Message) << "Final run with learning rate: " << bestEpsilon;
-      epochCount = getEpochCount();
-    }
-
-    boost::shared_ptr<model_t> model(new model_t());
-    model->set_visibles_type(visibleUnitType);
-    model->set_hiddens_type(hiddenUnitType);
-
-    model->set_mean(visibleMeans);
-    model->set_stddev(visibleStds);
-    model->set_mask(mask);
-
-    // Train the RBM
-    // Initialize weights and bias terms
-
-    // W_ij ~ N(mu = 0, sigma^2 = 0.1^2)
-    matrix_t W = getInitialWeights() * randn_t(visibleCount, hiddenCount);
-    matrix_t b = getInitialVisible() * ones<value_t>(1, visibleCount);
-    matrix_t c = getInitialHidden() * ones<value_t>(1, hiddenCount);
-
-    W = W * repeat(trans(mask), W.size() / trans(mask).size());
-
-    model->set_weights(W);
-    model->set_visible_bias(b);
-    model->set_hidden_bias(c);
-
-    dlog() << "RBM initialized: " << timer.elapsed() << " s";
-
-    // Start the learning
-    const int batchSize = getBatchSize();
-    const int batchCount = sampleCount / batchSize;
-    float weightcost = getWeightDecay();
-    float initialmomentum = 0.5f;
-    float finalmomentum = 0.9f;
-    float momentum;
-
-    tbblas::deeplearn::rbm<value_t> rbm(*model);
-    rbm.visibles().resize(seq((int)batchSize, (int)visibleCount));
-
-    dlog() << "Preparation finished after " << timer.elapsed() << " s";
-    dlog() << "Starting training";
-    timer.restart();
-
-    value_t error = 0, learningDecay = 1;
-
-    for (int iEpoch = 0; iEpoch < epochCount && error == error && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
-
-      error = 0;
-
-      // Learning decay only during final learning
-      if (getLearningDecay() > 1 && iLearningRate == learningRates.size()) {
-        learningDecay = (value_t)getLearningDecay() / ((value_t)getLearningDecay() + (value_t)iEpoch);
+        epsilonhb = epsilonvb = epsilonw = bestEpsilon;
+        initialWeight = bestWeight;
+        dlog(Severity::Message) << "Final run with learning rate " << bestEpsilon << " and initial weight " << initialWeight;
+        epochCount = getEpochCount();
       }
 
-      if (iEpoch < 10)
-        momentum = initialmomentum;
-      else
-        momentum = finalmomentum;
+      boost::shared_ptr<model_t> model(new model_t());
+      model->set_visibles_type(visibleUnitType);
+      model->set_hiddens_type(hiddenUnitType);
 
-      for (int iBatch = 0; iBatch < batchCount && error == error && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
+      model->set_mean(visibleMeans);
+      model->set_stddev(visibleStds);
+      model->set_mask(mask);
 
-        /*** START POSITIVE PHASE ***/
+      // Train the RBM
+      // Initialize weights and bias terms
 
-        // Get current batch
-        rbm.visibles() = X[seq(iBatch * batchSize, 0), rbm.visibles().size()];
-        rbm.init_dropout(getHiddenDropout());
-        rbm.init_gradient_updates(epsilonw, momentum, weightcost);
+      // W_ij ~ N(mu = 0, sigma^2 = 0.1^2)
+      matrix_t W = initialWeight * randn_t(visibleCount, hiddenCount);
+      matrix_t b = getInitialVisible() * ones<value_t>(1, visibleCount);
+      matrix_t c = getInitialHidden() * ones<value_t>(1, hiddenCount);
 
-        rbm.infer_hiddens();
-        rbm.update_positive_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+      W = W * repeat(trans(mask), W.size() / trans(mask).size());
 
-        /*** END OF POSITIVE PHASE ***/
+      model->set_weights(W);
+      model->set_visible_bias(b);
+      model->set_hidden_bias(c);
 
-        rbm.sample_hiddens();
-        rbm.sample_visibles();
-        rbm.infer_hiddens();
-        rbm.update_negative_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+      dlog() << "RBM initialized: " << timer.elapsed() << " s";
 
-        /*** END OF NEGATIVE PHASE ***/
+      // Start the learning
+      const int batchSize = getBatchSize();
+      const int batchCount = sampleCount / batchSize;
+      float weightcost = getWeightDecay();
+      float initialmomentum = 0.5f;
+      float finalmomentum = 0.9f;
+      float momentum;
 
-        error += sqrt(dot(rbm.visibles() - X[seq(iBatch * batchSize, 0), rbm.visibles().size()], rbm.visibles() - X[seq(iBatch * batchSize, 0), rbm.visibles().size()]) / rbm.visibles().count());
-        momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
+      tbblas::deeplearn::rbm<value_t> rbm(*model);
+      rbm.visibles().resize(seq((int)batchSize, (int)visibleCount));
 
-        rbm.apply_gradient();
+      dlog() << "Preparation finished after " << timer.elapsed() << " s";
+      dlog() << "Starting training";
+      timer.restart();
 
-        /*** END OF UPDATES ***/
+      value_t error = 0, learningDecay = 1;
 
-        if (monitor)
-          monitor->reportProgress(100 * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
+      for (int iEpoch = 0; iEpoch < epochCount && error == error && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
+
+        error = 0;
+
+        // Learning decay only during final learning
+        if (getLearningDecay() > 1 && iLearningRate == learningRates.size()) {
+          learningDecay = (value_t)getLearningDecay() / ((value_t)getLearningDecay() + (value_t)iEpoch);
+        }
+
+        if (iEpoch < 10)
+          momentum = initialmomentum;
+        else
+          momentum = finalmomentum;
+
+        for (int iBatch = 0; iBatch < batchCount && error == error && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
+
+          /*** START POSITIVE PHASE ***/
+
+          // Get current batch
+          rbm.visibles() = X[seq(iBatch * batchSize, 0), rbm.visibles().size()];
+          rbm.init_dropout(getHiddenDropout());
+          rbm.init_gradient_updates(epsilonw, momentum, weightcost);
+
+          rbm.infer_hiddens();
+          rbm.update_positive_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+
+          /*** END OF POSITIVE PHASE ***/
+
+          rbm.sample_hiddens();
+          rbm.sample_visibles();
+          rbm.infer_hiddens();
+          rbm.update_negative_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+
+          /*** END OF NEGATIVE PHASE ***/
+
+          error += sqrt(dot(rbm.visibles() - X[seq(iBatch * batchSize, 0), rbm.visibles().size()], rbm.visibles() - X[seq(iBatch * batchSize, 0), rbm.visibles().size()]) / rbm.visibles().count());
+          momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
+
+          rbm.apply_gradient();
+
+          /*** END OF UPDATES ***/
+
+          if (monitor)
+            monitor->reportProgress(100 * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
+        }
+        int eta = timer.elapsed() / (iEpoch + 1) * (epochCount - iEpoch - 1);
+        int sec = eta % 60;
+        int minutes = (eta / 60) % 60;
+        int hours = eta / 3600;
+        dlog() << "Epoch " << iEpoch << " error " << (error / batchCount) << " after " << timer.elapsed() << "s. ETA: "
+            << hours << " h " << minutes << " min " << sec << " s";
+
+        if (monitor && getShowWeights() && (iEpoch % getShowEvery() == 0)) {
+          monitor->reportProgress(100 * (iEpoch + 1) / epochCount, true);
+        }
       }
-      int eta = timer.elapsed() / (iEpoch + 1) * (epochCount - iEpoch - 1);
-      int sec = eta % 60;
-      int minutes = (eta / 60) % 60;
-      int hours = eta / 3600;
-      dlog() << "Epoch " << iEpoch << " error " << (error / batchCount) << " after " << timer.elapsed() << "s. ETA: "
-          << hours << " h " << minutes << " min " << sec << " s";
 
-      if (monitor && getShowWeights() && (iEpoch % getShowEvery() == 0)) {
-        monitor->reportProgress(100 * (iEpoch + 1) / epochCount, true);
+    //  if (getDbmLayer() == DbmLayer::IntermediateLayer) {
+    //    rbm->setWeightMatrix(boost::make_shared<host_matrix_t>(0.5 * W));
+    //  } else {
+    //    rbm->setWeightMatrix(boost::make_shared<host_matrix_t>(W));
+    //  }
+    //  rbm->setVisibleBiases(boost::make_shared<host_matrix_t>(b));
+    //  rbm->setHiddenBiases(boost::make_shared<host_matrix_t>(c));
+
+      if (iLearningRate < learningRates.size()) {
+        if ((iLearningRate == 0 && iWeight == 0) || !(error > bestError)) {   // using not greater instead of lesser to handle nan case.
+          bestError = error;
+          bestEpsilon = epsilonw;
+          bestWeight = initialWeight;
+          dlog(Severity::Message) << "Found better learning rate: " << epsilonw << " and initial weight: " << initialWeight << " with an error of " << bestError / batchCount << ".";
+        }
+      } else {
+        newState->setModel(model);
       }
-    }
-
-  //  if (getDbmLayer() == DbmLayer::IntermediateLayer) {
-  //    rbm->setWeightMatrix(boost::make_shared<host_matrix_t>(0.5 * W));
-  //  } else {
-  //    rbm->setWeightMatrix(boost::make_shared<host_matrix_t>(W));
-  //  }
-  //  rbm->setVisibleBiases(boost::make_shared<host_matrix_t>(b));
-  //  rbm->setHiddenBiases(boost::make_shared<host_matrix_t>(c));
-
-    if (iLearningRate < learningRates.size()) {
-      if (iLearningRate == 0 || !(error > bestError)) {   // using not greater instead of lesser to handle nan case.
-        bestError = error;
-        bestEpsilon = epsilonw;
-        dlog(Severity::Message) << "Found better learning rate: " << epsilonw << " with an error of " << bestError / batchCount << ".";
-      }
-    } else {
-      newState->setModel(model);
     }
   }
 }

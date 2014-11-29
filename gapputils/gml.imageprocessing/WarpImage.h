@@ -27,7 +27,7 @@ class WarpImage : public DefaultWorkflowElement<WarpImage> {
 
   Property(Input, boost::shared_ptr<image_t>)
   Property(Deformation, boost::shared_ptr<host_tensor_t>)
-  Property(VoxelSize, std::vector<int>)
+  Property(VoxelSize, std::vector<double>)
   Property(Output, boost::shared_ptr<image_t>)
 
 public:

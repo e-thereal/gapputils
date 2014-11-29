@@ -26,9 +26,12 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(BatchedLearning, test);
+
+  CHECK_MEMORY_LAYOUT2(Method, test);
   CHECK_MEMORY_LAYOUT2(LearningRate, test);
-  CHECK_MEMORY_LAYOUT2(Model, test);
+  CHECK_MEMORY_LAYOUT2(WeightCosts, test);
   CHECK_MEMORY_LAYOUT2(ShuffleTrainingSet, test);
+  CHECK_MEMORY_LAYOUT2(Model, test);
 }
 
 void Train::update(IProgressMonitor* monitor) const {
@@ -118,18 +121,24 @@ void Train::update(IProgressMonitor* monitor) const {
 
       if (getBatchedLearning()) {
         nn.visibles() = X[seq(iBatch * getBatchSize(), 0), nn.visibles().size()];
-        yBatch = Y[seq(iBatch * getBatchSize(), 0), yBatch.size()];
+        yBatch = Y[seq(iBatch * batchSize, 0), yBatch.size()];
 
         // Perform forward propagation
         nn.normalize_visibles();
         nn.infer_hiddens();
-        error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch));
+        error += dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch);
 
         // Update model
-        nn.update_model(yBatch, getLearningRate(), momentum, weightcost);
-      } else {
+        switch (getMethod()) {
+        case TrainingMethod::Momentum:
+          nn.momentum_update(yBatch, getLearningRate(), momentum, weightcost);
+          break;
 
-        nn.init_gradient_updates(getLearningRate() / batchSize, momentum, weightcost);
+        case TrainingMethod::AdaDelta:
+          nn.adadelta_update(yBatch, getLearningRate(), 0.95, weightcost);
+          break;
+        }
+      } else {
 
         for (int iSample = 0; iSample < batchSize; ++iSample) {
           nn.visibles() = X[seq(iBatch * batchSize + iSample, 0), nn.visibles().size()];
@@ -138,17 +147,25 @@ void Train::update(IProgressMonitor* monitor) const {
           // Perform forward propagation
           nn.normalize_visibles();
           nn.infer_hiddens();
-          error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch));
+          error += dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch);
 
           // Update model
-          nn.update_gradient(yBatch, getLearningRate() / batchSize);
+          nn.update_gradient(yBatch);
         }
 
-        nn.apply_gradient();
+        switch (getMethod()) {
+        case TrainingMethod::Momentum:
+          nn.momentum_step(getLearningRate(), momentum, weightcost);
+          break;
+
+        case TrainingMethod::AdaDelta:
+          nn.adadelta_step(getLearningRate(), 0.95, weightcost);
+          break;
+        }
       }
     }
 
-    dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / data.size();
+    dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << sqrt(error / data.size());
 
     if (monitor)
       monitor->reportProgress(100 * (iEpoch + 1) / getEpochCount());

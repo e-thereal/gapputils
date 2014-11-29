@@ -83,6 +83,7 @@
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="cublas"/>
 									<listOptionValue builtIn="false" value="cuda"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_thread"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="curand"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.2072944774" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -100,6 +101,7 @@
 									<listOptionValue builtIn="false" value="cufft"/>
 									<listOptionValue builtIn="false" value="gomp"/>
 									<listOptionValue builtIn="false" value="cuda"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="curand"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.496593180" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -198,6 +200,7 @@
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="cublas"/>
 									<listOptionValue builtIn="false" value="cuda"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="boost_thread"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="curand"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1100261955" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -215,6 +218,7 @@
 									<listOptionValue builtIn="false" value="cufft"/>
 									<listOptionValue builtIn="false" value="gomp"/>
 									<listOptionValue builtIn="false" value="cuda"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="curand"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1407128725" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -235,6 +239,15 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="gml.cnn.cuda.toolchain.so.491891725" name="Shared Library" projectType="cuda.toolchain.so"/>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/gml.cnn"/>
+		</configuration>
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/gml.cnn"/>
+		</configuration>
+	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.release.298210893;cuda.toolchain.configuration.so.release.298210893.;cuda.toolchain.compiler.exe.debug.442953457;cuda.toolchain.compiler.input.1286966900">
@@ -252,17 +265,27 @@
 		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.debug.2060556186;cuda.toolchain.configuration.so.debug.2060556186.;cuda.toolchain.gnu.cpp.compiler.1667233572;cdt.managedbuild.tool.gnu.cpp.compiler.input.2074184490">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869;cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869.;cuda.toolchain.gnu.c.compiler.1945853865;cdt.managedbuild.tool.gnu.c.compiler.input.515482920">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450;cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450.;cuda.toolchain.compiler.exe.debug.1202739292;cuda.toolchain.compiler.input.1468801874">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450;cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450.;cuda.toolchain.gnu.cpp.compiler.294868737;cdt.managedbuild.tool.gnu.cpp.compiler.input.484090331">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869;cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869.;cuda.toolchain.gnu.cpp.compiler.363605230;cdt.managedbuild.tool.gnu.cpp.compiler.input.433093544">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450;cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450.;cuda.toolchain.gnu.c.compiler.203517481;cdt.managedbuild.tool.gnu.c.compiler.input.1090104498">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869;cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869.;cuda.toolchain.compiler.exe.debug.363665967;cuda.toolchain.compiler.input.1774300000">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.debug.2060556186;cuda.toolchain.configuration.so.debug.2060556186.;cuda.toolchain.compiler.exe.debug.489242793;cuda.toolchain.compiler.input.1243178499">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
-	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="Release">
-			<resource resourceType="PROJECT" workspacePath="/gml.cnn"/>
-		</configuration>
-		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/gml.cnn"/>
-		</configuration>
-	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

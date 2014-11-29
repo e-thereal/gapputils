@@ -39,7 +39,6 @@ class ConvertRbms : public DefaultWorkflowElement<ConvertRbms> {
 
   InitReflectableClass(ConvertRbms)
 
-  Property(TrainingSet, boost::shared_ptr<v_tensor_t>)
   Property(Labels, boost::shared_ptr<v_data_t>)
   Property(LeftCrbms, boost::shared_ptr<v_crbm_t>)
   Property(RightCrbms, boost::shared_ptr<v_crbm_t>)

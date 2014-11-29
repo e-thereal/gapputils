@@ -38,12 +38,14 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(Labels, boost::shared_ptr<v_data_t>)
   Property(InitialModel, boost::shared_ptr<model_t>)
   Property(EpochCount, int)
+  Property(TrialEpochCount, int)
   Property(BatchSize, int)
   Property(FilterBatchSize, std::vector<int>)
 
-  Property(CLearningRate, double)
-  Property(DLearningRate, double)
+  Property(LearningRates, std::vector<double>)
+  Property(LearningDecay, int)
   Property(WeightCosts, double)
+  Property(InitialWeights, std::vector<double>)
   Property(RandomizeTraining, bool)
   Property(Model, boost::shared_ptr<model_t>)
 

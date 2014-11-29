@@ -47,7 +47,6 @@ void Shrink::update(IProgressMonitor* monitor) const {
   const int owidth = input.getSize()[0] / getWidthFactor();
   const int oheight = input.getSize()[1] / getHeightFactor();
   const int odepth = input.getSize()[2] / getDepthFactor();
-  const int count = getWidthFactor() * getHeightFactor() * getDepthFactor();
 
   boost::shared_ptr<image_t> output(new image_t(owidth, oheight, odepth, input.getPixelSize()));
 
@@ -55,17 +54,21 @@ void Shrink::update(IProgressMonitor* monitor) const {
 
   switch (getShrinkingMethod()) {
   case ShrinkingMethod::Average:
-    for (int z = 0, i = 0; z < idepth; z += getDepthFactor()) {
-      for (int y = 0; y < iheight; y += getHeightFactor()) {
-        for (int x = 0; x < iwidth; x += getWidthFactor(), ++i) {
+    for (int z = 0, i = 0; z < odepth; ++z) {
+      for (int y = 0; y < oheight; ++y) {
+        for (int x = 0; x < owidth; ++x, ++i) {
           float result = 0;
+          int count = 0;
           for (int dz = 0; dz < getDepthFactor(); ++dz) {
             for (int dy = 0; dy < getHeightFactor(); ++dy) {
               for (int dx = 0; dx < getWidthFactor(); ++dx) {
-                const int ix = x + dx;
-                const int iy = y + dy;
-                const int iz = z + dz;
-                result += inbuf[(iz * iheight + iy) * iwidth + ix];
+                const int ix = x * getWidthFactor() + dx;
+                const int iy = y * getHeightFactor() + dy;
+                const int iz = z * getDepthFactor() + dz;
+                if (ix < iwidth && iy < iheight && iz < idepth) {
+                  result += inbuf[(iz * iheight + iy) * iwidth + ix];
+                  ++count;
+                }
               }
             }
           }
@@ -76,17 +79,19 @@ void Shrink::update(IProgressMonitor* monitor) const {
     break;
 
   case ShrinkingMethod::Maximum:
-    for (int z = 0, i = 0; z < idepth; z += getDepthFactor()) {
-      for (int y = 0; y < iheight; y += getHeightFactor()) {
-        for (int x = 0; x < iwidth; x += getWidthFactor(), ++i) {
+    for (int z = 0, i = 0; z < odepth; ++z) {
+      for (int y = 0; y < oheight; ++y) {
+        for (int x = 0; x < owidth; ++x, ++i) {
           float result = std::numeric_limits<float>::min();
           for (int dz = 0; dz < getDepthFactor(); ++dz) {
             for (int dy = 0; dy < getHeightFactor(); ++dy) {
               for (int dx = 0; dx < getWidthFactor(); ++dx) {
-                const int ix = x + dx;
-                const int iy = y + dy;
-                const int iz = z + dz;
-                result = std::max(result, inbuf[(iz * iheight + iy) * iwidth + ix]);
+                const int ix = x * getWidthFactor() + dx;
+                const int iy = y * getHeightFactor() + dy;
+                const int iz = z * getDepthFactor() + dz;
+                if (ix < iwidth && iy < iheight && iz < idepth) {
+                  result = std::max(result, inbuf[(iz * iheight + iy) * iwidth + ix]);
+                }
               }
             }
           }
@@ -97,17 +102,19 @@ void Shrink::update(IProgressMonitor* monitor) const {
     break;
 
   case ShrinkingMethod::Minimum:
-    for (int z = 0, i = 0; z < idepth; z += getDepthFactor()) {
-      for (int y = 0; y < iheight; y += getHeightFactor()) {
-        for (int x = 0; x < iwidth; x += getWidthFactor(), ++i) {
+    for (int z = 0, i = 0; z < odepth; ++z) {
+      for (int y = 0; y < oheight; ++y) {
+        for (int x = 0; x < owidth; ++x, ++i) {
           float result = std::numeric_limits<float>::max();
           for (int dz = 0; dz < getDepthFactor(); ++dz) {
             for (int dy = 0; dy < getHeightFactor(); ++dy) {
               for (int dx = 0; dx < getWidthFactor(); ++dx) {
-                const int ix = x + dx;
-                const int iy = y + dy;
-                const int iz = z + dz;
-                result = std::min(result, inbuf[(iz * iheight + iy) * iwidth + ix]);
+                const int ix = x * getWidthFactor() + dx;
+                const int iy = y * getHeightFactor() + dy;
+                const int iz = z * getDepthFactor() + dz;
+                if (ix < iwidth && iy < iheight && iz < idepth) {
+                  result = std::min(result, inbuf[(iz * iheight + iy) * iwidth + ix]);
+                }
               }
             }
           }
@@ -116,6 +123,7 @@ void Shrink::update(IProgressMonitor* monitor) const {
       }
     }
     break;
+
   }
 
   newState->setOutputImage(output);
