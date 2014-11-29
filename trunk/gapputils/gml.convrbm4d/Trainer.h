@@ -42,6 +42,7 @@ public:
 
   // Data set size dependent parameters
   Property(EpochCount, int)
+  Property(TrialEpochCount, int)
   Property(BatchSize, int)
   Property(FilterBatchSize, int)
   Property(GpuCount, int)
@@ -55,8 +56,7 @@ public:
   // Learning algorithm parameters
   Property(CdIterations, int)
   int dummy4;
-  Property(LearningRate, double)
-  Property(BiasLearningRate, double)
+  Property(LearningRates, std::vector<double>)
   Property(LearningDecay, int)
   Property(InitialMomentum, double)
   Property(FinalMomentum, double)
@@ -64,6 +64,7 @@ public:
   int dummy2;
   Property(WeightDecay, double)
   Property(WeightVectorLimit, double)
+  Property(InitialWeights, std::vector<double>)
   Property(RandomizeTraining, bool)
   Property(ShareBiasTerms, bool)
   Property(ChannelsPerBlock, int)
@@ -74,10 +75,6 @@ public:
   Property(CalculateError, bool)
   Property(UpdateModel, int)
   int dummy3;
-
-  Property(FindLearningRate, bool)
-  Property(TrialLearningRates, std::vector<double>)
-  Property(TrialEpochCount, int)
 
   // Output parameters
   Property(CurrentEpoch, int)

@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include <boost/filesystem.hpp>
+#include <cstdlib>
 
 namespace fs = boost::filesystem;
 
@@ -31,22 +32,36 @@ CsvWriter::CsvWriter() : _OnlyRowNames(false) {
   setLabel("CsvWriter");
 }
 
+int count_commas(const std::string str) {
+  int count = 0;
+  for (size_t i = 0; i < str.size(); ++i)
+    if (str[i] == ',')
+      ++count;
+  return count;
+}
+
 void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
-  std::ofstream outfile(getFilename().c_str());
   Logbook& dlog = getLogbook();
 
   fs::path path(getFilename());
-  fs::create_directories(path.parent_path());
+  if (!fs::exists(path.parent_path())) {
+    fs::create_directories(path.parent_path());
+    dlog(Severity::Trace) << "Directories created.";
+  }
 
-  if (getHeader().size())
-    outfile << getHeader() << std::endl;
+  std::ofstream outfile(getFilename().c_str());
+
 
   if (getData() && getFlatData()) {
     dlog(Severity::Warning) << "Only one of data or flat data may be given at a time. Aborting!";
     return;
   }
 
+
   if (getOnlyRowNames()) {
+    if (getHeader().size())
+      outfile << getHeader() << std::endl;
+
     if (!getRowNames() || getRowNames()->size() == 0) {
       dlog(Severity::Warning) << "No row names given. Aborting!";
       return;
@@ -61,7 +76,7 @@ void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
   }
 
   // Get number of rows
-  size_t rowCount = 0;
+  size_t rowCount = 0, columnCount = 0;
   if (getData() && getData()->size() && getData()->at(0)) {
     vv_data_t& data = *getData();
 
@@ -72,6 +87,9 @@ void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
         return;
       }
     }
+
+    if (data[0]->size())
+      columnCount = data[0]->at(0)->size();
   }
 
   if (getFlatData() && getFlatData()->size()) {
@@ -83,7 +101,7 @@ void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
 
     for (size_t i = 0; i < getFlatData()->size(); ++i) {
       if (!getFlatData()->at(i) || getFlatData()->at(i)->size() % _ColumnCount[i] != 0) {
-        dlog(Severity::Warning) << "The size of the flat data vectors must be dividable by the column count of that vector. Aborting!";
+        dlog(Severity::Warning) << "The size of the flat data vectors must be divisible by the column count of that vector. Aborting!";
         return;
       }
     }
@@ -95,6 +113,46 @@ void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
         return;
       }
     }
+
+    columnCount = 0;
+    for (size_t i = 0; i < _ColumnCount.size(); ++i)
+      columnCount += _ColumnCount[i];
+  }
+
+  if (getHeader().size()) {
+    std::string header = getHeader(), prefix;
+    size_t pos = header.find_last_of(",");
+    std::cout << "full header: " << header << std::endl;
+    if (pos != std::string::npos) {
+      prefix = header.substr(pos + 1);
+      header = header.substr(0, pos);
+    } else {
+      prefix = header;
+      header = "";
+    }
+    std::cout << "header: " << header << std::endl;
+    std::cout << "prefix: " << prefix << std::endl;
+
+    std::stringstream newheader;
+
+    int commaCount = count_commas(header);
+    if (header.size()) {
+      newheader << header << ",";
+      ++commaCount;
+    }
+
+    int totalCommaCount = columnCount;
+    if (getRowNames() && getRowNames()->size() && getRowNames()->at(0).size()) {
+      totalCommaCount += count_commas(getRowNames()->at(0)) + 1;
+    }
+
+    for (int i = 0; i < totalCommaCount - commaCount; ++i) {
+      newheader << prefix << i + 1;
+      if (i + 1 < totalCommaCount - commaCount)
+        newheader << ",";
+    }
+    std::cout << newheader.str() << std::endl;
+    outfile << newheader.str() << std::endl;
   }
 
   if (getRowNames()) {

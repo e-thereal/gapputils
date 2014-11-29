@@ -19,6 +19,7 @@
 #include <tbblas/repeat.hpp>
 #include <tbblas/io.hpp>
 #include <tbblas/rearrange.hpp>
+#include <tbblas/random.hpp>
 
 #include <boost/timer.hpp>
 
@@ -38,6 +39,7 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(Tensors, trainer);
   CHECK_MEMORY_LAYOUT2(DbmLayer, trainer);
   CHECK_MEMORY_LAYOUT2(EpochCount, trainer);
+  CHECK_MEMORY_LAYOUT2(TrialEpochCount, trainer);
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(GpuCount, trainer);
@@ -47,13 +49,14 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(SparsityWeight, trainer);
 
   CHECK_MEMORY_LAYOUT2(CdIterations, trainer);
-  CHECK_MEMORY_LAYOUT2(LearningRate, trainer);
+  CHECK_MEMORY_LAYOUT2(LearningRates, trainer);
   CHECK_MEMORY_LAYOUT2(LearningDecay, trainer);
   CHECK_MEMORY_LAYOUT2(InitialMomentum, trainer);
   CHECK_MEMORY_LAYOUT2(FinalMomentum, trainer);
   CHECK_MEMORY_LAYOUT2(MomentumDecayEpochs, trainer);
   CHECK_MEMORY_LAYOUT2(WeightDecay, trainer);
   CHECK_MEMORY_LAYOUT2(WeightVectorLimit, trainer);
+  CHECK_MEMORY_LAYOUT2(InitialWeights, trainer);
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, trainer);
   CHECK_MEMORY_LAYOUT2(ShareBiasTerms, trainer);
   CHECK_MEMORY_LAYOUT2(DropoutMethod, trainer);
@@ -62,10 +65,6 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(FilterDropout, trainer);
   CHECK_MEMORY_LAYOUT2(CalculateError, trainer);
   CHECK_MEMORY_LAYOUT2(UpdateModel, trainer);
-
-  CHECK_MEMORY_LAYOUT2(FindLearningRate, trainer);
-  CHECK_MEMORY_LAYOUT2(TrialLearningRates, trainer);
-  CHECK_MEMORY_LAYOUT2(TrialEpochCount, trainer);
 
   CHECK_MEMORY_LAYOUT2(CurrentEpoch, trainer);
   CHECK_MEMORY_LAYOUT2(Model, trainer);
@@ -115,7 +114,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  if (getFindLearningRate() && !getCalculateError()) {
+  if (getLearningRates().size() > 1 && !getCalculateError()) {
     dlog(Severity::Warning) << "Error calculation must be turned on in order to find the best learning rate. Aborting!";
     return;
   }
@@ -123,139 +122,159 @@ void Trainer::update(IProgressMonitor* monitor) const {
   /*** PREPARE MASTER THREAD ***/
 
   // Initialize constants
-  value_t weightcost = getWeightDecay() * getLearningRate();
   value_t initialmomentum = getInitialMomentum();
   value_t finalmomentum = getFinalMomentum();
   value_t momentum;
 
-  value_t epsilonw =  getLearningRate() / batchSize;  // Learning rate for weights
-  value_t epsilonvb = getBiasLearningRate() / batchSize;  // Learning rate for biases of visible units
-  value_t epsilonhb = getBiasLearningRate() / batchSize;  // Learning rate for biases of hidden units
+  value_t epsilonw, epsilonvb, epsilonhb, initialWeight = 0;  // Learning rate for weights
 
-  std::vector<double> learningRates = getTrialLearningRates();
-  value_t bestEpsilon, bestError;
+  std::vector<double> learningRates = getLearningRates();
+  std::vector<double> initialWeights = getInitialWeights();
+  value_t bestEpsilon, bestError, bestWeight;
 
-  if (!getFindLearningRate())
-    learningRates.clear();
+  for (int iWeight = 0; iWeight < initialWeights.size() || (iWeight == 0 && initialWeights.size() == 0); ++iWeight) {
+    for (int iLearningRate = 0; iLearningRate < learningRates.size() + 1; ++iLearningRate) {
 
-  for (int iLearningRate = 0; iLearningRate < learningRates.size() + 1; ++iLearningRate) {
-    if (iLearningRate < learningRates.size()) {
-      dlog(Severity::Message) << "Trying learning rate of " << learningRates[iLearningRate];
-      epsilonhb = epsilonvb = epsilonw = learningRates[iLearningRate] / batchSize;
-      epochCount = getTrialEpochCount();
-    } else {
-      if (learningRates.size()) {
+      // iLearningRate == learningRate.size() marks the final run, this is only done when all the weights were tried
+      if (iLearningRate == learningRates.size() && iWeight < (int)initialWeights.size() - 1) {
+        continue;
+      }
+
+      // if only one weight and one learning rate is given, do the final run immediately
+      if (iWeight == 0 && iLearningRate == 0 && initialWeights.size() <= 1 && learningRates.size() == 1) {
+        bestEpsilon = learningRates[0] / batchSize;
+        if (initialWeights.size())
+          bestWeight = initialWeights[0];
+        continue;
+      }
+
+      if (iLearningRate < learningRates.size()) {
+        epsilonhb = epsilonvb = epsilonw = learningRates[iLearningRate] / batchSize;
+        if (initialWeights.size())
+          initialWeight = initialWeights[iWeight];
+        epochCount = getTrialEpochCount();
+        dlog(Severity::Message) << "Trying learning rate of " << learningRates[iLearningRate] << " and initial weight of " << initialWeight;
+      } else {
         epsilonhb = epsilonvb = epsilonw = bestEpsilon;
-      } else {
-        epsilonw =  getLearningRate() / batchSize;
-        epsilonvb = getBiasLearningRate() / batchSize;
-        epsilonhb = getBiasLearningRate() / batchSize;
+        if (initialWeights.size())
+          initialWeight = bestWeight;
+        dlog(Severity::Message) << "Final run with learning rate: " << bestEpsilon * batchSize << " and initial weight of " << initialWeight;
+        epochCount = getEpochCount();
       }
-      dlog(Severity::Message) << "Final run with learning rate: " << bestEpsilon * batchSize;
-      epochCount = getEpochCount();
-    }
+      value_t weightcost = getWeightDecay() * epsilonw * batchSize;
 
-    boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
-    model->set_shared_bias(getShareBiasTerms());
+      boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
+      model->set_shared_bias(getShareBiasTerms());
 
-    tbblas::deeplearn::conv_rbm_trainer<float, 4> crbm(*model, getGpuCount());
-    crbm.set_batch_length(getFilterBatchSize());
-    crbm.set_sparsity_method(getSparsityMethod());
-    crbm.set_sparsity_target(getSparsityTarget());
-    crbm.set_sparsity_weight(getSparsityWeight());
+      // reset filters if initial weights are larger than 0
+      if (initialWeight > 0) {
+        random_tensor2<value_t, model_t::dimCount, false, normal<value_t> > randn(model->kernel_size());
 
-    // Prepare sizes
-    size_t voxelCount = sum(model->mask()) * model->visibles_size()[dimCount - 1];
-
-    value_t error = 0, learningDecay = 1;
-    tensor_t v, input;
-
-    /*** START OF PARALLEL CODE ***/
-
-    crbm.allocate_gpu_memory();
-
-    dlog() << "Trainer initialized. Starting training.";
-
-    for (size_t iEpoch = 0; iEpoch < epochCount && error == error && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
-      error = 0;
-
-      // Learning decay only during final learning
-      if (getLearningDecay() > 1 && iLearningRate == learningRates.size()) {
-        learningDecay = (value_t)getLearningDecay() / ((value_t)getLearningDecay() + (value_t)iEpoch);
+        for (int iFilter = 0; iFilter < model->filters().size(); ++iFilter) {
+          *model->filters()[iFilter] = initialWeight * randn();
+        }
       }
 
-      if (iEpoch < getMomentumDecayEpochs()) {
-        const value_t t = (value_t)iEpoch / (value_t)getMomentumDecayEpochs();
-        momentum = (1 - t) * initialmomentum + t * finalmomentum;
-      } else {
-        momentum = finalmomentum;
-      }
+      tbblas::deeplearn::conv_rbm_trainer<float, 4> crbm(*model, getGpuCount());
+      crbm.set_batch_length(getFilterBatchSize());
+      crbm.set_sparsity_method(getSparsityMethod());
+      crbm.set_sparsity_target(getSparsityTarget());
+      crbm.set_sparsity_weight(getSparsityWeight());
 
-      for (size_t iBatch = 0; iBatch < batchCount && error == error; ++iBatch) {
+      // Prepare sizes
+      size_t voxelCount = sum(model->mask()) * model->visibles_size()[dimCount - 1];
 
-        // Apply momentum for next batch
-        crbm.init_gradient_updates(momentum, weightcost);
+      value_t error = 0, learningDecay = 1;
+      tensor_t v, input;
 
-        for (size_t iSample = 0; iSample < batchSize && error == error; ++iSample) {
-          crbm.init_dropout(getHiddenDropout(), getDropoutMethod());
+      /*** START OF PARALLEL CODE ***/
 
-          // Get new sample
-          if (getRandomizeTraining())
-            input = *X[rand() % X.size()];
-          else
-            input = *X[iSample + iBatch * batchSize];
+      crbm.allocate_gpu_memory();
 
-          crbm.visibles() = rearrange(input, model->stride_size());
-          crbm.normalize_visibles();
+      dlog() << "Trainer initialized. Starting training.";
 
-          if (getCalculateError())
-            v = crbm.visibles();
+      for (size_t iEpoch = 0; iEpoch < epochCount && error == error && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
+        error = 0;
 
-          /*** BEGIN OF POSITIVE PHASE ***/
-          crbm.infer_hiddens();
-          crbm.update_positive_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+        // Learning decay only during final learning
+        if (getLearningDecay() > 1 && iLearningRate == learningRates.size()) {
+          learningDecay = (value_t)getLearningDecay() / ((value_t)getLearningDecay() + (value_t)iEpoch);
+        }
 
-          for (size_t iCd = 0; iCd < getCdIterations(); ++iCd) {
-            crbm.sample_hiddens();
-            crbm.sample_visibles();
-          } /* end of cd iterations */
+        if (iEpoch < getMomentumDecayEpochs()) {
+          const value_t t = (value_t)iEpoch / (value_t)getMomentumDecayEpochs();
+          momentum = (1 - t) * initialmomentum + t * finalmomentum;
+        } else {
+          momentum = finalmomentum;
+        }
 
-          /*** RECONSTRUCT FROM SAMPLES ***/
+        for (size_t iBatch = 0; iBatch < batchCount && error == error; ++iBatch) {
 
-          crbm.infer_hiddens();
-          crbm.update_negative_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+          // Apply momentum for next batch
+          crbm.init_gradient_updates(momentum, weightcost);
 
-          if (getCalculateError()) {
-            error += sqrt(dot((crbm.visibles() - v), (crbm.visibles() - v)) / voxelCount);
-          }
-        } /* end of sample */
+          for (size_t iSample = 0; iSample < batchSize && error == error; ++iSample) {
+            crbm.init_dropout(getHiddenDropout(), getDropoutMethod());
 
-        crbm.apply_gradient();
+            // Get new sample
+            if (getRandomizeTraining())
+              input = *X[rand() % X.size()];
+            else
+              input = *X[iSample + iBatch * batchSize];
+
+            crbm.visibles() = rearrange(input, model->stride_size());
+            crbm.normalize_visibles();
+
+            if (getCalculateError())
+              v = crbm.visibles();
+
+            /*** BEGIN OF POSITIVE PHASE ***/
+            crbm.infer_hiddens();
+            crbm.update_positive_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+
+            for (size_t iCd = 0; iCd < getCdIterations(); ++iCd) {
+              crbm.sample_hiddens();
+              crbm.sample_visibles();
+            } /* end of cd iterations */
+
+            /*** RECONSTRUCT FROM SAMPLES ***/
+
+            crbm.infer_hiddens();
+            crbm.update_negative_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+
+            if (getCalculateError()) {
+              error += sqrt(dot((crbm.visibles() - v), (crbm.visibles() - v)) / voxelCount);
+            }
+          } /* end of sample */
+
+          crbm.apply_gradient();
+
+          if (monitor)
+            monitor->reportProgress(100. * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
+        } /* end of batch */
+
+        if (getCalculateError())
+          dlog(Severity::Trace) << "Error at epoch " << iEpoch << " of " << epochCount << ": " << error / X.size();
+        else
+          dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
 
         if (monitor)
-          monitor->reportProgress(100. * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
-      } /* end of batch */
+          monitor->reportProgress(100. * (iEpoch + 1) / epochCount, getUpdateModel() && (iEpoch % getUpdateModel() == 0));
+      } /* end of epochs */
 
-      if (getCalculateError())
-        dlog(Severity::Trace) << "Error at epoch " << iEpoch << " of " << epochCount << ": " << error / X.size();
-      else
-        dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
+    //    newState->setAverageEpochTime(_timer.elapsed() / epochCount);
 
-      if (monitor)
-        monitor->reportProgress(100. * (iEpoch + 1) / epochCount, getUpdateModel() && (iEpoch % getUpdateModel() == 0));
-    } /* end of epochs */
-
-  //    newState->setAverageEpochTime(_timer.elapsed() / epochCount);
-
-    if (iLearningRate < learningRates.size()) {
-      if (iLearningRate == 0 || !(error > bestError)) {   // using not greater instead of lesser to handle nan case.
-        bestError = error;
-        bestEpsilon = epsilonw;
-        dlog(Severity::Message) << "Found better learning rate: " << epsilonw * batchSize << " with an error of " << bestError / X.size() << ".";
+      if (iLearningRate < learningRates.size()) {
+        if (iLearningRate == 0 && iWeight == 0 || !(error > bestError)) {   // using not greater instead of lesser to handle nan case.
+          bestError = error;
+          bestEpsilon = epsilonw;
+          bestWeight = initialWeight;
+          dlog(Severity::Message) << "Found better learning rate: " << epsilonw * batchSize << " with an error of " << bestError / X.size() << ".";
+        }
+      } else {
+        newState->setReconstructionError(error / X.size());
+        newState->setModel(model);
       }
-    } else {
-      newState->setReconstructionError(error / X.size());
-      newState->setModel(model);
     }
   }
 }

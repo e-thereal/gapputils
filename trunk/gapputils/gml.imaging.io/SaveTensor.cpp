@@ -38,12 +38,14 @@ SaveTensor::SaveTensor() {
 void SaveTensor::update(gapputils::workflow::IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
 
+  // Make sure that the path exists (optional)
   fs::path path(getFilename());
   fs::create_directories(path.parent_path());
 
+  // Create a compressed file stream
   bio::filtering_ostream file;
-  file.push(boost::iostreams::gzip_compressor());
-  file.push(bio::file_descriptor_sink(getFilename()));
+  file.push(boost::iostreams::gzip_compressor());       // adds compression
+  file.push(bio::file_descriptor_sink(getFilename()));  // specify the filename
   if (!file) {
     dlog(Severity::Warning) << "Can't open file '" << getFilename() << "' for writing. Aborting!";
     return;
@@ -51,9 +53,16 @@ void SaveTensor::update(gapputils::workflow::IProgressMonitor* monitor) const {
 
   std::vector<boost::shared_ptr<tensor_t> >& tensors = *getTensors();
 
+  // Write the number of tensors first (has to be one in your case)
   unsigned count = tensors.size();
   file.write((char*)&count, sizeof(count));
+
+
   for (size_t i = 0; i < count && (monitor ? !monitor->getAbortRequested() : true); ++i) {
+    // Only need a single call to serialize
+    // matrix_t A;
+    // tbblas::serialize(A, file);
+
     tbblas::serialize(*tensors[i], file);
     if (monitor)
       monitor->reportProgress(100.0 * i / count);

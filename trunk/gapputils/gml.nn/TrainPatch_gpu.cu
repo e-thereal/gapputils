@@ -173,7 +173,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
         TNR += sum((yBatch < 0.5) * (nn.hiddens() < 0.5)) / sum(yBatch < 0.5);
 
         // Update model
-        nn.update_model(yBatch, getLearningRate(), momentum, weightcost);
+        nn.momentum_update(yBatch, getLearningRate(), momentum, weightcost);
       } else {
 
 //        nn.init_gradient_updates(getLearningRate() / batchSize, momentum, weightcost);

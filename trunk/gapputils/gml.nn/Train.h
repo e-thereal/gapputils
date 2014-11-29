@@ -9,6 +9,7 @@
 #define GML_TRAIN_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
+#include <capputils/Enumerators.h>
 #include <gapputils/namespaces.h>
 
 #include "Model.h"
@@ -16,6 +17,8 @@
 namespace gml {
 
 namespace nn {
+
+CapputilsEnumerator(TrainingMethod, Momentum, AdaDelta);
 
 struct TrainChecker { TrainChecker(); } ;
 
@@ -35,6 +38,7 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(BatchSize, int)
   Property(BatchedLearning, bool)
 
+  Property(Method, TrainingMethod)
   Property(LearningRate, double)
   Property(WeightCosts, double)
   Property(ShuffleTrainingSet, bool)

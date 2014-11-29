@@ -26,7 +26,6 @@ BeginPropertyDefinitions(ConvertRbms)
 
   ReflectableBase(DefaultWorkflowElement<ConvertRbms>)
 
-  WorkflowProperty(TrainingSet, Input("D"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Labels, Input("L"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(LeftCrbms, Input("LCRBMs"), NotNull<Type>(), NotEmpty<Type>(), Merge<Type>())
   WorkflowProperty(RightCrbms, Input("RCRBMs"), NotNull<Type>(), NotEmpty<Type>(), Merge<Type>())
@@ -55,19 +54,9 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
 
   typedef tensor_t::dim_t dim_t;
 
-  v_tensor_t& tensors = *getTrainingSet();
   v_data_t& labels = *getLabels();
 
-  const size_t sampleCount = tensors.size();
-
-  if (sampleCount != labels.size()) {
-    dlog(Severity::Warning) << "The number of samples and labels must be the same. Aborting!";
-    return;
-  }
-
   boost::shared_ptr<model_t> model(new model_t());
-
-  size_t currentHiddenCount = 0;
 
   {
     v_crbm_t& crbms = *getLeftCrbms();
@@ -77,29 +66,24 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
       switch (crbms[iLayer]->hiddens_type()) {
         case unit_type::Bernoulli:  layer.set_activation_function(activation_function::Sigmoid);  break;
         case unit_type::ReLU:
+        case unit_type::ReLU1:
+        case unit_type::ReLU2:
+        case unit_type::ReLU4:
+        case unit_type::ReLU8:
         case unit_type::MyReLU:     layer.set_activation_function(activation_function::ReLU); break;
         default:
           dlog(Severity::Warning) << "Unsupported hidden unit type '" << crbms[iLayer]->hiddens_type() << "'. Aborting!";
           return;
       }
 
-      dim_t block = (iLayer == 0 ? tensors[0]->size() / crbms[iLayer]->visibles_size() : crbms[iLayer - 1]->hiddens_size() / crbms[iLayer]->visibles_size());
-      block[dimCount - 1] = 1;
-
       layer.set_filters(crbms[iLayer]->filters());
       layer.set_bias(crbms[iLayer]->hidden_bias());
       layer.set_kernel_size(crbms[iLayer]->kernel_size());
-      layer.set_stride_size(block);
+      layer.set_stride_size(crbms[iLayer]->stride_size());
       layer.set_convolution_type(crbms[iLayer]->convolution_type());
       layer.set_mean(crbms[iLayer]->mean());
       layer.set_stddev(crbms[iLayer]->stddev());
       layer.set_shared_bias(crbms[iLayer]->shared_bias());
-
-      if (iLayer == 0 && layer.input_size() != tensors[0]->size()) {
-        dlog(Severity::Warning) << "Input size doesn't match the input of the first layer. Aborting!";
-        return;
-      }
-      currentHiddenCount = layer.hiddens_count();
 
       model->append_left_cnn_layer(layer);
     }
@@ -113,29 +97,24 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
       switch (crbms[iLayer]->hiddens_type()) {
         case unit_type::Bernoulli:  layer.set_activation_function(activation_function::Sigmoid);  break;
         case unit_type::ReLU:
+        case unit_type::ReLU1:
+        case unit_type::ReLU2:
+        case unit_type::ReLU4:
+        case unit_type::ReLU8:
         case unit_type::MyReLU:     layer.set_activation_function(activation_function::ReLU); break;
         default:
           dlog(Severity::Warning) << "Unsupported hidden unit type '" << crbms[iLayer]->hiddens_type() << "'. Aborting!";
           return;
       }
 
-      dim_t block = (iLayer == 0 ? tensors[0]->size() / crbms[iLayer]->visibles_size() : crbms[iLayer - 1]->hiddens_size() / crbms[iLayer]->visibles_size());
-      block[dimCount - 1] = 1;
-
       layer.set_filters(crbms[iLayer]->filters());
       layer.set_bias(crbms[iLayer]->hidden_bias());
       layer.set_kernel_size(crbms[iLayer]->kernel_size());
-      layer.set_stride_size(block);
+      layer.set_stride_size(crbms[iLayer]->stride_size());
       layer.set_convolution_type(crbms[iLayer]->convolution_type());
       layer.set_mean(crbms[iLayer]->mean());
       layer.set_stddev(crbms[iLayer]->stddev());
       layer.set_shared_bias(crbms[iLayer]->shared_bias());
-
-      if (iLayer == 0 && layer.input_size() != tensors[0]->size()) {
-        dlog(Severity::Warning) << "Input size doesn't match the input of the first layer. Aborting!";
-        return;
-      }
-      currentHiddenCount = layer.hiddens_count();
 
       model->append_right_cnn_layer(layer);
     }
@@ -154,6 +133,10 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
       switch (rbms[iLayer]->hiddens_type()) {
         case unit_type::Bernoulli:  layer.set_activation_function(activation_function::Sigmoid);  break;
         case unit_type::ReLU:
+        case unit_type::ReLU1:
+        case unit_type::ReLU2:
+        case unit_type::ReLU4:
+        case unit_type::ReLU8:
         case unit_type::MyReLU:     layer.set_activation_function(activation_function::ReLU); break;
         default:
           dlog(Severity::Warning) << "Unsupported hidden unit type '" << rbms[iLayer]->hiddens_type() << "'. Aborting!";
@@ -164,8 +147,6 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
       layer.set_bias(rbms[iLayer]->hidden_bias());
       layer.set_mean(rbms[iLayer]->mean());
       layer.set_stddev(rbms[iLayer]->stddev());
-
-      currentHiddenCount = layer.hiddens_count();
 
       model->append_left_nn_layer(layer);
     }
@@ -184,6 +165,10 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
       switch (rbms[iLayer]->hiddens_type()) {
         case unit_type::Bernoulli:  layer.set_activation_function(activation_function::Sigmoid);  break;
         case unit_type::ReLU:
+        case unit_type::ReLU1:
+        case unit_type::ReLU2:
+        case unit_type::ReLU4:
+        case unit_type::ReLU8:
         case unit_type::MyReLU:     layer.set_activation_function(activation_function::ReLU); break;
         default:
           dlog(Severity::Warning) << "Unsupported hidden unit type '" << rbms[iLayer]->hiddens_type() << "'. Aborting!";
@@ -194,8 +179,6 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
       layer.set_bias(rbms[iLayer]->hidden_bias());
       layer.set_mean(rbms[iLayer]->mean());
       layer.set_stddev(rbms[iLayer]->stddev());
-
-      currentHiddenCount = layer.hiddens_count();
 
       model->append_right_nn_layer(layer);
     }
@@ -214,6 +197,10 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
       switch (rbms[iLayer]->hiddens_type()) {
         case unit_type::Bernoulli:  layer.set_activation_function(activation_function::Sigmoid);  break;
         case unit_type::ReLU:
+        case unit_type::ReLU1:
+        case unit_type::ReLU2:
+        case unit_type::ReLU4:
+        case unit_type::ReLU8:
         case unit_type::MyReLU:     layer.set_activation_function(activation_function::ReLU); break;
         default:
           dlog(Severity::Warning) << "Unsupported hidden unit type '" << rbms[iLayer]->hiddens_type() << "'. Aborting!";
@@ -225,14 +212,12 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
       layer.set_mean(rbms[iLayer]->mean());
       layer.set_stddev(rbms[iLayer]->stddev());
 
-      currentHiddenCount = layer.hiddens_count();
-
       model->append_joint_nn_layer(layer);
     }
   }
 
   {
-    const size_t visibleCount = currentHiddenCount;
+    const size_t visibleCount = getJointRbms()->at(getJointRbms()->size() - 1)->hiddens_count();
     const size_t hiddenCount = labels[0]->size();
 
     model_t::nn_layer_t layer;

@@ -23,6 +23,7 @@ BeginPropertyDefinitions(Train)
   WorkflowProperty(BatchSize)
   WorkflowProperty(BatchedLearning, Flag())
 
+  WorkflowProperty(Method, Enumerator<Type>())
   WorkflowProperty(LearningRate)
   WorkflowProperty(WeightCosts)
   WorkflowProperty(ShuffleTrainingSet, Flag())
