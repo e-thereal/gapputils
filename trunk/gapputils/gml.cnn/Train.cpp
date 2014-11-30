@@ -24,6 +24,7 @@ BeginPropertyDefinitions(Train)
   WorkflowProperty(BatchSize)
   WorkflowProperty(FilterBatchSize)
 
+  WorkflowProperty(Method, Enumerator<Type>())
   WorkflowProperty(LearningRates, NotEmpty<Type>())
   WorkflowProperty(LearningDecay, Description("After how many epochs the learning rate will be halved. A value of -1 indicates no LearningDecay."))
   WorkflowProperty(WeightCosts)

@@ -29,6 +29,7 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, test);
 
+  CHECK_MEMORY_LAYOUT2(Method, test);
   CHECK_MEMORY_LAYOUT2(LearningRates, test);
   CHECK_MEMORY_LAYOUT2(LearningDecay, test);
   CHECK_MEMORY_LAYOUT2(WeightCosts, test);
@@ -137,8 +138,6 @@ void Train::update(IProgressMonitor* monitor) const {
 
         for (int iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
-          cnn.init_gradient_updates(epsilon * learningDecay, epsilon * learningDecay, momentum, weightcost);
-
           for (int iSample = 0; iSample < batchSize; ++iSample) {
             const int current = iSample + iBatch * batchSize;
             thrust::copy(labels[current]->begin(), labels[current]->end(), target.begin());
@@ -149,10 +148,18 @@ void Train::update(IProgressMonitor* monitor) const {
 
             error += sqrt(dot(cnn.hiddens() - target, cnn.hiddens() - target));
 
-            cnn.update_gradient(target, epsilon * learningDecay / batchSize, epsilon * learningDecay / batchSize);
+            cnn.update_gradient(target);
           }
 
-          cnn.apply_gradient();
+          switch (getMethod()) {
+          case TrainingMethod::Momentum:
+            cnn.momentum_step(epsilon * learningDecay, epsilon * learningDecay, momentum, weightcost);
+            break;
+
+          case TrainingMethod::AdaDelta:
+            cnn.adadelta_step(epsilon * learningDecay, epsilon * learningDecay, momentum, weightcost);
+            break;
+          }
         }
 
         dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << epochCount << " epochs: " << error / tensors.size();
