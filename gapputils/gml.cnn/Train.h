@@ -11,11 +11,15 @@
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
 
+#include <capputils/Enumerators.h>
+
 #include "Model.h"
 
 namespace gml {
 
 namespace cnn {
+
+CapputilsEnumerator(TrainingMethod, Momentum, AdaDelta)
 
 struct TrainChecker { TrainChecker(); } ;
 
@@ -42,6 +46,7 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(BatchSize, int)
   Property(FilterBatchSize, std::vector<int>)
 
+  Property(Method, TrainingMethod)
   Property(LearningRates, std::vector<double>)
   Property(LearningDecay, int)
   Property(WeightCosts, double)

@@ -81,3 +81,8 @@ CONFIG(gpufarm, gpufarm|fornix) {
 LIBS += -lcudart -lcmif_v5_3 -lutilities_v3_2 -lz
 
 }
+
+CONFIG(RAW) {
+  SOURCES += OpenRaw.cpp
+  LIBS += -lraw
+}

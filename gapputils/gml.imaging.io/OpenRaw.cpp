@@ -11,7 +11,7 @@ BeginPropertyDefinitions(OpenRaw)
   ReflectableBase(DefaultWorkflowElement<OpenRaw>)
 
   WorkflowProperty(Filename, Input("Name"), Filename(), FileExists())
-  WorkflowProperty(HalfSize, Description("Load the image at half of the original resolution."))
+  WorkflowProperty(HalfSize, Flag(), Description("Load the image at half of the original resolution."))
   WorkflowProperty(WhiteBalance, Enumerator<Type>())
   WorkflowProperty(ColorSpace, Enumerator<Type>())
   WorkflowProperty(InterpolationQuality, Enumerator<Type>())
@@ -37,8 +37,8 @@ OpenRaw::OpenRaw(void) : _HalfSize(false), _ColorSpace(ColorSpace::sRGB) {
   setLabel("Raw");
 }
 
-void OpenRaw::update(IProgressMonitor* monitor) const {
-  Logbook& dlog = getLogbook();
+void OpenRaw::update(IProgressMonitor* /*monitor*/) const {
+//  Logbook& dlog = getLogbook();
 
   LibRaw processor;
   processor.open_file(getFilename().c_str());
