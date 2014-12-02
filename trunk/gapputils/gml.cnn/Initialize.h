@@ -19,6 +19,8 @@ namespace cnn {
 
 class Initialize : public DefaultWorkflowElement<Initialize> {
 
+  // TODO: patch size parameter which is optional
+
   typedef model_t::value_t value_t;
   static const unsigned dimCount = model_t::dimCount;
 
@@ -39,9 +41,13 @@ class Initialize : public DefaultWorkflowElement<Initialize> {
   Property(StrideWidths, std::vector<int>)
   Property(StrideHeights, std::vector<int>)
   Property(StrideDepths, std::vector<int>)
+  Property(PoolingWidths, std::vector<int>)
+  Property(PoolingHeights, std::vector<int>)
+  Property(PoolingDepths, std::vector<int>)
   Property(HiddenUnitCounts, std::vector<int>)
   Property(InitialWeights, double)
   Property(ConvolutionType, tbblas::deeplearn::convolution_type)
+  Property(PoolingMethod, tbblas::deeplearn::pooling_method)
   Property(HiddenActivationFunction, tbblas::deeplearn::activation_function)
   Property(OutputActivationFunction, tbblas::deeplearn::activation_function)
   Property(NormalizeInputs, bool)

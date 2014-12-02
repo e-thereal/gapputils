@@ -144,11 +144,8 @@ void Train::update(IProgressMonitor* monitor) const {
             v = *tensors[current];
             cnn.set_input(v);
             cnn.normalize_visibles();
-            cnn.infer_hiddens();
-
-            error += sqrt(dot(cnn.hiddens() - target, cnn.hiddens() - target));
-
             cnn.update_gradient(target);
+            error += sqrt(dot(cnn.hiddens() - target, cnn.hiddens() - target));
           }
 
           switch (getMethod()) {

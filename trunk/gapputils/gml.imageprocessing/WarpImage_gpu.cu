@@ -33,6 +33,8 @@ void WarpImage::update(IProgressMonitor* monitor) const {
 
   image_t& input = *getInput();
 
+  // TODO: Test 4D warp by reshaping a 3D image into a 4D tensor with one channel
+
   volume_t invol(input.getSize()[0], input.getSize()[1], input.getSize()[2]);
   thrust::copy(input.begin(), input.end(), invol.begin());
 

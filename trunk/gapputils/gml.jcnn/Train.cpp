@@ -25,6 +25,7 @@ BeginPropertyDefinitions(Train)
   WorkflowProperty(LeftFilterBatchSize)
   WorkflowProperty(RightFilterBatchSize)
 
+  WorkflowProperty(Method, Enumerator<Type>())
   WorkflowProperty(CLearningRate)
   WorkflowProperty(DLearningRate)
   WorkflowProperty(WeightCosts)
