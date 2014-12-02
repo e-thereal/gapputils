@@ -33,9 +33,13 @@ BeginPropertyDefinitions(Initialize)
   WorkflowProperty(StrideWidths)
   WorkflowProperty(StrideHeights)
   WorkflowProperty(StrideDepths)
+  WorkflowProperty(PoolingWidths)
+  WorkflowProperty(PoolingHeights)
+  WorkflowProperty(PoolingDepths)
   WorkflowProperty(HiddenUnitCounts)
   WorkflowProperty(InitialWeights)
   WorkflowProperty(ConvolutionType, Enumerator<Type>())
+  WorkflowProperty(PoolingMethod, Enumerator<Type>())
   WorkflowProperty(HiddenActivationFunction, Enumerator<Type>())
   WorkflowProperty(OutputActivationFunction, Enumerator<Type>())
   WorkflowProperty(NormalizeInputs, Flag())
@@ -48,6 +52,9 @@ Initialize::Initialize() : _InitialWeights(0.001), _NormalizeInputs(true) {
 }
 
 void Initialize::update(IProgressMonitor* monitor) const {
+
+  // TODO: Add pooling method to the CNN layers
+
   using namespace tbblas;
 
   Logbook& dlog = getLogbook();

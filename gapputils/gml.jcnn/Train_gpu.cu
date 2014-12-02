@@ -28,6 +28,7 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(LeftFilterBatchSize, test);
   CHECK_MEMORY_LAYOUT2(RightFilterBatchSize, test);
+  CHECK_MEMORY_LAYOUT2(Method, test);
   CHECK_MEMORY_LAYOUT2(CLearningRate, test);
   CHECK_MEMORY_LAYOUT2(DLearningRate, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
@@ -88,7 +89,7 @@ void Train::update(IProgressMonitor* monitor) const {
 
     for (int iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
-      cnn.init_gradient_updates(getCLearningRate(), getDLearningRate(), momentum, weightcost);
+//      cnn.init_gradient_updates(getCLearningRate(), getDLearningRate(), momentum, weightcost);
 
       for (int iSample = 0; iSample < batchSize; ++iSample) {
         const int current = iSample + iBatch * batchSize;
@@ -102,10 +103,18 @@ void Train::update(IProgressMonitor* monitor) const {
 
         error += sqrt(dot(cnn.hiddens() - target, cnn.hiddens() - target));
 
-        cnn.update_gradient(target, getCLearningRate() / batchSize, getDLearningRate() / batchSize);
+        cnn.update_gradient(target);
       }
 
-      cnn.apply_gradient();
+      switch(getMethod()) {
+      case TrainingMethod::Momentum:
+        cnn.momentum_step(getCLearningRate(), getDLearningRate(), momentum, weightcost);
+        break;
+
+      case TrainingMethod::AdaDelta:
+        cnn.adadelta_step(getCLearningRate(), getDLearningRate(), momentum, weightcost);
+        break;
+      }
     }
 
     dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / labels.size();

@@ -1,13 +1,13 @@
 /*
- * Train_gpu.cu
+ * TrainPatch_gpu.cu
  *
- *  Created on: Aug 14, 2014
+ *  Created on: Dec 01, 2014
  *      Author: tombr
  */
 
-#include "Train.h"
+#include "TrainPatch.h"
 
-#include <tbblas/deeplearn/cnn.hpp>
+#include <tbblas/deeplearn/cnn_patches.hpp>
 #include <tbblas/io.hpp>
 #include <tbblas/sum.hpp>
 #include <tbblas/dot.hpp>
@@ -17,8 +17,8 @@ namespace gml {
 
 namespace cnn {
 
-TrainChecker::TrainChecker() {
-  Train test;
+TrainPatchChecker::TrainPatchChecker() {
+  TrainPatch test;
   test.initializeClass();
 
   CHECK_MEMORY_LAYOUT2(TrainingSet, test);
@@ -38,7 +38,7 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(Model, test);
 }
 
-void Train::update(IProgressMonitor* monitor) const {
+void TrainPatch::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
   Logbook& dlog = getLogbook();
@@ -112,7 +112,7 @@ void Train::update(IProgressMonitor* monitor) const {
         layer.set_weights(W);
       }
 
-      tbblas::deeplearn::cnn<value_t, dimCount> cnn(*model);
+      tbblas::deeplearn::cnn_patches<value_t, dimCount> cnn(*model, seq<dimCount>(1));
       for (size_t i = 0; i < model->cnn_layers().size() && i < getFilterBatchSize().size(); ++i)
         cnn.set_batch_length(i, getFilterBatchSize()[i]);
 
@@ -140,12 +140,17 @@ void Train::update(IProgressMonitor* monitor) const {
 
           for (int iSample = 0; iSample < batchSize; ++iSample) {
             const int current = iSample + iBatch * batchSize;
+
+            // TODO: draw a super patch instead
             thrust::copy(labels[current]->begin(), labels[current]->end(), target.begin());
             v = *tensors[current];
             cnn.set_input(v);
             cnn.normalize_visibles();
-            cnn.update_gradient(target);
+            cnn.infer_hiddens(0);
+
             error += sqrt(dot(cnn.hiddens() - target, cnn.hiddens() - target));
+
+            cnn.update_gradient(0, target);
           }
 
           switch (getMethod()) {

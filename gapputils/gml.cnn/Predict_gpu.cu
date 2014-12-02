@@ -46,7 +46,7 @@ void Predict::update(IProgressMonitor* monitor) const {
 
     // Perform forward propagation
     cnn.normalize_visibles();
-    cnn.infer_hiddens();
+    cnn.infer_hiddens(0);
 
     // Collect results
     boost::shared_ptr<data_t> output(new data_t(getModel()->hiddens_count()));
