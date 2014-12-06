@@ -53,9 +53,9 @@ Initialize::Initialize() : _InitialWeights(0.001), _NormalizeInputs(true) {
 
 void Initialize::update(IProgressMonitor* monitor) const {
 
-  // TODO: Add pooling method to the CNN layers
-
   using namespace tbblas;
+
+  // TODO: add pooling information
 
   Logbook& dlog = getLogbook();
 
@@ -72,7 +72,6 @@ void Initialize::update(IProgressMonitor* monitor) const {
     dlog(Severity::Warning) << "The number of samples and labels must be the same. Aborting!";
     return;
   }
-
 
   const size_t clayerCount = getFilterCounts().size();
   if (getFilterWidths().size() != clayerCount ||
@@ -190,6 +189,6 @@ void Initialize::update(IProgressMonitor* monitor) const {
   newState->setModel(model);
 }
 
-} /* namespace nn */
+} /* namespace cnn */
 
 } /* namespace gml */

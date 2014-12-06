@@ -13,6 +13,8 @@
 #include <tbblas/dot.hpp>
 #include <tbblas/random.hpp>
 
+#include <tbblas/sequence_iterator.hpp>
+
 namespace gml {
 
 namespace cnn {
@@ -21,13 +23,17 @@ TrainPatchChecker::TrainPatchChecker() {
   TrainPatch test;
   test.initializeClass();
 
+  CHECK_MEMORY_LAYOUT2(InitialModel, test);
   CHECK_MEMORY_LAYOUT2(TrainingSet, test);
   CHECK_MEMORY_LAYOUT2(Labels, test);
-  CHECK_MEMORY_LAYOUT2(InitialModel, test);
+  CHECK_MEMORY_LAYOUT2(Mask, test);
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(TrialEpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, test);
+  CHECK_MEMORY_LAYOUT2(PatchCounts, test);
+  CHECK_MEMORY_LAYOUT2(MultiPatchCount, test);
+  CHECK_MEMORY_LAYOUT2(PositiveRatio, test);
 
   CHECK_MEMORY_LAYOUT2(Method, test);
   CHECK_MEMORY_LAYOUT2(LearningRates, test);
@@ -36,6 +42,9 @@ TrainPatchChecker::TrainPatchChecker() {
   CHECK_MEMORY_LAYOUT2(InitialWeights, test);
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
+  CHECK_MEMORY_LAYOUT2(Patches, test);
+  CHECK_MEMORY_LAYOUT2(Targets, test);
+  CHECK_MEMORY_LAYOUT2(Predictions, test);
 }
 
 void TrainPatch::update(IProgressMonitor* monitor) const {
@@ -48,6 +57,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   typedef tbblas::tensor<value_t, 2> host_matrix_t;
 
   typedef tbblas::tensor<value_t, dimCount, true> tensor_t;
+  typedef tensor_t::dim_t dim_t;
 
   if (getTrainingSet()->size() != getLabels()->size()) {
     dlog(Severity::Warning) << "The sizes of the training and label set don't match. Aborting!";
@@ -56,7 +66,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
   // Prepare data
   v_host_tensor_t& tensors = *getTrainingSet();
-  v_data_t& labels = *getLabels();
+  v_host_tensor_t& labels = *getLabels();
 
   value_t weightcost = getWeightCosts();
   value_t initialmomentum = 0.5f;
@@ -67,10 +77,36 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   const size_t batchCount = tensors.size() / batchSize;
   size_t epochCount = getEpochCount();
 
+  // Set-up patch parameters
+  dim_t patchCounts = (_PatchCounts.size() == 3 ? seq(_PatchCounts[0], _PatchCounts[1], _PatchCounts[2], 1) : seq<dimCount>(1));
+  dim_t patchSize = getInitialModel()->input_size() + patchCounts - 1;
+  dim_t labelSize = patchCounts * seq(1, 1, 1, 0) + seq(0, 0, 0, labels[0]->size()[dimCount - 1]);
+  dim_t range = tensors[0]->size() - patchSize + 1;
+  dim_t patchCenter = getInitialModel()->input_size() / 2 * seq(1, 1, 1, 0);
+
   value_t epsilon, initialWeight = 0, bestEpsilon, bestError, bestWeight = 0;
 
   std::vector<double> learningRates = getLearningRates();
   std::vector<double> initialWeights = getInitialWeights();
+
+  boost::shared_ptr<v_host_tensor_t> patches(new v_host_tensor_t());
+  newState->setPatches(patches);
+
+  boost::shared_ptr<v_host_tensor_t> targets(new v_host_tensor_t());
+  newState->setTargets(targets);
+
+  boost::shared_ptr<v_host_tensor_t> predictions(new v_host_tensor_t());
+  newState->setPredictions(predictions);
+
+  std::vector<dim_t> maskLocations, positiveLocations;
+  if (getMask()) {
+    host_tensor_t& mask = *getMask();
+    for (sequence_iterator<dim_t> pos(seq<dimCount>(0), (mask.size() - patchSize) * seq(1, 1, 1, 0) + seq(0, 0, 0, 1)); pos; ++pos) {
+      if (mask[*pos + patchSize / 2 * seq(1, 1, 1, 0)] > 0) {   // The center is within the lesion mask
+        maskLocations.push_back(*pos);
+      }
+    }
+  }
 
   for (int iWeight = 0; iWeight < initialWeights.size() || (iWeight == 0 && initialWeights.size() == 0); ++iWeight) {
     for (size_t iLearningRate = 0; iLearningRate < learningRates.size() + 1; ++iLearningRate) {
@@ -112,19 +148,19 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
         layer.set_weights(W);
       }
 
-      tbblas::deeplearn::cnn_patches<value_t, dimCount> cnn(*model, seq<dimCount>(1));
+      tbblas::deeplearn::cnn_patches<value_t, dimCount> cnn(*model, patchCounts);
       for (size_t i = 0; i < model->cnn_layers().size() && i < getFilterBatchSize().size(); ++i)
         cnn.set_batch_length(i, getFilterBatchSize()[i]);
 
       dlog() << "Preparation finished. Starting training.";
 
-      value_t error, learningDecay = 1;
-      matrix_t target(1, model->hiddens_count());
-      tensor_t v;
+      value_t error, learningDecay = 1, PPV, DSC, TPR, TNR;
+      tensor_t sample, label, inputPatch, labelPatch;
+      host_tensor_t h_label;
 
       for (int iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
 
-        error = 0;
+        PPV = DSC = TPR = TNR = error = 0;
 
         // Learning decay only during final learning
         if (getLearningDecay() > 1 && iLearningRate == learningRates.size()) {
@@ -136,21 +172,65 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
         else
           momentum = finalmomentum;
 
+        int voxelCount = 0, lesionCount = 0;
+
         for (int iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
           for (int iSample = 0; iSample < batchSize; ++iSample) {
             const int current = iSample + iBatch * batchSize;
 
-            // TODO: draw a super patch instead
-            thrust::copy(labels[current]->begin(), labels[current]->end(), target.begin());
-            v = *tensors[current];
-            cnn.set_input(v);
-            cnn.normalize_visibles();
-            cnn.infer_hiddens(0);
+            sample = *tensors[current];
+            label = *labels[current];
 
-            error += sqrt(dot(cnn.hiddens() - target, cnn.hiddens() - target));
+            if (getPositiveRatio() >= 0.0) {
+              positiveLocations.clear();
+              for (sequence_iterator<dim_t> pos(seq<dimCount>(0), (label.size() - patchSize) * seq(1, 1, 1, 0) + seq(0, 0, 0, 1)); pos; ++pos) {
+                if ((*labels[current])[*pos + patchSize / 2 * seq(1, 1, 1, 0)] > 0) {   // The center is within a lesion
+                  positiveLocations.push_back(*pos);
+                }
+              }
+            }
 
-            cnn.update_gradient(0, target);
+            value_t TP = 0, TN = 0, FP = 0, FN = 0;
+
+            for (int iPatch = 0; iPatch < getMultiPatchCount(); ++iPatch) {
+              dim_t topleft;
+              if (positiveLocations.size() && (float)rand() / (float)RAND_MAX < getPositiveRatio())
+                topleft = positiveLocations[rand() % positiveLocations.size()];
+              else if (maskLocations.size())
+                topleft = maskLocations[rand() % maskLocations.size()];
+              else
+                topleft = seq(rand() % range[0], rand() % range[1], rand() % range[2], 0);
+
+              inputPatch = sample[topleft, patchSize];
+              labelPatch = label[topleft + patchCenter, labelSize];
+
+              voxelCount += labelPatch.count();
+              lesionCount += sum(labelPatch > 0);
+
+              cnn.set_input(inputPatch);
+              cnn.normalize_visibles();
+              cnn.update_gradient(labelPatch);
+
+              error += sqrt(dot(labelPatch - cnn.hiddens(), labelPatch - cnn.hiddens()) / labelPatch.count()) / getMultiPatchCount();
+
+              TP += sum((labelPatch > 0.5) * (cnn.hiddens() > 0.5));
+              TN += sum((labelPatch < 0.5) * (cnn.hiddens() < 0.5));
+              FP += sum((labelPatch < 0.5) * (cnn.hiddens() > 0.5));
+              FN += sum((labelPatch > 0.5) * (cnn.hiddens() < 0.5));
+
+              if (iWeight == 0 && iLearningRate == learningRates.size() && iEpoch + 1 == epochCount && iBatch + 1 == batchCount && iSample + 1 == batchSize) {
+                patches->push_back(boost::make_shared<host_tensor_t>(inputPatch));
+                targets->push_back(boost::make_shared<host_tensor_t>(labelPatch));
+                predictions->push_back(boost::make_shared<host_tensor_t>(cnn.hiddens()));
+                tbblas::synchronize();
+              }
+            }
+
+            PPV += TP / (TP + FP);
+            DSC += 2 * TP / (TP + FN + TP + FP);
+            TPR += TP / (TP + FN);
+            TNR += TN / (TN + FP);
           }
 
           switch (getMethod()) {
@@ -163,11 +243,16 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
             break;
           }
         }
+//        tbblas_print((float)lesionCount / (float)voxelCount);
 
-        dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << epochCount << " epochs: " << error / tensors.size();
+        dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / tensors.size()
+            << " (PPV = " << PPV / tensors.size() << ", DSC = " << DSC / tensors.size() << ", TPR = " << TPR / tensors.size() << ", TNR = " << TNR / tensors.size() << ")";
 
-        if (monitor)
-          monitor->reportProgress(100 * (iEpoch + 1) / epochCount);
+        if (monitor) {
+          const int totalEpochs = getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size() + getEpochCount();
+          const int currentEpoch = iEpoch + (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount();
+          monitor->reportProgress(100 * (currentEpoch + 1) / totalEpochs);
+        }
       }
 
       if (iLearningRate < learningRates.size()) {

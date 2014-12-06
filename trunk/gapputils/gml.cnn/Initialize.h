@@ -19,8 +19,6 @@ namespace cnn {
 
 class Initialize : public DefaultWorkflowElement<Initialize> {
 
-  // TODO: patch size parameter which is optional
-
   typedef model_t::value_t value_t;
   static const unsigned dimCount = model_t::dimCount;
 
