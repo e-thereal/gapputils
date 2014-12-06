@@ -1,12 +1,12 @@
 /*
- * Initialize.h
+ * InitializePatch.h
  *
- *  Created on: Aug 13, 2014
+ *  Created on: Dec 02, 2014
  *      Author: tombr
  */
 
-#ifndef GML_INITIALIZE_H_
-#define GML_INITIALIZE_H_
+#ifndef GML_INITIALIZEPATCH_H_
+#define GML_INITIALIZEPATCH_H_
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
@@ -17,28 +17,25 @@ namespace gml {
 
 namespace cnn {
 
-class Initialize : public DefaultWorkflowElement<Initialize> {
+class InitializePatch : public DefaultWorkflowElement<InitializePatch> {
 
   typedef model_t::value_t value_t;
   static const unsigned dimCount = model_t::dimCount;
 
-  typedef std::vector<double> data_t;
-  typedef std::vector<boost::shared_ptr<data_t> > v_data_t;
-
   typedef tbblas::tensor<value_t, dimCount> tensor_t;
   typedef std::vector<boost::shared_ptr<tensor_t> > v_tensor_t;
 
-  InitReflectableClass(Initialize)
+  InitReflectableClass(InitializePatch)
 
   Property(TrainingSet, boost::shared_ptr<v_tensor_t>)
-  Property(Labels, boost::shared_ptr<v_data_t>)
+  Property(Labels, boost::shared_ptr<v_tensor_t>)
+  Property(PatchWidth, int)
+  Property(PatchHeight, int)
+  Property(PatchDepth, int)
   Property(FilterWidths, std::vector<int>)
   Property(FilterHeights, std::vector<int>)
   Property(FilterDepths, std::vector<int>)
   Property(FilterCounts, std::vector<int>)
-  Property(StrideWidths, std::vector<int>)
-  Property(StrideHeights, std::vector<int>)
-  Property(StrideDepths, std::vector<int>)
   Property(PoolingWidths, std::vector<int>)
   Property(PoolingHeights, std::vector<int>)
   Property(PoolingDepths, std::vector<int>)
@@ -52,14 +49,14 @@ class Initialize : public DefaultWorkflowElement<Initialize> {
   Property(Model, boost::shared_ptr<model_t>)
 
 public:
-  Initialize();
+  InitializePatch();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
 };
 
-} /* namespace nn */
+} /* namespace cnn */
 
 } /* namespace gml */
 
-#endif /* GML_INITIALIZE_H_ */
+#endif /* GML_INITIALIZEPATCH_H_ */
