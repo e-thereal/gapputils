@@ -18,7 +18,7 @@ namespace gml {
 
 namespace imageprocessing {
 
-CapputilsEnumerator(CombinerMode, Add, Subtract, Multiply, Divide, RobustDivide);
+CapputilsEnumerator(CombinerMode, Add, Subtract, Multiply, Divide, RobustDivide, Maximum, Minimum);
 
 class ImageCombiner : public DefaultWorkflowElement<ImageCombiner> {
 

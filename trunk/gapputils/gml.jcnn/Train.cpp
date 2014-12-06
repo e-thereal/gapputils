@@ -16,10 +16,10 @@ BeginPropertyDefinitions(Train)
 
   ReflectableBase(DefaultWorkflowElement<Train>)
 
+  WorkflowProperty(InitialModel, Input("JCNN"), NotNull<Type>())
   WorkflowProperty(LeftTrainingSet, Input("LD"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(RightTrainingSet, Input("RD"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Labels, Input("L"), NotNull<Type>(), NotEmpty<Type>())
-  WorkflowProperty(InitialModel, Input("JCNN"), NotNull<Type>())
   WorkflowProperty(EpochCount)
   WorkflowProperty(BatchSize)
   WorkflowProperty(LeftFilterBatchSize)

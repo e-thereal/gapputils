@@ -12,6 +12,7 @@
 #include <gapputils/namespaces.h>
 
 #include "Model.h"
+#include "TrainingMethod.h"
 
 namespace gml {
 
@@ -31,20 +32,23 @@ class TrainPatch : public DefaultWorkflowElement<TrainPatch> {
   Property(InitialModel, boost::shared_ptr<model_t>)
   Property(TrainingSet, boost::shared_ptr<v_host_tensor_t>)
   Property(Labels, boost::shared_ptr<v_host_tensor_t>)
+  Property(Mask, boost::shared_ptr<host_tensor_t>)
   Property(PatchWidth, int)
   Property(PatchHeight, int)
   Property(PatchDepth, int)
   Property(PatchCount, int)
   Property(EpochCount, int)
   Property(BatchSize, int)
-  Property(BatchedLearning, bool)
-  Property(EqualizeClasses, bool)
+  Property(PositiveRatio, double)
 
+  Property(Method, TrainingMethod)
   Property(LearningRate, double)
   Property(WeightCosts, double)
   Property(RandomizeTraining, bool)
   Property(Model, boost::shared_ptr<model_t>)
   Property(Patches, boost::shared_ptr<v_host_tensor_t>)
+  Property(Targets, boost::shared_ptr<v_host_tensor_t>)
+  Property(Predictions, boost::shared_ptr<v_host_tensor_t>)
 
 public:
   TrainPatch();
