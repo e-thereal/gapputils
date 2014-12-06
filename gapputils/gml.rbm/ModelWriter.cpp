@@ -10,6 +10,10 @@
 #include <capputils/Serializer.h>
 #include <tbblas/deeplearn/serialize.hpp>
 
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
+
 namespace gml {
 
 namespace rbm {
@@ -29,6 +33,9 @@ ModelWriter::ModelWriter() {
 }
 
 void ModelWriter::update(IProgressMonitor* monitor) const {
+  fs::path path(getFilename());
+  fs::create_directories(path.parent_path());
+
   tbblas::deeplearn::serialize(*getModel(), getFilename());
   getHostInterface()->saveDataModel(getFilename() + ".config");
   newState->setOutputName(getFilename());

@@ -110,14 +110,14 @@ void InitializePatch::update(IProgressMonitor* monitor) const {
         }
         mean /= tensors.size();
 
-        dlog(Severity::Trace) << "Mean: " << mean;
+        dlog(Severity::Trace) << "Mean of channel " << iChannel + 1 << ": " << mean;
 
         value_t sd = 0;
         for (size_t i = 0; i < tensors.size(); ++i) {
           channel = (*tensors[i])[seq(0,0,0,iChannel), channelSize];
           sd += dot(channel - mean, channel - mean) / channelLength;
         }
-        dlog(Severity::Trace) << "Standard deviation: " << sqrt(sd / tensors.size());
+        dlog(Severity::Trace) << "Standard deviation of channel " << iChannel + 1 << ": " << sqrt(sd / tensors.size());
 
         means[seq(0, patchLength * iChannel), seq(1, patchLength)] = ones<value_t>(1, patchLength) * mean;
         stddev[seq(0, patchLength * iChannel), seq(1, patchLength)] = ones<value_t>(1, patchLength) * sqrt(sd / tensors.size());

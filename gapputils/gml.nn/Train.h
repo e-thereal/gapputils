@@ -13,12 +13,11 @@
 #include <gapputils/namespaces.h>
 
 #include "Model.h"
+#include "TrainingMethod.h"
 
 namespace gml {
 
 namespace nn {
-
-CapputilsEnumerator(TrainingMethod, Momentum, AdaDelta);
 
 struct TrainChecker { TrainChecker(); } ;
 

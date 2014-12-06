@@ -249,8 +249,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
           crbm.apply_gradient();
 
-          if (monitor)
-            monitor->reportProgress(100. * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
+          if (monitor) {
+            const int totalEpochs = getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size() + getEpochCount();
+            const int currentEpoch = iEpoch + (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount();
+            monitor->reportProgress(100. * (currentEpoch * batchCount + (iBatch + 1)) / (totalEpochs * batchCount));
+          }
         } /* end of batch */
 
         if (getCalculateError())
@@ -258,8 +261,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
         else
           dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
 
-        if (monitor)
-          monitor->reportProgress(100. * (iEpoch + 1) / epochCount, getUpdateModel() && (iEpoch % getUpdateModel() == 0));
+        if (monitor) {
+          const int totalEpochs = getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size() + getEpochCount();
+          const int currentEpoch = iEpoch + (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount();
+          monitor->reportProgress(100. * (currentEpoch + 1) / totalEpochs, getUpdateModel() && (iEpoch % getUpdateModel() == 0));
+        }
       } /* end of epochs */
 
     //    newState->setAverageEpochTime(_timer.elapsed() / epochCount);

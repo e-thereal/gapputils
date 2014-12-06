@@ -259,9 +259,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
           rbm.apply_gradient();
 
           /*** END OF UPDATES ***/
-
-          if (monitor)
-            monitor->reportProgress(100 * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
         }
         int eta = timer.elapsed() / (iEpoch + 1) * (epochCount - iEpoch - 1);
         int sec = eta % 60;
@@ -270,8 +267,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
         dlog() << "Epoch " << iEpoch << " error " << (error / batchCount) << " after " << timer.elapsed() << "s. ETA: "
             << hours << " h " << minutes << " min " << sec << " s";
 
-        if (monitor && getShowWeights() && (iEpoch % getShowEvery() == 0)) {
-          monitor->reportProgress(100 * (iEpoch + 1) / epochCount, true);
+        if (monitor) {
+          const int totalEpochs = getTrialEpochCount() * initialWeights.size() * learningRates.size() + getEpochCount();
+          const int currentEpoch = iEpoch + (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount();
+          monitor->reportProgress(100 * (currentEpoch + 1) / totalEpochs,  getShowWeights() && (iEpoch % getShowEvery() == 0));
         }
       }
 

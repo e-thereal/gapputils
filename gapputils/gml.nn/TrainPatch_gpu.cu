@@ -11,6 +11,9 @@
 #include <tbblas/io.hpp>
 #include <tbblas/sum.hpp>
 #include <tbblas/dot.hpp>
+#include <tbblas/reshape.hpp>
+
+#include <tbblas/sequence_iterator.hpp>
 
 namespace gml {
 
@@ -23,18 +26,21 @@ TrainPatchChecker::TrainPatchChecker() {
   CHECK_MEMORY_LAYOUT2(InitialModel, test);
   CHECK_MEMORY_LAYOUT2(TrainingSet, test);
   CHECK_MEMORY_LAYOUT2(Labels, test);
+  CHECK_MEMORY_LAYOUT2(Mask, test);
   CHECK_MEMORY_LAYOUT2(PatchWidth, test);
   CHECK_MEMORY_LAYOUT2(PatchHeight, test);
   CHECK_MEMORY_LAYOUT2(PatchDepth, test);
   CHECK_MEMORY_LAYOUT2(PatchCount, test);
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
-  CHECK_MEMORY_LAYOUT2(BatchedLearning, test);
-  CHECK_MEMORY_LAYOUT2(EqualizeClasses, test);
+  CHECK_MEMORY_LAYOUT2(PositiveRatio, test);
+  CHECK_MEMORY_LAYOUT2(Method, test);
   CHECK_MEMORY_LAYOUT2(LearningRate, test);
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
   CHECK_MEMORY_LAYOUT2(Patches, test);
+  CHECK_MEMORY_LAYOUT2(Targets, test);
+  CHECK_MEMORY_LAYOUT2(Predictions, test);
 }
 
 void TrainPatch::update(IProgressMonitor* monitor) const {
@@ -60,10 +66,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
 
   tbblas::deeplearn::nn<value_t> nn(*model);
-  if (getBatchedLearning())
-    nn.visibles().resize(seq((int)getBatchSize() * getPatchCount(), (int)model->visibles_count()));
-  else
-    nn.visibles().resize(seq(1, (int)model->visibles_count()));
+  nn.visibles().resize(seq((int)getBatchSize() * getPatchCount(), (int)model->visibles_count()));
 
   // Prepare data
   v_host_tensor_t& data = *getTrainingSet();
@@ -74,19 +77,17 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  if (getEqualizeClasses() && labels[0]->size()[dimCount - 1] != 1) {
-    dlog(Severity::Warning) << "Class equalization can only be used for binary classification (channels of the label image must be 1). Aborting!";
+  if (getPositiveRatio() >= 0.0 && labels[0]->size()[dimCount - 1] != 1) {
+    dlog(Severity::Warning) << "Positive ratio can only be used for binary classification (channels of the label image must be 1). Aborting!";
     return;
   }
 
   dim_t patchSize = seq(getPatchWidth(), getPatchHeight(), getPatchDepth(), data[0]->size()[dimCount - 1]);
   dim_t labelSize = seq(1, 1, 1, labels[0]->size()[dimCount - 1]);
-  dim_t range = data[0]->size() - patchSize;
-  range[dimCount - 1] = 1;
-  dim_t patchCenter = patchSize / 2;
-  patchCenter[dimCount - 1] = 0;
+  dim_t range = data[0]->size() - patchSize + 1;
+  dim_t patchCenter = patchSize / 2 * seq(1,1,1,0);
 
-  matrix_t yBatch(getBatchedLearning() ? getBatchSize() * getPatchCount() : 1, model->hiddens_count());
+  matrix_t yBatch(getBatchSize() * getPatchCount(), model->hiddens_count());
 
   matrix_t res;
   value_t weightcost = getWeightCosts();
@@ -106,6 +107,22 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<v_host_tensor_t> patches(new v_host_tensor_t());
   newState->setPatches(patches);
 
+  boost::shared_ptr<v_host_tensor_t> targets(new v_host_tensor_t());
+  newState->setTargets(targets);
+
+  boost::shared_ptr<v_host_tensor_t> predictions(new v_host_tensor_t());
+  newState->setPredictions(predictions);
+
+  std::vector<dim_t> positiveLocations, maskLocations;
+  if (getMask()) {
+    host_tensor_t& mask = *getMask();
+    for (sequence_iterator<dim_t> pos(seq<dimCount>(0), (mask.size() - patchSize) * seq(1, 1, 1, 0) + seq(0, 0, 0, 1)); pos; ++pos) {
+      if (mask[*pos + patchSize / 2 * seq(1, 1, 1, 0)] > 0) {   // The center is within the lesion mask
+        maskLocations.push_back(*pos);
+      }
+    }
+  }
+
   for (int iEpoch = 0; iEpoch < getEpochCount() && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
 
     PPV = DSC = TPR = TNR = error = 0;
@@ -117,85 +134,76 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
     for (int iBatch = 0; iBatch < batchCount; ++iBatch) {
 
-      if (getBatchedLearning()) {
+      for (int iSample = 0; iSample < batchSize; ++iSample) {
+        // Fill batch with random patches
+        tensor = *data[iBatch * batchSize + iSample];
+        label = *labels[iBatch * batchSize + iSample];
+        h_label = *labels[iBatch * batchSize + iSample];
 
-        for (int iSample = 0; iSample < batchSize; ++iSample) {
-          // Fill batch with random patches
-          tensor = *data[iBatch * batchSize + iSample];
-          label = *labels[iBatch * batchSize + iSample];
-          h_label = *labels[iBatch * batchSize + iSample];
+        int lesionPatchCount = 0;
 
-          // get number of
-          value_t ratio = 0;
-          if (getEqualizeClasses()) {
-            value_t positives = sum(label[patchCenter, range]);
-            value_t totals = label[patchCenter, range].count();
-            value_t negatives = totals - positives;
-            ratio = positives / negatives;
-          }
-
-          int lesionPatchCount = 0;
-
-          for (int iPatch = 0; iPatch < getPatchCount(); ++iPatch) {
-            dim_t topleft = seq(rand() % (range[0] + 1), rand() % (range[1] + 1), rand() % (range[2] + 1), 0);
-
-            while (getEqualizeClasses() && h_label[topleft + patchCenter] < 0.1 && ((value_t)rand() / (value_t)RAND_MAX) > ratio) {
-              topleft = seq(rand() % (range[0] + 1), rand() % (range[1] + 1), rand() % (range[2] + 1), 0);
+        if (getPositiveRatio() >= 0) {
+          positiveLocations.clear();
+          for (sequence_iterator<dim_t> pos(seq<dimCount>(0), (label.size() - patchSize) * seq(1, 1, 1, 0) + seq(0, 0, 0, 1)); pos; ++pos) {
+            if (h_label[*pos + patchSize / 2 * seq(1, 1, 1, 0)] > 0) {   // The center is within a lesion
+              positiveLocations.push_back(*pos);
             }
-
-            if (label[topleft + patchCenter] > 0.1)
-              ++lesionPatchCount;
-
-            thrust::copy(tensor[topleft, patchSize].begin(),              tensor[topleft, patchSize].end(),              row(nn.visibles(), iSample * getPatchCount() + iPatch).begin());
-            thrust::copy(label[topleft + patchCenter, labelSize].begin(), label[topleft + patchCenter, labelSize].end(), row(yBatch, iSample * getPatchCount() + iPatch).begin());
-
-            if (iEpoch == 0 && iBatch == 0 && iSample == 0) {
-              patches->push_back(boost::make_shared<host_tensor_t>(tensor[topleft, patchSize]));
-            }
-          }
-          if (iEpoch == 0 && iBatch == 0 && iSample == 0) {
-            dlog(Severity::Trace) << "Lesion ratio: " << ratio;
-            dlog(Severity::Trace) << "Lesion patches = " << lesionPatchCount << "; total number of patches = " << getPatchCount();
           }
         }
 
-//        nn.visibles() = X[seq(iBatch * getBatchSize(), 0), nn.visibles().size()];
-//        yBatch = Y[seq(iBatch * getBatchSize(), 0), yBatch.size()];
+        for (int iPatch = 0; iPatch < getPatchCount(); ++iPatch) {
+          dim_t topleft;
+          if (positiveLocations.size() && (float)rand() / (float)RAND_MAX < getPositiveRatio())
+            topleft = positiveLocations[rand() % positiveLocations.size()];
+          else if (maskLocations.size())
+            topleft = maskLocations[rand() % maskLocations.size()];
+          else
+            topleft = seq(rand() % range[0], rand() % range[1], rand() % range[2], 0);
 
-        // Perform forward propagation
-        nn.normalize_visibles();
-        nn.infer_hiddens();
-        error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch) / yBatch.size()[0]);
+          if (h_label[topleft + patchCenter] > 0.1)
+            ++lesionPatchCount;
 
-        PPV += sum((yBatch > 0.5) * (nn.hiddens() > 0.5)) / sum(nn.hiddens() > 0.5);
-        DSC += 2 * sum ((yBatch > 0.5) * (nn.hiddens() > 0.5)) / (sum(yBatch > 0.5) + sum(nn.hiddens() > 0.5));
-        TPR += sum((yBatch > 0.5) * (nn.hiddens() > 0.5)) / sum(yBatch > 0.5);
-        TNR += sum((yBatch < 0.5) * (nn.hiddens() < 0.5)) / sum(yBatch < 0.5);
+          row(nn.visibles(), iSample * getPatchCount() + iPatch) = reshape(tensor[topleft, patchSize], 1, model->visibles_count());
+          row(yBatch, iSample * getPatchCount() + iPatch) = reshape(label[topleft + patchCenter, labelSize], 1, model->hiddens_count());
 
-        // Update model
+          if (iEpoch + 1 == getEpochCount() && iBatch + 1 == batchCount && iSample + 1 == batchSize) {
+            patches->push_back(boost::make_shared<host_tensor_t>(tensor[topleft, patchSize]));
+            targets->push_back(boost::make_shared<host_tensor_t>(label[topleft + patchCenter, labelSize]));
+          }
+        }
+        if (iEpoch == 0 && iBatch == 0 && iSample == 0) {
+          dlog(Severity::Trace) << "Lesion patches = " << lesionPatchCount << "; total number of patches = " << getPatchCount();
+        }
+      }
+
+      // Perform forward propagation
+      nn.normalize_visibles();
+      nn.infer_hiddens();
+      error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch) / yBatch.size()[0]);
+
+      if (iEpoch + 1 == getEpochCount() && iBatch + 1 == batchCount) {
+        for (size_t iPatch = 0; iPatch < getPatchCount(); ++iPatch)
+          predictions->push_back(boost::make_shared<host_tensor_t>(reshape(row(nn.hiddens(), (batchSize - 1) * getPatchCount() + iPatch), labelSize)));
+      }
+
+      PPV += sum((yBatch > 0.5) * (nn.hiddens() > 0.5)) / sum(nn.hiddens() > 0.5);
+      DSC += 2 * sum ((yBatch > 0.5) * (nn.hiddens() > 0.5)) / (sum(yBatch > 0.5) + sum(nn.hiddens() > 0.5));
+      TPR += sum((yBatch > 0.5) * (nn.hiddens() > 0.5)) / sum(yBatch > 0.5);
+      TNR += sum((yBatch < 0.5) * (nn.hiddens() < 0.5)) / sum(yBatch < 0.5);
+
+      // Update model
+      switch (getMethod()) {
+      case TrainingMethod::Momentum:
         nn.momentum_update(yBatch, getLearningRate(), momentum, weightcost);
-      } else {
+        break;
 
-//        nn.init_gradient_updates(getLearningRate() / batchSize, momentum, weightcost);
-//
-//        for (int iSample = 0; iSample < batchSize; ++iSample) {
-//          nn.visibles() = X[seq(iBatch * batchSize + iSample, 0), nn.visibles().size()];
-//          yBatch = Y[seq(iBatch * batchSize + iSample, 0), yBatch.size()];
-//
-//          // Perform forward propagation
-//          nn.normalize_visibles();
-//          nn.infer_hiddens();
-//          error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch));
-//
-//          // Update model
-//          nn.update_gradient(yBatch, getLearningRate() / batchSize);
-//        }
-//
-//        nn.apply_gradient();
+      case TrainingMethod::AdaDelta:
+        nn.adadelta_update(yBatch, getLearningRate(), momentum, weightcost);
+        break;
       }
     }
 
-    dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / data.size()
+    dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / batchCount
         << " (PPV = " << PPV / batchCount << ", DSC = " << DSC / batchCount << ", TPR = " << TPR / batchCount << ", TNR = " << TNR / batchCount << ")";
 
     if (monitor)

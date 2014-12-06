@@ -20,10 +20,10 @@ TrainChecker::TrainChecker() {
   Train test;
   test.initializeClass();
 
+  CHECK_MEMORY_LAYOUT2(InitialModel, test);
   CHECK_MEMORY_LAYOUT2(LeftTrainingSet, test);
   CHECK_MEMORY_LAYOUT2(RightTrainingSet, test);
   CHECK_MEMORY_LAYOUT2(Labels, test);
-  CHECK_MEMORY_LAYOUT2(InitialModel, test);
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(LeftFilterBatchSize, test);
@@ -89,21 +89,19 @@ void Train::update(IProgressMonitor* monitor) const {
 
     for (int iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
-//      cnn.init_gradient_updates(getCLearningRate(), getDLearningRate(), momentum, weightcost);
-
       for (int iSample = 0; iSample < batchSize; ++iSample) {
         const int current = iSample + iBatch * batchSize;
         thrust::copy(labels[current]->begin(), labels[current]->end(), target.begin());
+
         left = *leftData[current];
         cnn.set_left_input(left);
+
         right = *rightData[current];
         cnn.set_right_input(right);
+
         cnn.normalize_visibles();
-        cnn.infer_hiddens();
-
-        error += sqrt(dot(cnn.hiddens() - target, cnn.hiddens() - target));
-
         cnn.update_gradient(target);
+        error += sqrt(dot(cnn.hiddens() - target, cnn.hiddens() - target));
       }
 
       switch(getMethod()) {
@@ -119,8 +117,9 @@ void Train::update(IProgressMonitor* monitor) const {
 
     dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / labels.size();
 
-    if (monitor)
+    if (monitor) {
       monitor->reportProgress(100 * (iEpoch + 1) / getEpochCount());
+    }
   }
 
   newState->setModel(model);
