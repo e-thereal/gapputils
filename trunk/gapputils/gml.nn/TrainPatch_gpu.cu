@@ -34,6 +34,8 @@ TrainPatchChecker::TrainPatchChecker() {
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(PositiveRatio, test);
+  CHECK_MEMORY_LAYOUT2(Objective, test);
+  CHECK_MEMORY_LAYOUT2(SensitivityRatio, test);
   CHECK_MEMORY_LAYOUT2(Method, test);
   CHECK_MEMORY_LAYOUT2(LearningRate, test);
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, test);
@@ -53,7 +55,6 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
   typedef model_t::value_t value_t;
   typedef tbblas::tensor<value_t, 2, true> matrix_t;
-  typedef tbblas::tensor<value_t, 2> host_matrix_t;
 
   typedef tbblas::tensor<value_t, dimCount, true> tensor_t;
   typedef tensor_t::dim_t dim_t;
@@ -66,6 +67,9 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
 
   tbblas::deeplearn::nn<value_t> nn(*model);
+  nn.set_objective_function(getObjective());
+  nn.set_sensitivity_ratio(getSensitivityRatio());
+
   nn.visibles().resize(seq((int)getBatchSize() * getPatchCount(), (int)model->visibles_count()));
 
   // Prepare data
