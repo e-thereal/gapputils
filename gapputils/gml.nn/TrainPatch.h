@@ -14,6 +14,8 @@
 #include "Model.h"
 #include "TrainingMethod.h"
 
+#include <tbblas/deeplearn/objective_function.hpp>
+
 namespace gml {
 
 namespace nn {
@@ -41,6 +43,8 @@ class TrainPatch : public DefaultWorkflowElement<TrainPatch> {
   Property(BatchSize, int)
   Property(PositiveRatio, double)
 
+  Property(Objective, tbblas::deeplearn::objective_function)
+  Property(SensitivityRatio, double)
   Property(Method, TrainingMethod)
   Property(LearningRate, double)
   Property(WeightCosts, double)

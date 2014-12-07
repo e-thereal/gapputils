@@ -28,6 +28,8 @@ BeginPropertyDefinitions(TrainPatch)
   WorkflowProperty(BatchSize)
   WorkflowProperty(PositiveRatio)
 
+  WorkflowProperty(Objective, Enumerator<Type>())
+  WorkflowProperty(SensitivityRatio)
   WorkflowProperty(Method, Enumerator<Type>())
   WorkflowProperty(LearningRate)
   WorkflowProperty(WeightCosts)
@@ -39,7 +41,10 @@ BeginPropertyDefinitions(TrainPatch)
 
 EndPropertyDefinitions
 
-TrainPatch::TrainPatch() : _PatchWidth(16), _PatchHeight(16), _PatchDepth(16), _PatchCount(16), _EpochCount(100), _BatchSize(50), _PositiveRatio(0.5), _LearningRate(0.0001), _WeightCosts(0.0002), _RandomizeTraining(true) {
+TrainPatch::TrainPatch()
+  : _PatchWidth(16), _PatchHeight(16), _PatchDepth(16), _PatchCount(16), _EpochCount(100), _BatchSize(50), _PositiveRatio(0.5),
+    _SensitivityRatio(0.5), _LearningRate(0.0001), _WeightCosts(0.0002), _RandomizeTraining(true)
+{
   setLabel("TrainPatch");
 }
 

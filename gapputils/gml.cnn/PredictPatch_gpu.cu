@@ -31,6 +31,11 @@ void PredictPatch::update(IProgressMonitor* monitor) const {
   typedef tensor<value_t, dimCount, true> tensor_t;
   typedef tensor_t::dim_t dim_t;
 
+  Logbook& dlog = getLogbook();
+  dlog(Severity::Error) << "This module is not yet fully implemented.";
+  if (true)
+    return;
+
   // Fill the visible units of the one layer NN
   v_host_tensor_t& tensors = *getInputs();
   boost::shared_ptr<v_host_tensor_t> outputs(new v_host_tensor_t());
