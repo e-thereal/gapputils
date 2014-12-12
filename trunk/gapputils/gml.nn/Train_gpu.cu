@@ -125,8 +125,6 @@ void Train::update(IProgressMonitor* monitor) const {
 
         // Perform forward propagation
         nn.normalize_visibles();
-        nn.infer_hiddens();
-        error += dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch);
 
         // Update model
         switch (getMethod()) {
@@ -138,6 +136,8 @@ void Train::update(IProgressMonitor* monitor) const {
           nn.adadelta_update(yBatch, getLearningRate(), 0.95, weightcost);
           break;
         }
+
+        error += dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch);
       } else {
 
         for (int iSample = 0; iSample < batchSize; ++iSample) {

@@ -20,6 +20,8 @@ namespace gml {
 
 namespace nn {
 
+CapputilsEnumerator(PatchSelectionMethod, PositiveRatio, LeitnerSystem)
+
 struct TrainPatchChecker { TrainPatchChecker(); } ;
 
 class TrainPatch : public DefaultWorkflowElement<TrainPatch> {
@@ -39,15 +41,19 @@ class TrainPatch : public DefaultWorkflowElement<TrainPatch> {
   Property(PatchHeight, int)
   Property(PatchDepth, int)
   Property(PatchCount, int)
+  Property(SelectionMethod, PatchSelectionMethod)
+  Property(PositiveRatio, double)
+  Property(MinimumBucketSizes, std::vector<int>)
+  Property(BucketRatio, double)
+
   Property(EpochCount, int)
   Property(BatchSize, int)
-  Property(PositiveRatio, double)
-
   Property(Objective, tbblas::deeplearn::objective_function)
   Property(SensitivityRatio, double)
   Property(Method, TrainingMethod)
   Property(LearningRate, double)
   Property(WeightCosts, double)
+  Property(DropoutRates, std::vector<double>)
   Property(RandomizeTraining, bool)
   Property(Model, boost::shared_ptr<model_t>)
   Property(Patches, boost::shared_ptr<v_host_tensor_t>)
