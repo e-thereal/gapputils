@@ -12,13 +12,11 @@
 #include <gapputils/Image.h>
 #include <gapputils/namespaces.h>
 
-#include <capputils/Enumerators.h>
+#include "SimilarityMeasure.h"
 
 namespace gml {
 
 namespace imageprocessing {
-
-CapputilsEnumerator(SimilarityMeasure, MSE, NRMSE, SSIM)
 
 struct CompareChecker { CompareChecker(); };
 

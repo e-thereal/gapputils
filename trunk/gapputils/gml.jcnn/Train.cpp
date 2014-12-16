@@ -25,16 +25,21 @@ BeginPropertyDefinitions(Train)
   WorkflowProperty(LeftFilterBatchSize)
   WorkflowProperty(RightFilterBatchSize)
 
+  WorkflowProperty(Objective, Enumerator<Type>())
+  WorkflowProperty(SensitivityRatio)
   WorkflowProperty(Method, Enumerator<Type>())
   WorkflowProperty(CLearningRate)
   WorkflowProperty(DLearningRate)
   WorkflowProperty(WeightCosts)
+  WorkflowProperty(LeftDropoutRates)
+  WorkflowProperty(RightDropoutRates)
+  WorkflowProperty(JointDropoutRates)
   WorkflowProperty(RandomizeTraining, Flag())
   WorkflowProperty(Model, Output("JCNN"))
 
 EndPropertyDefinitions
 
-Train::Train() : _EpochCount(100), _BatchSize(50), _CLearningRate(0.0001), _DLearningRate(0.0001),
+Train::Train() : _EpochCount(100), _BatchSize(50), _SensitivityRatio(0.5), _CLearningRate(0.0001), _DLearningRate(0.0001),
                  _WeightCosts(0.0002), _RandomizeTraining(true)
 {
   setLabel("Train");

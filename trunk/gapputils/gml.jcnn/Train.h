@@ -15,6 +15,8 @@
 
 #include "Model.h"
 
+#include <tbblas/deeplearn/objective_function.hpp>
+
 namespace gml {
 
 namespace jcnn {
@@ -47,10 +49,15 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(LeftFilterBatchSize, std::vector<int>)
   Property(RightFilterBatchSize, std::vector<int>)
 
+  Property(Objective, tbblas::deeplearn::objective_function)
+  Property(SensitivityRatio, double)
   Property(Method, TrainingMethod)
   Property(CLearningRate, double)
   Property(DLearningRate, double)
   Property(WeightCosts, double)
+  Property(LeftDropoutRates, std::vector<double>)
+  Property(RightDropoutRates, std::vector<double>)
+  Property(JointDropoutRates, std::vector<double>)
   Property(RandomizeTraining, bool)
   Property(Model, boost::shared_ptr<model_t>)
 
