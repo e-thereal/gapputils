@@ -15,6 +15,8 @@
 #include <tbblas/ones.hpp>
 
 #include <tbblas/sequence_iterator.hpp>
+#include <set>
+#include <algorithm>
 
 namespace gml {
 
@@ -116,7 +118,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   dim_t patchCenter = patchSize / 2 * seq(1,1,1,0);
 
   matrix_t yBatch(getBatchSize() * getPatchCount(), model->hiddens_count());
-  host_matrix_t h_predictions(yBatch.size());
+  host_matrix_t h_predictions(yBatch.size()), h_targets(yBatch.size());
 
   matrix_t res;
   value_t weightcost = getWeightCosts();
@@ -127,7 +129,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   const int batchSize = getBatchSize();
   const int batchCount = data.size() / batchSize;
 
-  value_t error, PPV, DSC, TPR, TNR;
+  value_t error, PPV, DSC, TPR, TNR, ACC;
   tensor_t tensor, label;
   host_tensor_t h_label;
 
@@ -176,7 +178,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
     if (getMask()) {
       host_tensor_t& mask = *getMask();
       for (sequence_iterator<dim_t> pos(seq<dimCount>(0), (mask.size() - patchSize) * seq(1, 1, 1, 0) + seq(0, 0, 0, 1)); pos; ++pos) {
-        if (mask[*pos + patchSize / 2 * seq(1, 1, 1, 0)] > 0) {   // The center is within the lesion mask
+        if (mask[*pos + patchSize / 2 * seq(1, 1, 1, 0)] > 0) {   // The center is within the ROI mask
           maskLocations.push_back(*pos);
         }
       }
@@ -187,7 +189,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
   for (int iEpoch = 0; iEpoch < getEpochCount() && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
 
-    PPV = DSC = TPR = TNR = error = 0;
+    ACC = PPV = DSC = TPR = TNR = error = 0;
 
     if (iEpoch < 10)
       momentum = initialmomentum;
@@ -201,10 +203,11 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
         tensor = *data[iBatch * batchSize + iSample];
         label = *labels[iBatch * batchSize + iSample];
         h_label = *labels[iBatch * batchSize + iSample];
+        tbblas::synchronize();
 
         selectedSamples[iSample] = iBatch * batchSize + iSample;
 
-        int lesionPatchCount = 0;
+        int positivePatchCountPatchCount = 0;
 
         if (getSelectionMethod() == PatchSelectionMethod::LeitnerSystem) {
           positiveLocations.clear();
@@ -214,16 +217,16 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
             bucketLocations[iBucket].clear();
 
           // Fill buckets with potential locations
-          // Also selected unknown positive and negative samples for quicker refilling the first bucket if needed
+          // Also select unknown positive and negative samples for quicker refilling the first bucket if needed
 
           for (sequence_iterator<dim_t> pos(seq<dimCount>(0), (label.size() - patchSize) * seq(1, 1, 1, 0) + seq(0, 0, 0, 1)); pos; ++pos) {
             const dim_t center = *pos + patchSize / 2 * seq(1, 1, 1, 0);  // center of the patch
-            const bucket_id_t bucketId = bucketIds[iSample][center];
+            const bucket_id_t bucketId = bucketIds[iBatch * batchSize + iSample][center];
 
-            if (bucketId > 0) {
+            if (bucketId > 0 && bucketId <= bucketLocations.size()) {
               bucketLocations[bucketId - 1].push_back(*pos);
             } else if (bucketId == 0) {
-              if (h_label[center] > 0) {    // The center is within a lesion
+              if (h_label[center] > 0) {    // The center belongs to the positive class
                 positiveLocations.push_back(*pos);
               } else {
                 negativeLocations.push_back(*pos);
@@ -231,31 +234,50 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
             }
           }
 
-          while (bucketLocations[0].size() < _MinimumBucketSizes[0]) {
-            if ((float)rand() / (float)RAND_MAX < getPositiveRatio()) {
-              bucketLocations[0].push_back(positiveLocations[rand() % positiveLocations.size()]);
-            } else {
-              bucketLocations[0].push_back(negativeLocations[rand() % negativeLocations.size()]);
-            }
-          }
-
           if (iSample == 0 && iBatch == 0) {
-            std::cout << "Buckets: " << bucketLocations[0].size();
+            std::cout << "iBatch = " << iBatch << ", iSample = " << iSample << ", Buckets: " << bucketLocations[0].size();
             for (size_t i = 1; i < bucketLocations.size(); ++i)
               std::cout << ", " << bucketLocations[i].size();
             std::cout << std::endl;
+          }
+
+          // Faster drawing samples by shuffling the list and then go from the top
+          std::random_shuffle(positiveLocations.begin(), positiveLocations.end());
+          std::random_shuffle(negativeLocations.begin(), negativeLocations.end());
+
+          for (size_t iPositive = 0, iNegative = 0; bucketLocations[0].size() < _MinimumBucketSizes[0];) {
+            if (iPositive < positiveLocations.size() && iNegative < negativeLocations.size()) {
+              if ((float)rand() / (float)RAND_MAX < getPositiveRatio()) {
+                bucketLocations[0].push_back(positiveLocations[iPositive++]);
+              } else {
+                bucketLocations[0].push_back(negativeLocations[iNegative++]);
+              }
+            } else if (iPositive < positiveLocations.size()) {
+              bucketLocations[0].push_back(positiveLocations[iPositive++]);
+            } else if (iNegative < negativeLocations.size()) {
+              bucketLocations[0].push_back(negativeLocations[iNegative++]);
+            } else {
+              break;
+            }
+          }
+
+          // Randomize bucket locations, so I can just iterate throw the location vector to get unique random samples
+          for (size_t iBucket = 0; iBucket < bucketLocations.size(); ++iBucket) {
+            std::random_shuffle(bucketLocations[iBucket].begin(), bucketLocations[iBucket].end());
           }
 
         } else {
           if (getPositiveRatio() >= 0) {
             positiveLocations.clear();
             for (sequence_iterator<dim_t> pos(seq<dimCount>(0), (label.size() - patchSize) * seq(1, 1, 1, 0) + seq(0, 0, 0, 1)); pos; ++pos) {
-              if (h_label[*pos + patchSize / 2 * seq(1, 1, 1, 0)] > 0) {   // The center is within a lesion
+              if (h_label[*pos + patchSize / 2 * seq(1, 1, 1, 0)] > 0) {   // The center belongs to the positive class
                 positiveLocations.push_back(*pos);
               }
             }
           }
         }
+
+        std::vector<size_t> iPos(bucketLocations.size(), 0);
 
         for (int iPatch = 0; iPatch < getPatchCount(); ++iPatch) {
           dim_t topleft;
@@ -263,16 +285,22 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
           if (getSelectionMethod() == PatchSelectionMethod::LeitnerSystem) {
 
             // Initialize the topleft with a patch location from the first bucket
-            topleft = bucketLocations[0][rand() % bucketLocations[0].size()];
+            for (size_t iBucket = 0; iBucket < bucketLocations.size(); ++iBucket) {
+              if (iPos[iBucket] < bucketLocations[iBucket].size()) {
+                topleft = bucketLocations[iBucket][iPos[iBucket]++];
+                break;
+              }
+            }
 
             // If we don't want a sample from the first bucket, try the next buckets
-            // If a randomly selected bucket doesn't fulfil the size requirements, fall back to the first bucket (keep initial value)
+            // If a randomly selected bucket doesn't fulfill the size requirements, fall back to the first bucket (keep initial value)
             // If no bucket was randomly selected, also fall back to the first bucket (keep initial value)
             if ((float)rand() / (float)RAND_MAX > getBucketRatio()) {
               for (size_t iBucket = 1; iBucket < bucketLocations.size(); ++iBucket) {
                 if ((float)rand() / (float)RAND_MAX < getBucketRatio()) {
-                  if (bucketLocations[iBucket].size() >= _MinimumBucketSizes[iBucket])
-                    topleft = bucketLocations[iBucket][rand() % bucketLocations[iBucket].size()];
+                  if (bucketLocations[iBucket].size() >= _MinimumBucketSizes[iBucket] && iPos[iBucket] < bucketLocations[iBucket].size()) {
+                    topleft = bucketLocations[iBucket][iPos[iBucket]++];
+                  }
                   break;
                 }
               }
@@ -288,8 +316,8 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
               topleft = seq(rand() % range[0], rand() % range[1], rand() % range[2], 0);
           }
 
-          if (h_label[topleft + patchCenter] > 0.1)
-            ++lesionPatchCount;
+          if (h_label[topleft + patchCenter] > 0.5)
+            ++positivePatchCount;
 
           // Fill visible units and targets
           row(nn.visibles(), iSample * getPatchCount() + iPatch) = reshape(tensor[topleft, patchSize], 1, model->visibles_count());
@@ -300,9 +328,13 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
             targets->push_back(boost::make_shared<host_tensor_t>(label[topleft + patchCenter, labelSize]));
           }
         }
-        if (iEpoch == 0 && iBatch == 0 && iSample == 0) {
-          dlog(Severity::Trace) << "Lesion patches = " << lesionPatchCount << "; total number of patches = " << getPatchCount();
-        }
+//        if (iSample == 0 && iBatch == 0) {
+//          dlog(Severity::Trace) << "Positive patches = " << positivePatchCount << "; total number of patches = " << getPatchCount();
+//          std::cout << "iPos: " << iPos[0];
+//          for (size_t i = 1; i < iPos.size(); ++i)
+//            std::cout << ", " << iPos[i];
+//          std::cout << std::endl;
+//        }
       }
 
       // Perform forward propagation
@@ -331,25 +363,32 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
       DSC += 2 * sum ((yBatch > 0.5) * (nn.hiddens() > 0.5)) / (sum(yBatch > 0.5) + sum(nn.hiddens() > 0.5));
       TPR += sum((yBatch > 0.5) * (nn.hiddens() > 0.5)) / sum(yBatch > 0.5);
       TNR += sum((yBatch < 0.5) * (nn.hiddens() < 0.5)) / sum(yBatch < 0.5);
+      ACC += sum((yBatch > 0.5) == (nn.hiddens() > 0.5)) / (value_t)yBatch.count();
 
       if (getSelectionMethod() == PatchSelectionMethod::LeitnerSystem) {
         // Figure out if patches were classified correctly and update the bucketIds
         h_predictions = nn.hiddens();
+        h_targets = yBatch;
+        tbblas::synchronize();
 
         for (size_t iPatch = 0; iPatch < selectedLocations.size(); ++iPatch) {
-          const dim_t center = selectedLocations[iPatch] + patchSize / 2 * seq(1, 1, 1, 0);  // center of the patch
           const size_t iSample = selectedSamples[iPatch / getPatchCount()];
-          if (h_predictions.data()[iPatch] > 0.5) {
-            ++bucketIds[iSample][center];
+          bucket_id_t& bucketPatchId = bucketIds[iSample][selectedLocations[iPatch] + patchSize / 2 * seq(1, 1, 1, 0)];
+          if ((h_predictions.data()[iPatch] > 0.5) == (h_targets.data()[iPatch] > 0.5)) {
+            if (bucketPatchId == 0) {
+              bucketPatchId = 2;
+            } else if (bucketPatchId < bucketLocations.size()) {
+              ++bucketPatchId;
+            }
           } else {
-            bucketIds[iSample][center] = 1;
+            bucketPatchId = 1;
           }
         }
       }
     }
 
     dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / batchCount
-        << " (PPV = " << PPV / batchCount << ", DSC = " << DSC / batchCount << ", TPR = " << TPR / batchCount << ", TNR = " << TNR / batchCount << ")";
+        << " (PPV = " << PPV / batchCount << ", DSC = " << DSC / batchCount << ", TPR = " << TPR / batchCount << ", TNR = " << TNR / batchCount << ", ACC = " << ACC / batchCount << ")";
 
     if (monitor)
       monitor->reportProgress(100. * (iEpoch + 1) / getEpochCount());

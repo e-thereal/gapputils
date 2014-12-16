@@ -28,11 +28,17 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
   CHECK_MEMORY_LAYOUT2(LeftFilterBatchSize, test);
   CHECK_MEMORY_LAYOUT2(RightFilterBatchSize, test);
+  CHECK_MEMORY_LAYOUT2(Objective, test);
+  CHECK_MEMORY_LAYOUT2(SensitivityRatio, test);
   CHECK_MEMORY_LAYOUT2(Method, test);
   CHECK_MEMORY_LAYOUT2(CLearningRate, test);
   CHECK_MEMORY_LAYOUT2(DLearningRate, test);
-  CHECK_MEMORY_LAYOUT2(Model, test);
+  CHECK_MEMORY_LAYOUT2(WeightCosts, test);
+  CHECK_MEMORY_LAYOUT2(LeftDropoutRates, test);
+  CHECK_MEMORY_LAYOUT2(RightDropoutRates, test);
+  CHECK_MEMORY_LAYOUT2(JointDropoutRates, test);
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, test);
+  CHECK_MEMORY_LAYOUT2(Model, test);
 }
 
 void Train::update(IProgressMonitor* monitor) const {
@@ -58,6 +64,18 @@ void Train::update(IProgressMonitor* monitor) const {
     cnn.set_left_batch_length(i, getLeftFilterBatchSize()[i]);
   for (size_t i = 0; i < model->right_cnn_layers().size() && i < getRightFilterBatchSize().size(); ++i)
     cnn.set_right_batch_length(i, getRightFilterBatchSize()[i]);
+
+  for (size_t i = 0; i < _LeftDropoutRates.size(); ++i)
+    cnn.set_left_dropout_rate(i, _LeftDropoutRates[i]);
+
+  for (size_t i = 0; i < _RightDropoutRates.size(); ++i)
+    cnn.set_right_dropout_rate(i, _RightDropoutRates[i]);
+
+  for (size_t i = 0; i < _JointDropoutRates.size(); ++i)
+    cnn.set_joint_dropout_rate(i, _JointDropoutRates[i]);
+
+  cnn.set_objective_function(getObjective());
+  cnn.set_sensitivity_ratio(getSensitivityRatio());
 
   // Prepare data
   v_host_tensor_t& leftData = *getLeftTrainingSet();
@@ -118,7 +136,7 @@ void Train::update(IProgressMonitor* monitor) const {
     dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / labels.size();
 
     if (monitor) {
-      monitor->reportProgress(100 * (iEpoch + 1) / getEpochCount());
+      monitor->reportProgress(100. * (iEpoch + 1) / getEpochCount());
     }
   }
 
