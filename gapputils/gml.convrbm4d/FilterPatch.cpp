@@ -21,14 +21,13 @@ BeginPropertyDefinitions(FilterPatch)
   WorkflowProperty(SuperPatchHeight, Description("PatchHeight + number of patches per super patch in the y direction - 1. A value of -1 indicates a SuperPatchHeight equal to the image height."))
   WorkflowProperty(SuperPatchDepth, Description("PatchDepth + number of patches per super patch in the z direction - 1. A value of -1 indicates a SuperPatchDepth equal to the image depth."))
   WorkflowProperty(FilterBatchSize, Description("Number of filters that are processed in parallel."))
-  WorkflowProperty(GpuCount)
   WorkflowProperty(DoubleWeights, Flag())
   WorkflowProperty(OnlyFilters, Flag())
   WorkflowProperty(SampleUnits, Flag())
   WorkflowProperty(Outputs, Output("Ts"))
 EndPropertyDefinitions
 
-FilterPatch::FilterPatch() : _SuperPatchWidth(-1), _SuperPatchHeight(-1), _SuperPatchDepth(-1), _FilterBatchSize(1), _GpuCount(1), _DoubleWeights(false), _OnlyFilters(false), _SampleUnits(false) {
+FilterPatch::FilterPatch() : _SuperPatchWidth(-1), _SuperPatchHeight(-1), _SuperPatchDepth(-1), _FilterBatchSize(1), _DoubleWeights(false), _OnlyFilters(false), _SampleUnits(false) {
   setLabel("Filter");
 }
 

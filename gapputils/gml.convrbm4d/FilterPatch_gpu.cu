@@ -37,7 +37,6 @@ FilterPatchChecker::FilterPatchChecker() {
   CHECK_MEMORY_LAYOUT2(SuperPatchHeight, filterPatch);
   CHECK_MEMORY_LAYOUT2(SuperPatchDepth, filterPatch);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, filterPatch);
-  CHECK_MEMORY_LAYOUT2(GpuCount, filterPatch);
   CHECK_MEMORY_LAYOUT2(DoubleWeights, filterPatch);
   CHECK_MEMORY_LAYOUT2(OnlyFilters, filterPatch);
   CHECK_MEMORY_LAYOUT2(SampleUnits, filterPatch);
@@ -116,7 +115,7 @@ void FilterPatch::update(IProgressMonitor* monitor) const {
   dim_t superPatchHiddenLayerSize = superPatchHiddenSize;
   superPatchHiddenLayerSize[dimCount - 1] = 1;
 
-  conv_rbm<float, 4> crbm(model, getGpuCount());
+  conv_rbm<float, 4> crbm(model);
   crbm.set_batch_length(getFilterBatchSize());
 
   crbm.allocate_gpu_memory();

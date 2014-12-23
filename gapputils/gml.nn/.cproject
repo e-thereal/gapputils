@@ -116,7 +116,7 @@
 					</folderInfo>
 					<fileInfo id="cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.463211910" name="TrainPatch.h" rcbsApplicability="disable" resourcePath="TrainPatch.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="optlib/ObservableOptimizer_template.cpp|optlib/ObservableFunction_template.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -237,7 +237,7 @@
 					</folderInfo>
 					<fileInfo id="cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.938630686" name="TrainPatch.h" rcbsApplicability="disable" resourcePath="TrainPatch.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="optlib/ObservableOptimizer_template.cpp|optlib/ObservableFunction_template.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

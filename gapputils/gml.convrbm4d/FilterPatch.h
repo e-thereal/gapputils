@@ -38,7 +38,6 @@ public:
   Property(SuperPatchHeight, int)
   Property(SuperPatchDepth, int)
   Property(FilterBatchSize, int)
-  Property(GpuCount, int)
   Property(DoubleWeights, bool)
   Property(OnlyFilters, bool)
   Property(SampleUnits, bool)

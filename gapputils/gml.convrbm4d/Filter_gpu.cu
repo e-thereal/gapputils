@@ -34,7 +34,6 @@ FilterChecker::FilterChecker() {
   CHECK_MEMORY_LAYOUT2(Inputs, filter);
   CHECK_MEMORY_LAYOUT2(Direction, filter);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, filter);
-  CHECK_MEMORY_LAYOUT2(GpuCount, filter);
   CHECK_MEMORY_LAYOUT2(DoubleWeights, filter);
   CHECK_MEMORY_LAYOUT2(OnlyFilters, filter);
   CHECK_MEMORY_LAYOUT2(SampleUnits, filter);
@@ -64,7 +63,7 @@ void Filter::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > outputs(
       new std::vector<boost::shared_ptr<host_tensor_t> >());
 
-  conv_rbm<float, 4> crbm(model, getGpuCount());
+  conv_rbm<float, 4> crbm(model);
   crbm.set_batch_length(getFilterBatchSize());
 
   tensor<float, 4, true> input;

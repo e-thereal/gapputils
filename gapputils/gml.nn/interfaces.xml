@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<gapputils-InterfaceModel>
+  <Interfaces>
+    <Collection>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="ActivationFunction" />
+          <Type value="tbblas::deeplearn::activation_function" />
+          <Header value="tbblas/deeplearn/activation_function.hpp" />
+          <PropertyAttributes>
+            <Collection>
+              <Item value="Enumerator<Type>()" />
+            </Collection>
+          </PropertyAttributes>
+          <IsParameter value="1" />
+          <IsCollection value="0" />
+        </gapputils-Interface>
+      </Item>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="ObjectiveFunction" />
+          <Type value="tbblas::deeplearn::objective_function" />
+          <Header value="tbblas/deeplearn/objective_function.hpp" />
+          <PropertyAttributes>
+            <Collection>
+              <Item value="Enumerator<Type>()" />
+            </Collection>
+          </PropertyAttributes>
+          <IsParameter value="1" />
+          <IsCollection value="0" />
+        </gapputils-Interface>
+      </Item>
+    </Collection>
+  </Interfaces>
+</gapputils-InterfaceModel>

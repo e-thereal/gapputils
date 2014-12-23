@@ -9,12 +9,14 @@
 #define GML_MODEL_H_
 
 #include <tbblas/deeplearn/nn_model.hpp>
+#include <tbblas/deeplearn/nn_patch_model.hpp>
 
 namespace gml {
 
 namespace nn {
 
 typedef tbblas::deeplearn::nn_model<float> model_t;
+typedef tbblas::deeplearn::nn_patch_model<float, 4> patch_model_t;
 
 }
 

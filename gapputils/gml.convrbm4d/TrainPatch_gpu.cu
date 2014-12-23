@@ -24,7 +24,7 @@
 
 #include <fstream>
 
-#include <tbblas/deeplearn/conv_rbm_trainer.hpp>
+#include <tbblas/deeplearn/conv_rbm.hpp>
 
 namespace gml {
 
@@ -44,7 +44,6 @@ TrainPatchChecker::TrainPatchChecker() {
   CHECK_MEMORY_LAYOUT2(EpochCount, trainer);
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, trainer);
-  CHECK_MEMORY_LAYOUT2(GpuCount, trainer);
 
   CHECK_MEMORY_LAYOUT2(SparsityMethod, trainer);
   CHECK_MEMORY_LAYOUT2(SparsityTarget, trainer);
@@ -91,6 +90,7 @@ TrainPatchChecker::TrainPatchChecker() {
 void TrainPatch::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
+
   typedef float value_t;
   const unsigned dimCount = model_t::dimCount;
   typedef tensor<value_t, dimCount, true> tensor_t;
@@ -98,6 +98,8 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
   Logbook& dlog = getLogbook();
   dlog.setSeverity(Severity::Message);
+
+  dlog(Severity::Warning) << "Code is out-dated.";
 
   /*** SETUP TRAINING PARAMETERS ***/
 
@@ -149,7 +151,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   }
   superPatchStepSize[dimCount - 1] = 1;
 
-  tbblas::deeplearn::conv_rbm_trainer<float, 4> crbm(*model, getGpuCount());
+  tbblas::deeplearn::conv_rbm<float, 4> crbm(*model);
   crbm.set_batch_length(getFilterBatchSize());
   crbm.set_sparsity_method(getSparsityMethod());
   crbm.set_sparsity_target(getSparsityTarget());
@@ -192,7 +194,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
     for (size_t iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
       // Apply momentum for next batch
-      crbm.init_gradient_updates(momentum, weightcost);
+//      crbm.init_gradient_updates(momentum, weightcost);
 
       for (size_t iSample = 0; iSample < batchSize; ++iSample) {
 
@@ -235,7 +237,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
               /*** BEGIN OF POSITIVE PHASE ***/
 
               crbm.infer_hiddens();
-              crbm.update_positive_gradient(epsilonw, epsilonvb, epsilonhb);
+              crbm.update_positive_gradient();
 
               for (size_t iCd = 0; iCd < getCdIterations(); ++iCd) {
                 crbm.sample_hiddens();
@@ -245,7 +247,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
               /*** RECONSTRUCT FROM SAMPLES ***/
 
               crbm.infer_hiddens();
-              crbm.update_negative_gradient(epsilonw, epsilonvb, epsilonhb);
+              crbm.update_negative_gradient();
 
               if (getCalculateError()) {
                 error += sqrt(dot((crbm.visibles() - v), (crbm.visibles() - v)) / voxelCount);
@@ -255,7 +257,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
         } /* end of patches */
       } /* end of sample */
 
-      crbm.apply_gradient();
+      crbm.momentum_step(epsilonw, momentum, weightcost);
 
       if (monitor)
         monitor->reportProgress(100. * (iEpoch * batchCount + (iBatch + 1)) / (epochCount * batchCount));
