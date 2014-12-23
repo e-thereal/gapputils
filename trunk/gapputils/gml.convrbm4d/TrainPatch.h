@@ -48,7 +48,6 @@ public:
   Property(EpochCount, int)
   Property(BatchSize, int)
   Property(FilterBatchSize, int)
-  Property(GpuCount, int)
 
   // Sparsity parameters
   Property(SparsityMethod, tbblas::deeplearn::sparsity_method)

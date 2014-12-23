@@ -157,7 +157,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
   std::vector<dim_t> positiveLocations, negativeLocations, maskLocations, selectedLocations(getPatchCount() * getBatchSize());
   std::vector<std::vector<dim_t> > bucketLocations(_MinimumBucketSizes.size());
-  std::vector<size_t> selectedSamples(getBatchSize());
+  std::vector<size_t> selectedSamples(getBatchSize()), positivesPerBucket(_MinimumBucketSizes.size());
 
   if (getSelectionMethod() == PatchSelectionMethod::LeitnerSystem) {
     bucketIds.resize(labels.size());
@@ -207,14 +207,16 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
         selectedSamples[iSample] = iBatch * batchSize + iSample;
 
-        int positivePatchCountPatchCount = 0;
+        int positivePatchCount = 0;
 
         if (getSelectionMethod() == PatchSelectionMethod::LeitnerSystem) {
           positiveLocations.clear();
           negativeLocations.clear();
 
-          for (size_t iBucket = 0; iBucket < bucketLocations.size(); ++iBucket)
+          for (size_t iBucket = 0; iBucket < bucketLocations.size(); ++iBucket) {
             bucketLocations[iBucket].clear();
+            positivesPerBucket[iBucket] = 0;
+          }
 
           // Fill buckets with potential locations
           // Also select unknown positive and negative samples for quicker refilling the first bucket if needed
@@ -225,6 +227,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
             if (bucketId > 0 && bucketId <= bucketLocations.size()) {
               bucketLocations[bucketId - 1].push_back(*pos);
+              positivesPerBucket[bucketId - 1] += h_label[center] > 0;
             } else if (bucketId == 0) {
               if (h_label[center] > 0) {    // The center belongs to the positive class
                 positiveLocations.push_back(*pos);
@@ -235,10 +238,13 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
           }
 
           if (iSample == 0 && iBatch == 0) {
-            std::cout << "iBatch = " << iBatch << ", iSample = " << iSample << ", Buckets: " << bucketLocations[0].size();
+            LogEntry entry = dlog(Severity::Trace);
+
+            // Get number of positive patches per bucket
+
+            entry << "iBatch = " << iBatch << ", iSample = " << iSample << ", Buckets: " << positivesPerBucket[0] << "/" << bucketLocations[0].size();
             for (size_t i = 1; i < bucketLocations.size(); ++i)
-              std::cout << ", " << bucketLocations[i].size();
-            std::cout << std::endl;
+              entry << ", " << positivesPerBucket[i] << "/" << bucketLocations[i].size();
           }
 
           // Faster drawing samples by shuffling the list and then go from the top
@@ -328,13 +334,13 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
             targets->push_back(boost::make_shared<host_tensor_t>(label[topleft + patchCenter, labelSize]));
           }
         }
-//        if (iSample == 0 && iBatch == 0) {
-//          dlog(Severity::Trace) << "Positive patches = " << positivePatchCount << "; total number of patches = " << getPatchCount();
+        if (iSample == 0 && iBatch == 0) {
+          dlog(Severity::Trace) << "Positive patches = " << positivePatchCount << "; total number of patches = " << getPatchCount();
 //          std::cout << "iPos: " << iPos[0];
 //          for (size_t i = 1; i < iPos.size(); ++i)
 //            std::cout << ", " << iPos[i];
 //          std::cout << std::endl;
-//        }
+        }
       }
 
       // Perform forward propagation
@@ -352,7 +358,20 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
       }
 
       // Calculate errors
-      error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch) / yBatch.size()[0]);
+      switch (getObjective()) {
+      case tbblas::deeplearn::objective_function::SSD:
+      case tbblas::deeplearn::objective_function::SenSpe:
+        error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch) / yBatch.size()[0]);
+        break;
+
+      case tbblas::deeplearn::objective_function::DSC:
+        error += 2 * sum(nn.hiddens() * yBatch) / (sum(nn.hiddens()) + sum(yBatch));
+        break;
+
+      case tbblas::deeplearn::objective_function::DSC2:
+        error += 2 * sum((value_t(1) + value_t(-1) * (nn.hiddens() - yBatch) * (nn.hiddens() - yBatch)) * yBatch) / (sum(nn.hiddens() * nn.hiddens()) + sum(yBatch));
+        break;
+      }
 
       if (iEpoch + 1 == getEpochCount() && iBatch + 1 == batchCount) {
         for (size_t iPatch = 0; iPatch < getPatchCount(); ++iPatch)

@@ -14,6 +14,7 @@
 #include <capputils/Enumerators.h>
 
 #include "Model.h"
+#include "TrainingMethod.h"
 
 #include <tbblas/deeplearn/sparsity_method.hpp>
 #include <tbblas/deeplearn/dropout_method.hpp>
@@ -56,6 +57,7 @@ public:
   // Learning algorithm parameters
   Property(CdIterations, int)
   int dummy4;
+  Property(Method, TrainingMethod)
   Property(LearningRates, std::vector<double>)
   Property(LearningDecay, int)
   Property(InitialMomentum, double)

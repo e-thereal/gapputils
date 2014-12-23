@@ -25,7 +25,7 @@
 
 #include <fstream>
 
-#include <tbblas/deeplearn/conv_rbm_trainer.hpp>
+#include <tbblas/deeplearn/conv_rbm.hpp>
 
 namespace gml {
 
@@ -49,6 +49,7 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(SparsityWeight, trainer);
 
   CHECK_MEMORY_LAYOUT2(CdIterations, trainer);
+  CHECK_MEMORY_LAYOUT2(Method, trainer);
   CHECK_MEMORY_LAYOUT2(LearningRates, trainer);
   CHECK_MEMORY_LAYOUT2(LearningDecay, trainer);
   CHECK_MEMORY_LAYOUT2(InitialMomentum, trainer);
@@ -142,14 +143,14 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
       // if only one weight and one learning rate is given, do the final run immediately
       if (iWeight == 0 && iLearningRate == 0 && initialWeights.size() <= 1 && learningRates.size() == 1) {
-        bestEpsilon = learningRates[0] / batchSize;
+        bestEpsilon = learningRates[0];
         if (initialWeights.size())
           bestWeight = initialWeights[0];
         continue;
       }
 
       if (iLearningRate < learningRates.size()) {
-        epsilonhb = epsilonvb = epsilonw = learningRates[iLearningRate] / batchSize;
+        epsilonhb = epsilonvb = epsilonw = learningRates[iLearningRate];
         if (initialWeights.size())
           initialWeight = initialWeights[iWeight];
         epochCount = getTrialEpochCount();
@@ -158,10 +159,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
         epsilonhb = epsilonvb = epsilonw = bestEpsilon;
         if (initialWeights.size())
           initialWeight = bestWeight;
-        dlog(Severity::Message) << "Final run with learning rate: " << bestEpsilon * batchSize << " and initial weight of " << initialWeight;
+        dlog(Severity::Message) << "Final run with learning rate: " << bestEpsilon << " and initial weight of " << initialWeight;
         epochCount = getEpochCount();
       }
-      value_t weightcost = getWeightDecay() * epsilonw * batchSize;
+      value_t weightcost = getWeightDecay();
 
       boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
       model->set_shared_bias(getShareBiasTerms());
@@ -175,7 +176,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         }
       }
 
-      tbblas::deeplearn::conv_rbm_trainer<float, 4> crbm(*model, getGpuCount());
+      tbblas::deeplearn::conv_rbm<float, 4> crbm(*model);
       crbm.set_batch_length(getFilterBatchSize());
       crbm.set_sparsity_method(getSparsityMethod());
       crbm.set_sparsity_target(getSparsityTarget());
@@ -211,7 +212,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         for (size_t iBatch = 0; iBatch < batchCount && error == error; ++iBatch) {
 
           // Apply momentum for next batch
-          crbm.init_gradient_updates(momentum, weightcost);
+//          crbm.init_gradient_updates(momentum, weightcost);
 
           for (size_t iSample = 0; iSample < batchSize && error == error; ++iSample) {
             crbm.init_dropout(getHiddenDropout(), getDropoutMethod());
@@ -230,7 +231,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
             /*** BEGIN OF POSITIVE PHASE ***/
             crbm.infer_hiddens();
-            crbm.update_positive_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+            crbm.update_positive_gradient();
 
             for (size_t iCd = 0; iCd < getCdIterations(); ++iCd) {
               crbm.sample_hiddens();
@@ -240,14 +241,22 @@ void Trainer::update(IProgressMonitor* monitor) const {
             /*** RECONSTRUCT FROM SAMPLES ***/
 
             crbm.infer_hiddens();
-            crbm.update_negative_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+            crbm.update_negative_gradient();
 
             if (getCalculateError()) {
               error += sqrt(dot((crbm.visibles() - v), (crbm.visibles() - v)) / voxelCount);
             }
           } /* end of sample */
 
-          crbm.apply_gradient();
+          switch (getMethod()) {
+          case TrainingMethod::Momentum:
+            crbm.momentum_step(epsilonw * learningDecay, momentum, weightcost);
+            break;
+
+          case TrainingMethod::AdaDelta:
+            crbm.adadelta_step(epsilonw * learningDecay, momentum, weightcost);
+            break;
+          }
 
           if (monitor) {
             const int totalEpochs = getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size() + getEpochCount();
@@ -275,7 +284,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
           bestError = error;
           bestEpsilon = epsilonw;
           bestWeight = initialWeight;
-          dlog(Severity::Message) << "Found better learning rate: " << epsilonw * batchSize << " with an error of " << bestError / X.size() << ".";
+          dlog(Severity::Message) << "Found better learning rate: " << epsilonw << " with an error of " << bestError / X.size() << ".";
         }
       } else {
         newState->setReconstructionError(error / X.size());

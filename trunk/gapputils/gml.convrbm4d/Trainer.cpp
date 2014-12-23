@@ -30,6 +30,7 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(SparsityWeight, Description("Weight of the sparsity target relative to the learning rate."))
 
   WorkflowProperty(CdIterations, Description("Number of CD iterations. (1: CD learning, >1: CD-n learning)"))
+  WorkflowProperty(Method, Enumerator<Type>())
   WorkflowProperty(LearningRates, NotEmpty<Type>(), Description("Initial values of the decaying learning rates of the filters."))
   WorkflowProperty(LearningDecay, Description("After how many epochs the learning rate will be halved. A value of -1 indicates no LearningDecay."))
   WorkflowProperty(InitialMomentum, Description("Momentum used for the first epoch."))
