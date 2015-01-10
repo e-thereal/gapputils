@@ -105,10 +105,10 @@ void FilterPatch::update(IProgressMonitor* monitor) const {
   dim_t superPatchLayerSize = superPatchSize;
   superPatchLayerSize[dimCount - 1] = 1;
 
-  dim_t patchSize = model.input_size();
+  dim_t patchSize = model.visibles_size();
   dim_t oldStride = model.stride_size();
 
-  model.change_stride(seq<dimCount>(1));
+  model.set_stride_size(seq<dimCount>(1));
   model.change_size(superPatchSize);
 
   dim_t superPatchHiddenSize = model.hiddens_size();
@@ -137,7 +137,7 @@ void FilterPatch::update(IProgressMonitor* monitor) const {
         hiddenSize[dimCount - 1] = model.filters().size();
       }
 
-      if (input.size()[3] != model.input_size()[3]) {
+      if (input.size()[3] != model.visibles_size()[3]) {
         dlog(Severity::Warning) << "Number of channels doesn't match. Aborting!";
         return;
       }
@@ -160,7 +160,8 @@ void FilterPatch::update(IProgressMonitor* monitor) const {
             crbm.change_mask(overlapMask);
 
             crbm.visibles() = zeros<value_t>(superPatchSize);
-            crbm.visibles()[seq<dimCount>(0), overlap] = input[topleft, overlap];
+            // TODO: do something about it
+//            crbm.visibles()[seq<dimCount>(0), overlap] = input[topleft, overlap];
 
             crbm.normalize_visibles();
             if (getSampleUnits())
@@ -259,7 +260,8 @@ void FilterPatch::update(IProgressMonitor* monitor) const {
             crbm.diversify_visibles();
 
 //            output[topleft, hiddenOverlap] = crbm.hiddens()[seq<dimCount>(0), hiddenOverlap];
-            output[topleft, overlap] = crbm.visibles()[seq<dimCount>(0), overlap];
+            // TODO: do something about it
+//            output[topleft, overlap] = crbm.visibles()[seq<dimCount>(0), overlap];
           }
         }
       }
@@ -271,7 +273,7 @@ void FilterPatch::update(IProgressMonitor* monitor) const {
   }
 
   model.change_size(patchSize);
-  model.change_stride(oldStride);
+  model.set_stride_size(oldStride);
 
   newState->setOutputs(outputs);
 }

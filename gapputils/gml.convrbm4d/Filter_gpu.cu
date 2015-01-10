@@ -34,6 +34,7 @@ FilterChecker::FilterChecker() {
   CHECK_MEMORY_LAYOUT2(Inputs, filter);
   CHECK_MEMORY_LAYOUT2(Direction, filter);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, filter);
+  CHECK_MEMORY_LAYOUT2(SubRegionCount, filter);
   CHECK_MEMORY_LAYOUT2(DoubleWeights, filter);
   CHECK_MEMORY_LAYOUT2(OnlyFilters, filter);
   CHECK_MEMORY_LAYOUT2(SampleUnits, filter);
@@ -63,7 +64,7 @@ void Filter::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<std::vector<boost::shared_ptr<host_tensor_t> > > outputs(
       new std::vector<boost::shared_ptr<host_tensor_t> >());
 
-  conv_rbm<float, 4> crbm(model);
+  conv_rbm<float, 4> crbm(model, getSubRegionCount());
   crbm.set_batch_length(getFilterBatchSize());
 
   tensor<float, 4, true> input;
@@ -71,27 +72,27 @@ void Filter::update(IProgressMonitor* monitor) const {
   if (getDirection() == CodingDirection::Encode) {
     for (size_t i = 0; i < inputs.size(); ++i) {
       input = *inputs[i];   // copies memory to the device. Makes rearranging faster
-      crbm.visibles() = rearrange(input, model.stride_size());
+      crbm.visibles() = input;
       crbm.normalize_visibles();
       if (getSampleUnits())
-        crbm.sample_hiddens();
+        crbm.sample_outputs();
       else
-        crbm.infer_hiddens();
-      outputs->push_back(boost::make_shared<host_tensor_t>(crbm.hiddens()));
+        crbm.infer_outputs();
+      outputs->push_back(boost::make_shared<host_tensor_t>(crbm.outputs()));
       if (monitor)
         monitor->reportProgress(100. * i / inputs.size());
     }
   } else {
     for (size_t i = 0; i < inputs.size(); ++i) {
-      crbm.hiddens() = *inputs[i];
+      crbm.outputs() = *inputs[i];
       if (getSampleUnits())
-        crbm.sample_visibles();
+        crbm.sample_visibles_from_outputs();
       else
-        crbm.infer_visibles(getOnlyFilters());
+        crbm.infer_visibles_from_outputs(getOnlyFilters());
       if (!getOnlyFilters())
         crbm.diversify_visibles();
 
-      input = rearrange_r(crbm.visibles(), model.stride_size());
+      input = crbm.visibles();
       outputs->push_back(boost::make_shared<host_tensor_t>(input));
       if (monitor)
         monitor->reportProgress(100. * i / inputs.size());

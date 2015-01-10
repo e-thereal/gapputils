@@ -28,14 +28,15 @@ BeginPropertyDefinitions(ModelReader)
   WorkflowProperty(TensorWidth, NoParameter())
   WorkflowProperty(TensorHeight, NoParameter())
   WorkflowProperty(TensorDepth, NoParameter())
+  WorkflowProperty(ChannelCount, NoParameter())
   WorkflowProperty(FilterWidth, NoParameter())
   WorkflowProperty(FilterHeight, NoParameter())
   WorkflowProperty(FilterDepth, NoParameter())
-  WorkflowProperty(ChannelCount, NoParameter())
   WorkflowProperty(FilterCount, NoParameter())
   WorkflowProperty(VisibleUnitType, NoParameter())
   WorkflowProperty(HiddenUnitType, NoParameter())
   WorkflowProperty(ConvolutionType, NoParameter())
+  WorkflowProperty(StrideSize, NoParameter())
   WorkflowProperty(PoolingMethod, NoParameter())
   WorkflowProperty(PoolingSize, NoParameter())
   WorkflowProperty(Mean, NoParameter())
@@ -44,7 +45,8 @@ BeginPropertyDefinitions(ModelReader)
 EndPropertyDefinitions
 
 ModelReader::ModelReader()
- : _TensorWidth(0), _TensorHeight(0), _TensorDepth(0), _FilterWidth(0), _FilterHeight(0), _FilterDepth(0), _ChannelCount(0), _FilterCount(0)
+ : _TensorWidth(0), _TensorHeight(0), _TensorDepth(0), _ChannelCount(0), _FilterWidth(0), _FilterHeight(0), _FilterDepth(0), _FilterCount(0),
+   _Mean(0), _Stddev(1)
 {
   setLabel("Reader");
 }
@@ -70,16 +72,17 @@ void ModelReader::update(IProgressMonitor* monitor) const {
   newState->setTensorWidth(model->visible_bias().size()[0]);
   newState->setTensorHeight(model->visible_bias().size()[1]);
   newState->setTensorDepth(model->visible_bias().size()[2]);
+  newState->setChannelCount(model->visible_bias().size()[3]);
   if (model->filters().size()) {
     newState->setFilterWidth(model->kernel_size()[0]);
     newState->setFilterHeight(model->kernel_size()[1]);
     newState->setFilterDepth(model->kernel_size()[2]);
-    newState->setChannelCount(model->filters()[0]->size()[3]);
   }
   newState->setFilterCount(model->filters().size());
   newState->setVisibleUnitType(model->visibles_type());
   newState->setHiddenUnitType(model->hiddens_type());
   newState->setConvolutionType(model->convolution_type());
+  newState->setStrideSize(model->stride_size());
   newState->setPoolingMethod(model->pooling_method());
   newState->setPoolingSize(model->pooling_size());
   newState->setMean(model->mean());

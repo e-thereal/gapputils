@@ -51,9 +51,9 @@ void PlanModel::update(IProgressMonitor* monitor) const {
   std::vector<double> widths, heights, depths;
 
   for (size_t i = 0; i < layerCount; ++i) {
-    widths.push_back(width = (width / (double)_StrideWidth[i]) - (double)_FilterWidth[i] + 1.0);
-    heights.push_back(height = (height / (double)_StrideHeight[i]) - (double)_FilterHeight[i] + 1.0);
-    depths.push_back(depth = (depth / (double)_StrideDepth[i]) - (double)_FilterDepth[i] + 1.0);
+    widths.push_back(width = ((width - (double)_FilterWidth[i] + (double)_StrideWidth[i]) / (double)_StrideWidth[i]));
+    heights.push_back(height = ((height - (double)_FilterHeight[i] + (double)_StrideHeight[i]) / (double)_StrideHeight[i]));
+    depths.push_back(depth = ((depth - (double)_FilterDepth[i] + (double)_StrideDepth[i]) / (double)_StrideDepth[i]));
   }
 
   newState->setOutputWidth(widths);

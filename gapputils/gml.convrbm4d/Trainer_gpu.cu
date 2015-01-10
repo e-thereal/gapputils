@@ -56,8 +56,8 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(FinalMomentum, trainer);
   CHECK_MEMORY_LAYOUT2(MomentumDecayEpochs, trainer);
   CHECK_MEMORY_LAYOUT2(WeightDecay, trainer);
-  CHECK_MEMORY_LAYOUT2(WeightVectorLimit, trainer);
   CHECK_MEMORY_LAYOUT2(InitialWeights, trainer);
+  CHECK_MEMORY_LAYOUT2(SignalToNoiseRatio, trainer);
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, trainer);
   CHECK_MEMORY_LAYOUT2(ShareBiasTerms, trainer);
   CHECK_MEMORY_LAYOUT2(DropoutMethod, trainer);
@@ -127,11 +127,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
   value_t finalmomentum = getFinalMomentum();
   value_t momentum;
 
-  value_t epsilonw, epsilonvb, epsilonhb, initialWeight = 0;  // Learning rate for weights
+  value_t epsilonw, initialWeight = 0;  // Learning rate for weights
 
   std::vector<double> learningRates = getLearningRates();
   std::vector<double> initialWeights = getInitialWeights();
-  value_t bestEpsilon, bestError, bestWeight;
+  value_t bestEpsilon, bestError, bestWeight = 0;
 
   for (int iWeight = 0; iWeight < initialWeights.size() || (iWeight == 0 && initialWeights.size() == 0); ++iWeight) {
     for (int iLearningRate = 0; iLearningRate < learningRates.size() + 1; ++iLearningRate) {
@@ -142,7 +142,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
       }
 
       // if only one weight and one learning rate is given, do the final run immediately
-      if (iWeight == 0 && iLearningRate == 0 && initialWeights.size() <= 1 && learningRates.size() == 1) {
+      if (iWeight == 0 && iLearningRate == 0 && initialWeights.size() <= 1 && learningRates.size() == 1 && _SignalToNoiseRatio <= 0) {
         bestEpsilon = learningRates[0];
         if (initialWeights.size())
           bestWeight = initialWeights[0];
@@ -150,15 +150,14 @@ void Trainer::update(IProgressMonitor* monitor) const {
       }
 
       if (iLearningRate < learningRates.size()) {
-        epsilonhb = epsilonvb = epsilonw = learningRates[iLearningRate];
+        epsilonw = learningRates[iLearningRate];
         if (initialWeights.size())
           initialWeight = initialWeights[iWeight];
         epochCount = getTrialEpochCount();
         dlog(Severity::Message) << "Trying learning rate of " << learningRates[iLearningRate] << " and initial weight of " << initialWeight;
       } else {
-        epsilonhb = epsilonvb = epsilonw = bestEpsilon;
-        if (initialWeights.size())
-          initialWeight = bestWeight;
+        epsilonw = bestEpsilon;
+        initialWeight = bestWeight;
         dlog(Severity::Message) << "Final run with learning rate: " << bestEpsilon << " and initial weight of " << initialWeight;
         epochCount = getEpochCount();
       }
@@ -223,7 +222,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
             else
               input = *X[iSample + iBatch * batchSize];
 
-            crbm.visibles() = rearrange(input, model->stride_size());
+            crbm.visibles() = input;
             crbm.normalize_visibles();
 
             if (getCalculateError())
@@ -283,7 +282,17 @@ void Trainer::update(IProgressMonitor* monitor) const {
         if (iLearningRate == 0 && iWeight == 0 || !(error > bestError)) {   // using not greater instead of lesser to handle nan case.
           bestError = error;
           bestEpsilon = epsilonw;
-          bestWeight = initialWeight;
+
+          if (_SignalToNoiseRatio > 0) {
+            // Calculate standard deviation of filters assuming zero mean.
+            crbm.write_model_to_host();
+            value_t filterVariance = 0;
+            for (size_t iFilter = 0; iFilter < model->filter_count(); ++iFilter)
+              filterVariance += dot(*model->filters()[iFilter], *model->filters()[iFilter]) / model->filters()[iFilter]->count();
+            bestWeight = sqrt(filterVariance / model->filter_count()) / _SignalToNoiseRatio;
+          } else {
+            bestWeight = initialWeight;
+          }
           dlog(Severity::Message) << "Found better learning rate: " << epsilonw << " with an error of " << bestError / X.size() << ".";
         }
       } else {

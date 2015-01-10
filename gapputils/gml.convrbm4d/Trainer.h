@@ -65,8 +65,8 @@ public:
   Property(MomentumDecayEpochs, int)
   int dummy2;
   Property(WeightDecay, double)
-  Property(WeightVectorLimit, double)
   Property(InitialWeights, std::vector<double>)
+  Property(SignalToNoiseRatio, double)
   Property(RandomizeTraining, bool)
   Property(ShareBiasTerms, bool)
   Property(ChannelsPerBlock, int)

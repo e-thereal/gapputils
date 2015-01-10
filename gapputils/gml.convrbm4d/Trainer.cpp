@@ -37,8 +37,8 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(FinalMomentum)
   WorkflowProperty(MomentumDecayEpochs)
   WorkflowProperty(WeightDecay)
-  WorkflowProperty(WeightVectorLimit, Description("Maximum length of the weight update vector. Lower values reduce oscillation."))
   WorkflowProperty(InitialWeights, Description("If given, these weights will be tested as initial weights and will override the initial weights."))
+  WorkflowProperty(SignalToNoiseRatio, Description("If greater than 0, the standard deviation of the noise of the initial filters is set to 'sd(learned filters) / SNR'."))
   WorkflowProperty(RandomizeTraining, Flag(), Description("Randomly select images of a mini-batch."))
   WorkflowProperty(ShareBiasTerms, Flag(), Description("If checked, visible and hidden units of the same filter share bias terms."))
   WorkflowProperty(ChannelsPerBlock, Description("All channels of the same pooling block share the same bias terms when shared bias terms are active. Hence, this number must be known."))
@@ -61,7 +61,7 @@ Trainer::Trainer()
  : _EpochCount(100), _TrialEpochCount(10), _BatchSize(20), _FilterBatchSize(1), _GpuCount(1),
    _SparsityTarget(1e-2), _SparsityWeight(0.1),
    _CdIterations(1), _LearningDecay(-1), _InitialMomentum(0.5), _FinalMomentum(0.9),
-   _MomentumDecayEpochs(20), _WeightDecay(0), _WeightVectorLimit(1), _RandomizeTraining(false),
+   _MomentumDecayEpochs(20), _WeightDecay(0), _SignalToNoiseRatio(20), _RandomizeTraining(false),
    _ShareBiasTerms(false), _ChannelsPerBlock(1), _VisibleDropout(0.0), _HiddenDropout(0.5), _FilterDropout(0.0),
    _CalculateError(false), _UpdateModel(0),
    _CurrentEpoch(0), _AverageEpochTime(0.0), _ReconstructionError(0.0)
