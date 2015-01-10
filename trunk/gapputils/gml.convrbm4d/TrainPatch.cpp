@@ -7,11 +7,13 @@
 
 #include "TrainPatch.h"
 
+#include <capputils/attributes/DeprecatedAttribute.h>
+
 namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(TrainPatch, Description("Trains a convolutional RBM using CD-n learning on selected patches of the training set. Can also be used for layer-wise pretraining of DBMs (see the DbmLayer parameter)."))
+BeginPropertyDefinitions(TrainPatch, Deprecated("Patch-based learning is currently not supported"), Description("Trains a convolutional RBM using CD-n learning on selected patches of the training set. Can also be used for layer-wise pretraining of DBMs (see the DbmLayer parameter)."))
 
   ReflectableBase(DefaultWorkflowElement<TrainPatch>)
 

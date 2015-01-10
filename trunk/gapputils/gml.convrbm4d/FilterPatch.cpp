@@ -7,11 +7,13 @@
 
 #include "FilterPatch.h"
 
+#include <capputils/attributes/DeprecatedAttribute.h>
+
 namespace gml {
 
 namespace convrbm4d {
 
-BeginPropertyDefinitions(FilterPatch)
+BeginPropertyDefinitions(FilterPatch, Deprecated("Patch-based learning is currently not supported"))
   ReflectableBase(DefaultWorkflowElement<FilterPatch>)
 
   WorkflowProperty(Model, Input("CRBM"), NotNull<Type>())

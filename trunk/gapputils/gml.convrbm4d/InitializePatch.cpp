@@ -7,12 +7,14 @@
 
 #include "InitializePatch.h"
 
+#include <capputils/attributes/DeprecatedAttribute.h>
+
 #include <iostream>
 
 namespace gml {
 namespace convrbm4d {
 
-BeginPropertyDefinitions(InitializePatch, Description("Initializes a patch-based convRBM."))
+BeginPropertyDefinitions(InitializePatch, Deprecated("Patch-based learning is currently not supported"), Description("Initializes a patch-based convRBM."))
 
   ReflectableBase(DefaultWorkflowElement<InitializePatch>)
 

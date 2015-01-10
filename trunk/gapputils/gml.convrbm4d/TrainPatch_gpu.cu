@@ -124,7 +124,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
   // TODO: handle training with differently sized images
 
-  if (X[0]->size()[3] != model->input_size()[3]) {
+  if (X[0]->size()[3] != model->visibles_size()[3]) {
     dlog(Severity::Warning) << "Number of channels doesn't match. Aborting!";
     return;
   }
@@ -138,10 +138,10 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
   dim_t superPatchLayerSize = superPatchSize;
   superPatchLayerSize[dimCount - 1] = 1;
 
-  dim_t patchSize = model->input_size();
+  dim_t patchSize = model->visibles_size();
   dim_t oldStride = model->stride_size();
 
-  model->change_stride(seq<dimCount>(1));
+  model->set_stride_size(seq<dimCount>(1));
   model->change_size(superPatchSize);
 
   dim_t superPatchStepSize = model->hiddens_size();
@@ -223,7 +223,8 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
               crbm.change_mask(overlapMask);
 
               crbm.visibles() = zeros<value_t>(superPatchSize);
-              crbm.visibles()[seq<dimCount>(0), overlap] = sample[topleft, overlap];
+              // TODO: fix this
+//              crbm.visibles()[seq<dimCount>(0), overlap] = sample[topleft, overlap];
 
               if (iEpoch == epochCount - 1 && iBatch == 0)
                 patches->push_back(boost::make_shared<host_tensor_t>(crbm.visibles()));
@@ -280,7 +281,7 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
 
   // Change size of bias terms back to the patch size and stride the model
   model->change_size(patchSize);
-  model->change_stride(oldStride);
+  model->set_stride_size(oldStride);
 
 //    newState->setAverageEpochTime(_timer.elapsed() / getEpochCount());
   newState->setReconstructionError(error / X.size() / superPatchMaxStep.prod() * superPatchStepSize.prod());
