@@ -23,6 +23,7 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(TrialEpochCount)
   WorkflowProperty(BatchSize, Description("Number of images used per gradient update."))
   WorkflowProperty(FilterBatchSize, Description("Number of filters that are processed in parallel."))
+  WorkflowProperty(SubRegionCount, Description("Number of sub-regions into which the calculation will be split. Fewer (but larger) sub-regions speed up the calculation but require more memory."))
   WorkflowProperty(GpuCount, Description("Number of GPUs used for training."))
 
   WorkflowProperty(SparsityMethod, Enumerator<Type>())
@@ -58,7 +59,7 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
 EndPropertyDefinitions
 
 Trainer::Trainer()
- : _EpochCount(100), _TrialEpochCount(10), _BatchSize(20), _FilterBatchSize(1), _GpuCount(1),
+ : _EpochCount(100), _TrialEpochCount(10), _BatchSize(20), _FilterBatchSize(1), _SubRegionCount(tbblas::seq<4>(1)), _GpuCount(1),
    _SparsityTarget(1e-2), _SparsityWeight(0.1),
    _CdIterations(1), _LearningDecay(-1), _InitialMomentum(0.5), _FinalMomentum(0.9),
    _MomentumDecayEpochs(20), _WeightDecay(0), _SignalToNoiseRatio(20), _RandomizeTraining(false),

@@ -46,6 +46,7 @@ public:
   Property(TrialEpochCount, int)
   Property(BatchSize, int)
   Property(FilterBatchSize, int)
+  Property(SubRegionCount, host_tensor_t::dim_t)
   Property(GpuCount, int)
 
   // Sparsity parameters

@@ -42,6 +42,7 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(TrialEpochCount, trainer);
   CHECK_MEMORY_LAYOUT2(BatchSize, trainer);
   CHECK_MEMORY_LAYOUT2(FilterBatchSize, trainer);
+  CHECK_MEMORY_LAYOUT2(SubRegionCount, trainer);
   CHECK_MEMORY_LAYOUT2(GpuCount, trainer);
 
   CHECK_MEMORY_LAYOUT2(SparsityMethod, trainer);
@@ -175,7 +176,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         }
       }
 
-      tbblas::deeplearn::conv_rbm<float, 4> crbm(*model);
+      tbblas::deeplearn::conv_rbm<float, 4> crbm(*model, getSubRegionCount());
       crbm.set_batch_length(getFilterBatchSize());
       crbm.set_sparsity_method(getSparsityMethod());
       crbm.set_sparsity_target(getSparsityTarget());
