@@ -85,6 +85,7 @@ public:
   bool isInterfaceNode(boost::shared_ptr<const Node> node) const;
   bool isInputNode(boost::shared_ptr<const Node> node) const;
   bool isOutputNode(boost::shared_ptr<const Node> node) const;
+  bool isParameterNode(boost::shared_ptr<const Node> node) const;
   void getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost::shared_ptr<Node> >& dependendNodes, bool includeParentDependencies = false);
   bool isDependentProperty(boost::shared_ptr<const Node> node, const std::string& propertyName) const;
 
