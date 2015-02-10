@@ -142,7 +142,7 @@ void Train::update(IProgressMonitor* monitor) const {
             const int current = iSample + iBatch * batchSize;
             thrust::copy(labels[current]->begin(), labels[current]->end(), target.begin());
             v = *tensors[current];
-            cnn.set_input(v);
+            cnn.visibles() = v;
             cnn.normalize_visibles();
             cnn.update_gradient(target);
             error += sqrt(dot(cnn.hiddens() - target, cnn.hiddens() - target));

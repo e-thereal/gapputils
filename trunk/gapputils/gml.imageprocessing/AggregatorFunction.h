@@ -14,7 +14,7 @@ namespace gml {
 
 namespace imageprocessing {
 
-CapputilsEnumerator(AggregatorFunction, Minimum, Maximum, Sum, Average, Median);
+CapputilsEnumerator(AggregatorFunction, Minimum, Maximum, Sum, Average, Median, Product);
 
 }
 

@@ -19,7 +19,7 @@ PredictChecker::PredictChecker() {
   CHECK_MEMORY_LAYOUT2(Model, test);
   CHECK_MEMORY_LAYOUT2(Inputs, test);
   CHECK_MEMORY_LAYOUT2(Outputs, test);
-  CHECK_MEMORY_LAYOUT2(FirstLayer, test);
+//  CHECK_MEMORY_LAYOUT2(FirstLayer, test);
 }
 
 void Predict::update(IProgressMonitor* monitor) const {
@@ -36,13 +36,13 @@ void Predict::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<v_data_t> outputs(new v_data_t());
   boost::shared_ptr<v_host_tensor_t> firstLayer(new v_host_tensor_t());
 
-  tbblas::deeplearn::cnn_layer<value_t, dimCount> cnn_layer(*getModel()->cnn_layers()[0]);
+//  tbblas::deeplearn::cnn_layer<value_t, dimCount> cnn_layer(*getModel()->cnn_layers()[0]);
 
   tensor_t tensor;
   int oldProgress = -1;
   for (size_t i = 0; i < tensors.size() && (monitor ? !monitor->getAbortRequested() : true); ++i) {
     tensor = *tensors[i];
-    cnn.set_input(tensor);
+    cnn.visibles() = tensor;
 
     // Perform forward propagation
     cnn.normalize_visibles();
@@ -53,11 +53,11 @@ void Predict::update(IProgressMonitor* monitor) const {
     thrust::copy(cnn.hiddens().begin(), cnn.hiddens().end(), output->begin());
     outputs->push_back(output);
 
-    cnn_layer.visibles() = rearrange(tensor, getModel()->cnn_layers()[0]->stride_size());
-    cnn_layer.normalize_visibles();
-    cnn_layer.infer_hiddens();
-
-    firstLayer->push_back(boost::make_shared<host_tensor_t>(cnn_layer.hiddens()));
+//    cnn_layer.visibles() = rearrange(tensor, getModel()->cnn_layers()[0]->stride_size());
+//    cnn_layer.normalize_visibles();
+//    cnn_layer.infer_hiddens();
+//
+//    firstLayer->push_back(boost::make_shared<host_tensor_t>(cnn_layer.hiddens()));
 
     if (monitor && oldProgress != (i + 1) * 100 / tensors.size()) {
       oldProgress = (i + 1) * 100 / tensors.size();
@@ -67,7 +67,7 @@ void Predict::update(IProgressMonitor* monitor) const {
   tbblas::synchronize();
 
   newState->setOutputs(outputs);
-  newState->setFirstLayer(firstLayer);
+//  newState->setFirstLayer(firstLayer);
 }
 
 }

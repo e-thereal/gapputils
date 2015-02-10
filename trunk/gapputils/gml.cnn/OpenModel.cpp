@@ -44,7 +44,7 @@ void OpenModel::update(IProgressMonitor* monitor) const {
   newState->setLayerCount(clayerCount + dlayerCount);
 
   if (clayerCount) {
-    newState->setInputSize(model->input_size());
+    newState->setInputSize(model->visibles_size());
     newState->setConvolutionType(model->cnn_layers()[0]->convolution_type());
     newState->setHiddenActivationFunction(model->cnn_layers()[0]->activation_function());
 

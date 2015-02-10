@@ -7,7 +7,7 @@
 
 #include "WarpImage.h"
 
-#include <tbblas/transform/warp.hpp>
+#include <tbblas/imgproc/warp.hpp>
 
 namespace gml {
 
@@ -25,7 +25,7 @@ WarpImageChecker::WarpImageChecker() {
 
 void WarpImage::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
-  using namespace tbblas::transform;
+  using namespace tbblas::imgproc;
 
   typedef float value_t;
   typedef tensor<value_t, 3, true> volume_t;

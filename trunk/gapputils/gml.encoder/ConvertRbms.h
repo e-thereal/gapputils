@@ -35,6 +35,10 @@ class ConvertRbms : public DefaultWorkflowElement<ConvertRbms> {
 
   Property(Crbms, boost::shared_ptr<v_crbm_t>)
   Property(Rbms, boost::shared_ptr<v_rbm_t>)
+  Property(FirstInputChannel, int)
+  Property(InputChannelCount, int)
+  Property(FirstOutputChannel, int)
+  Property(OutputChannelCount, int)
   Property(OutputActivationFunction, tbblas::deeplearn::activation_function)
   Property(Model, boost::shared_ptr<model_t>)
 

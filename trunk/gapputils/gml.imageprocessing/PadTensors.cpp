@@ -55,18 +55,26 @@ void PadTensors::update(IProgressMonitor* monitor) const {
       dim_t padSize = seq(getWidth(), getHeight(), getDepth(), 0);
       tensor_t& kern = *getInputTensor();
       padSize[dimCount - 1] = kern.size()[dimCount - 1];
-      dim_t topleft = padSize / 2 - kern.size() / 2;
-      boost::shared_ptr<tensor_t> pad(new tensor_t(zeros<value_t>(padSize)));
-      (*pad)[topleft, kern.size()] = kern;
-      newState->setOutputTensor(pad);
+      if (padSize == kern.size()) {
+        newState->setOutputTensor(getInputTensor());
+      } else {
+        dim_t topleft = padSize / 2 - kern.size() / 2;
+        boost::shared_ptr<tensor_t> pad(new tensor_t(zeros<value_t>(padSize)));
+        (*pad)[topleft, kern.size()] = kern;
+        newState->setOutputTensor(pad);
+      }
     } else {
       dim_t kernSize = seq(getWidth(), getHeight(), getDepth(), 0);
       tensor_t& pad = *getInputTensor();
       kernSize[dimCount - 1] = pad.size()[dimCount - 1];
-      dim_t topleft = pad.size() / 2 - kernSize / 2;
-      boost::shared_ptr<tensor_t> kern(new tensor_t(zeros<value_t>(kernSize)));
-      *kern = pad[topleft, kernSize];
-      newState->setOutputTensor(kern);
+      if (kernSize == pad.size()) {
+        newState->setOutputTensor(getInputTensor());
+      } else {
+        dim_t topleft = pad.size() / 2 - kernSize / 2;
+        boost::shared_ptr<tensor_t> kern(new tensor_t(zeros<value_t>(kernSize)));
+        *kern = pad[topleft, kernSize];
+        newState->setOutputTensor(kern);
+      }
     }
   }
 
@@ -79,20 +87,28 @@ void PadTensors::update(IProgressMonitor* monitor) const {
       for (size_t i = 0; i < inputs.size(); ++i) {
         tensor_t& kern = *inputs[i];
         padSize[dimCount - 1] = kern.size()[dimCount - 1];
-        dim_t topleft = padSize / 2 - kern.size() / 2;
-        boost::shared_ptr<tensor_t> pad(new tensor_t(zeros<value_t>(padSize)));
-        (*pad)[topleft, kern.size()] = kern;
-        outputs->push_back(pad);
+        if (padSize == kern.size()) {
+          outputs->push_back(inputs[i]);
+        } else {
+          dim_t topleft = padSize / 2 - kern.size() / 2;
+          boost::shared_ptr<tensor_t> pad(new tensor_t(zeros<value_t>(padSize)));
+          (*pad)[topleft, kern.size()] = kern;
+          outputs->push_back(pad);
+        }
       }
     } else {
       dim_t kernSize = seq(getWidth(), getHeight(), getDepth(), 0);
       for (size_t i = 0; i < inputs.size(); ++i) {
         tensor_t& pad = *inputs[i];
         kernSize[dimCount - 1] = pad.size()[dimCount - 1];
-        dim_t topleft = pad.size() / 2 - kernSize / 2;
-        boost::shared_ptr<tensor_t> kern(new tensor_t(zeros<value_t>(kernSize)));
-        *kern = pad[topleft, kernSize];
-        outputs->push_back(kern);
+        if (pad.size() == kernSize) {
+          outputs->push_back(inputs[i]);
+        } else {
+          dim_t topleft = pad.size() / 2 - kernSize / 2;
+          boost::shared_ptr<tensor_t> kern(new tensor_t(zeros<value_t>(kernSize)));
+          *kern = pad[topleft, kernSize];
+          outputs->push_back(kern);
+        }
       }
     }
 

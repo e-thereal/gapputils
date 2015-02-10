@@ -14,7 +14,7 @@ namespace gml {
 
 namespace convrbm4d {
 
-CapputilsEnumerator(TrainingMethod, Momentum, AdaDelta);
+CapputilsEnumerator(TrainingMethod, Momentum, AdaDelta, AdaDeltaFilter);
 
 }
 

@@ -79,19 +79,17 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
         return;
     }
 
-    dim_t block = (iLayer == 0 ? tensors[0]->size() / crbms[iLayer]->visibles_size() : crbms[iLayer - 1]->hiddens_size() / crbms[iLayer]->visibles_size());
-    block[dimCount - 1] = 1;
-
+    layer.set_visibles_size(crbms[iLayer]->visibles_size());
     layer.set_filters(crbms[iLayer]->filters());
     layer.set_bias(crbms[iLayer]->hidden_bias());
     layer.set_kernel_size(crbms[iLayer]->kernel_size());
-    layer.set_stride_size(block);
+    layer.set_stride_size(crbms[iLayer]->stride_size());
     layer.set_convolution_type(crbms[iLayer]->convolution_type());
     layer.set_mean(crbms[iLayer]->mean());
     layer.set_stddev(crbms[iLayer]->stddev());
     layer.set_shared_bias(crbms[iLayer]->shared_bias());
 
-    if (iLayer == 0 && layer.input_size() != tensors[0]->size()) {
+    if (iLayer == 0 && layer.visibles_size() != tensors[0]->size()) {
       dlog(Severity::Warning) << "Input size doesn't match the input of the first layer. Aborting!";
       return;
     }

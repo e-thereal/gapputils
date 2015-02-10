@@ -69,7 +69,7 @@ void BackpropWeights::update(IProgressMonitor* monitor) const {
       cnn_layer_t layer(*model.cnn_layers()[iLayer]);
       layer.hiddens() = cW;
       layer.backprop_visibles();
-      cW = rearrange_r(layer.visibles(), model.cnn_layers()[iLayer]->stride_size());
+      cW = layer.visibles();
     }
 
     weights->push_back(boost::make_shared<host_tensor_t>(cW));

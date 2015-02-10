@@ -39,20 +39,20 @@ BeginPropertyDefinitions(GammaParameters)
   DefineProperty(Intercept, Observe(Id))
 EndPropertyDefinitions
 
-GammaParameters::GammaParameters() : _Slope(1.f), _Gamma(1.f), _Intercept(0.f) { }
+GammaParameters::GammaParameters() : _Slope(1.), _Gamma(1.), _Intercept(0.) { }
 
 BeginPropertyDefinitions(SigmoidParameters)
   DefineProperty(Slope)
   DefineProperty(Inflection)
 EndPropertyDefinitions
 
-SigmoidParameters::SigmoidParameters() : _Slope(1.f), _Inflection(0.5) { }
+SigmoidParameters::SigmoidParameters() : _Slope(1.), _Inflection(0.5) { }
 
 BeginPropertyDefinitions(ThresholdParameters)
   DefineProperty(Threshold)
 EndPropertyDefinitions
 
-ThresholdParameters::ThresholdParameters() : _Threshold(0.0f) { }
+ThresholdParameters::ThresholdParameters() : _Threshold(0.0) { }
 
 int FunctionFilter::functionId;
 
@@ -150,7 +150,7 @@ void FunctionFilter::update(IProgressMonitor* monitor) const {
     break;
 
   case FilterFunction::Sqrt:
-    img = sqrt(img);
+    img = sqrt(max(0,img));
     break;
 
   case FilterFunction::Bernstein: {

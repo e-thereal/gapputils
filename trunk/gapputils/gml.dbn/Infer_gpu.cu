@@ -7,7 +7,7 @@
 
 #include "Infer.h"
 
-#include <tbblas/deeplearn/dbn.hpp>
+#include <tbblas/deeplearn/conv_dbn.hpp>
 #include <tbblas/rearrange.hpp>
 
 #include <tbblas/dot.hpp>
@@ -79,7 +79,7 @@ void Infer::update(IProgressMonitor* monitor) const {
       new_context context;
       cudaStream_t copyStream;
       cudaStreamCreate(&copyStream);
-      tbblas::deeplearn::dbn<value_t, dimCount> dbn(*getModel());
+      tbblas::deeplearn::conv_dbn<value_t, dimCount> dbn(*getModel());
 
       for (size_t i = 0; i < getModel()->crbms().size() && i < getFilterBatchLength().size(); ++i)
         dbn.set_batch_length(i, getFilterBatchLength()[i]);
@@ -99,7 +99,7 @@ void Infer::update(IProgressMonitor* monitor) const {
           vtemp = *dataset[i + getGpuCount()];
         }
 
-        dbn.set_input(v1);
+        dbn.cvisibles() = v1;
         dbn.normalize_visibles();
         dbn.infer_hiddens(getLayer());
 
@@ -160,7 +160,7 @@ void Infer::update(IProgressMonitor* monitor) const {
       new_context context;
       cudaStream_t copyStream;
       cudaStreamCreate(&copyStream);
-      tbblas::deeplearn::dbn<value_t, dimCount> dbn(*getModel());
+      tbblas::deeplearn::conv_dbn<value_t, dimCount> dbn(*getModel());
 
       for (size_t i = 0; i < getModel()->crbms().size() && i < getFilterBatchLength().size(); ++i)
         dbn.set_batch_length(i, getFilterBatchLength()[i]);
@@ -194,7 +194,7 @@ void Infer::update(IProgressMonitor* monitor) const {
         dbn.diversify_visibles();
 
         cudaStreamSynchronize(copyStream);
-        dbn.get_input(h2);
+        h2 = dbn.cvisibles();
         tbblas::synchronize();
 
         {

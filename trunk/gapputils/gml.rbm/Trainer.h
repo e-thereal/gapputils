@@ -19,6 +19,7 @@ namespace gml {
 namespace rbm {
 
 CapputilsEnumerator(DbmLayer, RBM, VisibleLayer, IntermediateLayer, TopLayer);
+CapputilsEnumerator(TrainingMethod, Momentum, AdaDelta);
 
 struct TrainerChecker { TrainerChecker(); };
 
@@ -46,6 +47,7 @@ class Trainer : public DefaultWorkflowElement<Trainer> {
   Property(TrialEpochCount, int)
   Property(BatchSize, int)
   int dummy;
+  Property(Method, TrainingMethod)
   Property(LearningRates, std::vector<double>)
   Property(LearningDecay, int)
   Property(WeightDecay, double)

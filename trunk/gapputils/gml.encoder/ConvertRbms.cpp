@@ -19,6 +19,8 @@
 #include <tbblas/dot.hpp>
 #include <tbblas/trans.hpp>
 
+#include <gapputils/Tensor.h>
+
 namespace gml {
 
 namespace encoder {
@@ -29,12 +31,16 @@ BeginPropertyDefinitions(ConvertRbms)
 
   WorkflowProperty(Crbms, Input("CRBMs"), NotNull<Type>(), NotEmpty<Type>(), Merge<Type>())
   WorkflowProperty(Rbms, Input("RBMs"), Merge<Type>())
+  WorkflowProperty(FirstInputChannel)
+  WorkflowProperty(InputChannelCount, Description("A value of -1 indicates using the maximum number of channels."))
+  WorkflowProperty(FirstOutputChannel)
+  WorkflowProperty(OutputChannelCount, Description("A value of -1 indicates using the maximum number of channels."))
   WorkflowProperty(OutputActivationFunction, Enumerator<Type>())
-  WorkflowProperty(Model, Output("CNN"))
+  WorkflowProperty(Model, Output("ENN"))
 
 EndPropertyDefinitions
 
-ConvertRbms::ConvertRbms() {
+ConvertRbms::ConvertRbms() : _FirstInputChannel(0), _InputChannelCount(-1), _FirstOutputChannel(0), _OutputChannelCount(-1) {
   setLabel("Convert");
 }
 
@@ -47,6 +53,9 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
   typedef float value_t;
   typedef tbblas::tensor<value_t, 2> matrix_t;
   typedef random_tensor<value_t, 2, false, normal<value_t> > randn_t;
+
+  typedef host_tensor_t::dim_t dim_t;
+  const int dimCount = host_tensor_t::dimCount;
 
   boost::shared_ptr<model_t> model(new model_t());
 
@@ -70,10 +79,38 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
         return;
     }
 
-    layer.set_visibles_size(crbms[iLayer]->visibles_size());
-    layer.set_filters(crbms[iLayer]->filters());
+    if (iLayer == 0) {
+      dim_t visibles_size = crbms[iLayer]->visibles_size(), kernel_size = crbms[iLayer]->kernel_size();
+
+      int firstChannel = getFirstInputChannel();
+      int channelCount = visibles_size[dimCount - 1] - firstChannel;
+      if (getInputChannelCount() > 0)
+        channelCount = std::min(channelCount, getInputChannelCount());
+
+      kernel_size[dimCount - 1] = visibles_size[dimCount - 1] = channelCount;
+
+      layer.set_visibles_size(visibles_size);
+      layer.set_kernel_size(kernel_size);
+
+      v_host_tensor_t& filters = crbms[iLayer]->filters();
+      v_host_tensor_t inputFilters;
+
+      dim_t pos = seq<dimCount>(0);
+      pos[dimCount - 1] = firstChannel;
+
+      for (size_t iFilter = 0; iFilter < filters.size(); ++iFilter) {
+        host_tensor_t& filter = *filters[iFilter];
+        inputFilters.push_back(boost::make_shared<host_tensor_t>(filter[pos, kernel_size]));
+      }
+      layer.set_filters(inputFilters);
+
+    } else {
+      layer.set_filters(crbms[iLayer]->filters());
+      layer.set_visibles_size(crbms[iLayer]->visibles_size());
+      layer.set_kernel_size(crbms[iLayer]->kernel_size());
+    }
+
     layer.set_bias(crbms[iLayer]->hidden_bias());
-    layer.set_kernel_size(crbms[iLayer]->kernel_size());
     layer.set_stride_size(crbms[iLayer]->stride_size());
     layer.set_convolution_type(crbms[iLayer]->convolution_type());
     layer.set_mean(crbms[iLayer]->mean());
@@ -97,17 +134,54 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
         return;
     }
 
-    // Override output activation function
-    if (iLayer == 0)
+    if (iLayer == 0) {
       layer.set_activation_function(_OutputActivationFunction);
 
-    layer.set_filters(crbms[iLayer]->filters());
-    layer.set_bias(crbms[iLayer]->visible_bias());
-    layer.set_kernel_size(crbms[iLayer]->kernel_size());
+      if (_OutputActivationFunction == tbblas::deeplearn::activation_function::Linear) {
+        layer.set_mean(crbms[iLayer]->mean());
+        layer.set_stddev(crbms[iLayer]->stddev());
+      } else {
+        layer.set_mean(0);
+        layer.set_stddev(1);
+      }
+
+      dim_t visibles_size = crbms[iLayer]->visibles_size(), kernel_size = crbms[iLayer]->kernel_size();
+
+      int firstChannel = getFirstOutputChannel();
+      int channelCount = visibles_size[dimCount - 1] - firstChannel;
+      if (getOutputChannelCount() > 0)
+        channelCount = std::min(channelCount, getOutputChannelCount());
+
+      kernel_size[dimCount - 1] = visibles_size[dimCount - 1] = channelCount;
+
+      layer.set_kernel_size(kernel_size);
+
+      v_host_tensor_t& filters = crbms[iLayer]->filters();
+      v_host_tensor_t inputFilters;
+
+      dim_t pos = seq<dimCount>(0);
+      pos[dimCount - 1] = firstChannel;
+
+      for (size_t iFilter = 0; iFilter < filters.size(); ++iFilter) {
+        host_tensor_t& filter = *filters[iFilter];
+        inputFilters.push_back(boost::make_shared<host_tensor_t>(filter[pos, kernel_size]));
+      }
+      layer.set_filters(inputFilters);
+
+      host_tensor_t bias = crbms[iLayer]->visible_bias();
+      host_tensor_t outputBias = bias[pos, visibles_size];
+      layer.set_bias(outputBias);
+    } else {
+      layer.set_filters(crbms[iLayer]->filters());
+      layer.set_kernel_size(crbms[iLayer]->kernel_size());
+      layer.set_bias(crbms[iLayer]->visible_bias());
+      layer.set_mean(crbms[iLayer]->mean());
+      layer.set_stddev(crbms[iLayer]->stddev());
+    }
+
+    layer.set_mask(crbms[iLayer]->mask());
     layer.set_stride_size(crbms[iLayer]->stride_size());
     layer.set_convolution_type(crbms[iLayer]->convolution_type());
-    layer.set_mean(crbms[iLayer]->mean());
-    layer.set_stddev(crbms[iLayer]->stddev());
     layer.set_shared_bias(crbms[iLayer]->shared_bias());
 
     model->append_cnn_decoder(layer);

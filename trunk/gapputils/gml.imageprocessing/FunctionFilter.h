@@ -43,9 +43,9 @@ public:
 class GammaParameters : public FunctionParameters {
   InitReflectableClass(GammaParameters)
 
-  Property(Slope, float)
-  Property(Gamma, float)
-  Property(Intercept, float)
+  Property(Slope, double)
+  Property(Gamma, double)
+  Property(Intercept, double)
 
 public:
   GammaParameters();
@@ -54,8 +54,8 @@ public:
 class SigmoidParameters : public FunctionParameters {
   InitReflectableClass(SigmoidParameters)
 
-  Property(Slope, float)
-  Property(Inflection, float)
+  Property(Slope, double)
+  Property(Inflection, double)
 
 public:
   SigmoidParameters();
@@ -64,7 +64,7 @@ public:
 class ThresholdParameters : public FunctionParameters {
   InitReflectableClass(ThresholdParameters)
 
-  Property(Threshold, float)
+  Property(Threshold, double)
 
 public:
   ThresholdParameters();

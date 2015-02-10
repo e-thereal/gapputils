@@ -7,7 +7,7 @@
 
 #include "ReconstructionTest.h"
 
-#include <tbblas/deeplearn/dbn.hpp>
+#include <tbblas/deeplearn/conv_dbn.hpp>
 #include <tbblas/rearrange.hpp>
 
 #include <tbblas/dot.hpp>
@@ -51,9 +51,6 @@ void ReconstructionTest::update(IProgressMonitor* monitor) const {
   v_host_tensor_t& dataset = *getDataset();
   boost::shared_ptr<v_host_tensor_t> reconstructions(new v_host_tensor_t(dataset.size()));
 
-  dim_t block = dataset[0]->size() / getModel()->crbms()[0]->visible_bias().size();
-  block[dimCount - 1] = 1;
-
   omp_set_num_threads(getGpuCount());
 
   value_t totalError = 0;
@@ -67,7 +64,7 @@ void ReconstructionTest::update(IProgressMonitor* monitor) const {
     new_context context;
     cudaStream_t copyStream;
     cudaStreamCreate(&copyStream);
-    tbblas::deeplearn::dbn<value_t, dimCount> dbn(*getModel());
+    tbblas::deeplearn::conv_dbn<value_t, dimCount> dbn(*getModel());
 
     for (size_t i = 0; i < getModel()->crbms().size() && i < getFilterBatchLength().size(); ++i)
       dbn.set_batch_length(i, getFilterBatchLength()[i]);
@@ -89,14 +86,14 @@ void ReconstructionTest::update(IProgressMonitor* monitor) const {
         vtemp = *dataset[i + getGpuCount()];
       }
 
-      dbn.cvisibles() = rearrange(v1, block);
+      dbn.cvisibles() = v1;
       dbn.normalize_visibles();
       dbn.infer_hiddens(getMaxLayer());
       dbn.infer_visibles(getMaxLayer());
       dbn.diversify_visibles();
 
       cudaStreamSynchronize(copyStream);
-      v2 = rearrange_r(dbn.cvisibles(), block);
+      v2 = dbn.cvisibles();
       tbblas::synchronize();
 
       switch (getType()) {

@@ -7,11 +7,13 @@
 
 #include "FineTuning.h"
 
+#include <capputils/attributes/DeprecatedAttribute.h>
+
 namespace gml {
 
 namespace dbn {
 
-BeginPropertyDefinitions(FineTuning, Description("Used for fine-tuning a convDBN."))
+BeginPropertyDefinitions(FineTuning, Deprecated("Patch-based learning is currently not supported"), Description("Used for fine-tuning a convDBN."))
 
   ReflectableBase(DefaultWorkflowElement<FineTuning>)
 

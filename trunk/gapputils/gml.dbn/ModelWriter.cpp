@@ -12,7 +12,7 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 
-#include <tbblas/deeplearn/serialize.hpp>
+#include <tbblas/deeplearn/serialize_conv_dbn.hpp>
 
 namespace bio = boost::iostreams;
 namespace fs = boost::filesystem;
