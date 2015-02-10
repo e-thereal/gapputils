@@ -24,7 +24,9 @@ class ImageAggregator : public DefaultWorkflowElement<ImageAggregator> {
 
   Property(InputImage, boost::shared_ptr<image_t>)
   Property(Function, AggregatorFunction)
+  Property(ScalarMode, bool)
   Property(OutputImage, boost::shared_ptr<image_t>)
+  Property(OutputValue, double)
 
 public:
   ImageAggregator();

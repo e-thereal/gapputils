@@ -51,12 +51,10 @@ void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
 
   std::ofstream outfile(getFilename().c_str());
 
-
   if (getData() && getFlatData()) {
     dlog(Severity::Warning) << "Only one of data or flat data may be given at a time. Aborting!";
     return;
   }
-
 
   if (getOnlyRowNames()) {
     if (getHeader().size())
@@ -122,7 +120,6 @@ void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
   if (getHeader().size()) {
     std::string header = getHeader(), prefix;
     size_t pos = header.find_last_of(",");
-    std::cout << "full header: " << header << std::endl;
     if (pos != std::string::npos) {
       prefix = header.substr(pos + 1);
       header = header.substr(0, pos);
@@ -130,8 +127,6 @@ void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
       prefix = header;
       header = "";
     }
-    std::cout << "header: " << header << std::endl;
-    std::cout << "prefix: " << prefix << std::endl;
 
     std::stringstream newheader;
 
@@ -147,11 +142,12 @@ void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
     }
 
     for (int i = 0; i < totalCommaCount - commaCount; ++i) {
-      newheader << prefix << i + 1;
+      newheader << prefix;
+      if (totalCommaCount - commaCount > 1)
+        newheader << i + 1;
       if (i + 1 < totalCommaCount - commaCount)
         newheader << ",";
     }
-    std::cout << newheader.str() << std::endl;
     outfile << newheader.str() << std::endl;
   }
 

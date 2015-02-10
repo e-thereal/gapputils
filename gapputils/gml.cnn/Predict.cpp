@@ -18,7 +18,7 @@ BeginPropertyDefinitions(Predict)
   WorkflowProperty(Model, Input("CNN"), NotNull<Type>())
   WorkflowProperty(Inputs, Input("In"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(Outputs, Output("Out"))
-  WorkflowProperty(FirstLayer, Output("First"))
+//  WorkflowProperty(FirstLayer, Output("First"))
 
 EndPropertyDefinitions
 

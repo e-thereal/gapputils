@@ -90,8 +90,7 @@ void Initialize::update(IProgressMonitor* monitor) const {
 
     cnn_layer_t clayer;
 
-    const int filterCount = getFilterCounts()[iLayer];
-
+    clayer.set_visibles_size(tensors[0]->size());
     clayer.set_activation_function(getHiddenActivationFunction());
     clayer.set_convolution_type(getConvolutionType());
 
@@ -103,8 +102,6 @@ void Initialize::update(IProgressMonitor* monitor) const {
     clayer.set_stride_size(strideSize);
 
     tensor_t::dim_t size = (iLayer == 0 ? tensors[0]->size() : model->cnn_layers()[iLayer - 1]->hiddens_size());
-    size = size / strideSize;
-    size[3] = size[3] * strideSize[0] * strideSize[1] * strideSize[2];
 
     tensor_t::dim_t kernelSize;
     kernelSize[0] = getFilterWidths()[iLayer];
@@ -145,7 +142,7 @@ void Initialize::update(IProgressMonitor* monitor) const {
     tensor_t::dim_t hiddenSize = size;
     hiddenSize[dimCount - 1] = 1;
 
-    for (int i = 0; i < filterCount; ++i) {
+    for (int i = 0; i < getFilterCounts()[iLayer]; ++i) {
       sample = (getInitialWeights() * randn);
       filters.push_back(boost::make_shared<tensor_t>(sample));
       bias.push_back(boost::make_shared<tensor_t>(zeros<value_t>(hiddenSize)));
@@ -156,7 +153,7 @@ void Initialize::update(IProgressMonitor* monitor) const {
 
     model->append_cnn_layer(clayer);
 
-    dlog(Severity::Message) << "Added convolutional layer: input size = " << clayer.input_size() << ", visible size = " << clayer.visibles_size() << ", hidden size = " << clayer.hiddens_size();
+    dlog(Severity::Message) << "Added convolutional layer: visible size = " << clayer.visibles_size() << ", hidden size = " << clayer.hiddens_size();
   }
 
   // Initialize dense layers

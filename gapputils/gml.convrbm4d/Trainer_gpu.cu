@@ -256,6 +256,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
           case TrainingMethod::AdaDelta:
             crbm.adadelta_step(epsilonw * learningDecay, momentum, weightcost);
             break;
+
+          case TrainingMethod::AdaDeltaFilter:
+            crbm.adadelta_step(epsilonw * learningDecay, momentum, weightcost, true);
+            break;
           }
 
           if (monitor) {
@@ -280,7 +284,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
     //    newState->setAverageEpochTime(_timer.elapsed() / epochCount);
 
       if (iLearningRate < learningRates.size()) {
-        if (iLearningRate == 0 && iWeight == 0 || !(error > bestError)) {   // using not greater instead of lesser to handle nan case.
+        if (iLearningRate == 0 && iWeight == 0 || !(error > bestError)) {   // using not greater instead of lesser to handle NaN case.
           bestError = error;
           bestEpsilon = epsilonw;
 

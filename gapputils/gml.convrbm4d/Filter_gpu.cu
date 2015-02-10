@@ -69,6 +69,8 @@ void Filter::update(IProgressMonitor* monitor) const {
 
   tensor<float, 4, true> input;
 
+  tbblas_print(model.outputs_size());
+
   if (getDirection() == CodingDirection::Encode) {
     for (size_t i = 0; i < inputs.size(); ++i) {
       input = *inputs[i];   // copies memory to the device. Makes rearranging faster
@@ -81,6 +83,8 @@ void Filter::update(IProgressMonitor* monitor) const {
       outputs->push_back(boost::make_shared<host_tensor_t>(crbm.outputs()));
       if (monitor)
         monitor->reportProgress(100. * i / inputs.size());
+      if (i == 0)
+        tbblas_print(crbm.outputs().size());
     }
   } else {
     for (size_t i = 0; i < inputs.size(); ++i) {

@@ -36,6 +36,7 @@ TrainerChecker::TrainerChecker() {
   CHECK_MEMORY_LAYOUT2(EpochCount, test);
   CHECK_MEMORY_LAYOUT2(TrialEpochCount, test);
   CHECK_MEMORY_LAYOUT2(BatchSize, test);
+  CHECK_MEMORY_LAYOUT2(Method, test);
   CHECK_MEMORY_LAYOUT2(LearningRates, test);
   CHECK_MEMORY_LAYOUT2(LearningDecay, test);
   CHECK_MEMORY_LAYOUT2(WeightDecay, test);
@@ -239,24 +240,32 @@ void Trainer::update(IProgressMonitor* monitor) const {
           // Get current batch
           rbm.visibles() = X[seq(iBatch * batchSize, 0), rbm.visibles().size()];
           rbm.init_dropout(getHiddenDropout());
-          rbm.init_gradient_updates(epsilonw, momentum, weightcost);
+//          rbm.init_gradient_updates(epsilonw, momentum, weightcost);
 
           rbm.infer_hiddens();
-          rbm.update_positive_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+          rbm.update_positive_gradient();
 
           /*** END OF POSITIVE PHASE ***/
 
           rbm.sample_hiddens();
           rbm.sample_visibles();
           rbm.infer_hiddens();
-          rbm.update_negative_gradient(epsilonw * learningDecay, epsilonvb * learningDecay, epsilonhb * learningDecay);
+          rbm.update_negative_gradient();
 
           /*** END OF NEGATIVE PHASE ***/
 
+          switch (getMethod()) {
+          case TrainingMethod::Momentum:
+            rbm.momentum_step(epsilonw * learningDecay, momentum, weightcost);
+            break;
+
+          case TrainingMethod::AdaDelta:
+            rbm.adadelta_step(epsilonw * learningDecay, momentum, weightcost);
+            break;
+          }
+
           error += sqrt(dot(rbm.visibles() - X[seq(iBatch * batchSize, 0), rbm.visibles().size()], rbm.visibles() - X[seq(iBatch * batchSize, 0), rbm.visibles().size()]) / rbm.visibles().count());
           momentum = (iEpoch > 5 ? finalmomentum : initialmomentum);
-
-          rbm.apply_gradient();
 
           /*** END OF UPDATES ***/
         }

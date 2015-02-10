@@ -58,8 +58,13 @@ void VolumeMatrix::update(IProgressMonitor* monitor) const {
       getMaxCount() > 0 ? std::min(getMaxCount(), (int)inputs.size()) : (unsigned)inputs.size());
   tensor<float, 4> input(inSize);
 
-  for (int i = 0; i < inSize[3]; ++i)
+  for (int i = 0; i < inSize[3]; ++i) {
+    if (inputs[0]->getCount() != inputs[i]->getCount()) {
+      dlog(Severity::Warning) << "Size mismatch detected: " << inputs[0]->getCount() << " != " << inputs[i]->getCount() << ". Aborting!";
+      return;
+    }
     thrust::copy(inputs[i]->begin(), inputs[i]->end(), input.begin() + i * inputs[0]->getCount());
+  }
 
   int columnCount = getColumnCount() > 0 ? getColumnCount() : ceil(std::sqrt((float)inSize[3]));
   int rowCount = ceil((float)inSize[3] / (float)columnCount);

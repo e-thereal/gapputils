@@ -8,7 +8,7 @@
 #include "ModelReader.h"
 
 #include <capputils/Serializer.h>
-#include <tbblas/deeplearn/serialize.hpp>
+#include <tbblas/deeplearn/serialize_conv_dbn.hpp>
 
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>

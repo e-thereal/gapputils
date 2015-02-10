@@ -37,7 +37,7 @@ class Predict : public DefaultWorkflowElement<Predict> {
   Property(Model, boost::shared_ptr<model_t>)
   Property(Inputs, boost::shared_ptr<v_host_tensor_t>)
   Property(Outputs, boost::shared_ptr<v_data_t>)
-  Property(FirstLayer, boost::shared_ptr<v_host_tensor_t>)
+//  Property(FirstLayer, boost::shared_ptr<v_host_tensor_t>)
 
 public:
   Predict();

@@ -7,7 +7,7 @@
 
 #include "VisualizeWeights.h"
 
-#include <tbblas/deeplearn/dbn.hpp>
+#include <tbblas/deeplearn/conv_dbn.hpp>
 #include <tbblas/rearrange.hpp>
 #include <tbblas/zeros.hpp>
 #include <tbblas/util.hpp>
@@ -46,7 +46,7 @@ void VisualizeWeights::update(IProgressMonitor* monitor) const {
   boost::shared_ptr<v_host_tensor_t> weights(new v_host_tensor_t());
 
   dbn_t& model = *getModel();
-  tbblas::deeplearn::dbn<value_t, dimCount> dbn(model);
+  tbblas::deeplearn::conv_dbn<value_t, dimCount> dbn(model);
   for (size_t i = 0; i < getModel()->crbms().size() && i < getFilterBatchLength().size(); ++i)
     dbn.set_batch_length(i, getFilterBatchLength()[i]);
 
@@ -61,41 +61,39 @@ void VisualizeWeights::update(IProgressMonitor* monitor) const {
     for (size_t iRow = 0; iRow < ident.size()[0]; ++iRow) {
       dbn.hiddens() = row(ident, iRow);
       dbn.infer_visibles(-1, true);
-      weights->push_back(boost::make_shared<host_tensor_t>(rearrange_r(dbn.cvisibles(), model.stride_size(0))));
+      weights->push_back(boost::make_shared<host_tensor_t>(dbn.cvisibles()));
       tbblas::synchronize();
     }
   } else {
     // Reconstruct from convolutional layers (requires cropping)
 
     crbm_t& lastCrbm = *model.crbms()[model.crbms().size() - 1];
-    tensor_t paddedFilter, filter;
+    tensor_t paddedFilter;
+    host_tensor_t filter;
 
     for (size_t i = 0; i < lastCrbm.filter_count(); ++i) {
       dim_t filterSize = seq<dimCount>(1);
-      dim_t topleft = lastCrbm.output_size() / 2;
+      dim_t topleft = lastCrbm.outputs_size() / 2;
       topleft[dimCount - 1] = i;
 
-      paddedFilter = zeros<value_t>(lastCrbm.output_size());
-      paddedFilter[topleft] = 1.0f;
+      paddedFilter = zeros<value_t>(lastCrbm.outputs_size());
+      paddedFilter[topleft] = 1.0;
 
-      dbn.coutput() = paddedFilter;
+      dbn.coutputs() = paddedFilter;
       dbn.infer_visibles(-1, true);
 
       for (int iLayer = model.crbms().size() - 1; iLayer >= 0; --iLayer) {
-        filterSize = filterSize * model.crbms()[iLayer]->pooling_size() + model.crbms()[iLayer]->kernel_size() - 1;
-        topleft = topleft * model.crbms()[iLayer]->pooling_size();
-
-        if (iLayer > 0) {
-          filterSize = filterSize * model.stride_size(iLayer);
-          topleft = topleft * model.stride_size(iLayer);
-        }
+        filterSize = (filterSize * model.crbms()[iLayer]->pooling_size() - 1) * model.crbms()[iLayer]->stride_size() + 1 + model.crbms()[iLayer]->kernel_size() - 1;
+        topleft = topleft * model.crbms()[iLayer]->pooling_size() * model.crbms()[iLayer]->stride_size();
       }
 
       topleft[dimCount - 1] = 0;
       filterSize[dimCount - 1] = model.crbms()[0]->visibles_size()[dimCount - 1];
-      filter = dbn.cvisibles()[topleft, filterSize];
-      weights->push_back(boost::make_shared<host_tensor_t>(rearrange_r(filter, model.stride_size(0))));
+      filter = dbn.cvisibles();
       tbblas::synchronize();
+      boost::shared_ptr<host_tensor_t> h_filter = boost::make_shared<host_tensor_t>(filter[topleft, filterSize]);
+//      boost::shared_ptr<host_tensor_t> h_filter = boost::make_shared<host_tensor_t>(filter);
+      weights->push_back(h_filter);
     }
   }
 

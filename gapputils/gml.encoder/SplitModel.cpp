@@ -19,7 +19,7 @@ BeginPropertyDefinitions(SplitModel)
 
   ReflectableBase(DefaultWorkflowElement<SplitModel>)
 
-  WorkflowProperty(Model, Input("CNN"), NotNull<Type>())
+  WorkflowProperty(Model, Input("ENN"), NotNull<Type>())
   WorkflowProperty(Layer)
   WorkflowProperty(Filters, Output("F"))
   WorkflowProperty(Biases, Output("Bs"))
@@ -112,10 +112,9 @@ void SplitModel::update(IProgressMonitor* monitor) const {
       filters->push_back(boost::make_shared<tensor_t>(*cnn_layer.filters()[i]));
     newState->setFilters(filters);
 
-//    boost::shared_ptr<v_tensor_t> bias(new v_tensor_t());
-//    for (size_t i = 0; i < cnn_layer.bias().size(); ++i)
-//      bias->push_back(boost::make_shared<tensor_t>(*cnn_layer.bias()[i]));
-//    newState->setBiases(bias);
+    boost::shared_ptr<v_tensor_t> bias(new v_tensor_t(1));
+    bias->at(0) = boost::make_shared<tensor_t>(cnn_layer.bias());
+    newState->setBiases(bias);
   }
 }
 
