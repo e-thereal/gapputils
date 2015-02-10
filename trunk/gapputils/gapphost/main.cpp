@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
 #if !defined( WIN32 ) && !defined( _WIN32 )
   if (model.getEmailLog().size()) {
     std::stringstream mailCommand;
-    mailCommand << "cat " << model.getLogfileName() << " | mutt -s \"Grapevine logfile\" -a \"" << model.getConfiguration() << "\" " << model.getEmailLog();
+    mailCommand << "cat " << model.getLogfileName() << " | mutt " << model.getEmailLog() << " -s \"Grapevine logfile\" -a \"" << model.getConfiguration() << "\"";
     dlog() << "Executing: " << mailCommand.str() << std::endl;
     system(mailCommand.str().c_str());
   }
