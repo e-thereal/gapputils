@@ -19,12 +19,15 @@ class CrossValidate : public DefaultWorkflowElement<CrossValidate> {
 
   InitReflectableClass(CrossValidate)
 
-  Property(Dataset, std::vector<std::string>)
+  Property(Files, std::vector<std::string>)
+  Property(Strings, boost::shared_ptr<std::vector<std::string> >)
   Property(Interleaved, bool)
   Property(CurrentFold, int)
   Property(FoldCount, int)
-  Property(TrainingSet, std::vector<std::string>)
-  Property(TestSet, std::vector<std::string>)
+  Property(TrainingFiles, std::vector<std::string>)
+  Property(TestFiles, std::vector<std::string>)
+  Property(TrainingStrings, boost::shared_ptr<std::vector<std::string> >)
+  Property(TestStrings, boost::shared_ptr<std::vector<std::string> >)
 
 public:
   CrossValidate();
