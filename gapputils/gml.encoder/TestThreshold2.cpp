@@ -21,9 +21,12 @@ BeginPropertyDefinitions(TestThreshold2)
   WorkflowProperty(TrainingLabels, Input("TL"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(TestMaps, Input("EM"), NotNull<Type>(), NotEmpty<Type>())
   WorkflowProperty(TestLabels, Input("EL"), NotNull<Type>(), NotEmpty<Type>())
-  WorkflowProperty(GlobalTPR, Output("GTPR"))
-  WorkflowProperty(GlobalPPV, Output("GPPV"))
-  WorkflowProperty(GlobalDSC, Output("GDSC"))
+  WorkflowProperty(TrainTPR, Output("tTPR"))
+  WorkflowProperty(TrainPPV, Output("tPPV"))
+  WorkflowProperty(TrainDSC, Output("tDSC"))
+  WorkflowProperty(TestTPR, Output("eTPR"))
+  WorkflowProperty(TestPPV, Output("ePPV"))
+  WorkflowProperty(TestDSC, Output("eDSC"))
 
 EndPropertyDefinitions
 
@@ -44,9 +47,13 @@ void TestThreshold2::update(IProgressMonitor* monitor) const {
   v_host_tensor_t& testMaps = *getTestMaps();
   v_host_tensor_t& testLabels = *getTestLabels();
 
-  boost::shared_ptr<data_t> gTPRs(new data_t(testLabels.size()));
-  boost::shared_ptr<data_t> gPPVs(new data_t(testLabels.size()));
-  boost::shared_ptr<data_t> gDSCs(new data_t(testLabels.size()));
+  boost::shared_ptr<data_t> tTPRs(new data_t(labels.size()));
+  boost::shared_ptr<data_t> tPPVs(new data_t(labels.size()));
+  boost::shared_ptr<data_t> tDSCs(new data_t(labels.size()));
+
+  boost::shared_ptr<data_t> eTPRs(new data_t(testLabels.size()));
+  boost::shared_ptr<data_t> ePPVs(new data_t(testLabels.size()));
+  boost::shared_ptr<data_t> eDSCs(new data_t(testLabels.size()));
 
   if (maps.size() != labels.size()) {
     dlog(Severity::Warning) << "Need to have same number of input samples and labels. Aborting!";
@@ -92,20 +99,38 @@ void TestThreshold2::update(IProgressMonitor* monitor) const {
   meanTPR = meanPPV = meanDSC = 0;
 
   // Calculate performance using a global threshold
+  for (size_t iSample = 0; iSample < maps.size(); ++iSample) {
+    host_tensor_t& label = *labels[iSample];
+    host_tensor_t& pred = *maps[iSample];
+
+    meanTPR += tTPRs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(label > 0.5);
+    meanPPV += tPPVs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(pred > bestThreshold);
+    meanDSC += tDSCs->at(iSample) = 2 * sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + sum(pred > bestThreshold));
+  }
+
+  dlog(Severity::Message) << "Training set: TPR = " << meanTPR / maps.size() << ", PPV = " << meanPPV / maps.size() << ", DSC = " << meanDSC / maps.size();
+
+  meanTPR = meanPPV = meanDSC = 0;
+
+  // Calculate performance using a global threshold
   for (size_t iSample = 0; iSample < testMaps.size(); ++iSample) {
     host_tensor_t& label = *testLabels[iSample];
     host_tensor_t& pred = *testMaps[iSample];
 
-    meanTPR += gTPRs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(label > 0.5);
-    meanPPV += gPPVs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(pred > bestThreshold);
-    meanDSC += gDSCs->at(iSample) = 2 * sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + sum(pred > bestThreshold));
+    meanTPR += eTPRs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(label > 0.5);
+    meanPPV += ePPVs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(pred > bestThreshold);
+    meanDSC += eDSCs->at(iSample) = 2 * sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + sum(pred > bestThreshold));
   }
 
-  dlog(Severity::Message) << "Global threshold: TPR = " << meanTPR / testMaps.size() << ", PPV = " << meanPPV / testMaps.size() << ", DSC = " << meanDSC / testMaps.size();
+  dlog(Severity::Message) << "Test set: TPR = " << meanTPR / testMaps.size() << ", PPV = " << meanPPV / testMaps.size() << ", DSC = " << meanDSC / testMaps.size();
 
-  newState->setGlobalTPR(gTPRs);
-  newState->setGlobalPPV(gPPVs);
-  newState->setGlobalDSC(gDSCs);
+  newState->setTrainTPR(tTPRs);
+  newState->setTrainPPV(tPPVs);
+  newState->setTrainDSC(tDSCs);
+
+  newState->setTestTPR(eTPRs);
+  newState->setTestPPV(ePPVs);
+  newState->setTestDSC(eDSCs);
 }
 
 } /* namespace encoder */

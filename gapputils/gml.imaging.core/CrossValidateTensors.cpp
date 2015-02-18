@@ -18,7 +18,7 @@ BeginPropertyDefinitions(CrossValidateTensors)
 
   ReflectableBase(DefaultWorkflowElement<CrossValidateTensors>)
 
-  WorkflowProperty(Dataset, Input("Data"), NotEmpty<Type>())
+  WorkflowProperty(Dataset, Input("Ts"), NotEmpty<Type>())
   WorkflowProperty(Interleaved, Flag())
   WorkflowProperty(CurrentFold, Description("Zero-based index."))
   WorkflowProperty(FoldCount, Description("If 0, the entire data set will be copied to both, the training and the test set."))

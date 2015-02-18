@@ -26,9 +26,12 @@ class TestThreshold2 : public DefaultWorkflowElement<TestThreshold2> {
   Property(TrainingLabels, boost::shared_ptr<v_host_tensor_t>)
   Property(TestMaps, boost::shared_ptr<v_host_tensor_t>)
   Property(TestLabels, boost::shared_ptr<v_host_tensor_t>)
-  Property(GlobalTPR, boost::shared_ptr<data_t>)
-  Property(GlobalPPV, boost::shared_ptr<data_t>)
-  Property(GlobalDSC, boost::shared_ptr<data_t>)
+  Property(TrainTPR, boost::shared_ptr<data_t>)
+  Property(TrainPPV, boost::shared_ptr<data_t>)
+  Property(TrainDSC, boost::shared_ptr<data_t>)
+  Property(TestTPR, boost::shared_ptr<data_t>)
+  Property(TestPPV, boost::shared_ptr<data_t>)
+  Property(TestDSC, boost::shared_ptr<data_t>)
 
 public:
   TestThreshold2();
