@@ -25,6 +25,10 @@ BeginPropertyDefinitions(Initialize, Description("Initializes a full-image or pa
   WorkflowProperty(StrideWidth)
   WorkflowProperty(StrideHeight)
   WorkflowProperty(StrideDepth)
+  WorkflowProperty(PoolingMethod, Enumerator<Type>())
+  WorkflowProperty(PoolingWidth)
+  WorkflowProperty(PoolingHeight)
+  WorkflowProperty(PoolingDepth)
   WorkflowProperty(WeightMean)
   WorkflowProperty(WeightStddev)
   WorkflowProperty(VisibleUnitType, Enumerator<Type>())
@@ -38,6 +42,7 @@ EndPropertyDefinitions
 Initialize::Initialize()
  : _FilterWidth(9), _FilterHeight(9), _FilterDepth(9), _FilterCount(24),
    _StrideWidth(1), _StrideHeight(1), _StrideDepth(1),
+   _PoolingWidth(1), _PoolingHeight(1), _PoolingDepth(1),
    _WeightMean(0.0), _WeightStddev(1e-3)
 {
   setLabel("Initialize");

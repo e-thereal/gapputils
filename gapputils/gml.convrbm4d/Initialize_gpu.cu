@@ -32,6 +32,10 @@ InitializeChecker::InitializeChecker() {
   CHECK_MEMORY_LAYOUT2(StrideWidth, test);
   CHECK_MEMORY_LAYOUT2(StrideHeight, test);
   CHECK_MEMORY_LAYOUT2(StrideDepth, test);
+  CHECK_MEMORY_LAYOUT2(PoolingMethod, test);
+  CHECK_MEMORY_LAYOUT2(PoolingWidth, test);
+  CHECK_MEMORY_LAYOUT2(PoolingHeight, test);
+  CHECK_MEMORY_LAYOUT2(PoolingDepth, test);
   CHECK_MEMORY_LAYOUT2(WeightMean, test);
   CHECK_MEMORY_LAYOUT2(WeightStddev, test);
   CHECK_MEMORY_LAYOUT2(VisibleUnitType, test);
@@ -61,6 +65,10 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   crbm->set_convolution_type(getConvolutionType());
 
   host_tensor_t::dim_t stride = seq(getStrideWidth(), getStrideHeight(), getStrideDepth(), 1);
+  host_tensor_t::dim_t pooling = seq(getPoolingWidth(), getPoolingHeight(), getPoolingDepth(), 1);
+
+  crbm->set_pooling_method(_PoolingMethod);
+  crbm->set_pooling_size(pooling);
 
   v_host_tensor_t& tensors = *getTensors();
   host_tensor_t::dim_t size = tensors[0]->size(), maskSize = size;
@@ -148,6 +156,11 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
   crbm->set_kernel_size(kernelSize);
   crbm->set_stride_size(stride);
   crbm->set_mask(mask);
+
+  if (!crbm->is_valid()) {
+    dlog(Severity::Warning) << "Invalid parameters. Aborting!";
+    return;
+  }
 
   newState->setModel(crbm);
 }
