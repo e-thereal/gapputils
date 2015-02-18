@@ -13,7 +13,9 @@ BlurringChecker::BlurringChecker() {
   blurring.initializeClass();
 
   CHECK_MEMORY_LAYOUT2(InputImage, blurring);
-  CHECK_MEMORY_LAYOUT2(Sigma, blurring);
+  CHECK_MEMORY_LAYOUT2(SigmaX, blurring);
+  CHECK_MEMORY_LAYOUT2(SigmaY, blurring);
+  CHECK_MEMORY_LAYOUT2(SigmaZ, blurring);
   CHECK_MEMORY_LAYOUT2(OutputImage, blurring);
 }
 
@@ -25,7 +27,7 @@ void Blurring::update(IProgressMonitor* monitor) const {
   tensor<float, 3, true> input(image.getSize()[0], image.getSize()[1], image.getSize()[2]), filter, output;
   thrust::copy(image.begin(), image.end(), input.begin());
 
-  filter = gaussian<float>(input.size(), getSigma());
+  filter = gaussian<float>(input.size(), seq(getSigmaX(), getSigmaY(), getSigmaZ()));
   tensor<complex<float>, 3, true> cinput, cfilter, coutput;
   tensor<cufftComplex, 3, true> test;
   cinput = fft(input);

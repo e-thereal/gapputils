@@ -19,7 +19,9 @@ class Blurring : public DefaultWorkflowElement<Blurring> {
   InitReflectableClass(Blurring)
 
   Property(InputImage, boost::shared_ptr<image_t>)
-  Property(Sigma, double)
+  Property(SigmaX, double)
+  Property(SigmaY, double)
+  Property(SigmaZ, double)
   Property(OutputImage, boost::shared_ptr<image_t>)
 
 public:
