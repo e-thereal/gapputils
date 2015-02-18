@@ -77,22 +77,22 @@ void Filter::update(IProgressMonitor* monitor) const {
       crbm.visibles() = input;
       crbm.normalize_visibles();
       if (getSampleUnits())
-        crbm.sample_outputs();
+        crbm.sample_hiddens();
       else
-        crbm.infer_outputs();
-      outputs->push_back(boost::make_shared<host_tensor_t>(crbm.outputs()));
+        crbm.infer_hiddens();
+      outputs->push_back(boost::make_shared<host_tensor_t>(crbm.hiddens()));
       if (monitor)
         monitor->reportProgress(100. * i / inputs.size());
       if (i == 0)
-        tbblas_print(crbm.outputs().size());
+        tbblas_print(crbm.hiddens().size());
     }
   } else {
     for (size_t i = 0; i < inputs.size(); ++i) {
-      crbm.outputs() = *inputs[i];
+      crbm.hiddens() = *inputs[i];
       if (getSampleUnits())
-        crbm.sample_visibles_from_outputs();
+        crbm.sample_visibles();
       else
-        crbm.infer_visibles_from_outputs(getOnlyFilters());
+        crbm.infer_visibles(getOnlyFilters());
       if (!getOnlyFilters())
         crbm.diversify_visibles();
 
