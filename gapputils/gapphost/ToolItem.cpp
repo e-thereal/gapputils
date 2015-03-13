@@ -410,7 +410,6 @@ QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) 
   QPointF position = pos();
   int snapDistance = 15;
 
-
   switch (change) {
   case ItemPositionHasChanged:
 
