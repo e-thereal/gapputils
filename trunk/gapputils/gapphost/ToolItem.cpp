@@ -408,14 +408,19 @@ boost::shared_ptr<ToolConnection> ToolItem::getConnection(const std::string& id,
 
 QVariant ToolItem::itemChange(GraphicsItemChange change, const QVariant &value) {
   QPointF position = pos();
+  int snapDistance = 15;
+
+
   switch (change) {
   case ItemPositionHasChanged:
-//    if (((int)position.x()) % 15 != 7 || ((int)position.y()) % 15 != 7) {
-//      position.setX((int)position.x() / 15 * 15 + 7);
-//      position.setY((int)position.y() / 15 * 15 + 7);
-//      setPos(position);
-//      return QGraphicsItem::itemChange(change, value);
-//    }
+
+    if (((int)position.x()) % snapDistance || ((int)position.y()) % snapDistance) {
+      position.setX(((int)position.x() + snapDistance / 2) / snapDistance * snapDistance);
+      position.setY(((int)position.y() + snapDistance / 2) / snapDistance * snapDistance);
+      setPos(position);
+      return QGraphicsItem::itemChange(change, value);
+    }
+
     updateCables();
     if (bench)
       bench->notifyItemChange(this);
@@ -480,20 +485,22 @@ void ToolItem::updateConnectionPositions() {
 //    inputs[i]->setPos(0, pos);
 //  }
 
+  int left = -width / 2.0, top = -height / 2.0;
+
   int inputsHeight = 0;
   for (size_t i = 0; i < inputs.size(); ++i)
     inputsHeight += inputs[i]->getHeight();
 
-  for (int i = 0, pos = -inputsHeight / 2 + connectionDistance / 2 + height/2; i < (int)inputs.size(); pos += inputs[i]->getHeight(), ++i) {
-    inputs[i]->setPos(0, pos);
+  for (int i = 0, pos = -inputsHeight / 2 + connectionDistance / 2 + height / 2 + top; i < (int)inputs.size(); pos += inputs[i]->getHeight(), ++i) {
+    inputs[i]->setPos(left, pos);
   }
 
   int outputsHeight = 0;
   for (size_t i = 0; i < outputs.size(); ++i)
     outputsHeight += outputs[i]->getHeight();
 
-  for (int i = 0, pos = -outputsHeight / 2 + connectionDistance / 2 + height/2; i < (int)outputs.size(); pos += outputs[i]->getHeight(), ++i) {
-    outputs[i]->setPos(width, pos);
+  for (int i = 0, pos = -outputsHeight / 2 + connectionDistance / 2 + height / 2 + top; i < (int)outputs.size(); pos += outputs[i]->getHeight(), ++i) {
+    outputs[i]->setPos(width + left, pos);
   }
   updateCables();
 }
@@ -534,12 +541,15 @@ bool ToolItem::isCurrentItem() const {
 
 QRectF ToolItem::boundingRect() const
 {
-  return QRectF(-adjust, -adjust, width+2*adjust, height+2*adjust);
+  int left = -width / 2.0, top = -height / 2.0;
+  return QRectF(left - adjust, top - adjust, width+2*adjust, height+2*adjust);
 }
 
 QPainterPath ToolItem::shape() const {
+  int left = -width / 2.0, top = -height / 2.0;
+
   QPainterPath path;
-  path.addRect(0, 0, width, height);
+  path.addRect(left, top, width, height);
   return path;
 }
 
@@ -554,10 +564,12 @@ void ToolItem::drawBox(QPainter* painter) {
 
   painter->save();
 
+  int left = -width / 2.0, top = -height / 2.0;
+
   if (itemStyle == Normal) {
 
-    QLinearGradient gradient(0, 0, 0, height);
-    QLinearGradient progressGradient(0, 0, 0, height);
+    QLinearGradient gradient(left, top, 0, height);
+    QLinearGradient progressGradient(left, top, 0, height);
 
     bool selected = bench->scene()->selectedItems().contains(this);
 
@@ -607,24 +619,24 @@ void ToolItem::drawBox(QPainter* painter) {
     painter->setOpacity(0.9 * opacity);
     painter->setBrush(gradient);
     painter->setPen(QPen(Qt::black, 0));
-    painter->drawRoundedRect(0, 0, width, height, 4, 4);
+    painter->drawRoundedRect(left, top, width, height, 4, 4);
 
     if (progress >=0) {
       painter->save();
       painter->setClipping(true);
-      painter->setClipRect(QRectF(0, 0, width * min(100., progress) / 100., height));
+      painter->setClipRect(QRectF(left, top, width * min(100., progress) / 100., height));
       painter->setBrush(progressGradient);
-      painter->drawRoundedRect(0, 0, width, height, 4, 4);
+      painter->drawRoundedRect(left, top, width, height, 4, 4);
       painter->restore();
     }
   } else if (itemStyle == MessageBox) {
     painter->setBrush(QColor(224, 224, 255));
     painter->setPen(QColor(96, 96, 64));
-    painter->drawRect(0, 0, width, height);
+    painter->drawRect(left, top, width, height);
   } else {
     painter->setBrush(QColor(255, 255, 192));
     painter->setPen(QColor(96, 96, 64));
-    painter->drawRect(0, 0, width, height);
+    painter->drawRect(left, top, width, height);
   }
 
   painter->restore();
@@ -688,6 +700,8 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 {
   Q_UNUSED(option);
 
+  int left = -width / 2.0, top = -height / 2.0;
+
   if (bench && effect) {
     effect->setBlurRadius(20 * bench->getViewScale());
     effect->setOffset(5 * bench->getViewScale());
@@ -701,14 +715,14 @@ void ToolItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
   painter->save();
   painter->setFont(labelFont);
   if (itemStyle == Normal) {
-    painter->translate((inputs.size() ? inputsWidth : 0) + labelWidth/2, height/2);
+    painter->translate((inputs.size() ? inputsWidth : 0) + labelWidth/2 + left, height/2 + top);
     painter->rotate(270);
     painter->translate(-(inputs.size() ? inputsWidth : 0) -labelWidth/2, -height/2);
     painter->drawText((inputs.size() ? inputsWidth : 0) - height, 0, labelWidth + 2 * height, height, Qt::AlignCenter, label);
   } else if (itemStyle == HorizontalAnnotation || itemStyle == MessageBox) {
-    painter->drawText(0, 0, width, height, Qt::AlignCenter, label);
+    painter->drawText(left, top, width, height, Qt::AlignCenter, label);
   } else if (itemStyle == VerticalAnnotation) {
-    painter->translate(width/2, height/2);
+    painter->translate(width/2 + left, height/2 + top);
     painter->rotate(270);
     painter->translate(-width/2, -height/2);
     painter->drawText(- height, 0, width + 2 * height, height, Qt::AlignCenter, label);
