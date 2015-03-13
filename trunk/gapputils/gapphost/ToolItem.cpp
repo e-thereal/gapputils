@@ -567,8 +567,8 @@ void ToolItem::drawBox(QPainter* painter) {
 
   if (itemStyle == Normal) {
 
-    QLinearGradient gradient(left, top, 0, height);
-    QLinearGradient progressGradient(left, top, 0, height);
+    QLinearGradient gradient(0, top, 0, height + top);
+    QLinearGradient progressGradient(0, top, 0, height + top);
 
     bool selected = bench->scene()->selectedItems().contains(this);
 
