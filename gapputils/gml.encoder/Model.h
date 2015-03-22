@@ -15,7 +15,7 @@ namespace gml {
 namespace encoder {
 
 typedef tbblas::deeplearn::cnn_layer_model<float, 4> cnn_layer_t;
-typedef tbblas::deeplearn::reverse_cnn_layer_model<float, 4> reverse_cnn_layer_t;
+typedef tbblas::deeplearn::dnn_layer_model<float, 4> dnn_layer_t;
 typedef tbblas::deeplearn::nn_layer_model<float> nn_layer_t;
 typedef tbblas::deeplearn::encoder_model<float, 4> model_t;
 

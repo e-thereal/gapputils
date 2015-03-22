@@ -29,16 +29,16 @@ void AverageModels::update(IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
 
   typedef model_t::cnn_layer_t cnn_layer_t;
-  typedef model_t::reverse_cnn_layer_t reverse_cnn_layer_t;
+  typedef model_t::dnn_layer_t dnn_layer_t;
 
   typedef model_t::v_cnn_layer_t v_cnn_layer_t;
-  typedef model_t::v_reverse_cnn_layer_t v_reverse_cnn_layer_t;
+  typedef model_t::v_dnn_layer_t v_dnn_layer_t;
 
   model_t& model1 = *getModel1();
   model_t& model2 = *getModel2();
 
   const int celayerCount = model1.cnn_encoders().size();
-  const int cdlayerCount = model1.cnn_decoders().size();
+  const int cdlayerCount = model1.dnn_decoders().size();
 
   if (model1.nn_encoders().size() || model1.nn_decoders().size() ||
       model2.nn_encoders().size() || model2.nn_decoders().size())
@@ -47,7 +47,7 @@ void AverageModels::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  if ((int)model2.cnn_encoders().size() != celayerCount || (int)model2.cnn_decoders().size() != cdlayerCount) {
+  if ((int)model2.cnn_encoders().size() != celayerCount || (int)model2.dnn_decoders().size() != cdlayerCount) {
     dlog(Severity::Warning) << "The two input models must have the same number of layers. Aborting!";
     return;
   }
@@ -83,8 +83,8 @@ void AverageModels::update(IProgressMonitor* monitor) const {
   }
 
   for (int iLayer = 0; iLayer < cdlayerCount; ++iLayer) {
-    reverse_cnn_layer_t& decoder1 = *avgModel->cnn_decoders()[iLayer];
-    reverse_cnn_layer_t& decoder2 = *model2.cnn_decoders()[iLayer];
+    dnn_layer_t& decoder1 = *avgModel->dnn_decoders()[iLayer];
+    dnn_layer_t& decoder2 = *model2.dnn_decoders()[iLayer];
 
     // Check compatibility
     assert(decoder1.version() == decoder2.version());

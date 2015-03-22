@@ -87,8 +87,6 @@ TrainerChecker::TrainerChecker() {
 
 #define TRACE std::cout << __LINE__ << std::endl;
 
-#define DROPOUT
-
 void Trainer::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 

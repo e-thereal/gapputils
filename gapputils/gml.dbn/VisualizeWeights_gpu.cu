@@ -79,7 +79,7 @@ void VisualizeWeights::update(IProgressMonitor* monitor) const {
       paddedFilter = zeros<value_t>(lastCrbm.outputs_size());
       paddedFilter[topleft] = 1.0;
 
-      dbn.coutputs() = paddedFilter;
+      dbn.chiddens() = paddedFilter;
       dbn.infer_visibles(-1, true);
 
       for (int iLayer = model.crbms().size() - 1; iLayer >= 0; --iLayer) {

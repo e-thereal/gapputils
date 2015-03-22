@@ -118,7 +118,7 @@ void TestThreshold::update(IProgressMonitor* monitor) const {
 
   // Get minimum and maximum lesion count
   tbblas::deeplearn::encoder<value_t, dimCount> encoder(*getInitialModel(), _SubRegionCount);
-  for (size_t i = 0; i < getInitialModel()->cnn_encoders().size() + getInitialModel()->cnn_decoders().size() && i < getFilterBatchSize().size(); ++i)
+  for (size_t i = 0; i < getInitialModel()->cnn_encoders().size() + getInitialModel()->dnn_decoders().size() && i < getFilterBatchSize().size(); ++i)
     encoder.set_batch_length(i, getFilterBatchSize()[i]);
 
   std::vector<host_tensor_t> predictions, testPredictions;

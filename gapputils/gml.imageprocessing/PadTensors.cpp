@@ -95,6 +95,8 @@ void PadTensors::update(IProgressMonitor* monitor) const {
           (*pad)[topleft, kern.size()] = kern;
           outputs->push_back(pad);
         }
+        if (monitor)
+          monitor->reportProgress(100.0 * (i + 1) / inputs.size());
       }
     } else {
       dim_t kernSize = seq(getWidth(), getHeight(), getDepth(), 0);
@@ -109,6 +111,8 @@ void PadTensors::update(IProgressMonitor* monitor) const {
           *kern = pad[topleft, kernSize];
           outputs->push_back(kern);
         }
+        if (monitor)
+          monitor->reportProgress(100.0 * (i + 1) / inputs.size());
       }
     }
 

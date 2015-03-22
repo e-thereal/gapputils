@@ -23,10 +23,16 @@ class SaveModel : public DefaultWorkflowElement<SaveModel> {
 
   Property(Model, boost::shared_ptr<model_t>)
   Property(Filename, std::string)
+  Property(AutoSave, bool)
   Property(OutputName, std::string)
+
+private:
+  static int modelId;
 
 public:
   SaveModel();
+
+  void changedHandler(ObservableClass* sender, int eventId);
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;

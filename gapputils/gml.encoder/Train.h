@@ -62,7 +62,9 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(GammaSd, double)
 
   Property(BestOfN, int)
+  Property(SaveEvery, int)
 
+  Property(CurrentEpoch, int)
   Property(Model, boost::shared_ptr<model_t>)
   Property(Model2, boost::shared_ptr<model_t>)
   Property(BestModel, boost::shared_ptr<model_t>)
