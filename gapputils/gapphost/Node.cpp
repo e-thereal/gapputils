@@ -107,6 +107,7 @@ bool Node::removeExpression(const std::string& propertyName) {
 
   for (unsigned i = 0; i < expressions.size(); ++i) {
     if (!expressions[i]->getPropertyName().compare(propertyName)) {
+      expressions[i]->disconnectAll();
       expressions.erase(expressions.begin() + i);
       return true;
     }
