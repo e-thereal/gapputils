@@ -58,6 +58,20 @@
           <IsCollection value="0" />
         </gapputils-Interface>
       </Item>
+            <Item>
+        <gapputils-Interface>
+          <Identifier value="PoolingMethod" />
+          <Type value="tbblas::deeplearn::pooling_method" />
+          <Header value="tbblas/deeplearn/pooling_method.hpp" />
+          <PropertyAttributes>
+            <Collection>
+              <Item value="Enumerator<Type>()" />
+            </Collection>
+          </PropertyAttributes>
+          <IsParameter value="1" />
+          <IsCollection value="0" />
+        </gapputils-Interface>
+      </Item>
       <Item>
         <gapputils-Interface>
           <Identifier value="Crbm4d" />

@@ -103,9 +103,9 @@ void TestThreshold2::update(IProgressMonitor* monitor) const {
     host_tensor_t& label = *labels[iSample];
     host_tensor_t& pred = *maps[iSample];
 
-    meanTPR += tTPRs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(label > 0.5);
+    meanTPR += tTPRs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + 1e-8);
     meanPPV += tPPVs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(pred > bestThreshold);
-    meanDSC += tDSCs->at(iSample) = 2 * sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + sum(pred > bestThreshold));
+    meanDSC += tDSCs->at(iSample) = 2 * sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + sum(pred > bestThreshold) + 1e-8);
   }
 
   dlog(Severity::Message) << "Training set: TPR = " << meanTPR / maps.size() << ", PPV = " << meanPPV / maps.size() << ", DSC = " << meanDSC / maps.size();
@@ -117,9 +117,9 @@ void TestThreshold2::update(IProgressMonitor* monitor) const {
     host_tensor_t& label = *testLabels[iSample];
     host_tensor_t& pred = *testMaps[iSample];
 
-    meanTPR += eTPRs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(label > 0.5);
+    meanTPR += eTPRs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + 1e-8);
     meanPPV += ePPVs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(pred > bestThreshold);
-    meanDSC += eDSCs->at(iSample) = 2 * sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + sum(pred > bestThreshold));
+    meanDSC += eDSCs->at(iSample) = 2 * sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + sum(pred > bestThreshold) + 1e-8);
   }
 
   dlog(Severity::Message) << "Test set: TPR = " << meanTPR / testMaps.size() << ", PPV = " << meanPPV / testMaps.size() << ", DSC = " << meanDSC / testMaps.size();

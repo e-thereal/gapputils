@@ -40,6 +40,7 @@ class ConvertRbms : public DefaultWorkflowElement<ConvertRbms> {
   Property(FirstOutputChannel, int)
   Property(OutputChannelCount, int)
   Property(OutputActivationFunction, tbblas::deeplearn::activation_function)
+  Property(InsertShortCuts, bool)
   Property(Model, boost::shared_ptr<model_t>)
 
 public:

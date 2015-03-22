@@ -17,6 +17,7 @@ BeginPropertyDefinitions(Predict)
 
   WorkflowProperty(Model, Input("ENN"), NotNull<Type>())
   WorkflowProperty(Inputs, Input("In"), NotNull<Type>(), NotEmpty<Type>())
+  WorkflowProperty(FilterBatchSize)
   WorkflowProperty(SubRegionCount, Description("Number of sub-regions into which the calculation will be split. Fewer (but larger) sub-regions speed up the calculation but require more memory."))
   WorkflowProperty(Outputs, Output("Out"))
 

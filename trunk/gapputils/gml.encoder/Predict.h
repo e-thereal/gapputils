@@ -36,6 +36,7 @@ class Predict : public DefaultWorkflowElement<Predict> {
 
   Property(Model, boost::shared_ptr<model_t>)
   Property(Inputs, boost::shared_ptr<v_host_tensor_t>)
+  Property(FilterBatchSize, std::vector<int>)
   Property(SubRegionCount, host_tensor_t::dim_t)
   Property(Outputs, boost::shared_ptr<v_host_tensor_t>)
 

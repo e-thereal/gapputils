@@ -41,7 +41,9 @@ BeginPropertyDefinitions(Train)
   WorkflowProperty(GammaSd)
 
   WorkflowProperty(BestOfN, Description("If greater than 0, the best and the worst of the last BestOfN models will be selected. This requires the batch size to be equal to the training set size."))
+  WorkflowProperty(SaveEvery, Description("If greater than 0, the model is saved every SaveEvery epochs."))
 
+  WorkflowProperty(CurrentEpoch, NoParameter())
   WorkflowProperty(Model, Output("ENN"))
   WorkflowProperty(Model2, Output("ENN2"))
   WorkflowProperty(BestModel, Output("BENN"))
@@ -52,7 +54,7 @@ EndPropertyDefinitions
 
 Train::Train() : _EpochCount(100), _TrialEpochCount(20), _BatchSize(50), _SubRegionCount(tbblas::seq<host_tensor_t::dimCount>(1)),
   _SensitivityRatio(0.5), _SharedBiasTerms(true), _LearningDecay(50), _WeightCosts(0.0002), _RandomizeTraining(true),
-  _ContrastSd(0), _BrightnessSd(0), _GammaSd(0), _BestOfN(-1)
+  _ContrastSd(0), _BrightnessSd(0), _GammaSd(0), _BestOfN(-1), _SaveEvery(-1), _CurrentEpoch(0)
 {
   setLabel("Train");
   _LearningRates.push_back(0.0001);

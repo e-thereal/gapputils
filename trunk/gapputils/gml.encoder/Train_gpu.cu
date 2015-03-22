@@ -49,7 +49,9 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(GammaSd, test);
 
   CHECK_MEMORY_LAYOUT2(BestOfN, test);
+  CHECK_MEMORY_LAYOUT2(SaveEvery, test);
 
+  CHECK_MEMORY_LAYOUT2(CurrentEpoch, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
   CHECK_MEMORY_LAYOUT2(Model2, test);
   CHECK_MEMORY_LAYOUT2(BestModel, test);
@@ -97,12 +99,15 @@ void Train::update(IProgressMonitor* monitor) const {
   size_t epochCount = getEpochCount();
 
   value_t epsilon, initialWeight = 0, bestEpsilon, bestError, bestWeight = 0;
+  size_t current;
 
   std::vector<double> learningRates = getLearningRates();
   std::vector<double> initialWeights = getInitialWeights();
 
+#ifdef AUGMENTED_SET
   boost::shared_ptr<v_host_tensor_t> augmentedSet(new v_host_tensor_t());
   newState->setAugmentedSet(augmentedSet);
+#endif
 
   for (int iWeight = 0; iWeight < initialWeights.size() || (iWeight == 0 && initialWeights.size() == 0); ++iWeight) {
     for (size_t iLearningRate = 0; iLearningRate < learningRates.size() + 1; ++iLearningRate) {
@@ -148,13 +153,13 @@ void Train::update(IProgressMonitor* monitor) const {
       tbblas::deeplearn::encoder<value_t, dimCount> encoder(*model, _SubRegionCount);
       encoder.set_objective_function(getObjective());
       encoder.set_sensitivity_ratio(getSensitivityRatio());
-      for (size_t i = 0; i < model->cnn_encoders().size() + model->cnn_decoders().size() && i < getFilterBatchSize().size(); ++i)
+      for (size_t i = 0; i < model->cnn_encoders().size() + model->dnn_decoders().size() && i < getFilterBatchSize().size(); ++i)
         encoder.set_batch_length(i, getFilterBatchSize()[i]);
 
 
       dlog() << "Preparation finished. Starting training.";
 
-      value_t error, learningDecay = 1, PPV, DSC, TPR, TNR, ACC, bestError = 0, worstError = 0;
+      value_t error, learningDecay = 1, PPV, DSC, TPR, TNR, ACC, worstError = 0;
       tensor_t v, target, channel;
 
       // For data augmentation
@@ -163,6 +168,7 @@ void Train::update(IProgressMonitor* monitor) const {
       boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_nor(rng, nd);
 
       for (int iEpoch = 0; iEpoch < epochCount && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
+        newState->setCurrentEpoch(iEpoch);
 
         ACC = PPV = DSC = TPR = TNR = error = 0;
 
@@ -179,9 +185,13 @@ void Train::update(IProgressMonitor* monitor) const {
         for (int iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
           for (int iSample = 0; iSample < batchSize; ++iSample) {
-            const int current = iSample + iBatch * batchSize;
-            target = *labels[current];
+            if (getRandomizeTraining())
+              current = rand() % tensors.size();
+            else
+              current = iSample + iBatch * batchSize;
+
             v = *tensors[current];
+            target = *labels[current];
 
             // Perform data augmentation
             dim_t channelSize = v.size();
@@ -217,27 +227,34 @@ void Train::update(IProgressMonitor* monitor) const {
               v[topleft * iChannel, channelSize] = channel;
             }
 
+#ifdef AUGMENTED_SET
             if (iEpoch == 0 && iLearningRate == learningRates.size()) {
               augmentedSet->push_back(boost::make_shared<host_tensor_t>(v));
               tbblas::synchronize();
             }
-
-            // Normalize targets as well
-//            encoder.inputs() = target;
-//            encoder.normalize_inputs();
-//            target = encoder.inputs();
+#endif
 
             encoder.inputs() = v;
-//            encoder.normalize_inputs();
             encoder.update_gradient(target);
 
-            error += sqrt(dot(encoder.outputs() - target, encoder.outputs() - target) / target.count());
 
             PPV += sum((target > 0.5) * (encoder.outputs() > 0.5)) / sum(encoder.outputs() > 0.5);
             DSC += 2 * sum ((target > 0.5) * (encoder.outputs() > 0.5)) / (sum(target > 0.5) + sum(encoder.outputs() > 0.5));
-            TPR += sum((target > 0.5) * (encoder.outputs() > 0.5)) / sum(target > 0.5);
+            TPR += (sum((target > 0.5) * (encoder.outputs() > 0.5)) + 1e-8) / (sum(target > 0.5) + 1e-8);
             TNR += sum((target < 0.5) * (encoder.outputs() < 0.5)) / sum(target < 0.5);
             ACC += sum((target > 0.5) == (encoder.outputs() > 0.5)) / (value_t)target.count();
+
+            if (getObjective() == tbblas::deeplearn::objective_function::SenSpe) {
+              const value_t sen = dot(encoder.outputs() - target, (encoder.outputs() - target) * (target > 0.5)) / sum(target > 0.5);
+              const value_t spe = dot(encoder.outputs() - target, (encoder.outputs() - target) * (target < 0.5)) / sum(target < 0.5);
+              error += _SensitivityRatio * sen + (1.0 - _SensitivityRatio) * spe;
+            } else {
+              error += sqrt(dot(encoder.outputs() - target, encoder.outputs() - target) / target.count());
+            }
+
+            if (sum(target > 0.5) == 0) {
+              dlog(Severity::Warning) << "No lesions detected: " << current;
+            }
           }
 
           if (_BestOfN > 0 && iLearningRate == learningRates.size() && iEpoch + _BestOfN >= epochCount) {
@@ -280,13 +297,20 @@ void Train::update(IProgressMonitor* monitor) const {
           }
         }
 
+        if (_SaveEvery > 0 && iLearningRate == learningRates.size() && iEpoch % _SaveEvery == 0) {
+          dlog(Severity::Trace) << "Saving model at epoch " << iEpoch;
+          encoder.write_model_to_host();
+          newState->setModel(boost::make_shared<model_t>(*model));
+        }
+
         dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << epochCount << " epochs: " << error / tensors.size()
             << " (PPV = " << PPV / tensors.size() << ", DSC = " << DSC / tensors.size() << ", TPR = " << TPR / tensors.size() << ", TNR = " << TNR / tensors.size() << ", ACC = " << ACC / tensors.size() << ")";
 
         if (monitor) {
-          const int totalEpochs = getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size() + getEpochCount();
-          const int currentEpoch = iEpoch + (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount();
-          monitor->reportProgress(100 * (currentEpoch + 1) / totalEpochs);
+          const bool parameterTuning = (initialWeights.size() || learningRates.size() > 1);
+          const int totalEpochs = getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size() * parameterTuning + getEpochCount();
+          const int currentEpoch = iEpoch + (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount() * parameterTuning;
+          monitor->reportProgress(100.0 * (currentEpoch + 1) / totalEpochs, (_SaveEvery > 0) && (iEpoch % _SaveEvery == 0));
         }
 
         if (iLearningRate == learningRates.size() && iEpoch + 2 == epochCount) {

@@ -36,11 +36,16 @@ BeginPropertyDefinitions(ConvertRbms)
   WorkflowProperty(FirstOutputChannel)
   WorkflowProperty(OutputChannelCount, Description("A value of -1 indicates using the maximum number of channels."))
   WorkflowProperty(OutputActivationFunction, Enumerator<Type>())
+  WorkflowProperty(InsertShortCuts, Flag())
   WorkflowProperty(Model, Output("ENN"))
 
 EndPropertyDefinitions
 
-ConvertRbms::ConvertRbms() : _FirstInputChannel(0), _InputChannelCount(-1), _FirstOutputChannel(0), _OutputChannelCount(-1) {
+ConvertRbms::ConvertRbms()
+ : _FirstInputChannel(0), _InputChannelCount(-1),
+   _FirstOutputChannel(0), _OutputChannelCount(-1),
+   _InsertShortCuts(false)
+{
   setLabel("Convert");
 }
 
@@ -113,6 +118,8 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
     layer.set_bias(crbms[iLayer]->hidden_bias());
     layer.set_stride_size(crbms[iLayer]->stride_size());
     layer.set_convolution_type(crbms[iLayer]->convolution_type());
+    layer.set_pooling_method(crbms[iLayer]->pooling_method());
+    layer.set_pooling_size(crbms[iLayer]->pooling_size());
     layer.set_mean(crbms[iLayer]->mean());
     layer.set_stddev(crbms[iLayer]->stddev());
     layer.set_shared_bias(crbms[iLayer]->shared_bias());
@@ -123,7 +130,7 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
   // Add decoders
   for (int iLayer = crbms.size() - 1; iLayer >= 0; --iLayer) {
 
-    model_t::reverse_cnn_layer_t layer;
+    model_t::dnn_layer_t layer;
     switch (crbms[iLayer]->visibles_type()) {
       case unit_type::Bernoulli:  layer.set_activation_function(activation_function::Sigmoid);  break;
       case unit_type::ReLU:
@@ -182,9 +189,82 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
     layer.set_mask(crbms[iLayer]->mask());
     layer.set_stride_size(crbms[iLayer]->stride_size());
     layer.set_convolution_type(crbms[iLayer]->convolution_type());
+    layer.set_pooling_method(crbms[iLayer]->pooling_method());
+    layer.set_pooling_size(crbms[iLayer]->pooling_size());
     layer.set_shared_bias(crbms[iLayer]->shared_bias());
 
-    model->append_cnn_decoder(layer);
+    model->append_dnn_decoder(layer);
+  }
+
+  // Add shortcuts
+  if (getInsertShortCuts()) {
+    for (int iLayer = crbms.size() - 2; iLayer >= 0; --iLayer) {
+
+      model_t::dnn_layer_t layer;
+      switch (crbms[iLayer]->visibles_type()) {
+        case unit_type::Bernoulli:  layer.set_activation_function(activation_function::Sigmoid);  break;
+        case unit_type::ReLU:
+        case unit_type::MyReLU:     layer.set_activation_function(activation_function::ReLU); break;
+        case unit_type::Gaussian:   layer.set_activation_function(activation_function::Linear); break;
+        default:
+          dlog(Severity::Warning) << "Unsupported hidden unit type '" << crbms[iLayer]->visibles_type() << "'. Aborting!";
+          return;
+      }
+
+      if (iLayer == 0) {
+        layer.set_activation_function(_OutputActivationFunction);
+
+        if (_OutputActivationFunction == tbblas::deeplearn::activation_function::Linear) {
+          layer.set_mean(crbms[iLayer]->mean());
+          layer.set_stddev(crbms[iLayer]->stddev());
+        } else {
+          layer.set_mean(0);
+          layer.set_stddev(1);
+        }
+
+        dim_t visibles_size = crbms[iLayer]->visibles_size(), kernel_size = crbms[iLayer]->kernel_size();
+
+        int firstChannel = getFirstOutputChannel();
+        int channelCount = visibles_size[dimCount - 1] - firstChannel;
+        if (getOutputChannelCount() > 0)
+          channelCount = std::min(channelCount, getOutputChannelCount());
+
+        kernel_size[dimCount - 1] = visibles_size[dimCount - 1] = channelCount;
+
+        layer.set_kernel_size(kernel_size);
+
+        v_host_tensor_t& filters = crbms[iLayer]->filters();
+        v_host_tensor_t inputFilters;
+
+        dim_t pos = seq<dimCount>(0);
+        pos[dimCount - 1] = firstChannel;
+
+        for (size_t iFilter = 0; iFilter < filters.size(); ++iFilter) {
+          host_tensor_t& filter = *filters[iFilter];
+          inputFilters.push_back(boost::make_shared<host_tensor_t>(filter[pos, kernel_size]));
+        }
+        layer.set_filters(inputFilters);
+
+        host_tensor_t bias = crbms[iLayer]->visible_bias();
+        host_tensor_t outputBias = bias[pos, visibles_size];
+        layer.set_bias(outputBias);
+      } else {
+        layer.set_filters(crbms[iLayer]->filters());
+        layer.set_kernel_size(crbms[iLayer]->kernel_size());
+        layer.set_bias(crbms[iLayer]->visible_bias());
+        layer.set_mean(crbms[iLayer]->mean());
+        layer.set_stddev(crbms[iLayer]->stddev());
+      }
+
+      layer.set_mask(crbms[iLayer]->mask());
+      layer.set_stride_size(crbms[iLayer]->stride_size());
+      layer.set_convolution_type(crbms[iLayer]->convolution_type());
+      layer.set_pooling_method(crbms[iLayer]->pooling_method());
+      layer.set_pooling_size(crbms[iLayer]->pooling_size());
+      layer.set_shared_bias(crbms[iLayer]->shared_bias());
+
+      model->append_dnn_shortcut(layer);
+    }
   }
 
   if (getRbms()) {

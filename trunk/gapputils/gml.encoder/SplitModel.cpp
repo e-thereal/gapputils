@@ -105,7 +105,7 @@ void SplitModel::update(IProgressMonitor* monitor) const {
     newState->setBias(bias);
   } else if (getLayer() < celayerCount + delayerCount + ddlayerCount + cdlayerCount) {
     dlog(Severity::Trace) << "Getting information from convolutional decoding layer " << getLayer() - celayerCount - delayerCount - ddlayerCount;
-    reverse_cnn_layer_t& cnn_layer = *getModel()->cnn_decoders()[getLayer() - celayerCount - delayerCount - ddlayerCount];
+    dnn_layer_t& cnn_layer = *getModel()->dnn_decoders()[getLayer() - celayerCount - delayerCount - ddlayerCount];
 
     boost::shared_ptr<v_tensor_t> filters(new v_tensor_t());
     for (size_t i = 0; i < cnn_layer.filters().size(); ++i)

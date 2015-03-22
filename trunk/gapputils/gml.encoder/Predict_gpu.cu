@@ -18,6 +18,7 @@ PredictChecker::PredictChecker() {
   test.initializeClass();
   CHECK_MEMORY_LAYOUT2(Model, test);
   CHECK_MEMORY_LAYOUT2(Inputs, test);
+  CHECK_MEMORY_LAYOUT2(FilterBatchSize, test);
   CHECK_MEMORY_LAYOUT2(SubRegionCount, test);
   CHECK_MEMORY_LAYOUT2(Outputs, test);
 }
@@ -30,6 +31,8 @@ void Predict::update(IProgressMonitor* monitor) const {
   typedef tensor<value_t, dimCount, true> tensor_t;
 
   tbblas::deeplearn::encoder<value_t, dimCount> encoder(*getModel(), _SubRegionCount);
+  for (size_t i = 0; i < getModel()->cnn_encoders().size() + getModel()->dnn_decoders().size() && i < getFilterBatchSize().size(); ++i)
+    encoder.set_batch_length(i, getFilterBatchSize()[i]);
 
   // Fill the visible units of the one layer NN
   v_host_tensor_t& tensors = *getInputs();
