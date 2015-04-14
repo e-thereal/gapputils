@@ -67,6 +67,7 @@ public:
 private:
   std::set<std::string> loadedLibraries;
   std::vector<boost::weak_ptr<Node> > interfaceNodes;
+  bool resumed;
 
 public:
   Workflow();
