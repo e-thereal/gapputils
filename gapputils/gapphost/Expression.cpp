@@ -167,7 +167,8 @@ void Expression::disconnect(boost::shared_ptr<GlobalProperty> gprop) {
 
     // If the node is about to be deleted, the weak pointer is already invalid so check for
     // that case before doing anything else
-    if (!getNode().expired()) {
+    // Same is true for the workflow, so check that as well
+    if (!getNode().expired() && !getNode().lock()->getWorkflow().expired()) {
       boost::shared_ptr<Workflow> workflow = getNode().lock()->getWorkflow().lock();
       PropertyReference ref(workflow, gprop->getModuleUuid(), gprop->getPropertyId());
 

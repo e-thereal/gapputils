@@ -384,6 +384,7 @@ void WorkflowUpdater::resetNode(boost::shared_ptr<workflow::Node> node) {
 //          (properties[i]->getAttribute<capputils::attributes::NoParameterAttribute>() && !properties[i]->getAttribute<gapputils::attributes::LabelAttribute>()))
           properties[i]->getAttribute<capputils::attributes::OutputAttribute>())
       {
+        // if merge property, reset all values
         properties[i]->resetValue(*node->getModule());
       }
     }

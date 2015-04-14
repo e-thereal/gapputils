@@ -468,6 +468,7 @@ void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
   for (size_t i = 0; i < nodes.size(); ++i) {
     if (nodes[i]->getModule())
       addDependencies(*workflow, nodes[i]->getModule()->getClassName());
+
     workflow->getNodes()->push_back(nodes[i]);
     workflow->resumeNode(nodes[i]);
     createItem(nodes[i]);
@@ -477,6 +478,7 @@ void WorkbenchWindow::addNodes(workflow::Workflow& pasteWorkflow) {
   // Paste edges
   std::vector<boost::shared_ptr<workflow::Edge> >& edges = *pasteWorkflow.getEdges();
   for (size_t i = 0; i < edges.size(); ++i) {
+
     workflow->getEdges()->push_back(edges[i]);
     if (!workflow->resumeEdge(edges[i]) || !createCable(edges[i])) {
       workflow->removeEdge(edges[i]);

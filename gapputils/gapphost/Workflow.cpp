@@ -102,7 +102,8 @@ Workflow::Workflow()
    _Nodes(new vector<boost::shared_ptr<Node> >()),
    _GlobalProperties(new vector<boost::shared_ptr<GlobalProperty> >()),
    _GlobalEdges(new vector<boost::shared_ptr<GlobalEdge> >()),
-   _ViewportScale(1.0), _Logbook(new Logbook(&host::LogbookModel::GetInstance()))//,
+   _ViewportScale(1.0), _Logbook(new Logbook(&host::LogbookModel::GetInstance())),
+   resumed(false)
 {
   _ViewportPosition.push_back(0);
   _ViewportPosition.push_back(0);
@@ -118,10 +119,20 @@ Workflow::~Workflow() {
   LibraryLoader& loader = LibraryLoader::getInstance();
 
   // Clean up before releasing the libraries
-  _Edges->clear();
-  _GlobalEdges->clear();
-  _Nodes->clear();
-  _GlobalProperties->clear();
+  if (resumed) {
+    while (_Edges->size())
+      removeEdge(_Edges->front());
+
+    while (_GlobalEdges->size())
+      removeGlobalEdge(_GlobalEdges->front());
+
+    while (_Nodes->size())
+      removeNode(_Nodes->front());
+
+    while (_GlobalProperties->size())
+      removeGlobalProperty(_GlobalProperties->front());
+  }
+
   setModule(boost::shared_ptr<ReflectableClass>());
 
   // Unload libraries
@@ -421,6 +432,7 @@ bool Workflow::resumeEdge(boost::shared_ptr<Edge> edge) {
 
 void Workflow::resume() {
   Logbook& dlog = *getLogbook();
+  resumed = true;
 
   map<string, boost::weak_ptr<Workflow> >& workflowMap = *host::DataModel::getInstance().getWorkflowMap();
   //assert(workflowMap->find(getUuid()) == workflowMap->end());

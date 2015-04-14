@@ -71,6 +71,11 @@ GlobalPropertiesView::~GlobalPropertiesView() {
   settings.setValue("globalpropertiesview/TypeWidth", propertiesWidget->columnWidth(TypeColumn));
   settings.setValue("globalpropertiesview/ModuleWidth", propertiesWidget->columnWidth(ModuleColumn));
   settings.setValue("globalpropertiesview/UuidWidth", propertiesWidget->columnWidth(UuidColumn));
+
+  boost::shared_ptr<Workflow> oldWorkflow = this->workflow.lock();
+  if (oldWorkflow) {
+    oldWorkflow->Changed.disconnect(eventHandler);
+  }
 }
 
 void GlobalPropertiesView::setWorkflow(boost::shared_ptr<Workflow> workflow) {
