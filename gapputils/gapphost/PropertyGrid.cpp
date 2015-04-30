@@ -61,6 +61,8 @@ PropertyGrid::PropertyGrid(QWidget* parent) : QSplitter(Qt::Vertical, parent) {
   propertyGrid->setDropIndicatorShown(true);
   propertyGrid->setDragDropOverwriteMode(false);
 
+//  propertyGrid->setStyleSheet( "QTreeView::branch {  border-image: url(none.png); }" );
+
   connect(propertyGrid, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(handleDoubleClicked(const QModelIndex&)));
 
   QStandardItemModel* model = new QStandardItemModel(0, 2);
@@ -120,6 +122,11 @@ void PropertyGrid::setNode(boost::shared_ptr<workflow::Node> node) {
     connect(propertyGrid->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(currentChanged(const QModelIndex&, const QModelIndex&)));
     propertyGrid->expandAll();
     propertyGrid->setCurrentIndex(propertyGrid->model()->index(0, 0));
+
+    for (int iRow = 0; iRow < propertyGrid->model()->rowCount(); ++iRow) {
+      if (!harmonizer->getModel()->invisibleRootItem()->child(iRow, 1))
+        propertyGrid->setFirstColumnSpanned(iRow, harmonizer->getModel()->invisibleRootItem()->index(), true);
+    }
   } else {
     propertyGrid->setModel(0);
   }

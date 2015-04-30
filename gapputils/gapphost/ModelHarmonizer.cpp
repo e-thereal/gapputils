@@ -18,12 +18,14 @@
 
 #include <gapputils/WorkflowElement.h>
 #include <gapputils/attributes/ReadOnlyAttribute.h>
+#include <gapputils/attributes/GroupAttribute.h>
 
 #include <iostream>
 #include <cassert>
 #include <cmath>
 #include <iomanip>
 #include <sstream>
+#include <map>
 
 #include "Workflow.h"
 #include "Node.h"
@@ -43,8 +45,10 @@ namespace host {
 
 void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node, const std::string& propertyPrefix = "");
 
-void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, int gridPos, const std::string& name = "")
+void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, const std::string& name = "")
 {
+  size_t gridPos = parentItem->rowCount();
+
   IClassProperty* property = ref.getProperty();
   boost::shared_ptr<Node> node = ref.getNode();
   string keyName = name;
@@ -90,7 +94,7 @@ void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, int gridP
 
   if (property->getAttribute<LabelAttribute>()) {
     QFont font = key->font();
-    font.setBold(true);
+//    font.setBold(true);
     key->setFont(font);
   }
 
@@ -132,39 +136,155 @@ void addPropertyRow(PropertyReference& ref, QStandardItem* parentItem, int gridP
   parentItem->setChild(gridPos, 1, value);
 }
 
+QStandardItem* addGroupItem(const std::string& name, QStandardItem* parentItem) {
+  size_t gridPos = parentItem->rowCount();
+
+  // Add group label
+  QStandardItem* groupItem = new QStandardItem(name.c_str());
+  groupItem->setEditable(false);
+  groupItem->setFlags(groupItem->flags() & ~Qt::ItemIsDropEnabled);
+  groupItem->setFlags(groupItem->flags() & ~Qt::ItemIsDragEnabled);
+  groupItem->setSelectable(false);
+
+  QLinearGradient gradient(0, 0, 250, 0);
+  gradient.setColorAt(1, Qt::white);
+  gradient.setColorAt(0, QColor(220, 220, 255));
+//  gradient.setColorAt(0, QColor(220, 220, 220));
+//  groupItem->setBackground(gradient);
+
+  QFont font = groupItem->font();
+  font.setBold(true);
+  groupItem->setFont(font);
+  groupItem->setSizeHint(QSize(300, 20));
+//  groupItem->setTextAlignment(Qt::AlignHCenter);
+  parentItem->setChild(gridPos, 0, groupItem);
+
+  QStandardItem* groupValue = new QStandardItem();
+  groupValue->setEditable(false);
+  groupValue->setFlags(groupItem->flags() & ~Qt::ItemIsDropEnabled);
+  groupValue->setFlags(groupItem->flags() & ~Qt::ItemIsDragEnabled);
+  groupValue->setSelectable(false);
+//  groupValue->setBackground(Qt::white);
+//  parentItem->setChild(gridPos, 1, groupValue);
+
+  return groupItem;
+}
+
 void buildModel(QStandardItem* parentItem, ReflectableClass* object, Node* node, const std::string& propertyPrefix) {
   vector<IClassProperty*> properties = object->getProperties();
   parentItem->removeRows(0, parentItem->rowCount());
 
-  unsigned gridPos = 0;
-  for (unsigned i = 0; i < properties.size(); ++i) {
-    if (properties[i]->getAttribute<HideAttribute>())
-      continue;
 
-    PropertyReference ref(node->getWorkflow().lock(), node->getUuid(), propertyPrefix + properties[i]->getName());
-    addPropertyRow(ref, parentItem, gridPos);
-    ++gridPos;
+  if (!propertyPrefix.size()) {
+    std::map<std::string, std::vector<PropertyReference> > references;
+    std::vector<std::string> groups;
+
+    // Collect groups and references per group
+    for (size_t iProp = 0; iProp < properties.size(); ++iProp) {
+      IClassProperty* prop = properties[iProp];
+
+      if (prop->getAttribute<HideAttribute>())
+        continue;
+
+      GroupAttribute* groupAttr = prop->getAttribute<GroupAttribute>();
+      std::string group = (groupAttr ? groupAttr->getName() : "General");
+
+      if (references.find(group) == references.end()) {
+        groups.push_back(group);
+        references[group] = std::vector<PropertyReference>();
+      }
+
+      PropertyReference ref(node->getWorkflow().lock(), node->getUuid(), propertyPrefix + prop->getName());
+      references[group].push_back(ref);
+    }
+
+    // Create items for each references and group
+    for (size_t iGroup = 0; iGroup < groups.size(); ++iGroup) {
+      const std::string group = groups[iGroup];
+      std::vector<PropertyReference>& refs = references[group];
+      addGroupItem(group, parentItem);
+      for (size_t iRef = 0; iRef < refs.size(); ++iRef) {
+        addPropertyRow(refs[iRef], parentItem);
+      }
+    }
+  } else {
+    for (unsigned i = 0; i < properties.size(); ++i) {
+      if (properties[i]->getAttribute<HideAttribute>())
+        continue;
+
+      PropertyReference ref(node->getWorkflow().lock(), node->getUuid(), propertyPrefix + properties[i]->getName());
+  //    addPropertyRow(ref, groupItems["General"], propertyPrefix);
+      addPropertyRow(ref, parentItem);
+    }
   }
+
 
   // If top level and workflow, add interface properties
   Workflow* workflow = dynamic_cast<Workflow*>(node);
   if (workflow && node->getModule().get() == object) {
+
     std::vector<boost::weak_ptr<Node> >& nodes = workflow->getInterfaceNodes();
+    if (nodes.size()) {
+      addGroupItem("Interface properties", parentItem);
+//      parentItem = addGroupItem("Interface properties", parentItem);
+    }
+
     for (size_t i = 0; i < nodes.size(); ++i) {
       PropertyReference ref(node->getWorkflow().lock(), node->getUuid(), propertyPrefix + nodes[i].lock()->getUuid());
       WorkflowElement* element = dynamic_cast<WorkflowElement*>(nodes[i].lock()->getModule().get());
       if (element)
-        addPropertyRow(ref, parentItem, gridPos, element->getLabel());
+        addPropertyRow(ref, parentItem, element->getLabel());
       else
-        addPropertyRow(ref, parentItem, gridPos);
-      ++gridPos;
+        addPropertyRow(ref, parentItem);
     }
   }
 }
 
-/**
- * TODO: Implement the update of interface properties.
- */
+void updateModel(QStandardItem* parentItem, const std::string& propertyPrefix = "") {
+  // Go throw keys of parentItem
+
+  for (int iRow = 0; iRow < parentItem->rowCount(); ++iRow) {
+    QStandardItem* valueItem = parentItem->child(iRow, 1);
+    if (valueItem && valueItem->data(Qt::UserRole).canConvert<PropertyReference>()) {
+      PropertyReference ref = valueItem->data(Qt::UserRole).value<PropertyReference>();
+
+      IReflectableAttribute* reflectable = ref.getProperty()->getAttribute<IReflectableAttribute>();
+      if (reflectable) {
+        ReflectableClass* subObject = reflectable->getValuePtr(*ref.getObject(), ref.getProperty());
+
+        // If the type of the reflectable object has changed, the subtree needs to be rebuild.
+        // You need to know the previous type in order to detect a change. ScalarAttributes are
+        // no longer supported in order to guarantee, that the string value is always set to the
+        // previous type name.
+        if (subObject) {
+          std::string oldClassName(valueItem->text().toAscii().data());
+          if (oldClassName.compare(subObject->getClassName())) {
+            valueItem->setText(subObject->getClassName().c_str());
+            buildModel(parentItem->child(iRow, 0), subObject, ref.getNode().get(), propertyPrefix + ref.getProperty()->getName() + ".");
+          } else {
+            updateModel(parentItem->child(iRow, 0), propertyPrefix + ref.getProperty()->getName() + ".");
+          }
+        } else {
+          valueItem->setText(ref.getProperty()->getStringValue(*ref.getObject()).c_str());
+        }
+      } else if (ref.getProperty()->getAttribute<FlagAttribute>()) {
+        ClassProperty<bool>* boolProperty = dynamic_cast<ClassProperty<bool>* >(ref.getProperty());
+        // properties tagged as Flag() must be of type bool
+        assert(boolProperty);
+        if (boolProperty->getValue(*ref.getObject()))
+          valueItem->setCheckState(Qt::Checked);
+        else
+          valueItem->setCheckState(Qt::Unchecked);
+      } else{
+        valueItem->setText(ref.getProperty()->getStringValue(*ref.getObject()).c_str());
+      }
+    } else {
+      if (parentItem->child(iRow, 0)->hasChildren()) {
+        updateModel(parentItem->child(iRow, 0), propertyPrefix);
+      }
+    }
+  }
+}
 
 void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node, const std::string& propertyPrefix = "") {
   vector<IClassProperty*> properties = object.getProperties();
@@ -175,6 +295,7 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node
 
     QStandardItem* value = parentItem->child(gridPos, 1);
     if (!value) {
+
       string keyName = properties[i]->getName();
       ShortNameAttribute* shortName = properties[i]->getAttribute<ShortNameAttribute>();
       if (shortName)
@@ -190,7 +311,7 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node
       ReflectableClass* subObject = reflectable->getValuePtr(object, properties[i]);
 
       // If the type of the reflectable object has changed, the subtree needs to be rebuild.
-      // You need to know the previous type in order to detect a changed. ScalarAttributes are
+      // You need to know the previous type in order to detect a change. ScalarAttributes are
       // no longer supported in order to guarantee, that the string value is always set to the
       // previous type name.
       if (subObject) {
@@ -256,7 +377,8 @@ QStandardItemModel* ModelHarmonizer::getModel() const {
 
 void ModelHarmonizer::changedHandler(capputils::ObservableClass* /*sender*/, int /*eventId*/) {
   modelLocked = true;
-  updateModel(model->invisibleRootItem(), *node.lock()->getModule(), node.lock().get());
+//  updateModel(model->invisibleRootItem(), *node.lock()->getModule(), node.lock().get());
+  updateModel(model->invisibleRootItem());
   modelLocked = false;
 }
 
@@ -264,11 +386,14 @@ void ModelHarmonizer::itemChanged(QStandardItem* item) {
   if (!item)
     return;
 
+  if (modelLocked)
+    return;
+
   if (item->data(Qt::UserRole).canConvert<int>()) {
     int from = item->data(Qt::UserRole).value<int>();
     int to = item->index().row();
 
-    // Delete new row if new row (new role if value does not have a property reference)
+    // Delete new row if new row (new row if value does not have a property reference)
     if (!model->item(to, 1) || !model->item(to, 1)->data(Qt::UserRole).canConvert<PropertyReference>()) {
       model->removeRow(to, item->index().parent());
 
@@ -278,28 +403,38 @@ void ModelHarmonizer::itemChanged(QStandardItem* item) {
         // Update grid positions of all keys
         // Update workflow interface node order
 
-        const int propCount = node.lock()->getModule()->getProperties().size();
+        boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
 
-        to = std::max(to, propCount);
+        int firstInterfaceProperty = 0;
+
+        for (int iRow = 0; iRow < model->rowCount(); ++iRow) {
+          if (model->item(iRow, 1) && model->item(iRow, 1)->data(Qt::UserRole).canConvert<PropertyReference>()) {
+            PropertyReference ref = model->item(iRow, 1)->data(Qt::UserRole).value<PropertyReference>();
+            if (ref.getObject() != node->getModule().get()) {
+              firstInterfaceProperty = iRow;
+              break;
+            }
+          }
+        }
+
+        to = std::max(to, firstInterfaceProperty);
         if (from < to)
           --to;
         model->insertRow(to, model->takeRow(from));
 
+        modelLocked = true;
         for (int gridPos = 0; gridPos < model->rowCount(); ++gridPos)
           model->item(gridPos, 0)->setData(QVariant::fromValue(gridPos), Qt::UserRole);
+        modelLocked = false;
 
-        boost::shared_ptr<gapputils::workflow::Node> node = this->node.lock();
         gapputils::Workflow* workflow = dynamic_cast<gapputils::Workflow*>(node.get());
         if (workflow) {
-          workflow->moveInterfaceNode(from - propCount, to - propCount);
+          workflow->moveInterfaceNode(from - firstInterfaceProperty, to - firstInterfaceProperty);
         }
       }
       return;
     }
   }
-
-  if (modelLocked)
-    return;
 
   // Update model if necessary
   if (item->data(Qt::UserRole).canConvert<PropertyReference>()) {

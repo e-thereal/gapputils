@@ -8,6 +8,7 @@
 #include "MemoryTest.h"
 
 #include <capputils/attributes/DeprecatedAttribute.h>
+#include <gapputils/attributes/GroupAttribute.h>
 
 #include <cstdlib>
 
@@ -21,11 +22,11 @@ BeginPropertyDefinitions(MemoryTest)
 
   ReflectableBase(DefaultWorkflowElement<MemoryTest>)
 
-  WorkflowProperty(Input, Input(""))
-  WorkflowProperty(Size)
-  WorkflowProperty(Iterations)
-  WorkflowProperty(Delay)
-  WorkflowProperty(Output, Output(""))
+  WorkflowProperty(Input, Input("In"))
+  WorkflowProperty(Size, Group("Other parameter"))
+  WorkflowProperty(Iterations, Group("Other parameter"))
+  WorkflowProperty(Delay, Group("Other parameter"))
+  WorkflowProperty(Output, Output("Out"))
 
 EndPropertyDefinitions
 
