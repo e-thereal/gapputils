@@ -121,7 +121,7 @@ void PropertyGrid::setNode(boost::shared_ptr<workflow::Node> node) {
     propertyGrid->setModel(harmonizer->getModel());
     connect(propertyGrid->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(currentChanged(const QModelIndex&, const QModelIndex&)));
     propertyGrid->expandAll();
-    propertyGrid->setCurrentIndex(propertyGrid->model()->index(0, 0));
+    propertyGrid->setCurrentIndex(propertyGrid->model()->index(1, 0));
 
     for (int iRow = 0; iRow < propertyGrid->model()->rowCount(); ++iRow) {
       if (!harmonizer->getModel()->invisibleRootItem()->child(iRow, 1))
