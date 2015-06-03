@@ -8,6 +8,18 @@
 #include "Train.h"
 
 #include <tbblas/deeplearn/encoder.hpp>
+#include <tbblas/deeplearn/opt/classic_momentum.hpp>
+#include <tbblas/deeplearn/opt/nesterov_momentum.hpp>
+#include <tbblas/deeplearn/opt/adadelta.hpp>
+#include <tbblas/deeplearn/opt/adagrad.hpp>
+#include <tbblas/deeplearn/opt/adam.hpp>
+#include <tbblas/deeplearn/opt/adam2.hpp>
+#include <tbblas/deeplearn/opt/rms_prop.hpp>
+#include <tbblas/deeplearn/opt/vsgd_fd.hpp>
+#include <tbblas/deeplearn/opt/vsgd_fd_v2.hpp>
+
+#include <tbblas/deeplearn/opt/hessian_free.hpp>
+
 #include <tbblas/io.hpp>
 #include <tbblas/sum.hpp>
 #include <tbblas/dot.hpp>
@@ -15,6 +27,8 @@
 
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
+
+#include <boost/ref.hpp>
 
 namespace gml {
 
@@ -48,16 +62,14 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(BrightnessSd, test);
   CHECK_MEMORY_LAYOUT2(GammaSd, test);
 
-  CHECK_MEMORY_LAYOUT2(BestOfN, test);
   CHECK_MEMORY_LAYOUT2(SaveEvery, test);
 
   CHECK_MEMORY_LAYOUT2(CurrentEpoch, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
-  CHECK_MEMORY_LAYOUT2(Model2, test);
-  CHECK_MEMORY_LAYOUT2(BestModel, test);
-  CHECK_MEMORY_LAYOUT2(WorstModel, test);
   CHECK_MEMORY_LAYOUT2(AugmentedSet, test);
 }
+
+namespace td = tbblas::deeplearn;
 
 void Train::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
@@ -73,25 +85,13 @@ void Train::update(IProgressMonitor* monitor) const {
     return;
   }
 
-  if (_BestOfN > 0) {
-    if (_BatchSize != getTrainingSet()->size()) {
-      dlog(Severity::Warning) << "Batch size must be equal to the training size for best of n  model selection. Aborting!";
-      return;
-    }
-
-    if (_EpochCount < _BestOfN) {
-      dlog(Severity::Warning) << "BestOfN must not be greater than EpochCount. Aborting!";
-      return;
-    }
-  }
-
   // Prepare data
   v_host_tensor_t& tensors = *getTrainingSet();
   v_host_tensor_t& labels = *getLabels();
 
   value_t weightcost = getWeightCosts();
-  value_t initialmomentum = 0.5f;
-  value_t finalmomentum = 0.9f;
+  value_t initialmomentum = getInitialMomentum();
+  value_t finalmomentum = getFinalMomentum();
   value_t momentum;
 
   const size_t batchSize = getBatchSize();
@@ -150,16 +150,74 @@ void Train::update(IProgressMonitor* monitor) const {
 //        layer.set_weights(W);
 //      }
 
-      tbblas::deeplearn::encoder<value_t, dimCount> encoder(*model, _SubRegionCount);
+      typedef td::encoder_base<value_t, dimCount> encoder_base_t;
+      typedef td::encoder<value_t, dimCount, td::opt::classic_momentum<value_t> > cm_encoder_t;
+      typedef td::encoder<value_t, dimCount, td::opt::nesterov_momentum<value_t> > nag_encoder_t;
+      typedef td::encoder<value_t, dimCount, td::opt::adagrad<value_t> > adagrad_encoder_t;
+      typedef td::encoder<value_t, dimCount, td::opt::adadelta<value_t> > adadelta_encoder_t;
+      typedef td::encoder<value_t, dimCount, td::opt::adam<value_t> > adam_encoder_t;
+      typedef td::encoder<value_t, dimCount, td::opt::adam2<value_t> > adam2_encoder_t;
+      typedef td::encoder<value_t, dimCount, td::opt::rms_prop<value_t> > rp_encoder_t;
+      typedef td::encoder<value_t, dimCount, td::opt::vsgd_fd<value_t> > vsgdfd_encoder_t;
+      typedef td::encoder<value_t, dimCount, td::opt::vsgd_fd_v2<value_t> > vsgdfd2_encoder_t;
+      typedef td::encoder<value_t, dimCount> default_encoder_t;
+
+//      boost::shared_ptr<encoder_base_t> p_encoder;
+//
+//      switch (getMethod()) {
+//      case TrainingMethod::ClassicMomentum:
+//        p_encoder = boost::make_shared<cm_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
+//        break;
+//
+//      case TrainingMethod::NesterovMomentum:
+//        p_encoder = boost::make_shared<nag_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
+//        break;
+//
+//      case TrainingMethod::AdaGrad:
+//        p_encoder = boost::make_shared<adagrad_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
+//        break;
+//
+//      case TrainingMethod::AdaDelta:
+//        p_encoder = boost::make_shared<adadelta_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
+//        break;
+//
+//      case TrainingMethod::Adam:
+//        p_encoder = boost::make_shared<adam_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
+//        break;
+//
+//      case TrainingMethod::AdamDecay:
+//        p_encoder = boost::make_shared<adam2_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
+//        break;
+//
+//      case TrainingMethod::RmsProp:
+//        p_encoder = boost::make_shared<rp_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
+//        break;
+//
+//      case TrainingMethod::vSGD_fd:
+//        p_encoder = boost::make_shared<vsgdfd_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
+//        break;
+//
+//      case TrainingMethod::vSGD_fd_v2:
+//        p_encoder = boost::make_shared<vsgdfd2_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
+//        break;
+//
+//      default:
+//        p_encoder = boost::make_shared<default_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
+//      }
+//
+//      encoder_base_t& encoder = *p_encoder;
+      td::encoder<value_t, dimCount> encoder(*model, _SubRegionCount);
       encoder.set_objective_function(getObjective());
       encoder.set_sensitivity_ratio(getSensitivityRatio());
       for (size_t i = 0; i < model->cnn_encoders().size() + model->dnn_decoders().size() && i < getFilterBatchSize().size(); ++i)
         encoder.set_batch_length(i, getFilterBatchSize()[i]);
 
+      td::opt::hessian_free<value_t, dimCount> trainer(encoder);
+      v_host_tensor_t inputBatch(batchSize), targetBatch(batchSize);
 
       dlog() << "Preparation finished. Starting training.";
 
-      value_t error, learningDecay = 1, PPV, DSC, TPR, TNR, ACC, worstError = 0;
+      value_t error, learningDecay = 1, PPV, DSC, TPR, TNR, ACC;
       tensor_t v, target, channel;
 
       // For data augmentation
@@ -177,10 +235,12 @@ void Train::update(IProgressMonitor* monitor) const {
           learningDecay = (value_t)getLearningDecay() / ((value_t)getLearningDecay() + (value_t)iEpoch);
         }
 
-        if (iEpoch < 10)
-          momentum = initialmomentum;
-        else
+        if (iEpoch < getMomentumDecayEpochs()) {
+          const value_t t = (value_t)iEpoch / (value_t)getMomentumDecayEpochs();
+          momentum = (1 - t) * initialmomentum + t * finalmomentum;
+        } else {
           momentum = finalmomentum;
+        }
 
         for (int iBatch = 0; iBatch < batchCount && (monitor ? !monitor->getAbortRequested() : true); ++iBatch) {
 
@@ -192,6 +252,9 @@ void Train::update(IProgressMonitor* monitor) const {
 
             v = *tensors[current];
             target = *labels[current];
+
+            inputBatch[iSample] = tensors[current];
+            targetBatch[iSample] = labels[current];
 
             // Perform data augmentation
             dim_t channelSize = v.size();
@@ -235,8 +298,8 @@ void Train::update(IProgressMonitor* monitor) const {
 #endif
 
             encoder.inputs() = v;
-            encoder.update_gradient(target);
-
+//            encoder.update_gradient(target);
+            encoder.infer_outputs();
 
             PPV += sum((target > 0.5) * (encoder.outputs() > 0.5)) / sum(encoder.outputs() > 0.5);
             DSC += 2 * sum ((target > 0.5) * (encoder.outputs() > 0.5)) / (sum(target > 0.5) + sum(encoder.outputs() > 0.5));
@@ -257,44 +320,82 @@ void Train::update(IProgressMonitor* monitor) const {
             }
           }
 
-          if (_BestOfN > 0 && iLearningRate == learningRates.size() && iEpoch + _BestOfN >= epochCount) {
+//          trainer.set_alpha(epsilon * learningDecay);
+          trainer.set_weightcost(weightcost);
+          trainer.update(inputBatch, targetBatch);
 
-            if (iEpoch + _BestOfN == epochCount) {
-              dlog(Severity::Trace) << "Initialize best and worst model.";
-              encoder.write_model_to_host();
-              bestError = worstError = error;
-              newState->setBestModel(boost::make_shared<model_t>(*model));
-              newState->setWorstModel(boost::make_shared<model_t>(*model));
-            } else if (error < bestError) {
-              dlog(Severity::Trace) << "Found better model.";
-              bestError = error;
-              encoder.write_model_to_host();
-              newState->setBestModel(boost::make_shared<model_t>(*model));
-            } else if (error > worstError) {
-              dlog(Severity::Trace) << "Found worse model";
-              worstError = error;
-              encoder.write_model_to_host();
-              newState->setWorstModel(boost::make_shared<model_t>(*model));
-            }
-          }
-
-          switch (getMethod()) {
-          case TrainingMethod::Momentum:
-            encoder.momentum_step(epsilon * learningDecay, epsilon * learningDecay, momentum, weightcost);
-            break;
-
-          case TrainingMethod::AdaDelta:
-            encoder.adadelta_step(epsilon * learningDecay, epsilon * learningDecay, momentum, weightcost);
-            break;
-
-          case TrainingMethod::Adam:
-            encoder.adam_step(epsilon * learningDecay, 0.1, 0.001, 1e-8, 1, weightcost);
-            break;
-
-          case TrainingMethod::AdamDecay:
-            encoder.adam_step(epsilon * learningDecay, 0.1, 0.001, 1e-8, 1e-8, weightcost);
-            break;
-          }
+//          switch (getMethod()) {
+//          case TrainingMethod::ClassicMomentum:
+//            {
+//              boost::shared_ptr<cm_encoder_t> encoder = boost::dynamic_pointer_cast<cm_encoder_t>(p_encoder);
+//              encoder->set_learning_rate(epsilon * learningDecay);
+//              encoder->set_momentum(momentum);
+//            }
+//            break;
+//
+//          case TrainingMethod::NesterovMomentum:
+//            {
+//              boost::shared_ptr<nag_encoder_t> encoder = boost::dynamic_pointer_cast<nag_encoder_t>(p_encoder);
+//              encoder->set_learning_rate(epsilon * learningDecay);
+//              encoder->set_momentum(momentum);
+//            }
+//            break;
+//
+//          case TrainingMethod::AdaGrad:
+//            {
+//              boost::shared_ptr<adagrad_encoder_t> encoder = boost::dynamic_pointer_cast<adagrad_encoder_t>(p_encoder);
+//              encoder->set_learning_rate(epsilon * learningDecay);
+//              encoder->set_epsilon(momentum);
+//            }
+//            break;
+//
+//          case TrainingMethod::AdaDelta:
+//            {
+//              boost::shared_ptr<adadelta_encoder_t> encoder = boost::dynamic_pointer_cast<adadelta_encoder_t>(p_encoder);
+//              encoder->set_epsilon(epsilon * learningDecay);
+//              encoder->set_decay_rate(momentum);
+//            }
+//            break;
+//
+//          case TrainingMethod::Adam:
+//            {
+//              boost::shared_ptr<adam_encoder_t> encoder = boost::dynamic_pointer_cast<adam_encoder_t>(p_encoder);
+//              encoder->set_alpha(epsilon * learningDecay);
+//            }
+//            break;
+//
+//          case TrainingMethod::AdamDecay:
+//            {
+//              boost::shared_ptr<adam2_encoder_t> encoder = boost::dynamic_pointer_cast<adam2_encoder_t>(p_encoder);
+//              encoder->set_alpha(epsilon * learningDecay);
+//            }
+//            break;
+//
+//          case TrainingMethod::RmsProp:
+//            {
+//              boost::shared_ptr<rp_encoder_t> encoder = boost::dynamic_pointer_cast<rp_encoder_t>(p_encoder);
+//              encoder->set_learning_rate(epsilon * learningDecay);
+//              encoder->set_decay_rate(momentum);
+//            }
+//            break;
+//
+//          case TrainingMethod::vSGD_fd:
+//            {
+//              boost::shared_ptr<vsgdfd_encoder_t> encoder = boost::dynamic_pointer_cast<vsgdfd_encoder_t>(p_encoder);
+//              encoder->set_epsilon(epsilon * learningDecay);
+//              encoder->set_c(momentum);
+//            }
+//            break;
+//
+//          case TrainingMethod::vSGD_fd_v2:
+//            {
+//              boost::shared_ptr<vsgdfd2_encoder_t> encoder = boost::dynamic_pointer_cast<vsgdfd2_encoder_t>(p_encoder);
+//              encoder->set_epsilon(epsilon * learningDecay);
+//              encoder->set_c(momentum);
+//            }
+//            break;
+//          }
+//          encoder.update_model(weightcost);
         }
 
         if (_SaveEvery > 0 && iLearningRate == learningRates.size() && iEpoch % _SaveEvery == 0) {
@@ -311,12 +412,6 @@ void Train::update(IProgressMonitor* monitor) const {
           const int totalEpochs = getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size() * parameterTuning + getEpochCount();
           const int currentEpoch = iEpoch + (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount() * parameterTuning;
           monitor->reportProgress(100.0 * (currentEpoch + 1) / totalEpochs, (_SaveEvery > 0) && (iEpoch % _SaveEvery == 0));
-        }
-
-        if (iLearningRate == learningRates.size() && iEpoch + 2 == epochCount) {
-          dlog(Severity::Trace) << "Last epoch detected. Saving pre-model.";
-          encoder.write_model_to_host();
-          newState->setModel2(boost::make_shared<model_t>(*model));
         }
       }
 
