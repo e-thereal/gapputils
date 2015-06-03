@@ -94,9 +94,10 @@ void TestThreshold2::update(IProgressMonitor* monitor) const {
   }
   dlog(Severity::Message) << "Best threshold is " << bestThreshold << " (DSC = " << bestMetric << ")";
 
-  value_t meanTPR, meanPPV, meanDSC;
+  value_t meanTPR, meanPPV, meanDSC, bestDSC, currentDSC;
+  size_t bestSample = 0;
 
-  meanTPR = meanPPV = meanDSC = 0;
+  meanTPR = meanPPV = meanDSC = bestDSC = 0;
 
   // Calculate performance using a global threshold
   for (size_t iSample = 0; iSample < maps.size(); ++iSample) {
@@ -105,10 +106,18 @@ void TestThreshold2::update(IProgressMonitor* monitor) const {
 
     meanTPR += tTPRs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + 1e-8);
     meanPPV += tPPVs->at(iSample) = sum((label > 0.5) * (pred > bestThreshold)) / sum(pred > bestThreshold);
-    meanDSC += tDSCs->at(iSample) = 2 * sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + sum(pred > bestThreshold) + 1e-8);
+
+    currentDSC = tDSCs->at(iSample) = 2 * sum((label > 0.5) * (pred > bestThreshold)) / (sum(label > 0.5) + sum(pred > bestThreshold) + 1e-8);
+    meanDSC += currentDSC;
+
+    if (currentDSC > bestDSC) {
+      bestDSC = currentDSC;
+      bestSample = iSample;
+    }
   }
 
   dlog(Severity::Message) << "Training set: TPR = " << meanTPR / maps.size() << ", PPV = " << meanPPV / maps.size() << ", DSC = " << meanDSC / maps.size();
+  dlog(Severity::Message) << "Best training sample is " << bestSample << " with a DSC of " << bestDSC;
 
   meanTPR = meanPPV = meanDSC = 0;
 

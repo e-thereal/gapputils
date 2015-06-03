@@ -32,6 +32,7 @@ class SplitModel : public DefaultWorkflowElement<SplitModel> {
 
   Property(Model, boost::shared_ptr<model_t>)
   Property(Layer, int)
+  Property(Shortcut, bool)
   Property(Filters, boost::shared_ptr<v_tensor_t>)
   Property(Biases, boost::shared_ptr<v_tensor_t>)
   Property(Weights, boost::shared_ptr<v_data_t>)

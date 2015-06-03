@@ -36,7 +36,7 @@ BeginPropertyDefinitions(ConvertRbms)
   WorkflowProperty(FirstOutputChannel)
   WorkflowProperty(OutputChannelCount, Description("A value of -1 indicates using the maximum number of channels."))
   WorkflowProperty(OutputActivationFunction, Enumerator<Type>())
-  WorkflowProperty(InsertShortCuts, Flag())
+  WorkflowProperty(InsertShortcuts, Flag())
   WorkflowProperty(Model, Output("ENN"))
 
 EndPropertyDefinitions
@@ -44,7 +44,7 @@ EndPropertyDefinitions
 ConvertRbms::ConvertRbms()
  : _FirstInputChannel(0), _InputChannelCount(-1),
    _FirstOutputChannel(0), _OutputChannelCount(-1),
-   _InsertShortCuts(false)
+   _InsertShortcuts(false)
 {
   setLabel("Convert");
 }
@@ -197,7 +197,7 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
   }
 
   // Add shortcuts
-  if (getInsertShortCuts()) {
+  if (getInsertShortcuts()) {
     for (int iLayer = crbms.size() - 2; iLayer >= 0; --iLayer) {
 
       model_t::dnn_layer_t layer;

@@ -21,7 +21,7 @@ namespace gml {
 
 namespace encoder {
 
-CapputilsEnumerator(TrainingMethod, Momentum, AdaDelta, Adam, AdamDecay)
+CapputilsEnumerator(TrainingMethod, ClassicMomentum, NesterovMomentum, AdaGrad, AdaDelta, Adam, AdamDecay, RmsProp, vSGD_fd, vSGD_fd_v2);
 
 struct TrainChecker { TrainChecker(); } ;
 
@@ -52,6 +52,9 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(Method, TrainingMethod)
   Property(LearningRates, std::vector<double>)
   Property(LearningDecay, int)
+  Property(InitialMomentum, double)
+  Property(FinalMomentum, double)
+  Property(MomentumDecayEpochs, int)
   Property(WeightCosts, double)
   Property(InitialWeights, std::vector<double>)
   Property(RandomizeTraining, bool)
@@ -61,14 +64,10 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(BrightnessSd, double)
   Property(GammaSd, double)
 
-  Property(BestOfN, int)
   Property(SaveEvery, int)
 
   Property(CurrentEpoch, int)
   Property(Model, boost::shared_ptr<model_t>)
-  Property(Model2, boost::shared_ptr<model_t>)
-  Property(BestModel, boost::shared_ptr<model_t>)
-  Property(WorstModel, boost::shared_ptr<model_t>)
   Property(AugmentedSet, boost::shared_ptr<v_host_tensor_t>)
 
 public:
