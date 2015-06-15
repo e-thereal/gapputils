@@ -52,14 +52,14 @@ void SplitModel::update(IProgressMonitor* monitor) const {
     dlog(Severity::Trace) << "Getting information from convolutional encoding layer " << getLayer();
     cnn_layer_t& cnn_layer = *getModel()->cnn_encoders()[getLayer()];
 
-    boost::shared_ptr<v_tensor_t> filters(new v_tensor_t());
+    boost::shared_ptr<v_host_tensor_t> filters(new v_host_tensor_t());
     for (size_t i = 0; i < cnn_layer.filters().size(); ++i)
-      filters->push_back(boost::make_shared<tensor_t>(*cnn_layer.filters()[i]));
+      filters->push_back(boost::make_shared<host_tensor_t>(*cnn_layer.filters()[i]));
     newState->setFilters(filters);
 
-    boost::shared_ptr<v_tensor_t> bias(new v_tensor_t());
+    boost::shared_ptr<v_host_tensor_t> bias(new v_host_tensor_t());
     for (size_t i = 0; i < cnn_layer.bias().size(); ++i)
-      bias->push_back(boost::make_shared<tensor_t>(*cnn_layer.bias()[i]));
+      bias->push_back(boost::make_shared<host_tensor_t>(*cnn_layer.bias()[i]));
     newState->setBiases(bias);
 
   } else if (getLayer() < celayerCount + delayerCount) {
@@ -110,24 +110,24 @@ void SplitModel::update(IProgressMonitor* monitor) const {
     if (!_Shortcut) {
       dnn_layer_t& cnn_layer = *getModel()->dnn_decoders()[iLayer];
 
-      boost::shared_ptr<v_tensor_t> filters(new v_tensor_t());
+      boost::shared_ptr<v_host_tensor_t> filters(new v_host_tensor_t());
       for (size_t i = 0; i < cnn_layer.filters().size(); ++i)
-        filters->push_back(boost::make_shared<tensor_t>(*cnn_layer.filters()[i]));
+        filters->push_back(boost::make_shared<host_tensor_t>(*cnn_layer.filters()[i]));
       newState->setFilters(filters);
 
-      boost::shared_ptr<v_tensor_t> bias(new v_tensor_t(1));
-      bias->at(0) = boost::make_shared<tensor_t>(cnn_layer.bias());
+      boost::shared_ptr<v_host_tensor_t> bias(new v_host_tensor_t(1));
+      bias->at(0) = boost::make_shared<host_tensor_t>(cnn_layer.bias());
       newState->setBiases(bias);
     } else if (iLayer > 0) {
       dnn_layer_t& cnn_layer = *getModel()->dnn_shortcuts()[iLayer - 1];
 
-      boost::shared_ptr<v_tensor_t> filters(new v_tensor_t());
+      boost::shared_ptr<v_host_tensor_t> filters(new v_host_tensor_t());
       for (size_t i = 0; i < cnn_layer.filters().size(); ++i)
-        filters->push_back(boost::make_shared<tensor_t>(*cnn_layer.filters()[i]));
+        filters->push_back(boost::make_shared<host_tensor_t>(*cnn_layer.filters()[i]));
       newState->setFilters(filters);
 
-      boost::shared_ptr<v_tensor_t> bias(new v_tensor_t(1));
-      bias->at(0) = boost::make_shared<tensor_t>(cnn_layer.bias());
+      boost::shared_ptr<v_host_tensor_t> bias(new v_host_tensor_t(1));
+      bias->at(0) = boost::make_shared<host_tensor_t>(cnn_layer.bias());
       newState->setBiases(bias);
     } else {
       dlog(Severity::Message) << "Given decoding layer does not have a short cut connection.";

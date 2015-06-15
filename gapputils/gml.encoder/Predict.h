@@ -10,6 +10,7 @@
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
+#include <gapputils/Tensor.h>
 
 #include <tbblas/deeplearn/objective_function.hpp>
 
@@ -30,9 +31,6 @@ class Predict : public DefaultWorkflowElement<Predict> {
 
   typedef std::vector<double> data_t;
   typedef std::vector<boost::shared_ptr<data_t> > v_data_t;
-
-  typedef tbblas::tensor<value_t, dimCount> host_tensor_t;
-  typedef std::vector<boost::shared_ptr<host_tensor_t> > v_host_tensor_t;
 
   InitReflectableClass(Predict)
 

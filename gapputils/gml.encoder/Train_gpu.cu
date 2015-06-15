@@ -8,17 +8,18 @@
 #include "Train.h"
 
 #include <tbblas/deeplearn/encoder.hpp>
-#include <tbblas/deeplearn/opt/classic_momentum.hpp>
-#include <tbblas/deeplearn/opt/nesterov_momentum.hpp>
-#include <tbblas/deeplearn/opt/adadelta.hpp>
-#include <tbblas/deeplearn/opt/adagrad.hpp>
-#include <tbblas/deeplearn/opt/adam.hpp>
-#include <tbblas/deeplearn/opt/adam2.hpp>
+//#include <tbblas/deeplearn/opt/classic_momentum.hpp>
+//#include <tbblas/deeplearn/opt/nesterov_momentum.hpp>
+//#include <tbblas/deeplearn/opt/adadelta.hpp>
+//#include <tbblas/deeplearn/opt/adagrad.hpp>
+//#include <tbblas/deeplearn/opt/adam.hpp>
+//#include <tbblas/deeplearn/opt/adam2.hpp>
 #include <tbblas/deeplearn/opt/rms_prop.hpp>
-#include <tbblas/deeplearn/opt/vsgd_fd.hpp>
-#include <tbblas/deeplearn/opt/vsgd_fd_v2.hpp>
+//#include <tbblas/deeplearn/opt/vsgd_fd.hpp>
+//#include <tbblas/deeplearn/opt/vsgd_fd_v2.hpp>
 
-#include <tbblas/deeplearn/opt/hessian_free.hpp>
+#include <tbblas/deeplearn/opt/first_order.hpp>
+//#include <tbblas/deeplearn/opt/hessian_free.hpp>
 
 #include <tbblas/io.hpp>
 #include <tbblas/sum.hpp>
@@ -51,6 +52,7 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(SharedBiasTerms, test);
 
   CHECK_MEMORY_LAYOUT2(Method, test);
+  CHECK_MEMORY_LAYOUT2(Parameters, test);
   CHECK_MEMORY_LAYOUT2(LearningRates, test);
   CHECK_MEMORY_LAYOUT2(LearningDecay, test);
   CHECK_MEMORY_LAYOUT2(WeightCosts, test);
@@ -151,19 +153,19 @@ void Train::update(IProgressMonitor* monitor) const {
 //      }
 
       typedef td::encoder_base<value_t, dimCount> encoder_base_t;
-      typedef td::encoder<value_t, dimCount, td::opt::classic_momentum<value_t> > cm_encoder_t;
-      typedef td::encoder<value_t, dimCount, td::opt::nesterov_momentum<value_t> > nag_encoder_t;
-      typedef td::encoder<value_t, dimCount, td::opt::adagrad<value_t> > adagrad_encoder_t;
-      typedef td::encoder<value_t, dimCount, td::opt::adadelta<value_t> > adadelta_encoder_t;
-      typedef td::encoder<value_t, dimCount, td::opt::adam<value_t> > adam_encoder_t;
-      typedef td::encoder<value_t, dimCount, td::opt::adam2<value_t> > adam2_encoder_t;
+//      typedef td::encoder<value_t, dimCount, td::opt::classic_momentum<value_t> > cm_encoder_t;
+//      typedef td::encoder<value_t, dimCount, td::opt::nesterov_momentum<value_t> > nag_encoder_t;
+//      typedef td::encoder<value_t, dimCount, td::opt::adagrad<value_t> > adagrad_encoder_t;
+//      typedef td::encoder<value_t, dimCount, td::opt::adadelta<value_t> > adadelta_encoder_t;
+//      typedef td::encoder<value_t, dimCount, td::opt::adam<value_t> > adam_encoder_t;
+//      typedef td::encoder<value_t, dimCount, td::opt::adam2<value_t> > adam2_encoder_t;
       typedef td::encoder<value_t, dimCount, td::opt::rms_prop<value_t> > rp_encoder_t;
-      typedef td::encoder<value_t, dimCount, td::opt::vsgd_fd<value_t> > vsgdfd_encoder_t;
-      typedef td::encoder<value_t, dimCount, td::opt::vsgd_fd_v2<value_t> > vsgdfd2_encoder_t;
+//      typedef td::encoder<value_t, dimCount, td::opt::vsgd_fd<value_t> > vsgdfd_encoder_t;
+//      typedef td::encoder<value_t, dimCount, td::opt::vsgd_fd_v2<value_t> > vsgdfd2_encoder_t;
       typedef td::encoder<value_t, dimCount> default_encoder_t;
 
-//      boost::shared_ptr<encoder_base_t> p_encoder;
-//
+      boost::shared_ptr<encoder_base_t> p_encoder;
+
 //      switch (getMethod()) {
 //      case TrainingMethod::ClassicMomentum:
 //        p_encoder = boost::make_shared<cm_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
@@ -193,18 +195,10 @@ void Train::update(IProgressMonitor* monitor) const {
 //        p_encoder = boost::make_shared<rp_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
 //        break;
 //
-//      case TrainingMethod::vSGD_fd:
-//        p_encoder = boost::make_shared<vsgdfd_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
-//        break;
-//
-//      case TrainingMethod::vSGD_fd_v2:
-//        p_encoder = boost::make_shared<vsgdfd2_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
-//        break;
-//
 //      default:
 //        p_encoder = boost::make_shared<default_encoder_t>(boost::ref(*model), boost::ref(_SubRegionCount));
 //      }
-//
+
 //      encoder_base_t& encoder = *p_encoder;
       td::encoder<value_t, dimCount> encoder(*model, _SubRegionCount);
       encoder.set_objective_function(getObjective());
@@ -212,7 +206,13 @@ void Train::update(IProgressMonitor* monitor) const {
       for (size_t i = 0; i < model->cnn_encoders().size() + model->dnn_decoders().size() && i < getFilterBatchSize().size(); ++i)
         encoder.set_batch_length(i, getFilterBatchSize()[i]);
 
-      td::opt::hessian_free<value_t, dimCount> trainer(encoder);
+//      td::opt::hessian_free<value_t, dimCount> trainer(encoder);
+//      trainer.set_weightcost(weightcost);
+//      trainer.set_iteration_count(getTrialEpochCount());
+//      trainer.set_lambda(getLearningRates()[0]);
+      td::opt::first_order<value_t, dimCount, td::opt::rms_prop<value_t> > trainer(encoder);
+      trainer.set_weightcost(weightcost);
+
       v_host_tensor_t inputBatch(batchSize), targetBatch(batchSize);
 
       dlog() << "Preparation finished. Starting training.";
@@ -297,6 +297,9 @@ void Train::update(IProgressMonitor* monitor) const {
             }
 #endif
 
+#define MONITOR_TRAINING
+
+#ifdef MONITOR_TRAINING
             encoder.inputs() = v;
 //            encoder.update_gradient(target);
             encoder.infer_outputs();
@@ -318,13 +321,27 @@ void Train::update(IProgressMonitor* monitor) const {
             if (sum(target > 0.5) == 0) {
               dlog(Severity::Warning) << "No lesions detected: " << current;
             }
+#endif
           }
 
 //          trainer.set_alpha(epsilon * learningDecay);
-          trainer.set_weightcost(weightcost);
-          trainer.update(inputBatch, targetBatch);
+//          trainer.check_loss(inputBatch, targetBatch);
+//          trainer.check_gradient(inputBatch, targetBatch, epsilon);
+//          trainer.check_Gv(inputBatch, targetBatch, epsilon, _RandomizeTraining);
+//          return;
 
-//          switch (getMethod()) {
+//          trainer.set_zeta(momentum);
+//          trainer.update(inputBatch, targetBatch);
+
+          {
+            MomentumParameters* params = dynamic_cast<MomentumParameters*>(_Parameters.get());
+            assert(params);
+            trainer.set_learning_rate(params->getLearningRate(iEpoch));
+            trainer.set_decay_rate(params->getMomentum(iEpoch));
+            trainer.update(inputBatch, targetBatch);
+          }
+
+          switch (getMethod()) {
 //          case TrainingMethod::ClassicMomentum:
 //            {
 //              boost::shared_ptr<cm_encoder_t> encoder = boost::dynamic_pointer_cast<cm_encoder_t>(p_encoder);
@@ -378,7 +395,7 @@ void Train::update(IProgressMonitor* monitor) const {
 //              encoder->set_decay_rate(momentum);
 //            }
 //            break;
-//
+
 //          case TrainingMethod::vSGD_fd:
 //            {
 //              boost::shared_ptr<vsgdfd_encoder_t> encoder = boost::dynamic_pointer_cast<vsgdfd_encoder_t>(p_encoder);
@@ -394,7 +411,7 @@ void Train::update(IProgressMonitor* monitor) const {
 //              encoder->set_c(momentum);
 //            }
 //            break;
-//          }
+          }
 //          encoder.update_model(weightcost);
         }
 

@@ -53,6 +53,8 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
   using namespace tbblas::deeplearn;
 
+#if 0
+
   Logbook& dlog = getLogbook();
 
   typedef float value_t;
@@ -325,6 +327,7 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
   }
 
   newState->setModel(model);
+#endif
 }
 
 } /* namespace cnn */

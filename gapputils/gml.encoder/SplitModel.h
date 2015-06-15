@@ -10,6 +10,7 @@
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
+#include <gapputils/Tensor.h>
 
 #include "Model.h"
 
@@ -25,16 +26,13 @@ class SplitModel : public DefaultWorkflowElement<SplitModel> {
   typedef std::vector<double> data_t;
   typedef std::vector<boost::shared_ptr<data_t> > v_data_t;
 
-  typedef tbblas::tensor<value_t, dimCount> tensor_t;
-  typedef std::vector<boost::shared_ptr<tensor_t> > v_tensor_t;
-
   InitReflectableClass(SplitModel)
 
   Property(Model, boost::shared_ptr<model_t>)
   Property(Layer, int)
   Property(Shortcut, bool)
-  Property(Filters, boost::shared_ptr<v_tensor_t>)
-  Property(Biases, boost::shared_ptr<v_tensor_t>)
+  Property(Filters, boost::shared_ptr<v_host_tensor_t>)
+  Property(Biases, boost::shared_ptr<v_host_tensor_t>)
   Property(Weights, boost::shared_ptr<v_data_t>)
   Property(Bias, boost::shared_ptr<data_t>)
 

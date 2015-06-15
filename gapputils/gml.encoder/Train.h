@@ -10,6 +10,7 @@
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
+#include <gapputils/Tensor.h>
 
 #include <capputils/Enumerators.h>
 
@@ -21,7 +22,75 @@ namespace gml {
 
 namespace encoder {
 
-CapputilsEnumerator(TrainingMethod, ClassicMomentum, NesterovMomentum, AdaGrad, AdaDelta, Adam, AdamDecay, RmsProp, vSGD_fd, vSGD_fd_v2);
+CapputilsEnumerator(TrainingMethod, ClassicMomentum, NesterovMomentum, AdaGrad, AdaDelta, Adam, RmsProp, HessianFree);
+
+class OptimizationParameters : public capputils::reflection::ReflectableClass,
+                               public ObservableClass
+{
+  InitReflectableClass(OptimizationParameters)
+};
+
+class MomentumParameters : public OptimizationParameters {
+  InitReflectableClass(MomentumParameters)
+
+  Property(LearningRate, float)
+  Property(LearningDecayEpochs, int)
+  Property(InitialMomentum, float)
+  Property(FinalMomentum, float)
+  Property(MomentumDecayEpochs, int)
+
+public:
+  MomentumParameters();
+
+  float getLearningRate(int epoch) const;
+  float getMomentum(int epoch) const;
+};
+
+class AdaGradParameters : public OptimizationParameters {
+  InitReflectableClass(AdaGradParameters)
+
+  Property(LearningRate, float)
+  Property(LearningDecayEpochs, int)
+  Property(Epsilon, float)
+
+public:
+  AdaGradParameters();
+
+  float getLearningRate(int epoch) const;
+};
+
+class AdaDeltaParameters : public OptimizationParameters {
+  InitReflectableClass(AdaDeltaParameters)
+
+  Property(Epsilon, float)
+  Property(DecayRate, float)
+
+public:
+  AdaDeltaParameters();
+};
+
+class AdamParameters : public OptimizationParameters {
+  InitReflectableClass(AdamParameters)
+
+  Property(Alpha, float)
+  Property(Beta1, float)
+  Property(Beta2, float)
+  Property(Epsilon, float)
+
+public:
+  AdamParameters();
+};
+
+class HessianFreeParameters : public OptimizationParameters {
+  InitReflectableClass(HessianFreeParameters)
+
+  Property(ConjugateGradientIterations, int)
+  Property(InitialLambda, float)
+  Property(Zeta, float)
+
+public:
+  HessianFreeParameters();
+};
 
 struct TrainChecker { TrainChecker(); } ;
 
@@ -29,9 +98,6 @@ class Train : public DefaultWorkflowElement<Train> {
 
   typedef model_t::value_t value_t;
   static const unsigned dimCount = model_t::dimCount;
-
-  typedef tbblas::tensor<value_t, dimCount> host_tensor_t;
-  typedef std::vector<boost::shared_ptr<host_tensor_t> > v_host_tensor_t;
 
   friend class TrainChecker;
 
@@ -50,6 +116,7 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(SharedBiasTerms, bool)
 
   Property(Method, TrainingMethod)
+  Property(Parameters, boost::shared_ptr<OptimizationParameters>)
   Property(LearningRates, std::vector<double>)
   Property(LearningDecay, int)
   Property(InitialMomentum, double)
@@ -70,11 +137,15 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(Model, boost::shared_ptr<model_t>)
   Property(AugmentedSet, boost::shared_ptr<v_host_tensor_t>)
 
+  static int methodId;
+
 public:
   Train();
 
 protected:
   virtual void update(IProgressMonitor* monitor) const;
+
+  void changedHandler(ObservableClass* sender, int eventId);
 };
 
 } /* namespace encoder */
