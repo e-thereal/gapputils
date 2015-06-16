@@ -208,6 +208,14 @@ void WorkbenchWindow::createItem(boost::shared_ptr<workflow::Node> node) {
   for (unsigned i = 0; i < properties.size(); ++i) {
     if (properties[i]->getAttribute<LabelAttribute>()) {
       label = properties[i]->getStringValue(*node->getModule());
+      // replace all instances of "\\n" with "\n"
+      size_t pos = 0;
+      std::string pattern = "\\n";
+      std::string replace = "\n";
+      while ((pos = label.find("\\n", pos)) != std::string::npos) {
+        label.replace(pos, pattern.length(), replace);
+         pos += replace.length();
+      }
       break;
     }
   }
