@@ -8,6 +8,14 @@
 #include "Train.h"
 
 #include <tbblas/deeplearn/nn.hpp>
+#include <tbblas/deeplearn/nn_base.hpp>
+
+#include <tbblas/deeplearn/opt/classic_momentum.hpp>
+#include <tbblas/deeplearn/opt/adadelta.hpp>
+#include <tbblas/deeplearn/opt/adam.hpp>
+#include <tbblas/deeplearn/opt/adam2.hpp>
+#include <tbblas/deeplearn/opt/hessian_free2.hpp>
+
 #include <tbblas/io.hpp>
 #include <tbblas/sum.hpp>
 #include <tbblas/dot.hpp>
@@ -34,6 +42,8 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(Model, test);
 }
 
+namespace td = tbblas::deeplearn;
+
 void Train::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
@@ -51,7 +61,44 @@ void Train::update(IProgressMonitor* monitor) const {
 
   boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
 
-  tbblas::deeplearn::nn<value_t> nn(*model);
+  typedef td::nn_base<value_t> nn_base_t;
+  typedef td::nn<value_t, td::opt::classic_momentum<value_t> > cm_nn_t;
+  typedef td::nn<value_t, td::opt::adadelta<value_t> > adadelta_nn_t;
+  typedef td::nn<value_t, td::opt::adam<value_t> > adam_nn_t;
+  typedef td::nn<value_t, td::opt::adam2<value_t> > adam2_nn_t;
+  typedef td::nn<value_t> default_nn_t;
+
+//  boost::shared_ptr<nn_base_t> p_nn;
+
+//  switch (getMethod()) {
+//  case TrainingMethod::ClassicMomentum:
+//    p_nn = boost::make_shared<cm_nn_t>(boost::ref(*model));
+//    break;
+//
+//  case TrainingMethod::AdaDelta:
+//    p_nn = boost::make_shared<adadelta_nn_t>(boost::ref(*model));
+//    break;
+//
+//  case TrainingMethod::Adam:
+//    p_nn = boost::make_shared<adam_nn_t>(boost::ref(*model));
+//    break;
+//
+//  case TrainingMethod::AdamDecay:
+//    p_nn = boost::make_shared<adam2_nn_t>(boost::ref(*model));
+//    break;
+//
+//  default:
+//    p_nn = boost::make_shared<default_nn_t>(boost::ref(*model));
+//  }
+
+//  nn_base_t& nn = *p_nn;
+
+  cm_nn_t nn(*model);
+  nn.set_learning_rate(getLearningRate());
+  td::opt::hessian_free2<cm_nn_t> trainer(nn);
+  trainer.set_weightcost(getWeightCosts());
+  trainer.set_iteration_count(10);
+
   if (getBatchedLearning())
     nn.visibles().resize(seq((int)getBatchSize(), (int)model->visibles_count()));
   else
@@ -108,6 +155,8 @@ void Train::update(IProgressMonitor* monitor) const {
 
   value_t error;
 
+  matrix_t input, label;
+
   for (int iEpoch = 0; iEpoch < getEpochCount() && (monitor ? !monitor->getAbortRequested() : true); ++iEpoch) {
 
     error = 0;
@@ -120,52 +169,86 @@ void Train::update(IProgressMonitor* monitor) const {
     for (int iBatch = 0; iBatch < batchCount; ++iBatch) {
 
       if (getBatchedLearning()) {
+
+        input = X[seq(iBatch * getBatchSize(), 0), nn.visibles().size()];
+        label = Y[seq(iBatch * batchSize, 0), yBatch.size()];
+        trainer.check_gradient(input, label, getLearningRate());
+        trainer.check_Gv(input, label, getLearningRate(), getEpochCount(), getShuffleTrainingSet());
+        return;
+
         nn.visibles() = X[seq(iBatch * getBatchSize(), 0), nn.visibles().size()];
         yBatch = Y[seq(iBatch * batchSize, 0), yBatch.size()];
 
         // Perform forward propagation
-        nn.normalize_visibles();
 
-        // Update model
-        switch (getMethod()) {
-        case TrainingMethod::Momentum:
-          nn.momentum_update(yBatch, getLearningRate(), momentum, weightcost);
-          break;
+//        // Update model
+//        switch (getMethod()) {
+//        case TrainingMethod::ClassicMomentum:
+//          {
+//            boost::shared_ptr<cm_nn_t> cm_nn = boost::dynamic_pointer_cast<cm_nn_t>(p_nn);
+//            cm_nn->set_learning_rate(getLearningRate());
+//            cm_nn->set_momentum(momentum);
+//          }
+//          break;
+//
+//        case TrainingMethod::AdaDelta:
+//          {
+//            boost::shared_ptr<adadelta_nn_t> ad_nn = boost::dynamic_pointer_cast<adadelta_nn_t>(p_nn);
+//            ad_nn->set_epsilon(getLearningRate());
+//            ad_nn->set_decay_rate(0.95);
+//          }
+//          break;
+//
+//        default:
+//          dlog(Severity::Warning) << "Training method " << getMethod() << " has not been implemented.";
+//        }
+        nn.set_momentum(momentum);
+        nn.update(yBatch, weightcost);
 
-        case TrainingMethod::AdaDelta:
-          nn.adadelta_update(yBatch, getLearningRate(), 0.95, weightcost);
-          break;
-        }
+//        error += dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch) / model->hiddens_count();
 
-        error += dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch);
+        error += nn.loss(yBatch);
+//        tbblas_print(nn.loss(yBatch));
       } else {
 
-        for (int iSample = 0; iSample < batchSize; ++iSample) {
-          nn.visibles() = X[seq(iBatch * batchSize + iSample, 0), nn.visibles().size()];
-          yBatch = Y[seq(iBatch * batchSize + iSample, 0), yBatch.size()];
-
-          // Perform forward propagation
-          nn.normalize_visibles();
-          nn.infer_hiddens();
-          error += dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch);
-
-          // Update model
-          nn.update_gradient(yBatch);
-        }
-
-        switch (getMethod()) {
-        case TrainingMethod::Momentum:
-          nn.momentum_step(getLearningRate(), momentum, weightcost);
-          break;
-
-        case TrainingMethod::AdaDelta:
-          nn.adadelta_step(getLearningRate(), 0.95, weightcost);
-          break;
-        }
+//        for (int iSample = 0; iSample < batchSize; ++iSample) {
+//          nn.visibles() = X[seq(iBatch * batchSize + iSample, 0), nn.visibles().size()];
+//          yBatch = Y[seq(iBatch * batchSize + iSample, 0), yBatch.size()];
+//
+//          // Perform forward propagation
+//          nn.normalize_visibles();
+//          nn.infer_hiddens();
+//          error += dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch);
+//
+//          // Update model
+//          nn.update_gradient(yBatch);
+//        }
+//
+//        switch (getMethod()) {
+//        case TrainingMethod::ClassicMomentum:
+//          {
+//            boost::shared_ptr<cm_nn_t> cm_nn = boost::dynamic_pointer_cast<cm_nn_t>(p_nn);
+//            cm_nn->set_learning_rate(getLearningRate());
+//            cm_nn->set_momentum(momentum);
+//          }
+//          break;
+//
+//        case TrainingMethod::AdaDelta:
+//          {
+//            boost::shared_ptr<adadelta_nn_t> ad_nn = boost::dynamic_pointer_cast<adadelta_nn_t>(p_nn);
+//            ad_nn->set_epsilon(getLearningRate());
+//            ad_nn->set_decay_rate(0.95);
+//          }
+//          break;
+//
+//        default:
+//          dlog(Severity::Warning) << "Training method " << getMethod() << " has not been implemented.";
+//        }
+//        nn.update_model(weightcost);
       }
     }
 
-    dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << sqrt(error / data.size());
+    dlog(Severity::Trace) << "Error at epoch " << iEpoch + 1 << " of " << getEpochCount() << " epochs: " << error / batchCount;
 
     if (monitor)
       monitor->reportProgress(100 * (iEpoch + 1) / getEpochCount());

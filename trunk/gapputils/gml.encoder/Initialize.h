@@ -32,6 +32,7 @@ class Initialize : public DefaultWorkflowElement<Initialize> {
   Property(FilterHeights, std::vector<int>)
   Property(FilterDepths, std::vector<int>)
   Property(FilterCounts, std::vector<int>)
+  Property(WeightSparsity, double)
   Property(EncodingWeights, std::vector<double>)
   Property(DecodingWeights, std::vector<double>)
   Property(ShortcutWeights, std::vector<double>)

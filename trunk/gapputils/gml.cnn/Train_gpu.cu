@@ -8,6 +8,9 @@
 #include "Train.h"
 
 #include <tbblas/deeplearn/cnn.hpp>
+#include <tbblas/deeplearn/opt/classic_momentum.hpp>
+#include <tbblas/deeplearn/opt/adadelta.hpp>
+
 #include <tbblas/io.hpp>
 #include <tbblas/sum.hpp>
 #include <tbblas/dot.hpp>
@@ -37,6 +40,8 @@ TrainChecker::TrainChecker() {
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
 }
+
+namespace td = tbblas::deeplearn;
 
 void Train::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
@@ -112,7 +117,27 @@ void Train::update(IProgressMonitor* monitor) const {
         layer.set_weights(W);
       }
 
-      tbblas::deeplearn::cnn<value_t, dimCount> cnn(*model);
+      typedef td::cnn_base<value_t, dimCount> cnn_base_t;
+      typedef td::cnn<value_t, dimCount, td::opt::classic_momentum<value_t> > cm_cnn_t;
+      typedef td::cnn<value_t, dimCount, td::opt::adadelta<value_t> > adadelta_cnn_t;
+
+      boost::shared_ptr<cnn_base_t> p_cnn;
+
+      switch (getMethod()) {
+      case TrainingMethod::ClassicMomentum:
+        p_cnn = boost::make_shared<cm_cnn_t>(boost::ref(*model));
+        break;
+
+      case TrainingMethod::AdaDelta:
+        p_cnn = boost::make_shared<adadelta_cnn_t>(boost::ref(*model));
+        break;
+
+      default:
+        dlog(Severity::Warning) << "Unsupported optimization method. Aborting!";
+        return;
+      }
+
+      cnn_base_t& cnn = *p_cnn;
       for (size_t i = 0; i < model->cnn_layers().size() && i < getFilterBatchSize().size(); ++i)
         cnn.set_batch_length(i, getFilterBatchSize()[i]);
 
@@ -149,12 +174,22 @@ void Train::update(IProgressMonitor* monitor) const {
           }
 
           switch (getMethod()) {
-          case TrainingMethod::Momentum:
-            cnn.momentum_step(epsilon * learningDecay, epsilon * learningDecay, momentum, weightcost);
+          case TrainingMethod::ClassicMomentum:
+            {
+              boost::shared_ptr<cm_cnn_t> cm_cnn = boost::dynamic_pointer_cast<cm_cnn_t>(p_cnn);
+              cm_cnn->set_learning_rate(epsilon * learningDecay);
+              cm_cnn->set_momentum(momentum);
+              cm_cnn->update_model(weightcost);
+            }
             break;
 
           case TrainingMethod::AdaDelta:
-            cnn.adadelta_step(epsilon * learningDecay, epsilon * learningDecay, momentum, weightcost);
+            {
+              boost::shared_ptr<adadelta_cnn_t> adadelta_cnn = boost::dynamic_pointer_cast<adadelta_cnn_t>(p_cnn);
+              adadelta_cnn->set_epsilon(epsilon * learningDecay);
+              adadelta_cnn->set_decay_rate(momentum);
+              adadelta_cnn->update_model(weightcost);
+            }
             break;
           }
         }

@@ -30,6 +30,7 @@ BeginPropertyDefinitions(Initialize)
   WorkflowProperty(FilterHeights, Group("Convolutional layers"))
   WorkflowProperty(FilterDepths, Group("Convolutional layers"))
   WorkflowProperty(FilterCounts, NotEmpty<Type>(), Group("Convolutional layers"))
+  WorkflowProperty(WeightSparsity, Group("Optional"), Description("Indicates the percentage of non-zero weights."))
   WorkflowProperty(EncodingWeights, Group("Optional"))
   WorkflowProperty(DecodingWeights, Group("Optional"))
   WorkflowProperty(ShortcutWeights, Group("Optional"))
@@ -54,7 +55,7 @@ BeginPropertyDefinitions(Initialize)
 
 EndPropertyDefinitions
 
-Initialize::Initialize() : _NormalizeInputs(true), _InsertShortcuts(false) {
+Initialize::Initialize() : _WeightSparsity(1), _NormalizeInputs(true), _InsertShortcuts(false) {
   setLabel("Init");
 }
 
@@ -152,18 +153,20 @@ void Initialize::update(IProgressMonitor* monitor) const {
     v_host_tensor_t bias;
     v_host_tensor_t filters;
 
-    random_tensor<value_t, dimCount, false, normal<value_t> > randn(kernelSize);
+    random_tensor2<value_t, dimCount, false, normal<value_t> > randn(kernelSize);
+    random_tensor2<value_t, dimCount, false, uniform<value_t> > randu(kernelSize);
     host_tensor_t sample;
 
     host_tensor_t::dim_t hiddenSize = size;
     hiddenSize[dimCount - 1] = 1;
 
     value_t stddev = 0.5 * sqrt(2.0 / (value_t)kernelSize.count()) + 0.5 * sqrt(2.0 / (value_t)(kernelSize[0] * kernelSize[1] * kernelSize[2] * getFilterCounts()[iLayer]));
+    stddev /= sqrt(_WeightSparsity);
     if (_EncodingWeights.size() > iLayer)
       stddev = _EncodingWeights[iLayer];
 
     for (int i = 0; i < getFilterCounts()[iLayer]; ++i) {
-      sample = (stddev * randn);
+      sample = (stddev * randn()) * (randu() < _WeightSparsity);
       filters.push_back(boost::make_shared<host_tensor_t>(sample));
       bias.push_back(boost::make_shared<host_tensor_t>(zeros<value_t>(hiddenSize)));
     }
@@ -238,7 +241,8 @@ void Initialize::update(IProgressMonitor* monitor) const {
     host_tensor_t bias;
     v_host_tensor_t filters;
 
-    random_tensor<value_t, dimCount, false, normal<value_t> > randn(kernelSize);
+    random_tensor2<value_t, dimCount, false, normal<value_t> > randn(kernelSize);
+    random_tensor2<value_t, dimCount, false, uniform<value_t> > randu(kernelSize);
     host_tensor_t sample;
 
     host_tensor_t::dim_t hiddenSize = size;
@@ -249,11 +253,12 @@ void Initialize::update(IProgressMonitor* monitor) const {
       stddev = 0.5 * sqrt(2.0 / (value_t)kernelSize.count()) + 0.5 * sqrt(1.0 / (value_t)(kernelSize[0] * kernelSize[1] * kernelSize[2] * getFilterCounts()[iLayer]));
     else
       stddev = 0.5 * sqrt(2.0 / (value_t)kernelSize.count()) + 0.5 * sqrt(2.0 / (value_t)(kernelSize[0] * kernelSize[1] * kernelSize[2] * getFilterCounts()[iLayer]));
+    stddev /= sqrt(_WeightSparsity);
     if ((int)_DecodingWeights.size() > iLayer)
       stddev = _DecodingWeights[iLayer];
 
     for (int i = 0; i < getFilterCounts()[iLayer]; ++i) {
-      sample = (stddev * randn);
+      sample = (stddev * randn()) * (randu() < _WeightSparsity);
       filters.push_back(boost::make_shared<host_tensor_t>(sample));
     }
     clayer.set_filters(filters);
@@ -327,7 +332,8 @@ void Initialize::update(IProgressMonitor* monitor) const {
       host_tensor_t bias;
       v_host_tensor_t filters;
 
-      random_tensor<value_t, dimCount, false, normal<value_t> > randn(kernelSize);
+      random_tensor2<value_t, dimCount, false, normal<value_t> > randn(kernelSize);
+      random_tensor2<value_t, dimCount, false, uniform<value_t> > randu(kernelSize);
       host_tensor_t sample;
 
       host_tensor_t::dim_t hiddenSize = size;
@@ -336,9 +342,10 @@ void Initialize::update(IProgressMonitor* monitor) const {
       value_t stddev = 0.5 * sqrt(2.0 / (value_t)kernelSize.count()) + 0.5 * sqrt(1.0 / (value_t)(kernelSize[0] * kernelSize[1] * kernelSize[2] * getFilterCounts()[iLayer]));
       if ((int)_ShortcutWeights.size() > iLayer)
         stddev = _ShortcutWeights[iLayer];
+      stddev /= sqrt(_WeightSparsity);
 
       for (int i = 0; i < getFilterCounts()[iLayer]; ++i) {
-        sample = (stddev * randn);
+        sample = (stddev * randn()) * (randu() < _WeightSparsity);
         filters.push_back(boost::make_shared<host_tensor_t>(sample));
       }
       clayer.set_filters(filters);

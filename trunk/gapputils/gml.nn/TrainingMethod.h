@@ -14,7 +14,7 @@ namespace gml {
 
 namespace nn {
 
-CapputilsEnumerator(TrainingMethod, Momentum, AdaDelta);
+CapputilsEnumerator(TrainingMethod, ClassicMomentum, AdaDelta, Adam, AdamDecay);
 
 }
 

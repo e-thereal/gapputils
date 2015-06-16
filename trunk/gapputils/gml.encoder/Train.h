@@ -84,7 +84,7 @@ public:
 class HessianFreeParameters : public OptimizationParameters {
   InitReflectableClass(HessianFreeParameters)
 
-  Property(ConjugateGradientIterations, int)
+  Property(IterationCount, int)
   Property(InitialLambda, float)
   Property(Zeta, float)
 
@@ -107,7 +107,7 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(TrainingSet, boost::shared_ptr<v_host_tensor_t>)
   Property(Labels, boost::shared_ptr<v_host_tensor_t>)
   Property(EpochCount, int)
-  Property(TrialEpochCount, int)
+//  Property(TrialEpochCount, int)
   Property(BatchSize, int)
   Property(FilterBatchSize, std::vector<int>)
   Property(SubRegionCount, host_tensor_t::dim_t)
@@ -117,13 +117,13 @@ class Train : public DefaultWorkflowElement<Train> {
 
   Property(Method, TrainingMethod)
   Property(Parameters, boost::shared_ptr<OptimizationParameters>)
-  Property(LearningRates, std::vector<double>)
-  Property(LearningDecay, int)
-  Property(InitialMomentum, double)
-  Property(FinalMomentum, double)
-  Property(MomentumDecayEpochs, int)
+//  Property(LearningRates, std::vector<double>)
+//  Property(LearningDecay, int)
+//  Property(InitialMomentum, double)
+//  Property(FinalMomentum, double)
+//  Property(MomentumDecayEpochs, int)
   Property(WeightCosts, double)
-  Property(InitialWeights, std::vector<double>)
+//  Property(InitialWeights, std::vector<double>)
   Property(RandomizeTraining, bool)
 
   Property(AugmentedChannels, std::vector<int>)

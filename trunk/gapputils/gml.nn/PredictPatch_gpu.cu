@@ -75,7 +75,6 @@ void PredictPatch::update(IProgressMonitor* monitor) const {
       }
 
       // Perform forward propagation
-      nn.normalize_visibles();
       nn.infer_hiddens();
 
       dim_t overlap = min(patchCount, range - *iSuperPatch * patchCount);

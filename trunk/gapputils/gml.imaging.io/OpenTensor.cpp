@@ -9,11 +9,13 @@
 
 #include <tbblas/serialize.hpp>
 
+#include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 
 namespace bio = boost::iostreams;
+namespace fs = boost::filesystem;
 
 namespace gml {
 
@@ -25,6 +27,7 @@ BeginPropertyDefinitions(OpenTensor)
   ReflectableBase(DefaultWorkflowElement<OpenTensor>)
 
   WorkflowProperty(Filename, Input("File"), Filename(), FileExists())
+  WorkflowProperty(SingleTensor, Flag())
   WorkflowProperty(FirstIndex)
   WorkflowProperty(MaxCount)
   WorkflowProperty(Tensors, Output("Ts"))
@@ -36,7 +39,7 @@ BeginPropertyDefinitions(OpenTensor)
 
 EndPropertyDefinitions
 
-OpenTensor::OpenTensor() : _FirstIndex(0), _MaxCount(-1), _Width(0), _Height(0), _Depth(0), _Channels(0), _TensorCount(0) {
+OpenTensor::OpenTensor() : _SingleTensor(false), _FirstIndex(0), _MaxCount(-1), _Width(0), _Height(0), _Depth(0), _Channels(0), _TensorCount(0) {
   setLabel("Reader");
 }
 
@@ -44,7 +47,9 @@ void OpenTensor::update(gapputils::workflow::IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
 
   bio::filtering_istream file;
-  file.push(boost::iostreams::gzip_decompressor());
+//  if (fs::path(getFilename()).extension() == ".gz")
+  if (!getSingleTensor())
+    file.push(boost::iostreams::gzip_decompressor());
   file.push(bio::file_descriptor_source(getFilename()));
 
   if (!file) {
@@ -52,38 +57,47 @@ void OpenTensor::update(gapputils::workflow::IProgressMonitor* monitor) const {
     return;
   }
 
-  int first = getFirstIndex();
-
-  unsigned count;
-  file.read((char*)&count, sizeof(count));
-
-  if ((int)count <= first) {
-    dlog(Severity::Warning) << "Invalid FirstIndex. Aborting!";
-    return;
-  }
-
-  if (getMaxCount() > 0)
-    count = std::min((int)count - first, getMaxCount());
-  else
-    count -= first;
-
   boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > > tensors(
       new std::vector<boost::shared_ptr<tensor_t> >());
 
-  {
-    boost::shared_ptr<tensor_t> tensor(new tensor_t());
-    for (int i = 0; i < first; ++i) {
-      tbblas::deserialize(file, *tensor);
-    }
-  }
+  if (getSingleTensor()) {
 
-  for (unsigned i = 0; i < count && (monitor ? !monitor->getAbortRequested() : true); ++i) {
     boost::shared_ptr<tensor_t> tensor(new tensor_t());
     tbblas::deserialize(file, *tensor);
     tensors->push_back(tensor);
-    if (monitor)
-      monitor->reportProgress(100.0 * i / count);
+
+  } else {
+    int first = getFirstIndex();
+
+    unsigned count;
+    file.read((char*)&count, sizeof(count));
+
+    if ((int)count <= first) {
+      dlog(Severity::Warning) << "Invalid FirstIndex. Aborting!";
+      return;
+    }
+
+    if (getMaxCount() > 0)
+      count = std::min((int)count - first, getMaxCount());
+    else
+      count -= first;
+
+    {
+      boost::shared_ptr<tensor_t> tensor(new tensor_t());
+      for (int i = 0; i < first; ++i) {
+        tbblas::deserialize(file, *tensor);
+      }
+    }
+
+    for (unsigned i = 0; i < count && (monitor ? !monitor->getAbortRequested() : true); ++i) {
+      boost::shared_ptr<tensor_t> tensor(new tensor_t());
+      tbblas::deserialize(file, *tensor);
+      tensors->push_back(tensor);
+      if (monitor)
+        monitor->reportProgress(100.0 * i / count);
+    }
   }
+
   newState->setTensors(tensors);
 
   if (tensors->size()) {

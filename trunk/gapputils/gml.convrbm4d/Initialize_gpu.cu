@@ -100,6 +100,7 @@ void Initialize::update(gapputils::workflow::IProgressMonitor* monitor) const {
 
   tensor_t tensor;
 
+  // Calculate mean and standard deviation for Gaussian units.
   if (getVisibleUnitType() == unit_type::Gaussian) {
 
     // Calculate the mean and normalize the data

@@ -132,6 +132,8 @@ void Trainer::update(IProgressMonitor* monitor) const {
   std::vector<double> initialWeights = getInitialWeights();
   value_t bestEpsilon, bestError, bestWeight = 0;
 
+  bool finalRun = false;
+
   for (int iWeight = 0; iWeight < initialWeights.size() || (iWeight == 0 && initialWeights.size() == 0); ++iWeight) {
     for (int iLearningRate = 0; iLearningRate < learningRates.size() + 1; ++iLearningRate) {
 
@@ -159,6 +161,7 @@ void Trainer::update(IProgressMonitor* monitor) const {
         initialWeight = bestWeight;
         dlog(Severity::Message) << "Final run with learning rate: " << bestEpsilon << " and initial weight of " << initialWeight;
         epochCount = getEpochCount();
+        finalRun = true;
       }
       value_t weightcost = getWeightDecay();
 
@@ -185,8 +188,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
 
       value_t error = 0, learningDecay = 1;
       tensor_t v, input;
-
-      /*** START OF PARALLEL CODE ***/
 
       crbm.allocate_gpu_memory();
 
@@ -272,10 +273,16 @@ void Trainer::update(IProgressMonitor* monitor) const {
         else
           dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
 
+        if (finalRun && getUpdateModel() && (iEpoch % getUpdateModel() == 0)) {
+          crbm.write_model_to_host();
+          newState->setModel(model);
+          newState->setCurrentEpoch(iEpoch);
+        }
+
         if (monitor) {
           const int totalEpochs = getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size() + getEpochCount();
           const int currentEpoch = iEpoch + (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount();
-          monitor->reportProgress(100. * (currentEpoch + 1) / totalEpochs, getUpdateModel() && (iEpoch % getUpdateModel() == 0));
+          monitor->reportProgress(100. * (currentEpoch + 1) / totalEpochs, finalRun && getUpdateModel() && (iEpoch % getUpdateModel() == 0));
         }
       } /* end of epochs */
 

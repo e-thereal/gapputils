@@ -87,6 +87,17 @@ void OpenNii::update(IProgressMonitor* /*monitor*/) const {
     }
     break;
 
+  case DT_UINT8:
+    {
+      std::vector<uint8_t> buffer(image->getCount());
+      if (!file.read((char*)&buffer[0], sizeof(uint8_t) * image->getCount())) {
+        dlog(Severity::Warning) << "Error reading volume from NII file: " << file.gcount();
+        return;
+      }
+      std::copy(buffer.begin(), buffer.end(), image->begin());
+    }
+    break;
+
   case DT_INT16:
     {
       std::vector<int16_t> buffer(image->getCount());
@@ -98,8 +109,30 @@ void OpenNii::update(IProgressMonitor* /*monitor*/) const {
     }
     break;
 
+  case DT_UINT16:
+    {
+      std::vector<uint16_t> buffer(image->getCount());
+      if (!file.read((char*)&buffer[0], sizeof(uint16_t) * image->getCount())) {
+        dlog(Severity::Warning) << "Error reading volume from NII file: " << file.gcount();
+        return;
+      }
+      std::copy(buffer.begin(), buffer.end(), image->begin());
+    }
+    break;
+
+  case DT_INT32:
+  {
+    std::vector<int32_t> buffer(image->getCount());
+    if (!file.read((char*)&buffer[0], sizeof(int32_t) * image->getCount())) {
+      dlog(Severity::Warning) << "Error reading volume from NII file: " << file.gcount();
+      return;
+    }
+    std::copy(buffer.begin(), buffer.end(), image->begin());
+  }
+  break;
+
   default:
-    dlog(Severity::Warning) << "Unsupported data type. Aborting!";
+    dlog(Severity::Warning) << "Unsupported data type: " << hdr.datatype << ". Aborting!";
     return;
   }
 

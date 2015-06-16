@@ -19,7 +19,7 @@ namespace gml {
 
 namespace cnn {
 
-CapputilsEnumerator(TrainingMethod, Momentum, AdaDelta)
+CapputilsEnumerator(TrainingMethod, ClassicMomentum, AdaDelta)
 
 struct TrainChecker { TrainChecker(); } ;
 

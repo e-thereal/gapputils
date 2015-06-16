@@ -166,7 +166,8 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
       host_tensor_t& mask = *getMask();
       for (size_t iSample = 0; iSample < bucketIds.size(); ++iSample) {
         host_tensor_t& label = *labels[iSample];
-        bucketIds[iSample] = -1 * ones<value_t>(label.size()) + (mask > 0);
+        // TODO: uncomment this line
+//        bucketIds[iSample] = -1 * ones<value_t>(label.size()) + (mask > 0);
       }
     } else {
       for (size_t iSample = 0; iSample < bucketIds.size(); ++iSample) {
@@ -343,35 +344,33 @@ void TrainPatch::update(IProgressMonitor* monitor) const {
         }
       }
 
-      // Perform forward propagation
-      nn.normalize_visibles();
-
       // Update model
-      switch (getMethod()) {
-      case TrainingMethod::Momentum:
-        nn.momentum_update(yBatch, getLearningRate(), momentum, weightcost);
-        break;
-
-      case TrainingMethod::AdaDelta:
-        nn.adadelta_update(yBatch, getLearningRate(), momentum, weightcost);
-        break;
-      }
-
-      // Calculate errors
-      switch (getObjective()) {
-      case tbblas::deeplearn::objective_function::SSD:
-      case tbblas::deeplearn::objective_function::SenSpe:
-        error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch) / yBatch.size()[0]);
-        break;
-
-      case tbblas::deeplearn::objective_function::DSC:
-        error += 2 * sum(nn.hiddens() * yBatch) / (sum(nn.hiddens()) + sum(yBatch));
-        break;
-
-      case tbblas::deeplearn::objective_function::DSC2:
-        error += 2 * sum((value_t(1) + value_t(-1) * (nn.hiddens() - yBatch) * (nn.hiddens() - yBatch)) * yBatch) / (sum(nn.hiddens() * nn.hiddens()) + sum(yBatch));
-        break;
-      }
+      // TODO: update code to reflect latest trainer changes
+//      switch (getMethod()) {
+//      case TrainingMethod::Momentum:
+//        nn.momentum_update(yBatch, getLearningRate(), momentum, weightcost);
+//        break;
+//
+//      case TrainingMethod::AdaDelta:
+//        nn.adadelta_update(yBatch, getLearningRate(), momentum, weightcost);
+//        break;
+//      }
+//
+//      // Calculate errors
+//      switch (getObjective()) {
+//      case tbblas::deeplearn::objective_function::SSD:
+//      case tbblas::deeplearn::objective_function::SenSpe:
+//        error += sqrt(dot(nn.hiddens() - yBatch, nn.hiddens() - yBatch) / yBatch.size()[0]);
+//        break;
+//
+//      case tbblas::deeplearn::objective_function::DSC:
+//        error += 2 * sum(nn.hiddens() * yBatch) / (sum(nn.hiddens()) + sum(yBatch));
+//        break;
+//
+//      case tbblas::deeplearn::objective_function::DSC2:
+//        error += 2 * sum((value_t(1) + value_t(-1) * (nn.hiddens() - yBatch) * (nn.hiddens() - yBatch)) * yBatch) / (sum(nn.hiddens() * nn.hiddens()) + sum(yBatch));
+//        break;
+//      }
 
       if (iEpoch + 1 == getEpochCount() && iBatch + 1 == batchCount) {
         for (size_t iPatch = 0; iPatch < getPatchCount(); ++iPatch)

@@ -76,12 +76,12 @@ EndPropertyDefinitions
 AdamParameters::AdamParameters() : _Alpha(0.0002), _Beta1(0.1), _Beta2(0.001), _Epsilon(1e-8) { }
 
 BeginPropertyDefinitions(HessianFreeParameters)
-  DefineProperty(ConjugateGradientIterations)
+  DefineProperty(IterationCount)
   DefineProperty(InitialLambda)
   DefineProperty(Zeta)
 EndPropertyDefinitions
 
-HessianFreeParameters::HessianFreeParameters() : _ConjugateGradientIterations(20), _InitialLambda(1), _Zeta(0.9) { }
+HessianFreeParameters::HessianFreeParameters() : _IterationCount(20), _InitialLambda(1), _Zeta(0.9) { }
 
 int Train::methodId;
 
@@ -90,7 +90,7 @@ BeginPropertyDefinitions(Train)
   ReflectableBase(DefaultWorkflowElement<Train>)
 
   WorkflowProperty(EpochCount, Group("Optimization"))
-  WorkflowProperty(TrialEpochCount, Group("Optimization"))
+//  WorkflowProperty(TrialEpochCount, Group("Optimization"))
   WorkflowProperty(BatchSize, Group("Optimization"))
   WorkflowProperty(FilterBatchSize, Group("Performance"))
   WorkflowProperty(SubRegionCount, Group("Performance"), Description("Number of sub-regions into which the calculation will be split. Fewer (but larger) sub-regions speed up the calculation but require more memory."))
@@ -100,13 +100,13 @@ BeginPropertyDefinitions(Train)
 
   WorkflowProperty(Method, Enumerator<Type>(), Group("Optimization"), Dummy(methodId = Id))
   WorkflowProperty(Parameters, Reflectable<Type>(), Group("Optimization"))
-  WorkflowProperty(LearningRates, NotEmpty<Type>(), Group("Optimization"))
-  WorkflowProperty(LearningDecay, Description("After how many epochs the learning rate will be halved. A value of -1 indicates no LearningDecay."), Group("Optimization"))
-  WorkflowProperty(InitialMomentum, Description("Momentum used for the first epoch."), Group("Optimization"))
-  WorkflowProperty(FinalMomentum, Group("Optimization"))
-  WorkflowProperty(MomentumDecayEpochs, Group("Optimization"))
+//  WorkflowProperty(LearningRates, NotEmpty<Type>(), Group("Optimization"))
+//  WorkflowProperty(LearningDecay, Description("After how many epochs the learning rate will be halved. A value of -1 indicates no LearningDecay."), Group("Optimization"))
+//  WorkflowProperty(InitialMomentum, Description("Momentum used for the first epoch."), Group("Optimization"))
+//  WorkflowProperty(FinalMomentum, Group("Optimization"))
+//  WorkflowProperty(MomentumDecayEpochs, Group("Optimization"))
   WorkflowProperty(WeightCosts, Group("Optimization"))
-  WorkflowProperty(InitialWeights, Description("If given, these weights will be tested as initial weights and will override the initial weights."), Group("Optimization"))
+//  WorkflowProperty(InitialWeights, Description("If given, these weights will be tested as initial weights and will override the initial weights."), Group("Optimization"))
   WorkflowProperty(RandomizeTraining, Flag(), Group("Optimization"))
 
   WorkflowProperty(AugmentedChannels, Group("Data augmentation"))
@@ -125,15 +125,12 @@ BeginPropertyDefinitions(Train)
 
 EndPropertyDefinitions
 
-Train::Train() : _EpochCount(100), _TrialEpochCount(20), _BatchSize(50), _SubRegionCount(tbblas::seq<host_tensor_t::dimCount>(1)),
-  _SensitivityRatio(0.5), _SharedBiasTerms(true), _Parameters(new MomentumParameters()), _LearningDecay(50),
-  _InitialMomentum(0.5), _FinalMomentum(0.9), _MomentumDecayEpochs(20),
+Train::Train() : _EpochCount(100), _BatchSize(50), _SubRegionCount(tbblas::seq<host_tensor_t::dimCount>(1)),
+  _SensitivityRatio(0.5), _SharedBiasTerms(true), _Parameters(new MomentumParameters()),
   _WeightCosts(0.0002), _RandomizeTraining(true),
   _ContrastSd(0), _BrightnessSd(0), _GammaSd(0), _SaveEvery(-1), _CurrentEpoch(0)
 {
   setLabel("Train");
-  _LearningRates.push_back(0.0001);
-
   Changed.connect(EventHandler<Train>(this, &Train::changedHandler));
 }
 

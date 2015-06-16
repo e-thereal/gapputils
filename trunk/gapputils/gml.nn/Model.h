@@ -15,8 +15,8 @@ namespace gml {
 
 namespace nn {
 
-typedef tbblas::deeplearn::nn_model<float> model_t;
-typedef tbblas::deeplearn::nn_patch_model<float, 4> patch_model_t;
+typedef tbblas::deeplearn::nn_model<double> model_t;
+typedef tbblas::deeplearn::nn_patch_model<double, 4> patch_model_t;
 
 }
 
