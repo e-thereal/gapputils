@@ -44,12 +44,15 @@ void VolumeAggregator::update(IProgressMonitor* monitor) const {
   tensor<float, 3> out;
 
   // Make size check
+  bool sizeMismatch = false;
   for (size_t i = 0; i < inputs.size(); ++i) {
     if (inputs[i]->getCount() != count) {
-      dlog(Severity::Warning) << "Image " << (i + 1) << " has a different size than the rest of the images. Aborting!";
-      return;
+      dlog(Severity::Warning) << "Image " << (i + 1) << " has a different size (" << seq(inputs[i]->getSize()[0], inputs[i]->getSize()[1], inputs[i]->getSize()[2]) << ") than the rest of the images (" << img.size() << "). Aborting!";
+      sizeMismatch = true;
     }
   }
+  if (sizeMismatch)
+    return;
 
   switch (getFunction()) {
   case AggregatorFunction::Average:

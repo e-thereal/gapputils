@@ -21,6 +21,7 @@ class CropImage : public DefaultWorkflowElement<CropImage> {
   InitReflectableClass(CropImage)
 
   Property(Input, boost::shared_ptr<image_t>)
+  Property(TopLeft, std::vector<int>)
   Property(CroppedSize, std::vector<int>)
   Property(Output, boost::shared_ptr<image_t>)
 

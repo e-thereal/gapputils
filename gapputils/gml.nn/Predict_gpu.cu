@@ -37,7 +37,6 @@ void Predict::update(IProgressMonitor* monitor) const {
   }
 
   // Perform forward propagation
-  nn.normalize_visibles();
   nn.infer_hiddens();
 
   // Collect results

@@ -19,6 +19,7 @@ BeginPropertyDefinitions(CropImage)
   ReflectableBase(DefaultWorkflowElement<CropImage>)
 
   WorkflowProperty(Input, Input(""), NotNull<Type>())
+  WorkflowProperty(TopLeft, Description("If empty, the top left is chosen to center to ROI."))
   WorkflowProperty(CroppedSize, NotEmpty<Type>())
   WorkflowProperty(Output, Output(""))
 
@@ -47,6 +48,20 @@ void CropImage::update(IProgressMonitor* monitor) const {
   tensor_t padded(input.getSize()[0], input.getSize()[1], input.getSize()[2]);
   std::copy(input.begin(), input.end(), padded.begin());
   dim_t topleft = padded.size() / 2 - croppedSize / 2;
+
+  if (getTopLeft().size() > 0) {
+    if (getTopLeft().size() != 3 || getTopLeft()[0] <= 0 || getTopLeft()[1] <= 0 || getTopLeft()[2] <= 0) {
+      dlog(Severity::Warning) << "Top left must contain the x, y, and z coordinate of the top left corner and all dimensions must be positive. Aborting!";
+      return;
+    }
+    topleft = seq(_TopLeft[0], _TopLeft[1], _TopLeft[2]);
+  }
+
+  dim_t sizeTest = padded.size() - croppedSize + topleft;
+  if (sizeTest[0] < 0 || sizeTest[1] < 0 || sizeTest[2] < 0) {
+    dlog(Severity::Warning) << "Invalid topleft and cropped size given. Aborting!";
+    return;
+  }
 
   tensor_t cropped = padded[topleft, croppedSize];
   boost::shared_ptr<image_t> output(new image_t(croppedSize[0], croppedSize[1], croppedSize[2],

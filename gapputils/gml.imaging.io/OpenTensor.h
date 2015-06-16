@@ -26,6 +26,7 @@ class OpenTensor : public DefaultWorkflowElement<OpenTensor> {
   InitReflectableClass(OpenTensor)
 
   Property(Filename, std::string)
+  Property(SingleTensor, bool)
   Property(FirstIndex, int)
   Property(MaxCount, int)
   Property(Tensors, boost::shared_ptr<std::vector<boost::shared_ptr<tensor_t> > >)

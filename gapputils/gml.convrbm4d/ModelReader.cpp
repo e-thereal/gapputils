@@ -14,6 +14,9 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 
+#include <tbblas/math.hpp>
+#include <tbblas/dot.hpp>
+
 namespace bio = boost::iostreams;
 
 namespace gml {
@@ -77,6 +80,14 @@ void ModelReader::update(IProgressMonitor* monitor) const {
     newState->setFilterWidth(model->kernel_size()[0]);
     newState->setFilterHeight(model->kernel_size()[1]);
     newState->setFilterDepth(model->kernel_size()[2]);
+
+//    for (size_t i = 0; i < model->filters().size(); ++i) {
+//      host_tensor_t& tensor = *model->filters()[i];
+//      float mean = tbblas::sum(tensor) / tensor.count();
+//      float std = sqrt(tbblas::dot(tensor - mean, tensor - mean) / tensor.count());
+//      dlog(Severity::Message) << "Filter " << i + 1 << " mean = " << mean << ", std = " << std;
+//    }
+
   }
   newState->setFilterCount(model->filters().size());
   newState->setVisibleUnitType(model->visibles_type());

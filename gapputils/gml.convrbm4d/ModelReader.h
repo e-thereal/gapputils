@@ -10,6 +10,7 @@
 
 #include <gapputils/DefaultWorkflowElement.h>
 #include <gapputils/namespaces.h>
+#include <gapputils/Tensor.h>
 
 #include "Model.h"
 
