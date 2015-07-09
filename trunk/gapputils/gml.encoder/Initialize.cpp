@@ -46,7 +46,7 @@ BeginPropertyDefinitions(Initialize)
   WorkflowProperty(HiddenActivationFunction, Enumerator<Type>(), Group("Convolutional layers"))
   WorkflowProperty(OutputActivationFunction, Enumerator<Type>())
   WorkflowProperty(NormalizeInputs, Flag())
-  WorkflowProperty(InsertShortcuts, Flag())
+  WorkflowProperty(Shortcuts, Enumerator<Type>())
 
   WorkflowProperty(TrainingSet, Input("D"), NotNull<Type>(), NotEmpty<Type>(), Group("Input/output"))
   WorkflowProperty(Labels, Input("L"), NotNull<Type>(), NotEmpty<Type>(), Group("Input/output"))
@@ -55,7 +55,7 @@ BeginPropertyDefinitions(Initialize)
 
 EndPropertyDefinitions
 
-Initialize::Initialize() : _WeightSparsity(1), _NormalizeInputs(true), _InsertShortcuts(false) {
+Initialize::Initialize() : _WeightSparsity(1), _NormalizeInputs(true), _Shortcuts(ShortcutType::NoShortcut) {
   setLabel("Init");
 }
 
@@ -63,9 +63,6 @@ void Initialize::update(IProgressMonitor* monitor) const {
   using namespace tbblas;
 
   Logbook& dlog = getLogbook();
-
-//  typedef random_tensor<value_t, 2, false, normal<value_t> > rand_matrix_t;
-//  typedef random_tensor<value_t, dimCount, false, normal<value_t> > rand_tensor_t;
 
   v_host_tensor_t& tensors = *getTrainingSet();
   v_host_tensor_t& labels = *getLabels();
@@ -157,7 +154,7 @@ void Initialize::update(IProgressMonitor* monitor) const {
     random_tensor2<value_t, dimCount, false, uniform<value_t> > randu(kernelSize);
     host_tensor_t sample;
 
-    host_tensor_t::dim_t hiddenSize = size;
+    host_tensor_t::dim_t hiddenSize = (size + strideSize - 1) / strideSize;
     hiddenSize[dimCount - 1] = 1;
 
     value_t stddev = 0.5 * sqrt(2.0 / (value_t)kernelSize.count()) + 0.5 * sqrt(2.0 / (value_t)(kernelSize[0] * kernelSize[1] * kernelSize[2] * getFilterCounts()[iLayer]));
@@ -177,6 +174,76 @@ void Initialize::update(IProgressMonitor* monitor) const {
     model->append_cnn_encoder(clayer);
 
     dlog(Severity::Message) << "Added convolutional layer: visible size = " << clayer.visibles_size() << ", hidden size = " << clayer.hiddens_size() << ", pooled size = " << clayer.pooled_size();
+  }
+
+  if (getShortcuts() == ShortcutType::BottomUp) {
+    for (size_t iLayer = 0; iLayer < clayerCount - 1; ++iLayer) {
+      cnn_layer_t clayer;
+
+      host_tensor_t::dim_t size = (iLayer == 0 ? tensors[0]->size() : model->cnn_encoders()[iLayer - 1]->outputs_size());
+
+      clayer.set_visibles_size(size);
+      clayer.set_activation_function(getHiddenActivationFunction());
+      clayer.set_convolution_type(getConvolutionType());
+
+      host_tensor_t::dim_t strideSize;
+      strideSize[0] = getStrideWidths()[iLayer];
+      strideSize[1] = getStrideHeights()[iLayer];
+      strideSize[2] = getStrideDepths()[iLayer];
+      strideSize[3] = 1;
+      clayer.set_stride_size(strideSize);
+
+//      host_tensor_t::dim_t poolingSize;
+//      poolingSize[0] = getPoolingWidths()[iLayer];
+//      poolingSize[1] = getPoolingHeights()[iLayer];
+//      poolingSize[2] = getPoolingDepths()[iLayer];
+//      poolingSize[3] = 1;
+//      clayer.set_pooling_size(poolingSize);
+//      if (poolingSize.count() > 1)
+//        clayer.set_pooling_method(getPoolingMethod());
+//      else
+//        clayer.set_pooling_method(tbblas::deeplearn::pooling_method::NoPooling);
+      clayer.set_pooling_size(seq<dimCount>(1));
+      clayer.set_pooling_method(tbblas::deeplearn::pooling_method::NoPooling);
+
+      host_tensor_t::dim_t kernelSize;
+      kernelSize[0] = getFilterWidths()[iLayer];
+      kernelSize[1] = getFilterHeights()[iLayer];
+      kernelSize[2] = getFilterDepths()[iLayer];
+      kernelSize[3] = size[3];
+      clayer.set_kernel_size(kernelSize);
+      clayer.set_mean(0.0);
+      clayer.set_stddev(1.0);
+
+      // Initialize filters and bias terms
+      v_host_tensor_t bias;
+      v_host_tensor_t filters;
+
+      random_tensor2<value_t, dimCount, false, normal<value_t> > randn(kernelSize);
+      random_tensor2<value_t, dimCount, false, uniform<value_t> > randu(kernelSize);
+      host_tensor_t sample;
+
+      host_tensor_t::dim_t hiddenSize = (size + strideSize - 1) / strideSize;
+      hiddenSize[dimCount - 1] = 1;
+
+      value_t stddev = 0.5 * sqrt(2.0 / (value_t)kernelSize.count()) + 0.5 * sqrt(1.0 / (value_t)(kernelSize[0] * kernelSize[1] * kernelSize[2] * getFilterCounts()[iLayer]));
+      stddev /= sqrt(_WeightSparsity);
+      if (_ShortcutWeights.size() > iLayer)
+        stddev = _ShortcutWeights[iLayer];
+
+      for (int i = 0; i < getFilterCounts()[iLayer]; ++i) {
+        sample = (stddev * randn()) * (randu() < _WeightSparsity);
+        filters.push_back(boost::make_shared<host_tensor_t>(sample));
+        bias.push_back(boost::make_shared<host_tensor_t>(zeros<value_t>(hiddenSize)));
+      }
+
+      clayer.set_filters(filters);
+      clayer.set_bias(bias);
+
+      model->append_cnn_shortcut(clayer);
+
+      dlog(Severity::Message) << "Added convolutional shortcut layer: visible size = " << clayer.visibles_size() << ", hidden size = " << clayer.hiddens_size() << ", pooled size = " << clayer.pooled_size();
+    }
   }
 
   /*** Add deconvolutional decoding layers ***/
@@ -216,16 +283,32 @@ void Initialize::update(IProgressMonitor* monitor) const {
     strideSize[3] = 1;
     clayer.set_stride_size(strideSize);
 
-    host_tensor_t::dim_t poolingSize;
-    poolingSize[0] = getPoolingWidths()[iLayer];
-    poolingSize[1] = getPoolingHeights()[iLayer];
-    poolingSize[2] = getPoolingDepths()[iLayer];
-    poolingSize[3] = 1;
-    clayer.set_pooling_size(poolingSize);
-    if (poolingSize.count() > 1)
-      clayer.set_pooling_method(getPoolingMethod());
-    else
-      clayer.set_pooling_method(tbblas::deeplearn::pooling_method::NoPooling);
+    if (getShortcuts() == ShortcutType::BottomUp) {
+      host_tensor_t::dim_t poolingSize = seq<dimCount>(1);
+      if (iLayer > 0) {
+        poolingSize[0] = getPoolingWidths()[iLayer - 1];
+        poolingSize[1] = getPoolingHeights()[iLayer - 1];
+        poolingSize[2] = getPoolingDepths()[iLayer - 1];
+      }
+      clayer.set_pooling_size(poolingSize);
+      if (poolingSize.count() > 1) {
+        clayer.set_pooling_method(getPoolingMethod());
+        clayer.set_visible_pooling(true);
+      } else {
+        clayer.set_pooling_method(tbblas::deeplearn::pooling_method::NoPooling);
+      }
+    } else {
+      host_tensor_t::dim_t poolingSize;
+      poolingSize[0] = getPoolingWidths()[iLayer];
+      poolingSize[1] = getPoolingHeights()[iLayer];
+      poolingSize[2] = getPoolingDepths()[iLayer];
+      poolingSize[3] = 1;
+      clayer.set_pooling_size(poolingSize);
+      if (poolingSize.count() > 1)
+        clayer.set_pooling_method(getPoolingMethod());
+      else
+        clayer.set_pooling_method(tbblas::deeplearn::pooling_method::NoPooling);
+    }
 
     host_tensor_t::dim_t kernelSize;
     kernelSize[0] = getFilterWidths()[iLayer];
@@ -249,7 +332,7 @@ void Initialize::update(IProgressMonitor* monitor) const {
     hiddenSize[dimCount - 1] = 1;
 
     value_t stddev;
-    if (getInsertShortcuts() && iLayer < (int)clayerCount - 1)
+    if ((getShortcuts() == ShortcutType::TopDown && iLayer < (int)clayerCount - 1) || (getShortcuts() == ShortcutType::BottomUp && iLayer >= 1))
       stddev = 0.5 * sqrt(2.0 / (value_t)kernelSize.count()) + 0.5 * sqrt(1.0 / (value_t)(kernelSize[0] * kernelSize[1] * kernelSize[2] * getFilterCounts()[iLayer]));
     else
       stddev = 0.5 * sqrt(2.0 / (value_t)kernelSize.count()) + 0.5 * sqrt(2.0 / (value_t)(kernelSize[0] * kernelSize[1] * kernelSize[2] * getFilterCounts()[iLayer]));
@@ -271,7 +354,7 @@ void Initialize::update(IProgressMonitor* monitor) const {
     dlog(Severity::Message) << "Added deconvolutional layer: visible size = " << clayer.visibles_size() << ", hidden size = " << clayer.hiddens_size() << ", pooled size = " << clayer.pooled_size();
   }
 
-  if (getInsertShortcuts()) {
+  if (getShortcuts() == ShortcutType::TopDown) {
     for (int iLayer = clayerCount - 2; iLayer >= 0; --iLayer) {
       dnn_layer_t clayer;
 
@@ -307,16 +390,18 @@ void Initialize::update(IProgressMonitor* monitor) const {
       strideSize[3] = 1;
       clayer.set_stride_size(strideSize);
 
-      host_tensor_t::dim_t poolingSize;
-      poolingSize[0] = getPoolingWidths()[iLayer];
-      poolingSize[1] = getPoolingHeights()[iLayer];
-      poolingSize[2] = getPoolingDepths()[iLayer];
-      poolingSize[3] = 1;
-      clayer.set_pooling_size(poolingSize);
-      if (poolingSize.count() > 1)
-        clayer.set_pooling_method(getPoolingMethod());
-      else
-        clayer.set_pooling_method(tbblas::deeplearn::pooling_method::NoPooling);
+//      host_tensor_t::dim_t poolingSize;
+//      poolingSize[0] = getPoolingWidths()[iLayer];
+//      poolingSize[1] = getPoolingHeights()[iLayer];
+//      poolingSize[2] = getPoolingDepths()[iLayer];
+//      poolingSize[3] = 1;
+//      clayer.set_pooling_size(poolingSize);
+//      if (poolingSize.count() > 1)
+//        clayer.set_pooling_method(getPoolingMethod());
+//      else
+//        clayer.set_pooling_method(tbblas::deeplearn::pooling_method::NoPooling);
+      clayer.set_pooling_size(seq<dimCount>(1));
+      clayer.set_pooling_method(tbblas::deeplearn::pooling_method::NoPooling);
 
       host_tensor_t::dim_t kernelSize;
       kernelSize[0] = getFilterWidths()[iLayer];
@@ -355,7 +440,7 @@ void Initialize::update(IProgressMonitor* monitor) const {
 
       model->append_dnn_shortcut(clayer);
 
-      dlog(Severity::Message) << "Added shortcut layer: visible size = " << clayer.visibles_size() << ", hidden size = " << clayer.hiddens_size() << ", pooled size = " << clayer.pooled_size();
+      dlog(Severity::Message) << "Added deconvolutional shortcut layer: visible size = " << clayer.visibles_size() << ", hidden size = " << clayer.hiddens_size() << ", pooled size = " << clayer.pooled_size();
     }
   }
 

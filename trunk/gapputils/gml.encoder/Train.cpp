@@ -28,16 +28,16 @@ EndPropertyDefinitions
 
 MomentumParameters::MomentumParameters() : _LearningRate(0.0001), _LearningDecayEpochs(-1), _InitialMomentum(0.5), _FinalMomentum(0.9), _MomentumDecayEpochs(20) { }
 
-float MomentumParameters::getLearningRate(int epoch) const {
+double MomentumParameters::getLearningRate(int epoch) const {
   if (_LearningDecayEpochs > 0)
-    return _LearningRate * (float)_LearningDecayEpochs / ((float)_LearningDecayEpochs + (float)epoch);
+    return _LearningRate * (double)_LearningDecayEpochs / ((double)_LearningDecayEpochs + (double)epoch);
   else
     return _LearningRate;
 }
 
-float MomentumParameters::getMomentum(int epoch) const {
+double MomentumParameters::getMomentum(int epoch) const {
   if (epoch < _MomentumDecayEpochs) {
-    const float t = (float)epoch / (float)_MomentumDecayEpochs;
+    const double t = (double)epoch / (double)_MomentumDecayEpochs;
     return (1.0 - t) * _InitialMomentum + t * _FinalMomentum;
   } else {
     return _FinalMomentum;
@@ -52,9 +52,9 @@ EndPropertyDefinitions
 
 AdaGradParameters::AdaGradParameters() : _LearningRate(0.0001), _LearningDecayEpochs(-1), _Epsilon(1e-8) { }
 
-float AdaGradParameters::getLearningRate(int epoch) const {
+double AdaGradParameters::getLearningRate(int epoch) const {
   if (_LearningDecayEpochs > 0)
-    return _LearningRate * (float)_LearningDecayEpochs / ((float)_LearningDecayEpochs + (float)epoch);
+    return _LearningRate * (double)_LearningDecayEpochs / ((double)_LearningDecayEpochs + (double)epoch);
   else
     return _LearningRate;
 }
@@ -106,6 +106,7 @@ BeginPropertyDefinitions(Train)
 //  WorkflowProperty(FinalMomentum, Group("Optimization"))
 //  WorkflowProperty(MomentumDecayEpochs, Group("Optimization"))
   WorkflowProperty(WeightCosts, Group("Optimization"))
+  WorkflowProperty(DropoutRate, Group("Optimization"))
 //  WorkflowProperty(InitialWeights, Description("If given, these weights will be tested as initial weights and will override the initial weights."), Group("Optimization"))
   WorkflowProperty(RandomizeTraining, Flag(), Group("Optimization"))
 
@@ -119,16 +120,17 @@ BeginPropertyDefinitions(Train)
   WorkflowProperty(InitialModel, Input("ENN"), NotNull<Type>(), Group("Input/output"))
   WorkflowProperty(TrainingSet, Input("D"), NotNull<Type>(), NotEmpty<Type>(), Group("Input/output"))
   WorkflowProperty(Labels, Input("L"), NotNull<Type>(), NotEmpty<Type>(), Group("Input/output"))
+  WorkflowProperty(CurrentEpoch, NoParameter(), Group("Input/output"))
+  WorkflowProperty(Error, NoParameter(), Group("Input/output"))
   WorkflowProperty(Model, Output("ENN"), Group("Input/output"))
   WorkflowProperty(AugmentedSet, Output("AS"), Group("Input/output"))
-  WorkflowProperty(CurrentEpoch, NoParameter(), Group("Input/output"))
 
 EndPropertyDefinitions
 
 Train::Train() : _EpochCount(100), _BatchSize(50), _SubRegionCount(tbblas::seq<host_tensor_t::dimCount>(1)),
   _SensitivityRatio(0.5), _SharedBiasTerms(true), _Parameters(new MomentumParameters()),
-  _WeightCosts(0.0002), _RandomizeTraining(true),
-  _ContrastSd(0), _BrightnessSd(0), _GammaSd(0), _SaveEvery(-1), _CurrentEpoch(0)
+  _WeightCosts(0.0002), _DropoutRate(0), _RandomizeTraining(true),
+  _ContrastSd(0), _BrightnessSd(0), _GammaSd(0), _SaveEvery(-1), _CurrentEpoch(0), _Error(0)
 {
   setLabel("Train");
   Changed.connect(EventHandler<Train>(this, &Train::changedHandler));

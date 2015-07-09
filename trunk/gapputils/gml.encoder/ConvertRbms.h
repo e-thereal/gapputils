@@ -16,6 +16,8 @@
 #include <tbblas/deeplearn/conv_rbm_model.hpp>
 #include <tbblas/deeplearn/rbm_model.hpp>
 
+#include "Initialize.h"
+
 namespace gml {
 
 namespace encoder {
@@ -40,7 +42,7 @@ class ConvertRbms : public DefaultWorkflowElement<ConvertRbms> {
   Property(FirstOutputChannel, int)
   Property(OutputChannelCount, int)
   Property(OutputActivationFunction, tbblas::deeplearn::activation_function)
-  Property(InsertShortcuts, bool)
+  Property(Shortcuts, ShortcutType)
   Property(Model, boost::shared_ptr<model_t>)
 
 public:

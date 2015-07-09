@@ -12,11 +12,15 @@
 #include <gapputils/Tensor.h>
 #include <gapputils/namespaces.h>
 
+#include <capputils/Enumerators.h>
+
 #include "Model.h"
 
 namespace gml {
 
 namespace encoder {
+
+CapputilsEnumerator(ShortcutType, NoShortcut, BottomUp, TopDown);
 
 class Initialize : public DefaultWorkflowElement<Initialize> {
 
@@ -48,7 +52,7 @@ class Initialize : public DefaultWorkflowElement<Initialize> {
   Property(HiddenActivationFunction, tbblas::deeplearn::activation_function)
   Property(OutputActivationFunction, tbblas::deeplearn::activation_function)
   Property(NormalizeInputs, bool)
-  Property(InsertShortcuts, bool)
+  Property(Shortcuts, ShortcutType)
   Property(Model, boost::shared_ptr<model_t>)
 
 public:

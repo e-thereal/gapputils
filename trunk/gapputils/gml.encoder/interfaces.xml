@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<gapputils-InterfaceModel>
+  <Interfaces>
+    <Collection>
+      <Item>
+        <gapputils-Interface>
+          <Identifier value="EncoderModel" />
+          <Type value="boost::shared_ptr<tbblas::deeplearn::encoder_model<float,4> >" />
+          <Header value="tbblas/deeplearn/encoder_model.hpp" />
+          <IsParameter value="0" />
+          <IsCollection value="0" />
+        </gapputils-Interface>
+      </Item>
+    </Collection>
+  </Interfaces>
+</gapputils-InterfaceModel>

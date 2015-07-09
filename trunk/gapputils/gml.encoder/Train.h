@@ -33,37 +33,37 @@ class OptimizationParameters : public capputils::reflection::ReflectableClass,
 class MomentumParameters : public OptimizationParameters {
   InitReflectableClass(MomentumParameters)
 
-  Property(LearningRate, float)
+  Property(LearningRate, double)
   Property(LearningDecayEpochs, int)
-  Property(InitialMomentum, float)
-  Property(FinalMomentum, float)
+  Property(InitialMomentum, double)
+  Property(FinalMomentum, double)
   Property(MomentumDecayEpochs, int)
 
 public:
   MomentumParameters();
 
-  float getLearningRate(int epoch) const;
-  float getMomentum(int epoch) const;
+  double getLearningRate(int epoch) const;
+  double getMomentum(int epoch) const;
 };
 
 class AdaGradParameters : public OptimizationParameters {
   InitReflectableClass(AdaGradParameters)
 
-  Property(LearningRate, float)
+  Property(LearningRate, double)
   Property(LearningDecayEpochs, int)
-  Property(Epsilon, float)
+  Property(Epsilon, double)
 
 public:
   AdaGradParameters();
 
-  float getLearningRate(int epoch) const;
+  double getLearningRate(int epoch) const;
 };
 
 class AdaDeltaParameters : public OptimizationParameters {
   InitReflectableClass(AdaDeltaParameters)
 
-  Property(Epsilon, float)
-  Property(DecayRate, float)
+  Property(Epsilon, double)
+  Property(DecayRate, double)
 
 public:
   AdaDeltaParameters();
@@ -72,10 +72,10 @@ public:
 class AdamParameters : public OptimizationParameters {
   InitReflectableClass(AdamParameters)
 
-  Property(Alpha, float)
-  Property(Beta1, float)
-  Property(Beta2, float)
-  Property(Epsilon, float)
+  Property(Alpha, double)
+  Property(Beta1, double)
+  Property(Beta2, double)
+  Property(Epsilon, double)
 
 public:
   AdamParameters();
@@ -85,8 +85,8 @@ class HessianFreeParameters : public OptimizationParameters {
   InitReflectableClass(HessianFreeParameters)
 
   Property(IterationCount, int)
-  Property(InitialLambda, float)
-  Property(Zeta, float)
+  Property(InitialLambda, double)
+  Property(Zeta, double)
 
 public:
   HessianFreeParameters();
@@ -107,7 +107,6 @@ class Train : public DefaultWorkflowElement<Train> {
   Property(TrainingSet, boost::shared_ptr<v_host_tensor_t>)
   Property(Labels, boost::shared_ptr<v_host_tensor_t>)
   Property(EpochCount, int)
-//  Property(TrialEpochCount, int)
   Property(BatchSize, int)
   Property(FilterBatchSize, std::vector<int>)
   Property(SubRegionCount, host_tensor_t::dim_t)
@@ -117,13 +116,8 @@ class Train : public DefaultWorkflowElement<Train> {
 
   Property(Method, TrainingMethod)
   Property(Parameters, boost::shared_ptr<OptimizationParameters>)
-//  Property(LearningRates, std::vector<double>)
-//  Property(LearningDecay, int)
-//  Property(InitialMomentum, double)
-//  Property(FinalMomentum, double)
-//  Property(MomentumDecayEpochs, int)
   Property(WeightCosts, double)
-//  Property(InitialWeights, std::vector<double>)
+  Property(DropoutRate, double)
   Property(RandomizeTraining, bool)
 
   Property(AugmentedChannels, std::vector<int>)
@@ -135,6 +129,7 @@ class Train : public DefaultWorkflowElement<Train> {
 
   Property(CurrentEpoch, int)
   Property(Model, boost::shared_ptr<model_t>)
+  Property(Error, double)
   Property(AugmentedSet, boost::shared_ptr<v_host_tensor_t>)
 
   static int methodId;
