@@ -7,6 +7,7 @@
 #include <gapputils/IProgressMonitor.h>
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
+#include <gapputils/IAutoTuningElement.hpp>
 
 #include <vector>
 #include <stack>
@@ -39,6 +40,7 @@ private:
 
   std::vector<boost::weak_ptr<workflow::Node> > interfaceNodes;
   std::vector<boost::shared_ptr<workflow::CollectionElement> > collectionElements;
+  std::vector<boost::shared_ptr<workflow::IAutoTuningElement> > tuningElements;
   std::set<boost::shared_ptr<workflow::CollectionElement> > inputElements;
 
   std::stack<boost::weak_ptr<workflow::Node> > nodesStack;

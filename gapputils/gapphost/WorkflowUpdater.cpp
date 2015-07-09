@@ -115,6 +115,7 @@ void WorkflowUpdater::run() {
         interfaceNodes = workflow->getInterfaceNodes();
         collectionElements.clear();
         inputElements.clear();
+        tuningElements.clear();
 
         needsUpdate = true;
         lastIteration = false;
@@ -123,6 +124,7 @@ void WorkflowUpdater::run() {
 
         dlog() << "#Elements: " << collectionElements.size();
         dlog() << "#Inputs: " << inputElements.size();
+        dlog() << "#Optimization: " << tuningElements.size();
 
         int iterationCount = (*inputElements.begin())->getIterationCount();
         for (std::set<boost::shared_ptr<workflow::CollectionElement> >::iterator i = inputElements.begin(); i != inputElements.end(); ++i)
@@ -191,6 +193,7 @@ void WorkflowUpdater::initializeCollectionLoop() {
   dlog.setSeverity(capputils::Severity::Trace);
 
   boost::shared_ptr<workflow::Workflow> workflow = boost::dynamic_pointer_cast<workflow::Workflow>(node.lock());
+  boost::shared_ptr<workflow::IAutoTuningElement> tuningElement;
   assert(workflow);
 
   for (unsigned i = 0; i < interfaceNodes.size(); ++i) {
@@ -209,6 +212,9 @@ void WorkflowUpdater::initializeCollectionLoop() {
           dlog() << "Last iteration";
         }
       }
+    } else if (tuningElement = boost::dynamic_pointer_cast<workflow::IAutoTuningElement>(interfaceNodes[i].lock()->getModule())) {
+      tuningElement->resetRatings();
+      tuningElements.push_back(tuningElement);
     }
   }
 }
@@ -219,6 +225,9 @@ void WorkflowUpdater::resetCollectionFlag() {
 }
 
 void WorkflowUpdater::advanceCollectionLoop() {
+  for (size_t i = 0; i < tuningElements.size(); ++i)
+    tuningElements[i]->testProposal();
+
   // write all results first before advance collection in order to avoid side-effects due to
   // automatic updates triggered by the advance step
   for (unsigned i = 0; i < collectionElements.size(); ++i)
@@ -233,6 +242,7 @@ void WorkflowUpdater::advanceCollectionLoop() {
     if (isInput && collectionElements[i]->getCurrentIteration() + 1 == collectionElements[i]->getIterationCount())
       lastIteration = true;
   }
+
 }
 
 void WorkflowUpdater::reportProgress(double progress, bool updateNode) {
