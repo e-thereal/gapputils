@@ -54,6 +54,7 @@ TrainChecker::TrainChecker() {
 //  CHECK_MEMORY_LAYOUT2(LearningRates, test);
 //  CHECK_MEMORY_LAYOUT2(LearningDecay, test);
   CHECK_MEMORY_LAYOUT2(WeightCosts, test);
+  CHECK_MEMORY_LAYOUT2(DropoutRate, test);
 //  CHECK_MEMORY_LAYOUT2(InitialWeights, test);
   CHECK_MEMORY_LAYOUT2(RandomizeTraining, test);
 
@@ -66,6 +67,7 @@ TrainChecker::TrainChecker() {
 
   CHECK_MEMORY_LAYOUT2(CurrentEpoch, test);
   CHECK_MEMORY_LAYOUT2(Model, test);
+  CHECK_MEMORY_LAYOUT2(Error, test);
   CHECK_MEMORY_LAYOUT2(AugmentedSet, test);
 }
 
@@ -106,6 +108,7 @@ void Train::update(IProgressMonitor* monitor) const {
   td::encoder<value_t, dimCount> encoder(*model, _SubRegionCount);
   encoder.set_objective_function(getObjective());
   encoder.set_sensitivity_ratio(getSensitivityRatio());
+  encoder.set_dropout_rate(getDropoutRate());
   for (size_t i = 0; i < model->cnn_encoders().size() + model->dnn_decoders().size() && i < getFilterBatchSize().size(); ++i)
     encoder.set_batch_length(i, getFilterBatchSize()[i]);
 
@@ -314,17 +317,19 @@ void Train::update(IProgressMonitor* monitor) const {
 #endif
       }
 
-//      trainer.check_loss(inputBatch, targetBatch);
-//      trainer.check_gradient(inputBatch, targetBatch, epsilon);
-//      trainer.check_Gv(inputBatch, targetBatch, epsilon, _RandomizeTraining);
-//      return;
-
+//      {
+//        hf_trainer_t& trainer = *dynamic_cast<hf_trainer_t*>(base_trainer.get());
+//
+//        trainer.check_loss(inputBatch, targetBatch);
+//        trainer.check_gradient(inputBatch, targetBatch);
+//        trainer.check_Gv(inputBatch, targetBatch, _RandomizeTraining);
+//        return;
+//      }
+      encoder.reinitialize_dropout();
+      base_trainer->update(inputBatch, targetBatch);
     }
 
-    base_trainer->update(inputBatch, targetBatch);
-
     if (_SaveEvery > 0 && iEpoch % _SaveEvery == 0) {
-      dlog(Severity::Trace) << "Saving model at epoch " << iEpoch;
       encoder.write_model_to_host();
       newState->setModel(boost::make_shared<model_t>(*model));
     }
@@ -338,6 +343,7 @@ void Train::update(IProgressMonitor* monitor) const {
   }
 
   newState->setModel(model);
+  newState->setError(error / tensors.size());
 }
 
 }
