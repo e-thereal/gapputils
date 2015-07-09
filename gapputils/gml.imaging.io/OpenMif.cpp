@@ -21,7 +21,7 @@ BeginPropertyDefinitions(OpenMif)
 
   ReflectableBase(DefaultWorkflowElement<OpenMif>)
 
-  WorkflowProperty(MifName, Input("Mif"), Filename("MIFs (*.MIF)"), FileExists())
+  WorkflowProperty(MifName, Input("Mif"), Filename("MIFs (*.MIF *.MIF.gz)"), FileExists())
   WorkflowProperty(Image, Output("Img"))
   WorkflowProperty(MaximumIntensity)
   WorkflowProperty(Width, NoParameter())
