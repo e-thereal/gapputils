@@ -62,23 +62,37 @@ SOURCES += trace.cpp \
            deprecated/MifReader.cpp \
            deprecated/MifWriter.cpp
 
-CONFIG(fornix, gpufarm|fornix) {
+CONFIG(fornix, gpufarm|fornix|debian7) {
 	INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/cmif
 	INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/utilities
 	INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/ctrace
 	INCLUDEPATH += /home/tombr/Projects/cmif_v5_3/carray
+	LIBS += -lcmif_v5_3 -lutilities_v3_2
+	
 	message("Fornix build.")
 }
 
-CONFIG(gpufarm, gpufarm|fornix) {
+CONFIG(gpufarm, gpufarm|fornix|debian7) {
 	INCLUDEPATH += /res1/software/x64/cmif_v5_3/cmif
 	INCLUDEPATH += /res1/software/x64/cmif_v5_3/utilities
 	INCLUDEPATH += /res1/software/x64/cmif_v5_3/ctrace
 	INCLUDEPATH += /res1/software/x64/cmif_v5_3/carray
+	LIBS += -lcmif_v5_3 -lutilities_v3_2
+	
 	message("Gpufarm build.")
 }
 
-LIBS += -lcudart -lcmif_v5_3 -lutilities_v3_2 -lz
+CONFIG(debian7, gpufarm|fornix|debian7) {
+  INCLUDEPATH += /res1/production/cmif_v5_4_debian7/cmif
+  INCLUDEPATH += /res1/production/cmif_v5_4_debian7/utilities
+  INCLUDEPATH += /res1/production/cmif_v5_4_debian7/ctrace
+  INCLUDEPATH += /res1/production/cmif_v5_4_debian7/carray
+  LIBS += -lcmif_v5_4 -lutilities_v3_3
+  
+  message("Debian 7 build.")
+}
+
+LIBS += -lcudart -lz
 
 }
 

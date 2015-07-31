@@ -14,6 +14,9 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/null.hpp>
+
 #include <capputils/attributes/DummyAttribute.h>
 #include <capputils/EventHandler.h>
 
@@ -44,8 +47,11 @@ SaveModel::SaveModel() : _AutoSave(false) {
 
 void SaveModel::changedHandler(ObservableClass* sender, int eventId) {
   if (eventId == modelId && getAutoSave()) {
-    this->execute(0);
-    this->writeResults();
+    bio::stream<bio::null_sink> nullOstream((bio::null_sink()));
+    if (capputils::Verifier::Valid(*this, nullOstream)) {
+      this->execute(0);
+      this->writeResults();
+    }
   }
 }
 

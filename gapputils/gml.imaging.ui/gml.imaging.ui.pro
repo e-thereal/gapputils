@@ -10,6 +10,8 @@ TEMPLATE = lib
 TARGET = gml.imaging.ui
 CONFIG += no_keywords dll
 
+QT += widgets
+
 CONFIG(debug, debug|release) {
   QMAKE_CXXFLAGS += -pg
   QMAKE_LFLAGS += -pg

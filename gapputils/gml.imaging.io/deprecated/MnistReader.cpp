@@ -123,7 +123,9 @@ void MnistReader::update(IProgressMonitor* /*monitor*/) const {
 
     if (getMakeBinary()) {
       float mean = 0.f;
-      std::for_each(image->begin(), image->end(), mean += _1);
+//      std::for_each(image->begin(), image->end(), mean += _1);
+      for (size_t i = 0; i < image->getCount(); ++i)
+        mean += image->getData()[i];
       mean /= image->getCount();
       for (size_t i = 0; i < image->getCount(); ++i)
         image->getData()[i] = image->getData()[i] > mean;

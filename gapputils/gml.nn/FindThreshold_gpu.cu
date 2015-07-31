@@ -114,7 +114,7 @@ void FindThreshold::update(IProgressMonitor* monitor) const {
       }
     }
 
-    predictions.push_back(label);
+    predictions.push_back((host_tensor_t)label);
     tbblas::synchronize();
   }
 

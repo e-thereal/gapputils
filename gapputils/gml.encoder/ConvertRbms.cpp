@@ -35,6 +35,7 @@ BeginPropertyDefinitions(ConvertRbms)
   WorkflowProperty(InputChannelCount, Description("A value of -1 indicates using the maximum number of channels."))
   WorkflowProperty(FirstOutputChannel)
   WorkflowProperty(OutputChannelCount, Description("A value of -1 indicates using the maximum number of channels."))
+  WorkflowProperty(AdditionalOutputChannels, Description("Adds additional output channels to the network. Additional channels are initialized with random values. This feature is useful if pre-training was done without output channels."))
   WorkflowProperty(OutputActivationFunction, Enumerator<Type>())
   WorkflowProperty(Shortcuts, Enumerator<Type>())
   WorkflowProperty(Model, Output("ENN"))
@@ -43,7 +44,7 @@ EndPropertyDefinitions
 
 ConvertRbms::ConvertRbms()
  : _FirstInputChannel(0), _InputChannelCount(-1),
-   _FirstOutputChannel(0), _OutputChannelCount(-1),
+   _FirstOutputChannel(0), _OutputChannelCount(-1), _AdditionalOutputChannels(0),
    _Shortcuts(ShortcutType::NoShortcut)
 {
   setLabel("Convert");
@@ -217,31 +218,52 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
         layer.set_stddev(1);
       }
 
-      dim_t visibles_size = crbms[iLayer]->visibles_size(), kernel_size = crbms[iLayer]->kernel_size();
+      dim_t visibles_size = crbms[iLayer]->visibles_size(),
+          trained_visibles_size = crbms[iLayer]->visibles_size(),
+          init_visibles_size = crbms[iLayer]->visibles_size(),
+          trained_kernel_size = crbms[iLayer]->kernel_size(),
+          init_kernel_size = crbms[iLayer]->kernel_size(),
+          kernel_size = crbms[iLayer]->kernel_size();
 
       int firstChannel = getFirstOutputChannel();
       int channelCount = visibles_size[dimCount - 1] - firstChannel;
       if (getOutputChannelCount() > 0)
         channelCount = std::min(channelCount, getOutputChannelCount());
 
-      kernel_size[dimCount - 1] = visibles_size[dimCount - 1] = channelCount;
-
+      // Get sizes of trained kernel, total kernel size, the size of the random initialization
+      kernel_size[dimCount - 1] = visibles_size[dimCount - 1] = channelCount + getAdditionalOutputChannels();
+      trained_visibles_size[dimCount - 1] = trained_kernel_size[dimCount - 1] = channelCount;
+      init_visibles_size[dimCount - 1] = init_kernel_size[dimCount - 1] = getAdditionalOutputChannels();
       layer.set_kernel_size(kernel_size);
+
+      // Set up random initialization of additional channels
+      random_tensor2<value_t, dimCount, false, normal<value_t> > randn(init_kernel_size);
+      value_t stddev = sqrt(2.0 / (value_t)kernel_size.count());
 
       v_host_tensor_t& filters = crbms[iLayer]->filters();
       v_host_tensor_t inputFilters;
+      host_tensor_t inputFilter;
 
-      dim_t pos = seq<dimCount>(0);
-      pos[dimCount - 1] = firstChannel;
+      dim_t trained_pos = seq<dimCount>(0), init_pos = seq<dimCount>(0);
+      trained_pos[dimCount - 1] = firstChannel;
+      init_pos[dimCount - 1] = channelCount;
 
       for (size_t iFilter = 0; iFilter < filters.size(); ++iFilter) {
         host_tensor_t& filter = *filters[iFilter];
-        inputFilters.push_back(boost::make_shared<host_tensor_t>(filter[pos, kernel_size]));
+
+        // If additional channels, then I need to create a new filter, fill the first channels with the pre-trained data
+        // and fill the remaining channels with random values similar to the initialization code
+        inputFilter = zeros<value_t>(kernel_size);
+        inputFilter[seq<dimCount>(0), trained_kernel_size] = filter[trained_pos, trained_kernel_size];
+        inputFilter[init_pos, init_kernel_size] = stddev * randn();
+
+        inputFilters.push_back(boost::make_shared<host_tensor_t>(inputFilter));
       }
       layer.set_filters(inputFilters);
 
       host_tensor_t bias = crbms[iLayer]->visible_bias();
-      host_tensor_t outputBias = bias[pos, visibles_size];
+      host_tensor_t outputBias = zeros<value_t>(visibles_size);
+      outputBias[seq<dimCount>(0), trained_visibles_size] = bias[trained_pos, trained_visibles_size];
       layer.set_bias(outputBias);
     } else {
       layer.set_filters(crbms[iLayer]->filters());
@@ -302,31 +324,52 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
           layer.set_stddev(1);
         }
 
-        dim_t visibles_size = crbms[iLayer]->visibles_size(), kernel_size = crbms[iLayer]->kernel_size();
+        dim_t visibles_size = crbms[iLayer]->visibles_size(),
+            trained_visibles_size = crbms[iLayer]->visibles_size(),
+            init_visibles_size = crbms[iLayer]->visibles_size(),
+            trained_kernel_size = crbms[iLayer]->kernel_size(),
+            init_kernel_size = crbms[iLayer]->kernel_size(),
+            kernel_size = crbms[iLayer]->kernel_size();
 
         int firstChannel = getFirstOutputChannel();
         int channelCount = visibles_size[dimCount - 1] - firstChannel;
         if (getOutputChannelCount() > 0)
           channelCount = std::min(channelCount, getOutputChannelCount());
 
-        kernel_size[dimCount - 1] = visibles_size[dimCount - 1] = channelCount;
-
+        // Get sizes of trained kernel, total kernel size, the size of the random initialization
+        kernel_size[dimCount - 1] = visibles_size[dimCount - 1] = channelCount + getAdditionalOutputChannels();
+        trained_visibles_size[dimCount - 1] = trained_kernel_size[dimCount - 1] = channelCount;
+        init_visibles_size[dimCount - 1] = init_kernel_size[dimCount - 1] = getAdditionalOutputChannels();
         layer.set_kernel_size(kernel_size);
+
+        // Set up random initialization of additional channels
+        random_tensor2<value_t, dimCount, false, normal<value_t> > randn(init_kernel_size);
+        value_t stddev = sqrt(2.0 / (value_t)kernel_size.count());
 
         v_host_tensor_t& filters = crbms[iLayer]->filters();
         v_host_tensor_t inputFilters;
+        host_tensor_t inputFilter;
 
-        dim_t pos = seq<dimCount>(0);
-        pos[dimCount - 1] = firstChannel;
+        dim_t trained_pos = seq<dimCount>(0), init_pos = seq<dimCount>(0);
+        trained_pos[dimCount - 1] = firstChannel;
+        init_pos[dimCount - 1] = channelCount;
 
         for (size_t iFilter = 0; iFilter < filters.size(); ++iFilter) {
           host_tensor_t& filter = *filters[iFilter];
-          inputFilters.push_back(boost::make_shared<host_tensor_t>(filter[pos, kernel_size]));
+
+          // If additional channels, then I need to create a new filter, fill the first channels with the pre-trained data
+          // and fill the remaining channels with random values similar to the initialization code
+          inputFilter = zeros<value_t>(kernel_size);
+          inputFilter[seq<dimCount>(0), trained_kernel_size] = filter[trained_pos, trained_kernel_size];
+          inputFilter[init_pos, init_kernel_size] = stddev * randn();
+
+          inputFilters.push_back(boost::make_shared<host_tensor_t>(inputFilter));
         }
         layer.set_filters(inputFilters);
 
         host_tensor_t bias = crbms[iLayer]->visible_bias();
-        host_tensor_t outputBias = bias[pos, visibles_size];
+        host_tensor_t outputBias = zeros<value_t>(visibles_size);
+        outputBias[seq<dimCount>(0), trained_visibles_size] = bias[trained_pos, trained_visibles_size];
         layer.set_bias(outputBias);
       } else {
         layer.set_filters(crbms[iLayer]->filters());
@@ -393,7 +436,7 @@ void ConvertRbms::update(IProgressMonitor* monitor) const {
           return;
       }
 
-      matrix_t temp = rbms[iLayer]->weights();
+      matrix_t temp = (matrix_t)rbms[iLayer]->weights();
       matrix_t weights = trans(temp);
       layer.set_weights(weights);
       layer.set_bias(rbms[iLayer]->visible_bias());

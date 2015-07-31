@@ -41,7 +41,7 @@ void ResampleTensor::update(IProgressMonitor* monitor) const {
     }
 
     boost::shared_ptr<host_tensor_t> output(new host_tensor_t());
-    tensor_t in = *getInput(), out;
+    tensor_t in = (tensor_t)*getInput(), out;
 
     float inXVoxelSize = 1;
     float inYVoxelSize = 1;
@@ -93,7 +93,7 @@ void ResampleTensor::update(IProgressMonitor* monitor) const {
       }
 
       boost::shared_ptr<host_tensor_t> output(new host_tensor_t());
-      tensor_t in = input, out;
+      tensor_t in = (tensor_t)input, out;
 
       float inXVoxelSize = 1;
       float inYVoxelSize = 1;

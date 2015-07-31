@@ -320,7 +320,7 @@ void Train::update(IProgressMonitor* monitor) const {
 //      {
 //        hf_trainer_t& trainer = *dynamic_cast<hf_trainer_t*>(base_trainer.get());
 //
-//        trainer.check_loss(inputBatch, targetBatch);
+////        trainer.check_loss(inputBatch, targetBatch);
 //        trainer.check_gradient(inputBatch, targetBatch);
 //        trainer.check_Gv(inputBatch, targetBatch, _RandomizeTraining);
 //        return;

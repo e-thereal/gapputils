@@ -25,7 +25,7 @@
 					<folderInfo id="cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450.1645417703." name="/" resourcePath="">
 						<toolChain id="cuda.toolchain.so.release.124028233" name="CUDA Toolchain" superClass="cuda.toolchain.so.release">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cuda.toolchain.targetplatform.exe.debug.2115127720" isAbstract="false" name="Linux Release Platform" osList="linux" superClass="cuda.toolchain.targetplatform.exe.debug"/>
-							<builder buildPath="${workspace_loc:/gml.convrbm/Release}" id="cuda.toolchain.builder.exe.debug.823039005" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="7" superClass="cuda.toolchain.builder.exe.debug"/>
+							<builder buildPath="${workspace_loc:/gml.convrbm/Release}" id="cuda.toolchain.builder.exe.debug.823039005" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="cuda.toolchain.builder.exe.debug"/>
 							<tool id="cuda.toolchain.compiler.exe.debug.208340461" name="NVIDIA CUDA Compiler" superClass="cuda.toolchain.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.most" id="cuda.toolchain.compiler.option.optimization.level.299028118" name="Optimization Level" superClass="cuda.toolchain.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="cuda.toolchain.compiler.option.debugging.level.539190748" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level" value="cuda.toolchain.compiler.option.debugging.level.none" valueType="enumerated"/>
@@ -35,7 +35,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
-								<option id="cuda.toolchain.compiler.option.misc.other.687478423" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_${COMPUTE_CAPABILITY},code=\&quot;sm_${COMPUTE_CAPABILITY},compute_${COMPUTE_CAPABILITY}\&quot; -Xcompiler -fpic" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.687478423" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp ${CUDA_GENCODE} -Xcompiler -fpic" valueType="string"/>
 								<option id="cuda.toolchain.compiler.option.preprocessor.def.437281630" name="Defined symbols (-D)" superClass="cuda.toolchain.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TBBLAS_DISABLE_CBLAS"/>
 								</option>
@@ -142,7 +142,7 @@
 					<folderInfo id="cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869.653204558." name="/" resourcePath="">
 						<toolChain id="cuda.toolchain.so.debug.700933372" name="CUDA Toolchain" superClass="cuda.toolchain.so.debug">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cuda.toolchain.targetplatform.exe.debug.1887128787" isAbstract="false" name="Linux Release Platform" osList="linux" superClass="cuda.toolchain.targetplatform.exe.debug"/>
-							<builder buildPath="${workspace_loc:/gml.convrbm/Debug}" id="cuda.toolchain.builder.exe.debug.886096855" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="7" superClass="cuda.toolchain.builder.exe.debug"/>
+							<builder buildPath="${workspace_loc:/gml.convrbm/Debug}" id="cuda.toolchain.builder.exe.debug.886096855" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="cuda.toolchain.builder.exe.debug"/>
 							<tool id="cuda.toolchain.compiler.exe.debug.1637589711" name="NVIDIA CUDA Compiler" superClass="cuda.toolchain.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="cuda.toolchain.compiler.option.optimization.level.998315382" name="Optimization Level" superClass="cuda.toolchain.compiler.option.optimization.level" valueType="enumerated"/>
 								<option id="cuda.toolchain.compiler.option.debugging.level.2064799166" name="Debug Level" superClass="cuda.toolchain.compiler.option.debugging.level"/>
@@ -152,7 +152,7 @@
 									<listOptionValue builtIn="false" value="&quot;${CUDA_INC_PATH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${CUDASDK_INC_PATH}&quot;"/>
 								</option>
-								<option id="cuda.toolchain.compiler.option.misc.other.387811706" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp -gencode=arch=compute_${COMPUTE_CAPABILITY},code=\&quot;sm_${COMPUTE_CAPABILITY},compute_${COMPUTE_CAPABILITY}\&quot; -Xcompiler -fpic" valueType="string"/>
+								<option id="cuda.toolchain.compiler.option.misc.other.387811706" name="Other flags" superClass="cuda.toolchain.compiler.option.misc.other" value="-c -Xcompiler -fmessage-length=0 -Xcompiler -fopenmp ${CUDA_GENCODE} -Xcompiler -fpic" valueType="string"/>
 								<option id="cuda.toolchain.compiler.option.preprocessor.def.748926320" name="Defined symbols (-D)" superClass="cuda.toolchain.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TBBLAS_DISABLE_CBLAS"/>
 								</option>
@@ -239,27 +239,6 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="gml.encoder.cuda.toolchain.exe.2100084433" name="Executable" projectType="cuda.toolchain.exe"/>
 	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.debug.48617392;cuda.toolchain.configuration.debug.48617392.;cuda.toolchain.compiler.exe.debug.201938397;cuda.toolchain.compiler.input.1246945815">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.release.637111319;cuda.toolchain.configuration.release.637111319.;cuda.toolchain.gnu.c.compiler.305753736;cdt.managedbuild.tool.gnu.c.compiler.input.564560484">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.debug.48617392;cuda.toolchain.configuration.debug.48617392.;cuda.toolchain.gnu.c.compiler.474439495;cdt.managedbuild.tool.gnu.c.compiler.input.818460544">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.debug.48617392;cuda.toolchain.configuration.debug.48617392.;cuda.toolchain.gnu.cpp.compiler.1890839789;cdt.managedbuild.tool.gnu.cpp.compiler.input.6693596">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.release.637111319;cuda.toolchain.configuration.release.637111319.;cuda.toolchain.gnu.cpp.compiler.577010084;cdt.managedbuild.tool.gnu.cpp.compiler.input.1153776204">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.release.637111319;cuda.toolchain.configuration.release.637111319.;cuda.toolchain.compiler.exe.debug.1990010616;cuda.toolchain.compiler.input.120251328">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
-		</scannerConfigBuildInfo>
-	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="Release">
@@ -268,5 +247,45 @@
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/gml.encoder"/>
 		</configuration>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.release.637111319;cuda.toolchain.configuration.release.637111319.;cuda.toolchain.gnu.c.compiler.305753736;cdt.managedbuild.tool.gnu.c.compiler.input.564560484">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450.1645417703;cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450.1645417703.;cuda.toolchain.gnu.cpp.compiler.776304864;cdt.managedbuild.tool.gnu.cpp.compiler.input.1945134109">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450.1645417703;cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450.1645417703.;cuda.toolchain.compiler.exe.debug.208340461;cuda.toolchain.compiler.input.561365046">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.debug.48617392;cuda.toolchain.configuration.debug.48617392.;cuda.toolchain.compiler.exe.debug.201938397;cuda.toolchain.compiler.input.1246945815">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869.653204558;cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869.653204558.;cuda.toolchain.compiler.exe.debug.1637589711;cuda.toolchain.compiler.input.1987432552">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869.653204558;cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869.653204558.;cuda.toolchain.gnu.cpp.compiler.1343180321;cdt.managedbuild.tool.gnu.cpp.compiler.input.1135739510">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.debug.48617392;cuda.toolchain.configuration.debug.48617392.;cuda.toolchain.gnu.c.compiler.474439495;cdt.managedbuild.tool.gnu.c.compiler.input.818460544">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869.653204558;cuda.toolchain.configuration.so.debug.601604622.1278465237.339675079.5590110.403680869.653204558.;cuda.toolchain.gnu.c.compiler.401365602;cdt.managedbuild.tool.gnu.c.compiler.input.226143477">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.debug.48617392;cuda.toolchain.configuration.debug.48617392.;cuda.toolchain.gnu.cpp.compiler.1890839789;cdt.managedbuild.tool.gnu.cpp.compiler.input.6693596">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450.1645417703;cuda.toolchain.configuration.so.release.1958712672.241446513.1508989529.1838812583.780417450.1645417703.;cuda.toolchain.gnu.c.compiler.863174966;cdt.managedbuild.tool.gnu.c.compiler.input.1597835192">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.release.637111319;cuda.toolchain.configuration.release.637111319.;cuda.toolchain.compiler.exe.debug.1990010616;cuda.toolchain.compiler.input.120251328">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cuda.toolchain.configuration.release.637111319;cuda.toolchain.configuration.release.637111319.;cuda.toolchain.gnu.cpp.compiler.577010084;cdt.managedbuild.tool.gnu.cpp.compiler.input.1153776204">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
 	</storageModule>
 </cproject>

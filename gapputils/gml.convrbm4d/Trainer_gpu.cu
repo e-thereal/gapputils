@@ -168,6 +168,10 @@ void Trainer::update(IProgressMonitor* monitor) const {
       boost::shared_ptr<model_t> model(new model_t(*getInitialModel()));
       model->set_shared_bias(getShareBiasTerms());
 
+      // Deactivate pooling
+      model->set_pooling_method(tbblas::deeplearn::pooling_method::NoPooling);
+      model->set_pooling_size(seq<dimCount>(1));
+
       // reset filters if initial weights are larger than 0
       if (initialWeight > 0) {
         random_tensor2<value_t, model_t::dimCount, false, normal<value_t> > randn(model->kernel_size());
@@ -209,9 +213,6 @@ void Trainer::update(IProgressMonitor* monitor) const {
         }
 
         for (size_t iBatch = 0; iBatch < batchCount && error == error; ++iBatch) {
-
-          // Apply momentum for next batch
-//          crbm.init_gradient_updates(momentum, weightcost);
 
           for (size_t iSample = 0; iSample < batchSize && error == error; ++iSample) {
             crbm.init_dropout(getHiddenDropout(), getDropoutMethod());
@@ -262,8 +263,12 @@ void Trainer::update(IProgressMonitor* monitor) const {
           }
 
           if (monitor) {
-            const int totalEpochs = getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size() + getEpochCount();
-            const int currentEpoch = iEpoch + (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount();
+            int totalEpochs = getEpochCount();
+            int currentEpoch = iEpoch;
+            if (initialWeights.size() || learningRates.size() > 1) {
+              totalEpochs += getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size();
+              currentEpoch += (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount();
+            }
             monitor->reportProgress(100. * (currentEpoch * batchCount + (iBatch + 1)) / (totalEpochs * batchCount));
           }
         } /* end of batch */
@@ -273,15 +278,19 @@ void Trainer::update(IProgressMonitor* monitor) const {
         else
           dlog(Severity::Trace) << "Epoch " << iEpoch << " of " << epochCount;
 
-        if (finalRun && getUpdateModel() && (iEpoch % getUpdateModel() == 0)) {
+        if (finalRun && getUpdateModel() > 0 && (iEpoch % getUpdateModel() == 0)) {
           crbm.write_model_to_host();
           newState->setModel(model);
           newState->setCurrentEpoch(iEpoch);
         }
 
         if (monitor) {
-          const int totalEpochs = getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size() + getEpochCount();
-          const int currentEpoch = iEpoch + (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount();
+          int totalEpochs = getEpochCount();
+          int currentEpoch = iEpoch;
+          if (initialWeights.size() || learningRates.size() > 1) {
+            totalEpochs += getTrialEpochCount() * max(1, (int)initialWeights.size()) * learningRates.size();
+            currentEpoch += (iLearningRate + iWeight * learningRates.size()) * getTrialEpochCount();
+          }
           monitor->reportProgress(100. * (currentEpoch + 1) / totalEpochs, finalRun && getUpdateModel() && (iEpoch % getUpdateModel() == 0));
         }
       } /* end of epochs */
@@ -306,6 +315,11 @@ void Trainer::update(IProgressMonitor* monitor) const {
           dlog(Severity::Message) << "Found better learning rate: " << epsilonw << " with an error of " << bestError / X.size() << ".";
         }
       } else {
+        crbm.write_model_to_host();
+
+        model->set_pooling_method(getInitialModel()->pooling_method());
+        model->set_pooling_size(getInitialModel()->pooling_size());
+
         newState->setReconstructionError(error / X.size());
         newState->setModel(model);
       }

@@ -38,7 +38,7 @@ void WarpImage::update(IProgressMonitor* monitor) const {
   volume_t invol(input.getSize()[0], input.getSize()[1], input.getSize()[2]);
   thrust::copy(input.begin(), input.end(), invol.begin());
 
-  tensor_t deformation = *getDeformation();
+  tensor_t deformation = (tensor_t)*getDeformation();
   volume_t outvol = warp(invol, deformation, seq(_VoxelSize[0], _VoxelSize[1], _VoxelSize[2]));
 
   boost::shared_ptr<image_t> output(new image_t(input.getSize(), input.getPixelSize()));

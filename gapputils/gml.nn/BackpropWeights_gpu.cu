@@ -51,7 +51,7 @@ void BackpropWeights::update(IProgressMonitor* monitor) const {
     dW = layer.visibles();
   }
 
-  host_matrix_t W = dW;
+  host_matrix_t W = (host_matrix_t)dW;
   tbblas::synchronize();
 
   boost::shared_ptr<v_data_t> weights(new v_data_t());

@@ -23,13 +23,13 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(TrialEpochCount, Group("Optimization"))
   WorkflowProperty(BatchSize, Group("Optimization"), Description("Number of images used per gradient update."))
 
+  WorkflowProperty(SparsityMethod, Group("Regularization"), Enumerator<Type>())
+  WorkflowProperty(SparsityTarget, Group("Regularization"), Description("Target expected activation of a hidden unit."))
+  WorkflowProperty(SparsityWeight, Group("Regularization"), Description("Weight of the sparsity target relative to the learning rate."))
+
   WorkflowProperty(FilterBatchSize, Group("Performance"), Description("Number of filters that are processed in parallel."))
   WorkflowProperty(SubRegionCount, Group("Performance"), Description("Number of sub-regions into which the calculation will be split. Fewer (but larger) sub-regions speed up the calculation but require more memory."))
   WorkflowProperty(GpuCount, Group("Performance"), Description("Number of GPUs used for training."))
-
-  WorkflowProperty(SparsityMethod, Group("Optimization"), Enumerator<Type>())
-  WorkflowProperty(SparsityTarget, Group("Optimization"), Description("Target expected activation of a hidden unit."))
-  WorkflowProperty(SparsityWeight, Group("Optimization"), Description("Weight of the sparsity target relative to the learning rate."))
 
   WorkflowProperty(CdIterations, Group("Optimization"), Description("Number of CD iterations. (1: CD learning, >1: CD-n learning)"))
   WorkflowProperty(Method, Group("Optimization"), Enumerator<Type>())
@@ -38,17 +38,17 @@ BeginPropertyDefinitions(Trainer, Description("Trains a convolutional RBM using 
   WorkflowProperty(InitialMomentum, Group("Optimization"), Description("Momentum used for the first epoch."))
   WorkflowProperty(FinalMomentum, Group("Optimization"))
   WorkflowProperty(MomentumDecayEpochs, Group("Optimization"))
-  WorkflowProperty(WeightDecay, Group("Optimization"))
+  WorkflowProperty(WeightDecay, Group("Regularization"))
   WorkflowProperty(InitialWeights, Group("Optimization"), Description("If given, these weights will be tested as initial weights and will override the initial weights."))
   WorkflowProperty(SignalToNoiseRatio, Group("Optimization"), Description("If greater than 0, the standard deviation of the noise of the initial filters is set to 'sd(learned filters) / SNR'."))
   WorkflowProperty(RandomizeTraining, Group("Optimization"), Flag(), Description("Randomly select images of a mini-batch."))
 
   WorkflowProperty(ShareBiasTerms, Flag(), Description("If checked, visible and hidden units of the same filter share bias terms."))
   WorkflowProperty(ChannelsPerBlock, Description("All channels of the same pooling block share the same bias terms when shared bias terms are active. Hence, this number must be known."))
-  WorkflowProperty(DropoutMethod, Group("Optimization"), Enumerator<Type>(), Description("Defines if entire columns or individual hidden units are dropped."))
-  WorkflowProperty(VisibleDropout, Group("Optimization"), Description("Probability of a visible unit of being ignored. (currently not used)"))
-  WorkflowProperty(HiddenDropout, Group("Optimization"), Description("Probability of a hidden unit of being ignored."))
-  WorkflowProperty(FilterDropout, Group("Optimization"), Description("Probability of an entire batch of filters being ignored. To drop individual filters, set the filter batch size to 1"))
+  WorkflowProperty(DropoutMethod, Group("Regularization"), Enumerator<Type>(), Description("Defines if entire columns or individual hidden units are dropped."))
+  WorkflowProperty(VisibleDropout, Group("Regularization"), Description("Probability of a visible unit of being ignored. (currently not used)"))
+  WorkflowProperty(HiddenDropout, Group("Regularization"), Description("Probability of a hidden unit of being ignored."))
+  WorkflowProperty(FilterDropout, Group("Regularization"), Description("Probability of an entire batch of filters being ignored. To drop individual filters, set the filter batch size to 1"))
   WorkflowProperty(CalculateError, Flag(), Description("If checked, the reconstruction error is calculated"))
   WorkflowProperty(UpdateModel, Description("If greater than 0, the model is updated every <UpdateModel> epochs."))
 
