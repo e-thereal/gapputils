@@ -142,7 +142,7 @@ bool LogbookWidget::matchFilter(QTreeWidgetItem* item) {
 
   // check if current severity
   Severity severity;
-  severity = item->text(SeverityColumn).toAscii().data();
+  severity = item->text(SeverityColumn).toStdString();
 
   switch(severity) {
   case Severity::Trace:

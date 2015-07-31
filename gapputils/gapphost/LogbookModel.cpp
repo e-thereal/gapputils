@@ -22,7 +22,9 @@ namespace host {
 
 LogbookModel::LogbookModel() : QObject() {
   fs::path path(DataModel::getInstance().getLogfileName());
-  fs::create_directories(path.parent_path());
+  std::cout << "Attempting to create directories: " << path.parent_path() << std::endl;
+  if (!path.parent_path().empty())
+    fs::create_directories(path.parent_path());
 
   logname = DataModel::getInstance().getLogfileName();
   logfile.open(logname.c_str());

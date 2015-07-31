@@ -1,5 +1,3 @@
-#define BOOST_FILESYSTEM_VERSION 2
-
 #include "DataModel.h"
 
 #include <tinyxml/tinyxml.h>
@@ -144,7 +142,7 @@ void DataModel::save(const std::string& filename) const {
 }
 
 std::string DataModel::getConfigurationDirectory() {
-  return std::string((QDir::homePath() + "/.gapphost").toAscii().data());
+  return std::string((QDir::homePath() + "/.gapphost").toStdString());
 }
   
 }

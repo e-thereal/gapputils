@@ -568,7 +568,7 @@ void WorkbenchWindow::createSnippet() {
 
   LineEditDialog dialog("Enter the name of the snippet:", this);
   if (dialog.exec() == QDialog::Accepted) {
-    std::string snippetName = dialog.getText().toAscii().data();
+    std::string snippetName = dialog.getText().toStdString();
     if (snippetName.size()) {
       Xmlizer::ToXml(DataModel::getInstance().getSnippetsPath() + "/" + snippetName + ".xml", *copyWorkflow);
       WorkflowSnippets::GetInstance().update();
@@ -737,7 +737,7 @@ boost::shared_ptr<workflow::Node> WorkbenchWindow::createModule(int x, int y, QS
   Logbook& dlog = *workflow.lock()->getLogbook();
 
   if (classname.endsWith(".xml")) {
-    addNodesFromSnippet(x, y, classname.toAscii().data());
+    addNodesFromSnippet(x, y, classname.toStdString());
     return boost::shared_ptr<workflow::Node>();
   }
 
@@ -746,7 +746,7 @@ boost::shared_ptr<workflow::Node> WorkbenchWindow::createModule(int x, int y, QS
     return node;
 
   boost::shared_ptr<workflow::Workflow> workflow = this->workflow.lock();
-  std::string name = classname.toAscii().data();
+  std::string name = classname.toStdString();
 
   boost::shared_ptr<ReflectableClass> object = boost::shared_ptr<ReflectableClass>(ReflectableClassFactory::getInstance().newInstance(name));
   addDependencies(*workflow, name);

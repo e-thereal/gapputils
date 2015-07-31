@@ -156,7 +156,7 @@ bool CollectionElement::advanceCombinations() {
   for (unsigned i = 0; i < inputIterators.size(); ++i) {
     inputIterators[i]->next();
     if (inputIterators[i]->eof()) {
-      cout << "Unexpected end of collection detected in "__FILE__ << endl;
+      cout << "Unexpected end of collection detected in " << __FILE__ << endl;
       return false;
     }
     inputProperties[i]->setValue(*this, *this, inputIterators[i].get());

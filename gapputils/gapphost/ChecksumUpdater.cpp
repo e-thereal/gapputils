@@ -1,5 +1,3 @@
-#define BOOST_FILESYSTEM_VERSION 2
-
 #include "ChecksumUpdater.h"
 
 #include <capputils/attributes/FilenameAttribute.h>

@@ -1,10 +1,16 @@
-#include "FilenameEdit.h"
+#include <boost/version.hpp>
 
-#define BOOST_FILESYSTEM_VERSION 2
+//#if BOOST_VERSION / 100 % 1000 < 50
+//#define BOOST_FILESYSTEM_VERSION 2
+//#endif
+
+#include "FilenameEdit.h"
 
 #include <qevent.h>
 #include <qfiledialog.h>
 #include <boost/filesystem.hpp>
+
+#include <stdexcept>
 
 using namespace boost::filesystem;
 using namespace capputils::attributes;
@@ -12,15 +18,18 @@ using namespace capputils::attributes;
 path makeRelative(const path& absolute) {
   path current = current_path();
 
+  std::overflow_error err("Test");
+
   path::iterator ci = current.begin();
   path::iterator ai = absolute.begin();
 
   path relative;
 
   // skip what is the same
-  for(; !ci->compare(*ai); ++ci, ++ai) { }
-  for(; ci != current.end() && ci->compare("."); ++ci)
-    relative /= "..";
+
+//  for(; !ci->compare(*ai); ++ci, ++ai) { }
+//  for(; ci != current.end() && ci->compare("."); ++ci)
+//    relative /= "..";
   for(; ai != absolute.end(); ++ai)
     relative /= *ai;
 
@@ -33,7 +42,7 @@ bool inCurrentDir(const path filename) {
   path::iterator ci = current.begin();
   path::iterator ai = filename.begin();
 
-  for(; !ci->compare(*ai); ++ci, ++ai) { }
+//  for(; !ci->compare(*ai); ++ci, ++ai) { }
 
   return ci == current.end();
 }
@@ -82,19 +91,19 @@ void FilenameEdit::clickedHandler() {
     if (multiSelection) {
       QString filenamesString;
       for (int i = 0; i < filenames.count(); ++i) {
-        path filename(filenames[i].toAscii().data());
+        path filename(filenames[i].toStdString());
         if (inCurrentDir(filename))
           filename = makeRelative(filename);
         if (i > 0)
           filenamesString += " ";
-        filenamesString += QString("\"") + filename.file_string().c_str() + "\"";
+        filenamesString += QString("\"") + filename.string().c_str() + "\"";
       }
       edit->setText(filenamesString);
     } else {
-      path filename(filenames[0].toAscii().data());
+      path filename(filenames[0].toStdString());
       if (inCurrentDir(filename))
         filename = makeRelative(filename);
-      edit->setText(filename.file_string().c_str());
+      edit->setText(filename.string().c_str());
     }
     Q_EMIT editingFinished();
   }

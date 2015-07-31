@@ -5,8 +5,6 @@
  *      Author: tombr
  */
 
-#define BOOST_FILESYSTEM_VERSION 2
-
 #include "Workflow.h"
 
 #include <qlabel.h>
@@ -735,7 +733,7 @@ bool Workflow::isParameterNode(boost::shared_ptr<const Node> node) const {
 }
 
 void Workflow::getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost::shared_ptr<Node> >& dependendNodes, bool includeParentDependencies) {
-  bool isWorkflow = boost::dynamic_pointer_cast<Workflow>(node);
+  bool isWorkflow = (bool)boost::dynamic_pointer_cast<Workflow>(node);
 
   // If input node see to which node of the parent workflow this node is connected
   if (isInputNode(node)) {
@@ -783,7 +781,7 @@ void Workflow::getDependentNodes(boost::shared_ptr<Node> node, std::vector<boost
 bool Workflow::isDependentProperty(boost::shared_ptr<const Node> node, const std::string& propertyName) const {
   if (isInputNode(node)) {
     boost::shared_ptr<Workflow> workflow = getWorkflow().lock();
-    const bool isCollection = boost::dynamic_pointer_cast<const CollectionElement>(node->getModule());
+    const bool isCollection = (bool)boost::dynamic_pointer_cast<const CollectionElement>(node->getModule());
     if (((!isCollection && propertyName == "Value") || (isCollection && propertyName == "Values"))
         && workflow)
     {

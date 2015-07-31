@@ -36,7 +36,7 @@ void ModuleHelpWidget::setNode(boost::shared_ptr<workflow::Node> node) {
 void ModuleHelpWidget::setClassname(QString classname) {
   using namespace capputils::reflection;
   ReflectableClassFactory& factory = ReflectableClassFactory::getInstance();
-  ReflectableClass* object = factory.newInstance(classname.toAscii().data());
+  ReflectableClass* object = factory.newInstance(classname.toStdString());
   if (object) {
     updateHelp(*object);
     delete object;

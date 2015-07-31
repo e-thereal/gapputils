@@ -50,7 +50,7 @@ Filenames::Filenames() {
   Changed.connect(capputils::EventHandler<Filenames>(this, &Filenames::changedHandler));
 }
 
-void Filenames::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void Filenames::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
   if (eventId == patternId) {
     capputils::reflection::IClassProperty* prop = findProperty("Values");
     assert(prop);

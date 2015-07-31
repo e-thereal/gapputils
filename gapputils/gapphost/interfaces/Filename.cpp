@@ -45,7 +45,7 @@ Filename::Filename() {
 
 Filename::~Filename() { }
 
-void Filename::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void Filename::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
   if (eventId == patternId) {
     capputils::reflection::IClassProperty* prop = findProperty("Value");
     assert(prop);
@@ -76,7 +76,7 @@ Filename::Filename() {
 
 Filename::~Filename() { }
 
-void Filename::changedHandler(capputils::ObservableClass* sender, int eventId) {
+void Filename::changedHandler(capputils::ObservableClass* /*sender*/, int eventId) {
   if (eventId == patternId) {
     capputils::reflection::IClassProperty* prop = findProperty("Value");
     assert(prop);

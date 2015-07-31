@@ -71,6 +71,7 @@ HEADERS = MainWindow.h \
 RESOURCES = res.qrc
           
 CONFIG += no_keywords console
+QT += widgets
 
 CONFIG(debug, debug|release) {
   DEFINES += _DEBUG

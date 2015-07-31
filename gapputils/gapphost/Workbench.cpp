@@ -13,6 +13,7 @@
 #include <QList>
 #include <qmessagebox.h>
 #include <iostream>
+#include <QMimeData>
 #include "CableItem.h"
 
 using namespace std;
@@ -482,7 +483,7 @@ void Workbench::drawBackground(QPainter *painter, const QRectF &rect) {
   gradient.setColorAt(0, QColor(240, 240, 240));
   gradient.setColorAt(1, Qt::lightGray);
   painter->fillRect(osceneRect, Qt::white);
-  painter->fillRect(rect.intersect(sceneRect), gradient);
+  painter->fillRect(rect.intersected(sceneRect), gradient);
 
   // Draw lines
   painter->save();

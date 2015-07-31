@@ -4,7 +4,6 @@
  *  Created on: Jul 10, 2012
  *      Author: tombr
  */
-#define BOOST_FILESYSTEM_VERSION 2
 
 #include "WorkflowSnippets.h"
 
@@ -81,7 +80,7 @@ void WorkflowSnippets::update() {
 
     std::map<std::string, std::string> snippets;
     for (directory_iterator itr(model.getSnippetsPath()); itr != end_itr; ++itr) {
-      std::string filename = itr->path().filename();
+      std::string filename = itr->path().filename().string();
       if (filename.substr(filename.size() - 4) == ".xml") {
         snippets[filename.substr(0, filename.size() - 4)] = itr->path().string();
 //        toolBox->addTopLevelItem(newSnippet(filename.substr(0, filename.size() - 4), itr->path().string()));

@@ -1,7 +1,7 @@
 #ifndef GAPPHOST_H
 #define GAPPHOST_H
 
-#include <QtGui/QMainWindow>
+#include <QMainWindow>
 
 #include <qmenu.h>
 #include <qtabwidget.h>
@@ -11,6 +11,7 @@
 
 #include <map>
 #include <qmdiarea.h>
+
 
 namespace capputils {
 
@@ -58,7 +59,8 @@ private:
   boost::shared_ptr<workflow::Workflow> grandpa;
 
 public:
-  MainWindow(QWidget *parent = 0, Qt::WFlags flags = 0);
+  // changed Qt::WFlags to Qt::WindowFlags
+  MainWindow(QWidget *parent = 0, Qt::WindowFlags flags = 0);
   virtual ~MainWindow();
 
   virtual void closeEvent(QCloseEvent *event);

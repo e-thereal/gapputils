@@ -257,7 +257,7 @@ void updateModel(QStandardItem* parentItem, const std::string& propertyPrefix = 
         // no longer supported in order to guarantee, that the string value is always set to the
         // previous type name.
         if (subObject) {
-          std::string oldClassName(valueItem->text().toAscii().data());
+          std::string oldClassName(valueItem->text().toStdString());
           if (oldClassName.compare(subObject->getClassName())) {
             valueItem->setText(subObject->getClassName().c_str());
             buildModel(parentItem->child(iRow, 0), subObject, ref.getNode().get(), propertyPrefix + ref.getProperty()->getName() + ".");
@@ -315,7 +315,7 @@ void updateModel(QStandardItem* parentItem, ReflectableClass& object, Node* node
       // no longer supported in order to guarantee, that the string value is always set to the
       // previous type name.
       if (subObject) {
-        std::string oldClassName(value->text().toAscii().data());
+        std::string oldClassName(value->text().toStdString());
         if (oldClassName.compare(subObject->getClassName())) {
           value->setText(subObject->getClassName().c_str());
           buildModel(parentItem->child(gridPos, 0), subObject, node, propertyPrefix + properties[i]->getName() + ".");

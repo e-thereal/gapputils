@@ -22,8 +22,8 @@ namespace host {
 GlobalPropertiesViewDelegate::GlobalPropertiesViewDelegate(QObject *parent) : QStyledItemDelegate(parent) { }
 
 QWidget *GlobalPropertiesViewDelegate::createEditor(QWidget *parent,
-     const QStyleOptionViewItem & option,
-     const QModelIndex & index ) const
+     const QStyleOptionViewItem & /*option*/,
+     const QModelIndex & /*index*/ ) const
 {
   return new QLineEdit(parent);
 
@@ -74,7 +74,7 @@ void GlobalPropertiesViewDelegate::setModelData(QWidget *editor,
         if (node->getModule()->findProperty("Label"))
           label = node->getModule()->findProperty("Label")->getStringValue(*node->getModule());
 
-        gprop->rename(text.toAscii().data());
+        gprop->rename(text.toStdString());
         model->setData(index, (gprop->getName() + " (" + label + "::" + reference.getPropertyId() + ")").c_str());
         return;
       }

@@ -1,5 +1,3 @@
-#define BOOST_FILESYSTEM_VERSION 2
-
 #include "Node.h"
 
 #include <sstream>

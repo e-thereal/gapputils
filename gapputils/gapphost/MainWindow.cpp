@@ -47,7 +47,7 @@ using namespace workflow;
 
 namespace host {
 
-MainWindow::MainWindow(QWidget *parent, Qt::WFlags flags)
+MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags)
     : QMainWindow(parent, flags), autoQuit(false), workingWindow(0)
 {
   DataModel& model = DataModel::getInstance();
@@ -354,7 +354,8 @@ void MainWindow::loadWorkflow() {
 
     model.setMainWorkflow(boost::shared_ptr<workflow::Workflow>());
     model.getOpenWorkflows()->clear();
-    model.setConfiguration(filename.toAscii().data());
+    // changed from toAscii().data()
+    model.setConfiguration(filename.toStdString());
 
 #ifdef _RELEASE
     setWindowTitle(QString("grapevine - ") + model.getConfiguration().c_str());
@@ -575,7 +576,7 @@ void MainWindow::handleCurrentNodeChanged(boost::shared_ptr<workflow::Node> node
 }
 
 void MainWindow::selectModule(const QString& quuid) {
-  std::string uuid = quuid.toAscii().data();
+  std::string uuid = quuid.toStdString();
 
   Q_FOREACH (QMdiSubWindow *w, area->subWindowList()) {
     WorkbenchWindow* window = static_cast<WorkbenchWindow*>(w);

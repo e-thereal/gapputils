@@ -290,7 +290,7 @@ void PropertyGrid::makePropertyGlobal() {
         item->setFont(font);
       }
 
-      workflow->makePropertyGlobal(text.toAscii().data(), index.data(Qt::UserRole).value<PropertyReference>());
+      workflow->makePropertyGlobal(text.toStdString(), index.data(Qt::UserRole).value<PropertyReference>());
     } else {
       QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for a global property!");
     }
@@ -342,7 +342,7 @@ void PropertyGrid::connectProperty() {
   }
 
   if (list.exec() == QDialog::Accepted) {
-    workflow->connectProperty(list.getList()->selectedItems()[0]->text().toAscii().data(), reference);
+    workflow->connectProperty(list.getList()->selectedItems()[0]->text().toStdString(), reference);
     QStandardItemModel* model = dynamic_cast<QStandardItemModel*>(propertyGrid->model());
     if (model) {
       QStandardItem* item = model->itemFromIndex(index);
@@ -407,7 +407,7 @@ void PropertyGrid::makePropertyParameter() {
   std::string parameterName;
   LineEditDialog dialog("Enter the name of the parameter:", propertyGrid);
   if (dialog.exec() == QDialog::Accepted) {
-    parameterName = dialog.getText().toAscii().data();
+    parameterName = dialog.getText().toStdString();
     if (parameterName.size() == 0) {
       QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for a parameter!");
       return;
@@ -471,7 +471,7 @@ void PropertyGrid::makePropertyInput() {
   std::string inputName;
   LineEditDialog dialog("Enter the name of the input module:", propertyGrid);
   if (dialog.exec() == QDialog::Accepted) {
-    inputName = dialog.getText().toAscii().data();
+    inputName = dialog.getText().toStdString();
     if (inputName.size() == 0) {
       QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for an input module!");
       return;
@@ -534,7 +534,7 @@ void PropertyGrid::makePropertyOutput() {
   std::string outputName;
   LineEditDialog dialog("Enter the name of the output module:", propertyGrid);
   if (dialog.exec() == QDialog::Accepted) {
-    outputName = dialog.getText().toAscii().data();
+    outputName = dialog.getText().toStdString();
     if (outputName.size() == 0) {
       QMessageBox::warning(0, "Invalid Name", "The name you have entered is not a valid name for an output module!");
       return;
