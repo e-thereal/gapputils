@@ -34,7 +34,8 @@ ModelWriter::ModelWriter() {
 
 void ModelWriter::update(IProgressMonitor* monitor) const {
   fs::path path(getFilename());
-  fs::create_directories(path.parent_path());
+  if (!path.parent_path().empty())
+    fs::create_directories(path.parent_path());
 
   tbblas::deeplearn::serialize(*getModel(), getFilename());
   getHostInterface()->saveDataModel(getFilename() + ".config");

@@ -8,10 +8,13 @@
 #include "SaveModel.h"
 
 #include <tbblas/deeplearn/serialize_cnn.hpp>
+#include <boost/filesystem.hpp>
 
 namespace gml {
 
 namespace cnn {
+
+namespace fs = boost::filesystem;
 
 BeginPropertyDefinitions(SaveModel)
 
@@ -28,6 +31,9 @@ SaveModel::SaveModel() {
 }
 
 void SaveModel::update(IProgressMonitor* monitor) const {
+  fs::path path(getFilename());
+  if (!path.parent_path().empty())
+    fs::create_directories(path.parent_path());
   tbblas::deeplearn::serialize(*getModel(), getFilename());
   getHostInterface()->saveDataModel(getFilename() + ".config");
   newState->setOutputName(getFilename());

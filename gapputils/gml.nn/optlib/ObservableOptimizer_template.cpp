@@ -37,7 +37,7 @@ void ObservableOptimizer<D>::propagateObserver(IObservableOptimizer<D2>& optimiz
 {
   IOptimizerObserver<D2>* pobserver;
 
-  if (pobserver = dynamic_cast<IOptimizerObserver<D2>* >(&observer)) {
+  if ((pobserver = dynamic_cast<IOptimizerObserver<D2>* >(&observer))) {
     optimizer.addObserver(*pobserver);
   }
 }

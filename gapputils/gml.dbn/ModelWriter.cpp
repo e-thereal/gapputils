@@ -37,7 +37,8 @@ void ModelWriter::update(IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
 
   fs::path path(getFilename());
-  fs::create_directories(path.parent_path());
+  if (!path.parent_path().empty())
+    fs::create_directories(path.parent_path());
 
   bio::filtering_ostream file;
   file.push(boost::iostreams::gzip_compressor());

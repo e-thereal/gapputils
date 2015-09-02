@@ -11,6 +11,10 @@
 #include <capputils/EventHandler.h>
 
 #include <boost/regex.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/null.hpp>
+
+namespace bio = boost::iostreams;
 
 namespace gml {
 
@@ -36,7 +40,8 @@ RegEx::RegEx() {
 }
 
 void RegEx::changedHandler(ObservableClass* sender, int eventId) {
-  if (!Verifier::Valid(*this))
+  bio::stream<bio::null_sink> nullOstream((bio::null_sink()));
+  if (!Verifier::Valid(*this, nullOstream))
     return;
 
   if (eventId == inputId || eventId == regexId || eventId == formatId) {

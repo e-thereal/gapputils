@@ -9,12 +9,14 @@
 
 #include <capputils/attributes/DummyAttribute.h>
 #include <capputils/EventHandler.h>
-//#include <capputils/Serializer.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
+
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/null.hpp>
 
 #include <tbblas/deeplearn/serialize.hpp>
 
@@ -42,8 +44,11 @@ ModelWriter::ModelWriter() : _AutoSave(false) {
 
 void ModelWriter::changedHandler(ObservableClass* sender, int eventId) {
   if (eventId == modelId && getAutoSave()) {
-    this->execute(0);
-    this->writeResults();
+    bio::stream<bio::null_sink> nullOstream((bio::null_sink()));
+    if (capputils::Verifier::Valid(*this, nullOstream)) {
+      this->execute(0);
+      this->writeResults();
+    }
   }
 }
 
@@ -51,7 +56,8 @@ void ModelWriter::update(IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
 
   fs::path path(getFilename());
-  fs::create_directories(path.parent_path());
+  if (!path.parent_path().empty())
+    fs::create_directories(path.parent_path());
 
   bio::filtering_ostream file;
   file.push(boost::iostreams::gzip_compressor());

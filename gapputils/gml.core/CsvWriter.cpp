@@ -44,9 +44,8 @@ void CsvWriter::update(workflow::IProgressMonitor* monitor) const {
   Logbook& dlog = getLogbook();
 
   fs::path path(getFilename());
-  if (!fs::exists(path.parent_path())) {
+  if (!path.parent_path().empty() && !fs::exists(path.parent_path())) {
     fs::create_directories(path.parent_path());
-    dlog(Severity::Trace) << "Directories created.";
   }
 
   std::ofstream outfile(getFilename().c_str());
